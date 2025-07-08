@@ -6,30 +6,51 @@ import 'package:flutter/material.dart';
 
 const barWidth = 100; // in pixels
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  print('Setting window title...');
-  FlLinuxWindowManager.instance.setTitle(title: 'WayWing');
-  print('Setting window transparency enabled...');
-  FlLinuxWindowManager.instance.enableTransparency();
-  print('Setting window layer...');
-  FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
-  // we can't set all 4 anchors, because then we can't set exclusive zone
-  print('Setting window layer anchors...');
-  FlLinuxWindowManager.instance.setLayerAnchor(
-    anchor: ScreenEdge.top.value | ScreenEdge.bottom.value | ScreenEdge.right.value,
-  );
-  // TODO 2 implement option for horizontal bar
-  // TODO 1 get monitor size
-  print('Setting window size...');
-  FlLinuxWindowManager.instance.setSize(width: 800, height: 1920);
-  print('Setting window exclusive zone...');
-  FlLinuxWindowManager.instance.setLayerExclusiveZone(barWidth);
-  // TODO 1 implement options for the user to set fixed monitor
+  await setupMainWindow();
 
   print('Done setting initial window config, running app...');
   runApp(const App());
+}
+
+Future<void> setupMainWindow() async {
+  // we need to await an arbitrary time in between windowManager calls
+  // to avoid race conditions, because Futures returned by the lib cant' be trusted
+  const delayDuration = Duration(milliseconds: 100);
+
+  print('Setting window title...');
+  await FlLinuxWindowManager.instance.setTitle(title: 'WayWing');
+  await Future.delayed(delayDuration);
+
+  print('Setting window transparency enabled...');
+  await FlLinuxWindowManager.instance.enableTransparency();
+  await Future.delayed(delayDuration);
+
+  print('Setting window layer...');
+  await FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
+  await Future.delayed(delayDuration);
+
+  // TODO 1 implement options for the user to set fixed monitor
+  // TODO 1 get monitor size
+  print('Setting window size...');
+  await FlLinuxWindowManager.instance.setSize(width: 800, height: 1920);
+  await Future.delayed(delayDuration);
+
+  print('Setting window exclusive zone...');
+  await FlLinuxWindowManager.instance.setLayerExclusiveZone(barWidth);
+  await Future.delayed(delayDuration);
+
+  // calling setLayerAnchor before setSize breaks the app
+  // calling setLayerAnchor before setLayerExclusiveZone breaks InputRegions
+  print('Setting window layer anchors...');
+  // TODO 2 implement option for user to set anchor side, including horizontal bar
+  // we can't set all 4 anchors, because then we can't set exclusive zone
+  await FlLinuxWindowManager.instance.setLayerAnchor(
+    anchor: ScreenEdge.top.value | ScreenEdge.bottom.value | ScreenEdge.right.value,
+  );
+  await Future.delayed(delayDuration);
 }
 
 class App extends StatelessWidget {
@@ -46,6 +67,7 @@ class App extends StatelessWidget {
             brightness: Brightness.dark,
             colorScheme: ColorScheme.fromSeed(brightness: Brightness.dark, seedColor: Colors.deepPurple),
           ),
+          debugShowCheckedModeBanner: false,
           home: Scaffold(backgroundColor: Colors.transparent, body: Stack(children: [Bar()])),
         ),
       ),

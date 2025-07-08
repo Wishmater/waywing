@@ -68,7 +68,14 @@ class App extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(brightness: Brightness.dark, seedColor: Colors.deepPurple),
           ),
           debugShowCheckedModeBanner: false,
-          home: Scaffold(backgroundColor: Colors.transparent, body: Stack(children: [Bar()])),
+          home: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Stack(
+              children: [
+                Bar(),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -90,7 +97,10 @@ class Bar extends StatelessWidget {
       child: InputRegion(
         child: Material(
           color: Theme.of(context).canvasColor,
-          child: InkWell(onTap: () {}, child: Center(child: Text('WayWing'))),
+          child: InkWell(
+            onTap: () {},
+            child: Center(child: Text('WayWing')),
+          ),
         ),
       ),
     );

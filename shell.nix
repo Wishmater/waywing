@@ -1,8 +1,17 @@
 { pkgs ? import <nixpkgs> { }, }:
 
-pkgs.mkShell {
+let
+  unstablenixpkgs = fetchTarball
+    "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
+  unstablepkgs = import unstablenixpkgs {
+    config = { };
+    overlays = [ ];
+  };
+
+in pkgs.mkShell {
 
   buildInputs = with pkgs; [
+    unstablepkgs.flutter
     pkg-config
     gtk3
     libsysprof-capture

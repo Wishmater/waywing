@@ -6,6 +6,10 @@
 #endif
 
 #include "flutter/generated_plugin_registrant.h"
+#include <fl_linux_window_manager/fl_linux_window_manager_plugin.h>
+
+#include <gdk/gdkwayland.h>
+#include <wayland-client.h>
 
 struct _MyApplication {
   GtkApplication parent_instance;
@@ -48,12 +52,36 @@ static void my_application_activate(GApplication* application) {
   }
 
   gtk_window_set_default_size(window, 1280, 720);
+  // up to here is normal flutter code
+
+  // add this line for fl_linux_window_manager package to work properly
+  FLWM::WindowManager::convertToLayer(GTK_WINDOW(window));
+
+  // this line was already in default flutter file, just moved down
   gtk_widget_show(GTK_WIDGET(window));
 
+  // these lines were already in default flutter file
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(project, self->dart_entrypoint_arguments);
 
+  // this line was already in default flutter file, just moved up
   FlView* view = fl_view_new(project);
+
+  /// Code to make the background window transparent
+  //! This code seems to work for flutter version 3.19-
+  GdkVisual* visual;
+  gtk_widget_set_app_paintable(GTK_WIDGET(window), TRUE);
+  visual = gdk_screen_get_rgba_visual(screen);
+  if (visual != NULL && gdk_screen_is_composited(screen)) {
+    g_print("Set visual applied\n");
+    gtk_widget_set_visual(GTK_WIDGET(window), visual);
+  }
+  //! This code seems to be needed for flutter version 3.19+
+  GdkRGBA background_color;
+  gdk_rgba_parse(&background_color, "#00000000");
+  fl_view_set_background_color(view, &background_color);
+
+  // from here its just normal flutter code
   gtk_widget_show(GTK_WIDGET(view));
   gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(view));
 

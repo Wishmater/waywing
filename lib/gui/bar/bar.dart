@@ -1,3 +1,4 @@
+import 'package:dartx/dartx_io.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/material.dart';
@@ -53,10 +54,10 @@ class Bar extends StatelessWidget {
           width: width ?? double.infinity,
           height: height ?? double.infinity,
           padding: EdgeInsets.only(
-            top: top ?? 0,
-            bottom: bottom ?? 0,
-            left: left ?? 0,
-            right: right ?? 0,
+            top: top?.coerceAtLeast(0) ?? 0,
+            bottom: bottom?.coerceAtLeast(0) ?? 0,
+            left: left?.coerceAtLeast(0) ?? 0,
+            right: right?.coerceAtLeast(0) ?? 0,
           ),
           child: ClipPath(
             clipBehavior: Clip.antiAliasWithSaveLayer,

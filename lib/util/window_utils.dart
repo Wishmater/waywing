@@ -1,6 +1,7 @@
 import 'package:fl_linux_window_manager/fl_linux_window_manager.dart';
 import 'package:fl_linux_window_manager/models/layer.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
+import 'package:flutter/foundation.dart';
 import 'package:waywing/util/config.dart';
 
 const _delayDuration = Duration(milliseconds: 100);
@@ -22,9 +23,14 @@ Future<void> setupMainWindow() async {
   await Future.delayed(_delayDuration);
 
   // TODO: 1 implement options for the user to set fixed monitor(s?)
-  // TODO: 1 get monitor size
+  // TODO: 2 get monitor info from the WindowManager library, instead of this hack, which always returns 1st monitor (not focuset one)
   print('Setting window size...');
-  await FlLinuxWindowManager.instance.setSize(width: 1080, height: 1920);
+  final display = PlatformDispatcher.instance.displays.first;
+  final physicalSize = display.size; // Physical pixels
+  final scaleFactor = display.devicePixelRatio; // Pixels per logical pixel
+  final resolution = (physicalSize.width ~/ scaleFactor, physicalSize.height ~/ scaleFactor);
+  print('  Detected monitor resolution: $resolution');
+  await FlLinuxWindowManager.instance.setSize(width: resolution.$1, height: resolution.$2);
   await Future.delayed(_delayDuration);
 
   return updateMainWindow();

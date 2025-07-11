@@ -1,5 +1,7 @@
+import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/material.dart';
+import 'package:waywing/gui/widgets/docked_rounded_corners_clipper.dart';
 import 'package:waywing/util/config.dart';
 
 class Bar extends StatelessWidget {
@@ -7,27 +9,51 @@ class Bar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    double barLogicalPixels = config.barWidth / devicePixelRatio;
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final barCrossSize = config.barWidth / devicePixelRatio;
+    final outerRoundedEdgeMainSize = barCrossSize * config.barRadiusOutPercMain;
+    double? width, height, top, bottom, left, right;
+    if (config.barSide == ScreenEdge.left || config.barSide == ScreenEdge.right) {
+      // vertical bar
+      width = barCrossSize;
+      top = config.barMarginTop - outerRoundedEdgeMainSize;
+      bottom = config.barMarginBottom - outerRoundedEdgeMainSize;
+      // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
+      if (config.barSide == ScreenEdge.left) {
+        left = 0; // config.barMarginLeft;
+      } else {
+        right = 0; // config.barMarginRight;
+      }
+    } else {
+      // horizontal bar
+      height = barCrossSize;
+      left = config.barMarginLeft - outerRoundedEdgeMainSize;
+      right = config.barMarginRight - outerRoundedEdgeMainSize;
+      // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
+      if (config.barSide == ScreenEdge.top) {
+        top = 0; // config.barMarginTop;
+      } else {
+        bottom = 0; // config.barMarginBottom;
+      }
+    }
+
     return AnimatedPositioned(
       duration: config.animationDuration,
-      top: config.barMarginTop,
-      bottom: config.barMarginBottom,
-      left: config.barMarginLeft,
-      right: config.barMarginRight,
-      width: barLogicalPixels,
+      width: width,
+      height: height,
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
       child: ClipPath(
-        clipper: BarClipper(
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        clipper: DockedRoundedCornersClipper(
+          dockedSide: config.barSide,
           radiusInPercCross: config.barRadiusInPercCross,
           radiusInPercMain: config.barRadiusInPercMain,
-          radiusOutPercCross: config.barRadiusInPercCross,
-          radiusOutPercMain: config.barRadiusInPercCross,
+          radiusOutPercCross: config.barRadiusOutPercCross,
+          radiusOutPercMain: config.barRadiusOutPercMain,
         ),
-        clipBehavior: Clip.antiAliasWithSaveLayer,
-        // borderRadius: BorderRadius.horizontal(
-        //   // in DIP # TODO 2 get from user config
-        //   left: Radius.elliptical(32, 24),
-        // ),
         child: InputRegion(
           child: Material(
             color: Theme.of(context).canvasColor,
@@ -39,66 +65,5 @@ class Bar extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class BarClipper extends CustomClipper<Path> {
-  // in percentage # TODO 2 let user configure these
-  final double radiusInPercCross;
-  final double radiusInPercMain;
-  final double radiusOutPercCross;
-  final double radiusOutPercMain;
-
-  BarClipper({
-    required this.radiusInPercCross,
-    required this.radiusInPercMain,
-    required this.radiusOutPercCross,
-    required this.radiusOutPercMain,
-  });
-
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    final width = size.width;
-    final height = size.height;
-    final double radiusInX, radiusInY, radiusOutX, radiusOutY;
-    if (width < height) {
-      radiusOutX = width * radiusOutPercCross;
-      radiusOutY = width * radiusOutPercMain;
-      radiusInX = width * radiusInPercCross;
-      radiusInY = width * radiusInPercMain + radiusOutY;
-    } else {
-      radiusOutX = height * radiusOutPercMain;
-      radiusOutY = height * radiusOutPercCross;
-      radiusInX = height * radiusInPercMain + radiusOutX;
-      radiusInY = height * radiusInPercCross;
-    }
-
-    // Top-left corner
-    path.moveTo(0, radiusInY);
-    path.quadraticBezierTo(0, radiusOutY, radiusInX, radiusOutY);
-
-    // Top-right corner
-    path.lineTo(width - radiusOutX, radiusOutY);
-    path.quadraticBezierTo(width, radiusOutY, width, 0);
-
-    // Bottom-right corner
-    path.lineTo(width, height);
-    path.quadraticBezierTo(width, height - radiusOutY, width - radiusOutX, height - radiusOutY);
-
-    // Bottom-left corner
-    path.lineTo(radiusInX, height - radiusOutY);
-    path.quadraticBezierTo(0, height - radiusOutY, 0, height - radiusInY);
-
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant BarClipper oldClipper) {
-    return radiusInPercCross != oldClipper.radiusInPercCross ||
-        radiusInPercMain != oldClipper.radiusInPercMain ||
-        radiusOutPercCross != oldClipper.radiusOutPercCross ||
-        radiusInPercMain != oldClipper.radiusInPercMain;
   }
 }

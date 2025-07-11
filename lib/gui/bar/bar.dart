@@ -10,6 +10,7 @@ class Bar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final monitorSize = MediaQuery.sizeOf(context);
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     final barCrossSize = config.barWidth / devicePixelRatio;
     final outerRoundedEdgeMainSize = barCrossSize * config.barRadiusOutPercMain;
@@ -51,8 +52,8 @@ class Bar extends StatelessWidget {
         child: AnimatedContainer(
           duration: config.animationDuration,
           curve: config.animationCurve,
-          width: width ?? double.infinity,
-          height: height ?? double.infinity,
+          width: width ?? monitorSize.width,
+          height: height ?? monitorSize.height,
           padding: EdgeInsets.only(
             top: top?.coerceAtLeast(0) ?? 0,
             bottom: bottom?.coerceAtLeast(0) ?? 0,

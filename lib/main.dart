@@ -2,6 +2,7 @@ import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/material.dart';
 import 'package:waywing/gui/bar/bar.dart';
 import 'package:waywing/util/config.dart';
+import 'package:waywing/util/update_window_on_config_change.dart';
 import 'package:waywing/util/window_utils.dart';
 
 void main() async {
@@ -16,11 +17,13 @@ void main() async {
 class App extends StatelessWidget {
   const App({super.key});
 
-  // This widget is the root of your application.
+  // TODO: 3 once config is implemented, listen to changes in the file and setState() here, that should update the whole app
+
   @override
   Widget build(BuildContext context) {
     return InputRegion.negative(
-      child: Center(
+      child: UpdateWindowOnConfigChange(
+        config: config,
         child: MaterialApp(
           title: 'WayWing',
           debugShowCheckedModeBanner: false,

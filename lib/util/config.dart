@@ -8,7 +8,7 @@ class Config {
   const Config(); // declared as const so it works with hot reload
 
   // Bar positioning / sizing
-  final ScreenEdge barSide = ScreenEdge.left;
+  final ScreenEdge barSide = ScreenEdge.right;
   final int barWidth = 80; // in pixels
   final double barMarginLeft = 0; // in flutter DIP, maybe also make in pixels so it's consistent
   final double barMarginRight = 0; // in flutter DIP, maybe also make in pixels so it's consistent
@@ -27,5 +27,7 @@ class Config {
   final Color seedColor = Colors.deepPurple;
 
   // Animations
-  final Duration animationDuration = const Duration(milliseconds: 4000);
+  final Duration animationDuration = const Duration(milliseconds: 250);
+  final Curve animationCurve = Curves.easeOutCubic;
+  // we probably want to set different animation "types" and then the user can set duration and curve for each of them
 }

@@ -14,13 +14,14 @@ class Config {
   final double barMarginRight = 0; // in flutter DIP, maybe also make in pixels so it's consistent
   final double barMarginTop = 380; // in flutter DIP, maybe also make in pixels so it's consistent
   final double barMarginBottom = 340; // in flutter DIP, maybe also make in pixels so it's consistent
+  // TODO: 3 validate that mainSize is not <=0 after deducting margins
+  // TODO: 3 validate that you can't add margin on sides that conflict with barSide selected
   // Bar border radius
   final double barRadiusInPercCross = 0.5; // in percentage of bar cross-size
   final double barRadiusInPercMain = 0.5 * 0.67; // in percentage of bar cross-size
   final double barRadiusOutPercCross = 0.5; // in percentage of bar cross-size
   final double barRadiusOutPercMain = 0.5 * 1.5; // in percentage
-  // TODO: 2 validate that you can't add margin on sides that conflict with barSide selected ??
-  // TODO: 3 also support fixes pixel radius values
+  // TODO: 3 also support fixed pixel radius values
 
   // Theme / styling
   final ThemeMode themeMode = ThemeMode.light;

@@ -2,6 +2,7 @@ import 'package:dartx/dartx_io.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/material.dart';
+import 'package:waywing/gui/system_tray/tray.dart';
 import 'package:waywing/gui/widgets/docked_rounded_corners_clipper.dart';
 import 'package:waywing/util/config.dart';
 
@@ -74,7 +75,13 @@ class Bar extends StatelessWidget {
                 color: Theme.of(context).canvasColor,
                 child: InkWell(
                   onTap: () {},
-                  child: Center(child: Text('WayWing')),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('WayWing'),
+                      SystemTrayWidget(),
+                    ],
+                  ),
                 ),
               ),
             ),

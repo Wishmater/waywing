@@ -25,6 +25,9 @@ dependencies:
   animations: ^2.0.11
   auto_size_text: ^3.0.0
 
+  # Native plugins
+  dbus: ^0.7.11
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -2,8 +2,8 @@ import 'package:dartx/dartx_io.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/material.dart';
-import 'package:waywing/gui/system_tray/tray.dart';
 import 'package:waywing/gui/widgets/docked_rounded_corners_clipper.dart';
+import 'package:waywing/models/_feather.dart';
 import 'package:waywing/util/config.dart';
 
 class Bar extends StatelessWidget {
@@ -16,31 +16,33 @@ class Bar extends StatelessWidget {
     final barCrossSize = config.barWidth / devicePixelRatio;
     final outerRoundedEdgeMainSize = barCrossSize * config.barRadiusOutPercMain;
     double? width, height, top, bottom, left, right;
-    Alignment alignment;
-    if (config.barSide == ScreenEdge.left || config.barSide == ScreenEdge.right) {
-      // vertical bar
+    Alignment barAlignment, startAlignment, endAlignment;
+    if (config.isBarVertical) {
+      startAlignment = Alignment.topCenter;
+      endAlignment = Alignment.bottomCenter;
       width = barCrossSize;
       top = config.barMarginTop - outerRoundedEdgeMainSize;
       bottom = config.barMarginBottom - outerRoundedEdgeMainSize;
       // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
       if (config.barSide == ScreenEdge.left) {
-        alignment = Alignment.centerLeft;
+        barAlignment = Alignment.centerLeft;
         left = 0; // config.barMarginLeft;
       } else {
-        alignment = Alignment.centerRight;
+        barAlignment = Alignment.centerRight;
         right = 0; // config.barMarginRight;
       }
     } else {
-      // horizontal bar
+      startAlignment = Alignment.centerLeft;
+      endAlignment = Alignment.centerRight;
       height = barCrossSize;
       left = config.barMarginLeft - outerRoundedEdgeMainSize;
       right = config.barMarginRight - outerRoundedEdgeMainSize;
       // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
       if (config.barSide == ScreenEdge.top) {
-        alignment = Alignment.topCenter;
+        barAlignment = Alignment.topCenter;
         top = 0; // config.barMarginTop;
       } else {
-        alignment = Alignment.bottomCenter;
+        barAlignment = Alignment.bottomCenter;
         bottom = 0; // config.barMarginBottom;
       }
     }
@@ -49,7 +51,7 @@ class Bar extends StatelessWidget {
       child: AnimatedAlign(
         duration: config.animationDuration,
         curve: config.animationCurve,
-        alignment: alignment,
+        alignment: barAlignment,
         child: AnimatedContainer(
           duration: config.animationDuration,
           curve: config.animationCurve,
@@ -75,11 +77,33 @@ class Bar extends StatelessWidget {
                 color: Theme.of(context).canvasColor,
                 child: InkWell(
                   onTap: () {},
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    fit: StackFit.expand,
                     children: [
-                      Text('WayWing'),
-                      SystemTrayWidget(),
+                      Align(
+                        alignment: endAlignment,
+                        child: buildBarLayoutWidget(
+                          context,
+                          buildFeatherBarWidgets(context, config.barEndFeathers),
+                        ),
+                      ),
+
+                      Align(
+                        alignment: Alignment.center,
+                        child: buildBarLayoutWidget(
+                          context,
+                          buildFeatherBarWidgets(context, config.barCenterFeathers),
+                        ),
+                      ),
+
+                      Align(
+                        alignment: startAlignment,
+                        child: buildBarLayoutWidget(
+                          context,
+                          buildFeatherBarWidgets(context, config.barStartFeathers),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -89,5 +113,45 @@ class Bar extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> buildFeatherBarWidgets(BuildContext context, List<Feather> feathers) {
+    final result = <Widget>[];
+    for (final e in feathers) {
+      final widget = e.buildBarWidget(context);
+      if (widget != null) {
+        result.add(widget);
+      }
+    }
+    return result;
+  }
+
+  Widget buildBarLayoutWidget(BuildContext context, List<Widget> children) {
+    final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final barCrossSize = config.barWidth / devicePixelRatio;
+    final outerRoundedEdgeMainSize = barCrossSize * config.barRadiusOutPercMain;
+    final mainAxisPadding = outerRoundedEdgeMainSize + config.barItemSize * 0.25;
+    // TODO: 2 implement a proper layout that handles gracefully when widgets overflow
+    if (config.isBarVertical) {
+      // vertical bar
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: mainAxisPadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
+      );
+    } else {
+      // horizontal bar
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: mainAxisPadding),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
+      );
+    }
   }
 }

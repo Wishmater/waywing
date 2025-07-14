@@ -8,7 +8,7 @@ late Config config; // TODO: 3 somehow make sure not everyone can change this
 @immutable
 class Config {
   // Theme / styling
-  final ThemeMode themeMode = ThemeMode.light;
+  final ThemeMode themeMode = ThemeMode.system;
   final Color seedColor = Colors.deepPurple;
 
   // Animations

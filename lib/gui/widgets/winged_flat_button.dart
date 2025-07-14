@@ -144,6 +144,8 @@ class WingedFlatButton extends StatelessWidget {
       highlightShape: BoxShape.rectangle,
       hoverDuration: config.animationDuration * 0.5,
       borderRadius: borderRadius,
+      child: child, // ignore: sort_child_properties_last
+      // properties just passed to InkResponse as-is
       onTap: onTap,
       onTapDown: onTapDown,
       onTapUp: onTapUp,

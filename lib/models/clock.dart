@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:waywing/gui/widgets/winged_flat_button.dart';
 import 'package:waywing/models/_feather.dart';
 import 'package:waywing/util/config.dart';
@@ -29,7 +30,9 @@ class Clock extends Feather {
     timeString = DerivedValueNotifier(
       dependencies: [time],
       derive: () {
-        return '${time.value.hour}\n${time.value.minute}';
+        final hour = DateFormat('HH').format(time.value);
+        final minute = DateFormat('mm').format(time.value);
+        return '$hour\n$minute';
       },
     );
   }

@@ -33,7 +33,6 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
 
   @override
   void didUpdateWidget(covariant ConfigChangeWatcher oldWidget) {
-    print('didUpdateWidget');
     super.didUpdateWidget(oldWidget);
     // hack to always update hardcoded config on hot reload
     setNewConfig(Config()); // TODO: 2 remove this once reading user config is implemented

@@ -31,10 +31,12 @@ class App extends StatelessWidget {
           themeMode: config.themeMode,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: config.seedColor),
+            splashFactory: InkSparkle.splashFactory,
           ),
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             colorScheme: ColorScheme.fromSeed(brightness: Brightness.dark, seedColor: config.seedColor),
+            splashFactory: InkSparkle.splashFactory,
           ),
           home: Scaffold(
             backgroundColor: Colors.transparent,

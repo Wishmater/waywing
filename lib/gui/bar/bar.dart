@@ -75,37 +75,34 @@ class Bar extends StatelessWidget {
             child: InputRegion(
               child: Material(
                 color: Theme.of(context).canvasColor,
-                child: InkWell(
-                  onTap: () {},
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    fit: StackFit.expand,
-                    children: [
-                      Align(
-                        alignment: endAlignment,
-                        child: buildBarLayoutWidget(
-                          context,
-                          buildFeatherBarWidgets(context, config.barEndFeathers),
-                        ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  fit: StackFit.expand,
+                  children: [
+                    Align(
+                      alignment: endAlignment,
+                      child: buildBarLayoutWidget(
+                        context,
+                        buildFeatherBarWidgets(context, config.barEndFeathers),
                       ),
+                    ),
 
-                      Align(
-                        alignment: Alignment.center,
-                        child: buildBarLayoutWidget(
-                          context,
-                          buildFeatherBarWidgets(context, config.barCenterFeathers),
-                        ),
+                    Align(
+                      alignment: Alignment.center,
+                      child: buildBarLayoutWidget(
+                        context,
+                        buildFeatherBarWidgets(context, config.barCenterFeathers),
                       ),
+                    ),
 
-                      Align(
-                        alignment: startAlignment,
-                        child: buildBarLayoutWidget(
-                          context,
-                          buildFeatherBarWidgets(context, config.barStartFeathers),
-                        ),
+                    Align(
+                      alignment: startAlignment,
+                      child: buildBarLayoutWidget(
+                        context,
+                        buildFeatherBarWidgets(context, config.barStartFeathers),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -130,7 +127,7 @@ class Bar extends StatelessWidget {
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
     final barCrossSize = config.barWidth / devicePixelRatio;
     final outerRoundedEdgeMainSize = barCrossSize * config.barRadiusOutPercMain;
-    final mainAxisPadding = outerRoundedEdgeMainSize + config.barItemSize * 0.25;
+    final mainAxisPadding = outerRoundedEdgeMainSize + config.barItemSize * 0.2;
     // TODO: 2 implement a proper layout that handles gracefully when widgets overflow
     if (config.isBarVertical) {
       // vertical bar

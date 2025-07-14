@@ -18,7 +18,7 @@ class Config {
 
   // Bar positioning / sizing
   final ScreenEdge barSide = ScreenEdge.right;
-  final int barWidth = 80; // in pixels
+  final int barWidth = 64; // in pixels
   final double barMarginLeft = 0; // in flutter DIP, maybe also make in pixels so it's consistent
   final double barMarginRight = 0; // in flutter DIP, maybe also make in pixels so it's consistent
   final double barMarginTop = 380; // in flutter DIP, maybe also make in pixels so it's consistent

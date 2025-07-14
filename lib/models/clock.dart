@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:waywing/gui/widgets/winged_flat_button.dart';
 import 'package:waywing/models/_feather.dart';
 import 'package:waywing/util/config.dart';
+import 'package:waywing/util/derived_value_notifier.dart';
 
 // TODO: 1 how should Feather initialization be handled?
 // Ideally they are singletons, it doesn't really make sense for them to be instatiated twice.
@@ -45,43 +47,15 @@ class Clock extends Feather {
       valueListenable: timeString,
       builder: (context, value, _) {
         final isBarVertical = config.isBarVertical;
-        return Container(
-          color: Colors.red,
+        return SizedBox(
           width: !isBarVertical ? config.barItemSize : null,
           height: isBarVertical ? config.barItemSize : null,
-          child: Center(child: Text(value)),
+          child: WingedFlatButton(
+            onTap: () {},
+            child: Center(child: Text(value)),
+          ),
         );
       },
     );
-  }
-}
-
-// TODO: 2 move this to a utils file
-typedef DeriveCallback<T> = T Function();
-
-class DerivedValueNotifier<T> extends ValueNotifier<T> {
-  final List<Listenable> dependencies;
-  final DeriveCallback<T> derive;
-
-  DerivedValueNotifier({
-    required List<Listenable> dependencies,
-    required this.derive,
-  }) : dependencies = List.unmodifiable(dependencies),
-       super(derive()) {
-    for (final e in dependencies) {
-      e.addListener(_update);
-    }
-  }
-
-  void _update() {
-    value = derive();
-  }
-
-  @override
-  void dispose() {
-    for (final e in dependencies) {
-      e.removeListener(_update);
-    }
-    super.dispose();
   }
 }

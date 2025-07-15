@@ -11,9 +11,17 @@ class Bar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final monitorSize = MediaQuery.sizeOf(context);
+    // For our calculations on high scale screens, devicePixelRatio needs to be
+    // applied only to the sides that span the full screen.
+    // For bar crossAxis, since it is unbound, the compositor will give it more
+    // physical space so we can use the same amount of DIP (at least in hyprland).
+    // For sides that span the full monitor (like bar mainAxis), we actually have
+    // less physical space now, so we need to asjust our DIP amounts or it will
+    // overflow the screen (because the same amount of DIP now translates to more
+    // physical pixels). For scale < 1 it should also work with the same logic.
     final devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-    final barCrossSize = config.barWidth / devicePixelRatio;
+    final monitorSize = MediaQuery.sizeOf(context);
+    final barCrossSize = config.barWidth.toDouble();
     final outerRoundedEdgeMainSize = barCrossSize * config.barRadiusOutPercMain;
     double? width, height, top, bottom, left, right;
     Alignment barAlignment, startAlignment, endAlignment;
@@ -21,8 +29,8 @@ class Bar extends StatelessWidget {
       startAlignment = Alignment.topCenter;
       endAlignment = Alignment.bottomCenter;
       width = barCrossSize;
-      top = config.barMarginTop - outerRoundedEdgeMainSize;
-      bottom = config.barMarginBottom - outerRoundedEdgeMainSize;
+      top = config.barMarginTop / devicePixelRatio - outerRoundedEdgeMainSize;
+      bottom = config.barMarginBottom / devicePixelRatio - outerRoundedEdgeMainSize;
       // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
       if (config.barSide == ScreenEdge.left) {
         barAlignment = Alignment.centerLeft;
@@ -35,8 +43,8 @@ class Bar extends StatelessWidget {
       startAlignment = Alignment.centerLeft;
       endAlignment = Alignment.centerRight;
       height = barCrossSize;
-      left = config.barMarginLeft - outerRoundedEdgeMainSize;
-      right = config.barMarginRight - outerRoundedEdgeMainSize;
+      left = config.barMarginLeft / devicePixelRatio - outerRoundedEdgeMainSize;
+      right = config.barMarginRight / devicePixelRatio - outerRoundedEdgeMainSize;
       // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
       if (config.barSide == ScreenEdge.top) {
         barAlignment = Alignment.topCenter;
@@ -46,6 +54,12 @@ class Bar extends StatelessWidget {
         bottom = 0; // config.barMarginBottom;
       }
     }
+    print(devicePixelRatio);
+    print(monitorSize);
+    print(barCrossSize);
+    print(height);
+    print(top);
+    print(bottom);
 
     return Positioned.fill(
       child: AnimatedAlign(

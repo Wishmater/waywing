@@ -18,6 +18,7 @@ dependencies:
   # Language utilities
   intl: ^0.20.2
   dartx: ^1.2.0
+  args: ^2.7.0
 
   # Widgets / UII
   sliver_tools: ^0.2.12

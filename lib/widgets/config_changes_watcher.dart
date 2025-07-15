@@ -50,7 +50,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   }
 
   Future<void> onWindowConfigUpdated() async {
-    await updateMainWindow();
+    await updateEdgeWindows();
     InputRegionController.notifyConfigChange();
   }
 

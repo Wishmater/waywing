@@ -1,3 +1,6 @@
+// ignore_for_file: prefer_single_quotes
+
+import 'package:args/args.dart';
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/material.dart';
 import 'package:waywing/core/bar.dart';
@@ -5,7 +8,15 @@ import 'package:waywing/core/config.dart';
 import 'package:waywing/widgets/config_changes_watcher.dart';
 import 'package:waywing/util/window_utils.dart';
 
-void main() async {
+void main(List<String> args) async {
+  final cliparser = ArgParser()
+    ..addFlag("dummy-layer", help: "Used internally only. Extra layer created just to add exclusive side size.");
+  final results = cliparser.parse(args);
+  final dummyLayer = results["dummy-layer"] as bool?;
+  if (dummyLayer ?? false) {
+    return;
+  }
+
   final configFuture = reloadConfig();
 
   WidgetsFlutterBinding.ensureInitialized();

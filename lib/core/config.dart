@@ -1,20 +1,23 @@
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:flutter/material.dart';
-import 'package:waywing/models/_feather.dart';
-import 'package:waywing/models/clock.dart';
+import 'package:waywing/core/feather.dart';
+import 'package:waywing/core/feather_registry.dart';
 
-late Config config; // TODO: 3 somehow make sure not everyone can change this
+Config get config => _config;
+late Config _config;
 
 @immutable
 class Config {
+  Config._();
+
   // Theme / styling
-  final ThemeMode themeMode = ThemeMode.system;
+  final ThemeMode themeMode = ThemeMode.light;
   final Color seedColor = Colors.deepPurple;
 
   // Animations
   final Duration animationDuration = const Duration(milliseconds: 250);
   final Curve animationCurve = Curves.easeOutCubic;
-  // TODO: 3 we probably want to set different animation "types" and then the user can set duration and curve for each of them
+  // TODO: 2 we probably want to set different animation "types" and then the user can set duration and curve for each of them
 
   // Bar positioning / sizing
   final ScreenEdge barSide = ScreenEdge.right;
@@ -41,12 +44,13 @@ class Config {
   final List<Feather> barStartFeathers = List.unmodifiable([]);
   final List<Feather> barCenterFeathers = List.unmodifiable([]);
   final List<Feather> barEndFeathers = List.unmodifiable([
-    clock,
+    featherRegistry.getFeatherByName('Clock'),
   ]);
   // TODO: 3 validate that passed feather names exist
 }
 
-Future<Config> readConfig() async {
-  // TODO: 2 get config from user
-  return Config();
+Future<Config> reloadConfig() async {
+  // TODO: 2 get config from user file
+  _config = Config._();
+  return _config;
 }

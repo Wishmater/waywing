@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:waywing/util/config.dart';
+import 'package:waywing/core/config.dart';
 
 class WingedFlatButton extends StatelessWidget {
   final Widget child;

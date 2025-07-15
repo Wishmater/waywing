@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:waywing/services/system_tray.dart';
+import 'package:waywing/modules/system_tray/system_tray_service.dart';
 
 class SystemTrayWidget extends StatefulWidget {
   const SystemTrayWidget({super.key});

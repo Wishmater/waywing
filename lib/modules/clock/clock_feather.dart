@@ -2,15 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:waywing/gui/widgets/winged_flat_button.dart';
-import 'package:waywing/models/_feather.dart';
-import 'package:waywing/util/config.dart';
+import 'package:waywing/widgets/winged_flat_button.dart';
+import 'package:waywing/core/feather.dart';
+import 'package:waywing/core/config.dart';
 import 'package:waywing/util/derived_value_notifier.dart';
-
-// TODO: 1 how should Feather initialization be handled?
-// Ideally they are singletons, it doesn't really make sense for them to be instatiated twice.
-// If they are singletons, we still need to be able to dispose/remove them only from Feathers service.
-final clock = Clock();
 
 class Clock extends Feather {
   @override
@@ -45,7 +40,7 @@ class Clock extends Feather {
   }
 
   @override
-  Widget? buildBarWidget(BuildContext context) {
+  Widget? buildCompactWidget(BuildContext context) {
     return ValueListenableBuilder(
       valueListenable: timeString,
       builder: (context, value, _) {

@@ -1,16 +1,16 @@
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/material.dart';
-import 'package:waywing/gui/bar/bar.dart';
-import 'package:waywing/util/config.dart';
-import 'package:waywing/gui/widgets/config_changes_watcher.dart';
+import 'package:waywing/core/bar.dart';
+import 'package:waywing/core/config.dart';
+import 'package:waywing/widgets/config_changes_watcher.dart';
 import 'package:waywing/util/window_utils.dart';
 
 void main() async {
-  final configFuture = readConfig();
+  final configFuture = reloadConfig();
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  config = await configFuture; // everything below here needs config to already be loaded
+  await configFuture; // everything below here needs config to already be loaded
 
   await setupMainWindow();
 

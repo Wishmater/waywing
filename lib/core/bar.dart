@@ -2,9 +2,9 @@ import 'package:dartx/dartx_io.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/material.dart';
-import 'package:waywing/gui/widgets/docked_rounded_corners_clipper.dart';
-import 'package:waywing/models/_feather.dart';
-import 'package:waywing/util/config.dart';
+import 'package:waywing/widgets/docked_rounded_corners_clipper.dart';
+import 'package:waywing/core/feather.dart';
+import 'package:waywing/core/config.dart';
 
 class Bar extends StatelessWidget {
   const Bar({super.key});
@@ -115,7 +115,7 @@ class Bar extends StatelessWidget {
   List<Widget> buildFeatherBarWidgets(BuildContext context, List<Feather> feathers) {
     final result = <Widget>[];
     for (final e in feathers) {
-      final widget = e.buildBarWidget(context);
+      final widget = e.buildCompactWidget(context);
       if (widget != null) {
         result.add(widget);
       }

@@ -1,23 +1,16 @@
 import 'package:fl_linux_window_manager/controller/input_region_controller.dart';
 import 'package:flutter/widgets.dart';
-import 'package:waywing/services/_feathers.dart';
-import 'package:waywing/util/config.dart';
+import 'package:waywing/core/feather_service.dart';
+import 'package:waywing/core/config.dart';
 import 'package:waywing/util/window_utils.dart';
 
 class ConfigChangeWatcher extends StatefulWidget {
   final Widget child;
 
-  const ConfigChangeWatcher({
-    required this.child,
-    super.key,
-  });
+  const ConfigChangeWatcher({required this.child, super.key});
 
   @override
   State<ConfigChangeWatcher> createState() => _ConfigChangeWatcherState();
-
-  // hack to make global config only editable inside this file
-  static late Config _config;
-  static Config get config => _config;
 }
 
 class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
@@ -35,24 +28,24 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   void didUpdateWidget(covariant ConfigChangeWatcher oldWidget) {
     super.didUpdateWidget(oldWidget);
     // hack to always update hardcoded config on hot reload
-    setNewConfig(Config()); // TODO: 2 remove this once reading user config is implemented
+    onConfigUpdated(doSetState: false); // TODO: 2 remove this once reading user config is implemented
   }
 
   Future<void> onConfigUpdated({bool doSetState = true}) async {
-    setNewConfig(await readConfig());
-    if (doSetState) {
-      setState(() {});
-    }
-  }
-
-  void setNewConfig(Config newConfig) {
+    final context = this.context; // declare local reference to please the linter
     final oldConfig = config;
-    config = newConfig;
+    await reloadConfig();
+    if (!context.mounted) return; // something weird happened, probably the app was just closed
+    final newConfig = config;
 
     feathers.onConfigUpdated(context);
 
     if (newConfig.barSide != oldConfig.barSide || newConfig.barWidth != oldConfig.barWidth) {
       onWindowConfigUpdated();
+    }
+
+    if (doSetState) {
+      setState(() {});
     }
   }
 

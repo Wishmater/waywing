@@ -2,7 +2,7 @@ import 'package:fl_linux_window_manager/fl_linux_window_manager.dart';
 import 'package:fl_linux_window_manager/models/layer.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:flutter/foundation.dart';
-import 'package:waywing/util/config.dart';
+import 'package:waywing/core/config.dart';
 
 const _delayDuration = Duration(milliseconds: 100);
 

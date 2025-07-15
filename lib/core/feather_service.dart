@@ -1,18 +1,21 @@
 import 'dart:collection';
 
 import 'package:flutter/cupertino.dart';
-import 'package:waywing/models/_feather.dart';
-import 'package:waywing/util/config.dart';
+import 'package:waywing/core/feather.dart';
+import 'package:waywing/core/config.dart';
+import 'package:waywing/core/feather_registry.dart';
 
-final feathers = Feathers();
+final feathers = Feathers._();
 
 class Feathers {
+  Feathers._();
+
   final Set<Feather> _all = {}; // TODO: 3 find an easy way to make this unmodifyable from the outside
   late final UnmodifiableSetView<Feather> all = UnmodifiableSetView(_all);
 
   final Map<Feather, Future<void>> _initFutures = {};
 
-  // TODO: 1 find a modular way to have multiple "containers" (Wings?).
+  // TODO: 2 find a modular way to have multiple "containers" (Wings?).
   // Bar is an example of a Wing, there could be others like a Widgets panel or an OSD.
   // Each Wing needs to manage its Feathers and its config (somehow).
   // Feathers probably also need to still be added to the global Feathers service for init/dispose control.
@@ -33,20 +36,15 @@ class Feathers {
     assert(all.contains(feather), 'Trying to remove a feather that is not in Feathers.all');
     _all.remove(feather);
     _initFutures.remove(feather);
-    // TODO: 1 current dispose mechanism is bad: the reference is not cleared, si memory is not freed.
-    // Besides, if it is re-initialized after being disposed, it will probably break.
-    // Singleton instances should be cleared when disposed.
+    // de-reference the instance, so that a clean instance is built if the same Feather is re-added
+    featherRegistry.dereferenceFeather(feather.name);
     return feather.dispose();
   }
 
   /// Check all feathers currently in config against those already registered in this servcice.
   /// Dispose and remove those no longer in config; add and initialize new ones.
   void onConfigUpdated(BuildContext context) {
-    final configFeathers = <Feather>{
-      ...config.barStartFeathers,
-      ...config.barCenterFeathers,
-      ...config.barEndFeathers,
-    };
+    final configFeathers = <Feather>{...config.barStartFeathers, ...config.barCenterFeathers, ...config.barEndFeathers};
     updateFeathers(context, configFeathers);
   }
 

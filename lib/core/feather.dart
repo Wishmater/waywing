@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:waywing/models/clock.dart';
 
 /// Every "component" added to waywing needs to implement this class.
 /// Here, it will define any services init/cleanup it needs
@@ -29,22 +28,11 @@ abstract class Feather {
   /// Context shouldn't be necessary to run cleanup code
   Future<void> dispose() async {}
 
-  Widget? buildBarWidget(BuildContext context) => null;
+  Widget? buildCompactWidget(BuildContext context) => null;
 
   Widget? buildTooltipWidget(BuildContext context) => null;
 
   Widget? buildExpandedWidget(BuildContext context) => null;
-
-  // TODO: 1 there has to be a prettier way to do this.
-  // Each Feather knows its name, maybe add all of them in a global list and filter it,
-  // but if we do this, it would require to eagerly initialize them, which is not ideal.
-  // Ideally, each Feather can "register" itself to a global Map/List, but I don't know how to do that.
-  static Feather getByName(String name) {
-    return switch (name) {
-      'Clock' => clock,
-      _ => throw Exception('Unknown Feather name: $name'),
-    };
-  }
 }
 
 typedef OptionalWidgetBuilder = Widget? Function(BuildContext context);

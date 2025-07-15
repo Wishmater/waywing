@@ -26,36 +26,15 @@ Future<void> setupMainWindow() async {
 
   // TODO: 1 implement options for the user to set fixed monitor(s?)
 
-  // TODO: 2 get monitor info from the WindowManager library, instead of this hack, which always returns 1st monitor (not focuset one)
-  print('Setting main window size...');
-  final display = PlatformDispatcher.instance.displays.first;
-  final physicalSize = display.size; // Physical pixels
-  final scaleFactor = display.devicePixelRatio; // Pixels per logical pixel
-  final resolution = (physicalSize.width ~/ scaleFactor, physicalSize.height ~/ scaleFactor);
-  print('  Detected monitor resolution: $resolution with scale $scaleFactor');
-  await FlLinuxWindowManager.instance.setSize(width: resolution.$1, height: resolution.$2);
+  print('Setting main window anchors...');
+  await FlLinuxWindowManager.instance.setLayerAnchor(
+    anchor: ScreenEdge.values.map((e) => e.value).reduce((a, b) => a | b), // all anchors
+  );
   await Future.delayed(_delayDuration);
 
-  print('Setting main window layer anchors...');
-  await FlLinuxWindowManager.instance.setLayerAnchor(
-    anchor: switch (config.barSide) {
-      ScreenEdge.top => ScreenEdge.left.value | ScreenEdge.right.value | ScreenEdge.top.value,
-      ScreenEdge.bottom => ScreenEdge.left.value | ScreenEdge.right.value | ScreenEdge.bottom.value,
-      ScreenEdge.left => ScreenEdge.top.value | ScreenEdge.bottom.value | ScreenEdge.left.value,
-      ScreenEdge.right => ScreenEdge.top.value | ScreenEdge.bottom.value | ScreenEdge.right.value,
-    },
-  );
-
-  // print('Setting main window anchors...');
-  // await FlLinuxWindowManager.instance.setLayerAnchor(
-  //   anchor: ScreenEdge.values.map((e) => e.value).reduce((a, b) => a | b), // all anchors
-  // );
-  // await Future.delayed(_delayDuration);
-
   print('Setting main window exclusive zone...');
-  await FlLinuxWindowManager.instance.setLayerExclusiveZone(
-    -1, // setting -1 exclusiveSize makes this layer ignore exclusiveZones set by other layers
-  );
+  // setting -1 exclusiveSize makes this layer ignore exclusiveZones set by other layers
+  await FlLinuxWindowManager.instance.setLayerExclusiveZone(-1);
   await Future.delayed(_delayDuration);
 
   return updateEdgeWindows();

@@ -40,7 +40,12 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
 
     feathers.onConfigUpdated(context);
 
-    if (newConfig.barSide != oldConfig.barSide || newConfig.barWidth != oldConfig.barWidth) {
+    if (newConfig.barSide != oldConfig.barSide ||
+        newConfig.barWidth != oldConfig.barWidth ||
+        newConfig.exclusiveSizeLeft != oldConfig.exclusiveSizeLeft ||
+        newConfig.exclusiveSizeRight != oldConfig.exclusiveSizeRight ||
+        newConfig.exclusiveSizeTop != oldConfig.exclusiveSizeTop ||
+        newConfig.exclusiveSizeBottom != oldConfig.exclusiveSizeBottom) {
       onWindowConfigUpdated();
     }
 

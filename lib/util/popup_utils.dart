@@ -72,10 +72,10 @@ Offset getPopoverPosition({
   x = (x + overlappingCorrectionX).clamp(padding.left, maxWidthWithPaddingLeft);
   y = (y + overlappingCorrectionY).clamp(padding.top, maxHeightWithPaddingTop);
   print ('pass5: $y');
-  if (maxWidth-x < currentChildWidth) {
+  if (maxWidthWithPaddingLeft-x < currentChildWidth) {
     x = (maxWidthWithPaddingLeft - currentChildWidth).clamp(padding.left, maxWidthWithPaddingLeft);
   }
-  if (maxHeight-y < currentChildHeight) {
+  if (maxHeightWithPaddingTop-y < currentChildHeight) {
     y = (maxHeightWithPaddingTop - currentChildHeight).clamp(padding.top, maxHeightWithPaddingTop);
   }
   print ('pass6: $y');

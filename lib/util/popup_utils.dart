@@ -35,10 +35,10 @@ Offset getPopoverPosition({
   x = x.clamp(padding.left, maxWidthWithPaddingLeft);
   y = y.clamp(padding.top, maxHeightWithPaddingTop);
   print ('pass2: $y');
-  if (maxWidth-x < popupWidth) {
+  if (maxWidthWithPaddingLeft-x < popupWidth) {
     x = maxWidthWithPaddingLeft - popupWidth;
   }
-  if (maxHeight-y < childSize.height) {
+  if (maxHeightWithPaddingTop-y < childSize.height) {
     y = maxHeightWithPaddingTop - childSize.height;
   }
   print ('pass3: $y');

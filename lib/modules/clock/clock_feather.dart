@@ -40,20 +40,61 @@ class Clock extends Feather {
   }
 
   @override
-  Widget? buildCompactWidget(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: timeString,
-      builder: (context, value, _) {
-        final isBarVertical = config.isBarVertical;
-        return SizedBox(
-          width: !isBarVertical ? config.barItemSize : null,
-          height: isBarVertical ? config.barItemSize : null,
-          child: WingedFlatButton(
-            onTap: () {},
-            child: Center(child: Text(value)),
-          ),
-        );
-      },
-    );
-  }
+  late final List<FeatherComponent> components = [clockComponent];
+
+  late final clockComponent = FeatherComponent(
+    buildIndicators: (context, popover, tooltip) {
+      return [
+        ValueListenableBuilder(
+          valueListenable: timeString,
+          builder: (context, value, _) {
+            final isBarVertical = config.isBarVertical;
+            return SizedBox(
+              width: !isBarVertical ? config.barItemSize : null,
+              height: isBarVertical ? config.barItemSize : null,
+              child: WingedFlatButton(
+                onTap: () {
+                  popover!.toggle();
+                },
+                child: Center(child: Text(value)),
+              ),
+            );
+          },
+        ),
+      ];
+    },
+
+    buildTooltip: (context) {
+      return ValueListenableBuilder(
+        valueListenable: time,
+        builder: (context, value, _) {
+          final isBarVertical = config.isBarVertical;
+          return SizedBox(
+            width: !isBarVertical ? config.barItemSize : null,
+            height: isBarVertical ? config.barItemSize : null,
+            child: WingedFlatButton(
+              onTap: () {},
+              child: Center(child: Text(value.toString())),
+            ),
+          );
+        },
+      );
+    },
+
+    buildPopover: (context) {
+      return ValueListenableBuilder(
+        valueListenable: time,
+        builder: (context, value, _) {
+          return SizedBox(
+            width: 512,
+            height: 512,
+            child: WingedFlatButton(
+              onTap: () {},
+              child: Center(child: Text(value.toString())),
+            ),
+          );
+        },
+      );
+    },
+  );
 }

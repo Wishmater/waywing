@@ -3,36 +3,66 @@ import 'package:flutter/widgets.dart';
 
 class DockedRoundedCornersClipper extends CustomClipper<Path> {
   final ScreenEdge dockedSide;
-  final double radiusInPercCross; // in percentage of cross-size
-  final double radiusInPercMain; // in percentage of cross-size
-  final double radiusOutPercCross; // in percentage of cross-size
-  final double radiusOutPercMain; // in percentage of cross-size
+
+  final double radiusInCross;
+  final double radiusInMain;
+  final double radiusOutCross;
+  final double radiusOutMain;
+  final bool? isVertical;
 
   DockedRoundedCornersClipper({
     required this.dockedSide,
-    required this.radiusInPercCross,
-    required this.radiusInPercMain,
-    this.radiusOutPercCross = 0,
-    this.radiusOutPercMain = 0,
+    required this.radiusInCross,
+    required this.radiusInMain,
+    this.radiusOutCross = 0,
+    this.radiusOutMain = 0,
+    this.isVertical,
   });
 
   @override
   Path getClip(Size size) {
-    final path = Path();
+    final double radiusInX, radiusInY, radiusOutX, radiusOutY;
+    if (isVertical ?? (size.width < size.height)) {
+      radiusOutX = radiusOutCross;
+      radiusOutY = radiusOutMain;
+      radiusInX = radiusInCross;
+      radiusInY = radiusInMain + radiusOutY;
+    } else {
+      radiusOutX = radiusOutMain;
+      radiusOutY = radiusOutCross;
+      radiusInX = radiusInMain + radiusOutX;
+      radiusInY = radiusInCross;
+    }
+    return DockedRoundedCornersClipper.getPath(
+      dockedSide: dockedSide,
+      size: size,
+      radiusInX: radiusInX,
+      radiusInY: radiusInY,
+      radiusOutX: radiusOutX,
+      radiusOutY: radiusOutY,
+    );
+  }
+
+  @override
+  bool shouldReclip(covariant DockedRoundedCornersClipper oldClipper) {
+    return dockedSide != oldClipper.dockedSide ||
+        radiusInCross != oldClipper.radiusInCross ||
+        radiusInMain != oldClipper.radiusInMain ||
+        radiusOutCross != oldClipper.radiusOutCross ||
+        radiusOutMain != oldClipper.radiusOutMain;
+  }
+
+  static Path getPath({
+    required ScreenEdge dockedSide,
+    required Size size,
+    required double radiusInX,
+    required double radiusInY,
+    double radiusOutX = 0,
+    double radiusOutY = 0,
+  }) {
     final width = size.width;
     final height = size.height;
-    final double radiusInX, radiusInY, radiusOutX, radiusOutY;
-    if (width < height) {
-      radiusOutX = width * radiusOutPercCross;
-      radiusOutY = width * radiusOutPercMain;
-      radiusInX = width * radiusInPercCross;
-      radiusInY = width * radiusInPercMain + radiusOutY;
-    } else {
-      radiusOutX = height * radiusOutPercMain;
-      radiusOutY = height * radiusOutPercCross;
-      radiusInX = height * radiusInPercMain + radiusOutX;
-      radiusInY = height * radiusInPercCross;
-    }
+    final path = Path();
 
     switch (dockedSide) {
       case ScreenEdge.right:
@@ -95,9 +125,54 @@ class DockedRoundedCornersClipper extends CustomClipper<Path> {
     path.close();
     return path;
   }
+}
+
+class DockedRoundedCornersClipperPerc extends CustomClipper<Path> {
+  final ScreenEdge dockedSide;
+
+  final double radiusInPercCross;
+  final double radiusInPercMain;
+  final double radiusOutPercCross;
+  final double radiusOutPercMain;
+  final bool? isVertical;
+
+  DockedRoundedCornersClipperPerc({
+    required this.dockedSide,
+    required this.radiusInPercCross,
+    required this.radiusInPercMain,
+    this.radiusOutPercCross = 0,
+    this.radiusOutPercMain = 0,
+    this.isVertical,
+  });
 
   @override
-  bool shouldReclip(covariant DockedRoundedCornersClipper oldClipper) {
+  Path getClip(Size size) {
+    final width = size.width;
+    final height = size.height;
+    final double radiusInX, radiusInY, radiusOutX, radiusOutY;
+    if (isVertical ?? (width < height)) {
+      radiusOutX = width * radiusOutPercCross;
+      radiusOutY = width * radiusOutPercMain;
+      radiusInX = width * radiusInPercCross;
+      radiusInY = width * radiusInPercMain + radiusOutY;
+    } else {
+      radiusOutX = height * radiusOutPercMain;
+      radiusOutY = height * radiusOutPercCross;
+      radiusInX = height * radiusInPercMain + radiusOutX;
+      radiusInY = height * radiusInPercCross;
+    }
+    return DockedRoundedCornersClipper.getPath(
+      dockedSide: dockedSide,
+      size: size,
+      radiusInX: radiusInX,
+      radiusInY: radiusInY,
+      radiusOutX: radiusOutX,
+      radiusOutY: radiusOutY,
+    );
+  }
+
+  @override
+  bool shouldReclip(covariant DockedRoundedCornersClipperPerc oldClipper) {
     return dockedSide != oldClipper.dockedSide ||
         radiusInPercCross != oldClipper.radiusInPercCross ||
         radiusInPercMain != oldClipper.radiusInPercMain ||

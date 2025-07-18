@@ -11,7 +11,12 @@ let
 in pkgs.mkShell {
 
   buildInputs = with pkgs; [
+
     unstablepkgs.flutter
+
+    cmake
+    clang
+
     pkg-config
     gtk3
     libsysprof-capture
@@ -27,9 +32,9 @@ in pkgs.mkShell {
     libepoxy
     xorg.libXtst
 
-    cmake
     ninja
     gtk-layer-shell
+
   ];
 
   shellHook = ''

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:waywing/widgets/winged_popover.dart';
 
 /// Every "component" added to waywing needs to implement this class.
 /// Here, it will define any services init/cleanup it needs
@@ -28,11 +29,38 @@ abstract class Feather {
   /// Context shouldn't be necessary to run cleanup code
   Future<void> dispose() async {}
 
-  Widget? buildCompactWidget(BuildContext context) => null;
-
-  Widget? buildTooltipWidget(BuildContext context) => null;
-
-  Widget? buildExpandedWidget(BuildContext context) => null;
+  List<FeatherComponent> get components;
 }
 
-typedef OptionalWidgetBuilder = Widget? Function(BuildContext context);
+@immutable
+class FeatherComponent {
+  final IndicatorsBuilder? buildIndicators;
+  final ValueNotifier<bool> isIndicatorsVisible;
+  final ValueNotifier<bool> isIndicatorsEnabled;
+
+  final WidgetBuilder? buildPopover;
+  final ValueNotifier<bool> isPopoverEnabled;
+
+  final WidgetBuilder? buildTooltip;
+  final ValueNotifier<bool> isTooltipEnabled;
+
+  FeatherComponent({
+    this.buildIndicators,
+    bool? isIndicatorVisible,
+    bool isIndicatorEnabled = true,
+    this.buildPopover,
+    bool? isPopoverEnabled,
+    this.buildTooltip,
+    bool? isTooltipEnabled,
+  }) : isIndicatorsVisible = ValueNotifier(isIndicatorVisible ?? buildIndicators != null),
+       isIndicatorsEnabled = ValueNotifier(isIndicatorEnabled),
+       isPopoverEnabled = ValueNotifier(isPopoverEnabled ?? buildPopover != null),
+       isTooltipEnabled = ValueNotifier(isTooltipEnabled ?? buildTooltip != null);
+}
+
+typedef IndicatorsBuilder =
+    List<Widget> Function(
+      BuildContext context,
+      WingedPopoverController? popover,
+      WingedPopoverController? tooltip,
+    );

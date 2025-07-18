@@ -7,6 +7,7 @@ import 'package:waywing/core/bar.dart';
 import 'package:waywing/core/config.dart';
 import 'package:waywing/widgets/config_changes_watcher.dart';
 import 'package:waywing/util/window_utils.dart';
+import 'package:waywing/widgets/winged_popover_provider.dart';
 
 void main(List<String> args) async {
   final cliparser = ArgParser()
@@ -51,10 +52,13 @@ class App extends StatelessWidget {
           ),
           home: Scaffold(
             backgroundColor: Colors.transparent,
-            body: Stack(
-              children: [
-                Bar(),
-              ],
+            body: WingedPopoverProvider(
+              child: Stack(
+                children: [
+                  Bar(),
+                  // TODO: 2 implement Wings
+                ],
+              ),
             ),
           ),
         ),

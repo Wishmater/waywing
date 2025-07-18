@@ -105,7 +105,19 @@ Future<Config> reloadConfig() async {
     barRadiusInPercMain: 0.5 * 0.67,
     barRadiusOutPercCross: 0.5,
     barRadiusOutPercMain: 0.5 * 1.5,
+    barStartFeathers: List.unmodifiable([
+      featherRegistry.getFeatherByName('Clock'),
+      featherRegistry.getFeatherByName('Clock'),
+      featherRegistry.getFeatherByName('Clock'),
+    ]),
+    barCenterFeathers: List.unmodifiable([
+      featherRegistry.getFeatherByName('Clock'),
+      featherRegistry.getFeatherByName('Clock'),
+    ]),
     barEndFeathers: List.unmodifiable([
+      featherRegistry.getFeatherByName('Clock'),
+      featherRegistry.getFeatherByName('Clock'),
+      featherRegistry.getFeatherByName('Clock'),
       featherRegistry.getFeatherByName('Clock'),
     ]),
   );

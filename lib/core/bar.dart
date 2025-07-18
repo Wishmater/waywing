@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:waywing/widgets/docked_rounded_corners_clipper.dart';
 import 'package:waywing/core/feather.dart';
 import 'package:waywing/core/config.dart';
+import 'package:waywing/widgets/winged_popover.dart';
 
 class Bar extends StatelessWidget {
   const Bar({super.key});
@@ -77,7 +78,7 @@ class Bar extends StatelessWidget {
           ),
           child: ClipPath(
             clipBehavior: Clip.antiAliasWithSaveLayer,
-            clipper: DockedRoundedCornersClipper(
+            clipper: DockedRoundedCornersClipperPerc(
               dockedSide: config.barSide,
               radiusInPercCross: config.barRadiusInPercCross,
               radiusInPercMain: config.barRadiusInPercMain,
@@ -93,25 +94,25 @@ class Bar extends StatelessWidget {
                   children: [
                     Align(
                       alignment: endAlignment,
-                      child: buildBarLayoutWidget(
+                      child: buildLayoutWidget(
                         context,
-                        buildFeatherBarWidgets(context, config.barEndFeathers),
+                        buildFeatherWidgets(context, config.barEndFeathers),
                       ),
                     ),
 
                     Align(
                       alignment: Alignment.center,
-                      child: buildBarLayoutWidget(
+                      child: buildLayoutWidget(
                         context,
-                        buildFeatherBarWidgets(context, config.barCenterFeathers),
+                        buildFeatherWidgets(context, config.barCenterFeathers),
                       ),
                     ),
 
                     Align(
                       alignment: startAlignment,
-                      child: buildBarLayoutWidget(
+                      child: buildLayoutWidget(
                         context,
-                        buildFeatherBarWidgets(context, config.barStartFeathers),
+                        buildFeatherWidgets(context, config.barStartFeathers),
                       ),
                     ),
                   ],
@@ -124,23 +125,11 @@ class Bar extends StatelessWidget {
     );
   }
 
-  List<Widget> buildFeatherBarWidgets(BuildContext context, List<Feather> feathers) {
-    final result = <Widget>[];
-    for (final e in feathers) {
-      final widget = e.buildCompactWidget(context);
-      if (widget != null) {
-        result.add(widget);
-      }
-    }
-    return result;
-  }
-
-  Widget buildBarLayoutWidget(BuildContext context, List<Widget> children) {
+  Widget buildLayoutWidget(BuildContext context, List<Widget> children) {
     final outerRoundedEdgeMainSize = config.barWidth * config.barRadiusOutPercMain;
     final mainAxisPadding = outerRoundedEdgeMainSize + config.barItemSize * 0.2;
     // TODO: 2 implement a proper layout that handles gracefully when widgets overflow
     if (config.isBarVertical) {
-      // vertical bar
       return Padding(
         padding: EdgeInsets.symmetric(vertical: mainAxisPadding),
         child: Column(
@@ -150,7 +139,6 @@ class Bar extends StatelessWidget {
         ),
       );
     } else {
-      // horizontal bar
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: mainAxisPadding),
         child: Row(
@@ -161,4 +149,105 @@ class Bar extends StatelessWidget {
       );
     }
   }
+
+  List<Widget> buildFeatherWidgets(BuildContext context, List<Feather> feathers) {
+    final result = <Widget>[];
+    for (final feather in feathers) {
+      // TODO: 3 maybe add some visual indication that widgets belong to the same feather
+      for (final component in feather.components) {
+        if (component.buildIndicators == null) continue;
+        // TODO: 1 add tooltip
+        var widget = _buildPopover(context, component, (context, popover) {
+          final indicators = component.buildIndicators!(context, popover, null);
+          if (config.isBarVertical) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: indicators,
+            );
+          } else {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: indicators,
+            );
+          }
+        });
+        // TODO: 2 listen to component.enabled to have some kind of different decoration?
+        widget = _buildVisibility(context, component, widget);
+        result.add(widget);
+      }
+    }
+    return result;
+  }
+
+  Widget _buildPopover(
+    BuildContext context,
+    FeatherComponent component,
+    PopoverBuilder builder,
+  ) {
+    if (component.buildPopover == null) {
+      return builder(context, null);
+    }
+    final barRadiusIn = config.barRadiusInPercMain * config.barWidth;
+    return ValueListenableBuilder(
+      valueListenable: component.isPopoverEnabled,
+      builder: (context, isEnabled, child) {
+        return WingedPopover(
+          enabled: isEnabled,
+          containerId: 'BarPopover',
+          // TODO: 1 set this to BoxConstraints.loose once width changes are properly handled (maybe let the Feather decide, default loose)
+          popoverConstraints: BoxConstraints.tight(Size(512, 512)),
+          screenPadding: EdgeInsets.only(
+            left: config.isBarVertical ? 0 : config.barMarginLeft + barRadiusIn,
+            right: config.isBarVertical ? 0 : config.barMarginRight + barRadiusIn,
+            top: !config.isBarVertical ? 0 : config.barMarginTop + barRadiusIn,
+            bottom: !config.isBarVertical ? 0 : config.barMarginBottom + barRadiusIn,
+          ),
+          builder: (context, popover, _) => builder(context, popover),
+          popoverBuilder: (context) {
+            return ClipPath(
+              clipper: DockedRoundedCornersClipper(
+                dockedSide: config.barSide,
+                isVertical: config.isBarVertical,
+                radiusInCross: config.barRadiusInPercCross * config.barWidth,
+                radiusInMain: config.barRadiusInPercMain * config.barWidth,
+                radiusOutCross: config.barRadiusOutPercCross * config.barWidth,
+                radiusOutMain: config.barRadiusOutPercMain * config.barWidth,
+              ),
+              child: Material(
+                color: Colors.red,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: !config.isBarVertical ? config.barRadiusOutPercMain * config.barWidth : 0,
+                    vertical: config.isBarVertical ? config.barRadiusOutPercMain * config.barWidth : 0,
+                  ),
+                  child: InputRegion(child: component.buildPopover!(context)),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  /// hides widget if component.isIndicatorsVisible is false
+  Widget _buildVisibility(
+    BuildContext context,
+    FeatherComponent component,
+    Widget child,
+  ) {
+    return ValueListenableBuilder(
+      valueListenable: component.isIndicatorsVisible,
+      child: child,
+      builder: (context, isVisible, child) {
+        if (!isVisible) return SizedBox.shrink();
+        // TODO: 2 maybe add animation to featherComponent visibility change (size and opacity)
+        return child!;
+      },
+    );
+  }
 }
+
+typedef PopoverBuilder = Widget Function(BuildContext context, WingedPopoverController? controller);

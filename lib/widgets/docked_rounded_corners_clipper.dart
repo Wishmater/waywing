@@ -320,12 +320,12 @@ class DockedRoundedCornersBorderPerc extends ShapeBorder {
     }
     // if dockedSide and isVertical are the same, we can interpolate gracefully
     if (dockedSide == a.dockedSide && isVertical == a.isVertical) {
-      return DockedRoundedCornersBorder(
+      return DockedRoundedCornersBorderPerc(
         dockedSide: dockedSide,
-        radiusInCross: lerpDouble(a.radiusInPercCross, radiusInPercCross, t)!,
-        radiusInMain: lerpDouble(a.radiusInPercMain, radiusInPercMain, t)!,
-        radiusOutCross: lerpDouble(a.radiusOutPercCross, radiusOutPercCross, t)!,
-        radiusOutMain: lerpDouble(a.radiusOutPercMain, radiusOutPercMain, t)!,
+        radiusInPercCross: lerpDouble(a.radiusInPercCross, radiusInPercCross, t)!,
+        radiusInPercMain: lerpDouble(a.radiusInPercMain, radiusInPercMain, t)!,
+        radiusOutPercCross: lerpDouble(a.radiusOutPercCross, radiusOutPercCross, t)!,
+        radiusOutPercMain: lerpDouble(a.radiusOutPercMain, radiusOutPercMain, t)!,
         isVertical: isVertical,
       );
     }

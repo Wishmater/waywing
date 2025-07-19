@@ -18,6 +18,23 @@ mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {
   late (Offset, Size) _lastPositioning;
 }
 
+mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositioningMixin<T> {
+  ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+
+  void scheduleCheckPositioningChange() {
+    WidgetsBinding.instance.addPostFrameCallback(checkPositioningChange);
+  }
+
+  void checkPositioningChange(_) {
+    if (!mounted) return;
+    final newPositioning = getPositioning();
+    if (newPositioning != positioningNotifier.value) {
+      positioningNotifier.value = newPositioning;
+    }
+    scheduleCheckPositioningChange();
+  }
+}
+
 typedef PositioningGetter = (Offset, Size) Function();
 
 class PositioningController {

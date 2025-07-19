@@ -68,6 +68,8 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     }
   }
 
+  void onHostDidUpdateWidget(WingedPopoverState host) {}
+
   @override
   Widget build(BuildContext context) {
     final widgetsBelowMap = <Widget, WingedPopoverState>{};
@@ -102,7 +104,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       } else {
         key = ValueKey(host);
       }
-      final widget = _WingedPopoverClient(
+      final widget = WingedPopoverClient(
         host: host,
         key: key,
         isRemoved: isRemoved,
@@ -116,64 +118,27 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   }
 }
 
-class _WingedPopoverClient extends StatefulWidget {
+class WingedPopoverClient extends StatefulWidget {
   final WingedPopoverState host;
   final bool isRemoved;
 
-  const _WingedPopoverClient({
+  const WingedPopoverClient({
     required this.host,
     this.isRemoved = false,
     super.key, // ignore: unused_element_parameter
   });
 
   @override
-  State<_WingedPopoverClient> createState() => _WingedPopoverClientState();
+  State<WingedPopoverClient> createState() => WingedPopoverClientState();
 }
 
-class _WingedPopoverClientState extends State<_WingedPopoverClient> {
+class WingedPopoverClientState extends State<WingedPopoverClient> {
   final childPositioningController = PositioningController();
 
   @override
   Widget build(BuildContext context) {
+    widget.host.clientState = this;
     final screenSize = MediaQuery.sizeOf(context);
-    final padding = widget.host.widget.screenPadding;
-    // TODO: 1 somehow get notified to update when host positioning (offset or size) changes
-    final (hostPosition, hostSize) = widget.host.getPositioning();
-    // print('-----------------------------------');
-    // print('hostSize: $hostSize');
-    // print('hostPosition: $hostPosition');
-
-    Size childSize;
-    Offset childPosition;
-    if (widget.isRemoved) {
-      childSize = hostSize;
-      childPosition = hostPosition;
-    } else {
-      try {
-        childSize = childPositioningController.getPositioning().$2;
-        childPosition = getPopoverPosition(
-          anchorAlignment: widget.host.widget.anchorAlignment,
-          popupAlignment: widget.host.widget.popupAlignment,
-          hostPosition: hostPosition,
-          hostSize: hostSize,
-          childSize: childSize,
-          screenSize: screenSize,
-          padding: padding,
-        );
-      } catch (_) {
-        // assuming this happens the first time the widget builds
-        // fall back to setting the size/position of the host,
-        // which should have the added effect of animating entry
-        childSize = hostSize;
-        childPosition = hostPosition;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() {});
-        });
-      }
-    }
-    // print('childSize: $childSize');
-    // print('childPosition: $childPosition');
-
     final content = OverflowBox(
       alignment: widget.host.widget.popupAlignment,
       fit: OverflowBoxFit.deferToChild,
@@ -199,19 +164,70 @@ class _WingedPopoverClientState extends State<_WingedPopoverClient> {
         ),
       ),
     );
-    final container = widget.host.widget.popoverContainerBuilder(
-      context,
-      content,
-    );
-    return AnimatedPositioned(
-      duration: config.animationDuration,
-      curve: config.animationCurve,
-      left: childPosition.dx,
-      top: childPosition.dy,
-      width: childSize.width,
-      height: childSize.height,
-      onEnd: !widget.isRemoved ? null : onRemoveAnimationEnd,
+    final container = widget.host.widget.popoverContainerBuilder(context, content);
+
+    return ValueListenableBuilder(
+      valueListenable: widget.host.positioningNotifier,
       child: container,
+      builder: (context, hostPositioning, container) {
+        if (hostPositioning == null) {
+          print('ERROR: Popover client built before host. This should never happen');
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            setState(() {});
+          });
+          return SizedBox.shrink();
+        }
+        final (hostPosition, hostSize) = hostPositioning;
+        // print('-----------------------------------');
+        // print('hostSize: $hostSize');
+        // print('hostPosition: $hostPosition');
+        Size childSize;
+        Offset childPosition;
+        if (widget.isRemoved) {
+          childSize = hostSize;
+          childPosition = hostPosition;
+          if (widget.host.widget.popoverClosedContainerBuilder != null) {
+            container = widget.host.widget.popoverClosedContainerBuilder!(context, content);
+          }
+        } else {
+          try {
+            childSize = childPositioningController.getPositioning().$2;
+            childPosition = getPopoverPosition(
+              anchorAlignment: widget.host.widget.anchorAlignment,
+              popupAlignment: widget.host.widget.popupAlignment,
+              hostPosition: hostPosition,
+              hostSize: hostSize,
+              childSize: childSize,
+              screenSize: screenSize,
+              padding: widget.host.widget.screenPadding,
+            );
+          } catch (_) {
+            // assuming this happens the first time the widget builds
+            // fall back to setting the size/position of the host,
+            // which should have the added effect of animating entry
+            childSize = hostSize;
+            childPosition = hostPosition;
+            if (widget.host.widget.popoverClosedContainerBuilder != null) {
+              container = widget.host.widget.popoverClosedContainerBuilder!(context, content);
+            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              setState(() {});
+            });
+          }
+        }
+        // print('childSize: $childSize');
+        // print('childPosition: $childPosition');
+        return AnimatedPositioned(
+          duration: config.animationDuration,
+          curve: config.animationCurve,
+          left: childPosition.dx,
+          top: childPosition.dy,
+          width: childSize.width,
+          height: childSize.height,
+          onEnd: !widget.isRemoved ? null : onRemoveAnimationEnd,
+          child: container!,
+        );
+      },
     );
   }
 

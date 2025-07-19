@@ -131,7 +131,9 @@ class Bar extends StatelessWidget {
   Widget buildLayoutWidget(BuildContext context, List<Widget> children) {
     final outerRoundedEdgeMainSize = config.barWidth * config.barRadiusOutPercMain;
     final mainAxisPadding = outerRoundedEdgeMainSize + config.barItemSize * 0.2;
-    // TODO: 2 implement a proper layout that handles gracefully when widgets overflow
+    // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
+    // this should also solve the issue of widgets being disposed when switching vertical
+    // to horizontal bar (or viceversa) because we switched Row / Column
     if (config.isBarVertical) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: mainAxisPadding),
@@ -239,32 +241,47 @@ class Bar extends StatelessWidget {
             );
           },
           popoverContainerBuilder: (context, child) {
-            return Material(
-              animationDuration: config.animationDuration,
-              color: Theme.of(context).canvasColor,
-              elevation: 4, // TODO: 2 expose popover elevation theme option to user
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              shape: shape,
-              child: InputRegion(
-                child: PageTransitionSwitcher(
-                  transitionBuilder: (child, primaryAnimation, secondaryAnimation) {
-                    return SharedAxisTransition(
-                      animation: primaryAnimation,
-                      secondaryAnimation: secondaryAnimation,
-                      transitionType: config.isBarVertical
-                          ? SharedAxisTransitionType.vertical
-                          : SharedAxisTransitionType.horizontal,
-                      fillColor: Colors.transparent,
-                      child: child,
-                    );
-                  },
-                  child: child,
-                ),
-              ),
-            );
+            return buildPopoverContainer(context, child, shape);
+          },
+          popoverClosedContainerBuilder: (context, child) {
+            return buildPopoverContainer(context, child, null);
           },
         );
       },
+    );
+  }
+
+  Widget buildPopoverContainer(BuildContext context, Widget child, ShapeBorder? shape) {
+    shape ??= DockedRoundedCornersBorder(
+      dockedSide: config.barSide,
+      isVertical: config.isBarVertical,
+      radiusInCross: 0,
+      radiusInMain: 0,
+      radiusOutCross: 0,
+      radiusOutMain: 0,
+    );
+    return Material(
+      animationDuration: config.animationDuration,
+      color: Theme.of(context).canvasColor,
+      elevation: 4, // TODO: 2 expose popover elevation theme option to user
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      shape: shape,
+      child: InputRegion(
+        child: PageTransitionSwitcher(
+          transitionBuilder: (child, primaryAnimation, secondaryAnimation) {
+            return SharedAxisTransition(
+              animation: primaryAnimation,
+              secondaryAnimation: secondaryAnimation,
+              transitionType: config.isBarVertical
+                  ? SharedAxisTransitionType.vertical
+                  : SharedAxisTransitionType.horizontal,
+              fillColor: Colors.transparent,
+              child: child,
+            );
+          },
+          child: child,
+        ),
+      ),
     );
   }
 

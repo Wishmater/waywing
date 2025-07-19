@@ -4,9 +4,29 @@ import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:flutter/material.dart';
 import 'package:waywing/core/feather.dart';
 import 'package:waywing/core/feather_registry.dart';
+import 'package:config/config.dart';
+
+void _parse() {
+  final schema = Schema()
+    ..field<String>('theme_mode', defaultsTo: 'system')
+    ..field<String>('seed_color', defaultsTo: '#FF2196F3')
+    ..field<double>('animation_duration', defaultsTo: 250)
+    ..field<String>('bar_side', defaultsTo: 'right')
+    ..field<double>('bar_width', defaultsTo: 64)
+    ..field<double>('bar_margin_left', defaultsTo: 0)
+    ..field<double>('bar_margin_right', defaultsTo: 0)
+    ..field<double>('bar_margin_top', defaultsTo: 0)
+    ..field<double>('bar_item_size', defaultsTo: 0)
+    ..field<double>('bar_radius_in_perc_cross', defaultsTo: 0)
+    ..field<double>('bar_radius_in_perc_main', defaultsTo: 0)
+    ..field<double>('bar_radius_out_perc_cross', defaultsTo: 0)
+    ..field<double>('bar_radius_out_perc_main', defaultsTo: 0);
+}
 
 Config get config => _config;
 late Config _config;
+
+
 
 @immutable
 class Config {

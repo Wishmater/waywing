@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:waywing/util/state_positioning.dart';
 import 'package:waywing/widgets/winged_popover_provider.dart';
+
+typedef WidgetBuilderWithChild =
+    Widget Function(
+      BuildContext context,
+      Widget child,
+    );
 
 typedef WingedPopoverChildBuilder =
     Widget Function(
@@ -16,24 +23,31 @@ abstract class WingedPopoverController {
 }
 
 class WingedPopover extends StatefulWidget {
+  /// Make sure the container doesn't add any padding, or modifies
+  /// the size of the child in any way, or the it can cause positioning bugs.
+  final WidgetBuilderWithChild popoverContainerBuilder;
   final WidgetBuilder popoverBuilder;
   final WingedPopoverChildBuilder builder;
-  // TODO: 1 consider removing this and just always skipping 1 frame to get child sizing
-  final BoxConstraints popoverConstraints;
-  final EdgeInsets screenPadding;
   final Widget? child;
   final bool enabled;
-
+  final EdgeInsets screenPadding;
+  final Alignment anchorAlignment;
+  final Alignment popupAlignment;
   final String? containerId;
+  final int zIndex;
 
   const WingedPopover({
+    // TODO: 2 maybe set a default for this (probably not)
+    required this.popoverContainerBuilder,
     required this.popoverBuilder,
-    required this.popoverConstraints,
     required this.builder,
     this.child,
     this.containerId,
     this.enabled = true,
     this.screenPadding = EdgeInsets.zero,
+    this.anchorAlignment = Alignment.center,
+    this.popupAlignment = Alignment.center,
+    this.zIndex = 10,
     super.key,
   });
 
@@ -41,7 +55,7 @@ class WingedPopover extends StatefulWidget {
   State<WingedPopover> createState() => WingedPopoverState();
 }
 
-class WingedPopoverState extends State<WingedPopover> implements WingedPopoverController {
+class WingedPopoverState extends State<WingedPopover> with StatePositioningMixin implements WingedPopoverController {
   late final WingedPopoverProviderState _provider;
 
   @override
@@ -73,16 +87,6 @@ class WingedPopoverState extends State<WingedPopover> implements WingedPopoverCo
 
   @override
   void toggle() => _provider.toggleHost(this);
-
-  (Offset, Size) getPositioning() {
-    RenderBox box = context.findRenderObject()! as RenderBox;
-    final position = box.localToGlobal(
-      Offset.zero,
-      // // this shouldn't be necessary since we always have a single provider at the root
-      // ancestor: _provider?.context.findRenderObject(), // hack to support UI scale
-    );
-    return (position, box.size);
-  }
 
   @override
   Widget build(BuildContext context) {

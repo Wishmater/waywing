@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -86,8 +87,8 @@ class Clock extends Feather {
         valueListenable: time,
         builder: (context, value, _) {
           return SizedBox(
-            width: 512,
-            height: 512,
+            width: 256,
+            height: 128,
             child: WingedFlatButton(
               onTap: () {},
               child: Center(child: Text(value.toString())),

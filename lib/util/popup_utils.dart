@@ -18,7 +18,6 @@ Offset getPopoverPosition({
   final maxHeight = screenSize.height - padding.vertical;
   final maxHeightWithPaddingTop = maxHeight + padding.top;
   final popupWidth = childSize.width; // ??? should this be childConstraints.maxWidth ???
-  print ('maxHeight: $maxHeight');
   double currentChildWidth = popupWidth * animationValue;
   double currentChildHeight = childSize.height * animationValue;
   double x;
@@ -31,17 +30,14 @@ Offset getPopoverPosition({
       + hostSize.height*((anchorAlignment.y+1)/2)
       - childSize.height*((popupAlignment.y-1)/-2)
       + offsetCorrection.dy;
-  print ('pass1: $y');
   x = x.clamp(padding.left, maxWidthWithPaddingLeft);
   y = y.clamp(padding.top, maxHeightWithPaddingTop);
-  print ('pass2: $y');
   if (maxWidthWithPaddingLeft-x < popupWidth) {
     x = maxWidthWithPaddingLeft - popupWidth;
   }
   if (maxHeightWithPaddingTop-y < childSize.height) {
     y = maxHeightWithPaddingTop - childSize.height;
   }
-  print ('pass3: $y');
   final overlappingWidth = Rectangle(hostPosition.dx, 0, hostSize.width, 1)
       .intersection(Rectangle(x, 0, popupWidth, 1))?.width.toDouble() ?? 0;
   final overlappingHeight = Rectangle(0, hostPosition.dy, 1, hostSize.height)
@@ -68,17 +64,14 @@ Offset getPopoverPosition({
   } else {
     y = hostPosition.dy - ((currentChildHeight-overlappingHeight) * ((popupAlignment.y-1)/-2));
   }
-  print ('pass4: $y');
   x = (x + overlappingCorrectionX).clamp(padding.left, maxWidthWithPaddingLeft);
   y = (y + overlappingCorrectionY).clamp(padding.top, maxHeightWithPaddingTop);
-  print ('pass5: $y');
   if (maxWidthWithPaddingLeft-x < currentChildWidth) {
     x = (maxWidthWithPaddingLeft - currentChildWidth).clamp(padding.left, maxWidthWithPaddingLeft);
   }
   if (maxHeightWithPaddingTop-y < currentChildHeight) {
     y = (maxHeightWithPaddingTop - currentChildHeight).clamp(padding.top, maxHeightWithPaddingTop);
   }
-  print ('pass6: $y');
   return Offset(x, y);
 }
 

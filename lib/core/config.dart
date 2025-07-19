@@ -54,6 +54,7 @@ class Config {
   final double barRadiusOutPercCross; // in percentage of bar cross-size
   final double barRadiusOutPercMain; // in percentage
   // TODO: 2 also support fixed pixel radius values
+  // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
 
   // Bar feathers (components)
   // When implementing reading config, get the instance with Feather.getByName
@@ -97,10 +98,12 @@ Future<Config> reloadConfig() async {
   _config = Config._(
     themeMode: ThemeMode.light,
     seedColor: Colors.blue,
-    barSide: ScreenEdge.right,
+    barSide: ScreenEdge.top,
     barWidth: 64,
     barMarginTop: 380,
     barMarginBottom: 340,
+    barMarginLeft: 48,
+    barMarginRight: 48,
     barRadiusInPercCross: 0.5,
     barRadiusInPercMain: 0.5 * 0.67,
     barRadiusOutPercCross: 0.5,

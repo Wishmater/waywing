@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:animations/animations.dart';
 import 'package:dartx/dartx_io.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
@@ -76,47 +79,47 @@ class Bar extends StatelessWidget {
             left: left?.coerceAtLeast(0) ?? 0,
             right: right?.coerceAtLeast(0) ?? 0,
           ),
-          child: ClipPath(
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            clipper: DockedRoundedCornersClipperPerc(
-              dockedSide: config.barSide,
-              radiusInPercCross: config.barRadiusInPercCross,
-              radiusInPercMain: config.barRadiusInPercMain,
-              radiusOutPercCross: config.barRadiusOutPercCross,
-              radiusOutPercMain: config.barRadiusOutPercMain,
-            ),
-            child: InputRegion(
-              child: Material(
-                color: Theme.of(context).canvasColor,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  fit: StackFit.expand,
-                  children: [
-                    Align(
-                      alignment: endAlignment,
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(context, config.barEndFeathers),
-                      ),
+          child: InputRegion(
+            child: Material(
+              animationDuration: config.animationDuration,
+              color: Theme.of(context).canvasColor,
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              elevation: 6, // TODO: 2 expose bar elevation theme option to user
+              shape: DockedRoundedCornersBorderPerc(
+                dockedSide: config.barSide,
+                radiusInPercCross: config.barRadiusInPercCross,
+                radiusInPercMain: config.barRadiusInPercMain,
+                radiusOutPercCross: config.barRadiusOutPercCross,
+                radiusOutPercMain: config.barRadiusOutPercMain,
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                fit: StackFit.expand,
+                children: [
+                  Align(
+                    alignment: endAlignment,
+                    child: buildLayoutWidget(
+                      context,
+                      buildFeatherWidgets(context, config.barEndFeathers),
                     ),
+                  ),
 
-                    Align(
-                      alignment: Alignment.center,
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(context, config.barCenterFeathers),
-                      ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: buildLayoutWidget(
+                      context,
+                      buildFeatherWidgets(context, config.barCenterFeathers),
                     ),
+                  ),
 
-                    Align(
-                      alignment: startAlignment,
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(context, config.barStartFeathers),
-                      ),
+                  Align(
+                    alignment: startAlignment,
+                    child: buildLayoutWidget(
+                      context,
+                      buildFeatherWidgets(context, config.barStartFeathers),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -190,14 +193,33 @@ class Bar extends StatelessWidget {
       return builder(context, null);
     }
     final barRadiusIn = config.barRadiusInPercMain * config.barWidth;
+    final popoverAlignment = switch (config.barSide) {
+      ScreenEdge.top => Alignment.bottomCenter,
+      ScreenEdge.right => Alignment.centerLeft,
+      ScreenEdge.bottom => Alignment.topCenter,
+      ScreenEdge.left => Alignment.centerRight,
+    };
     return ValueListenableBuilder(
       valueListenable: component.isPopoverEnabled,
       builder: (context, isEnabled, child) {
+        final rng = Random(); // TODO: 2 remove randomness once testing on animations is done
+        final vertMult = rng.nextDouble();
+        final horMult = rng.nextDouble();
+        final shape = DockedRoundedCornersBorder(
+          dockedSide: config.barSide,
+          isVertical: config.isBarVertical,
+          radiusInCross: config.barRadiusInPercCross * config.barWidth * rng.nextDouble() * 3,
+          radiusInMain: config.barRadiusInPercMain * config.barWidth * rng.nextDouble() * 3,
+          radiusOutCross: config.barRadiusOutPercCross * config.barWidth * rng.nextDouble() * 5,
+          radiusOutMain: config.barRadiusOutPercMain * config.barWidth * rng.nextDouble() * 1,
+        );
         return WingedPopover(
           enabled: isEnabled,
           containerId: 'BarPopover',
-          // TODO: 1 set this to BoxConstraints.loose once width changes are properly handled (maybe let the Feather decide, default loose)
-          popoverConstraints: BoxConstraints.tight(Size(512, 512)),
+          // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
+          zIndex: -10,
+          popupAlignment: popoverAlignment,
+          anchorAlignment: popoverAlignment,
           screenPadding: EdgeInsets.only(
             left: config.isBarVertical ? 0 : config.barMarginLeft + barRadiusIn,
             right: config.isBarVertical ? 0 : config.barMarginRight + barRadiusIn,
@@ -206,23 +228,37 @@ class Bar extends StatelessWidget {
           ),
           builder: (context, popover, _) => builder(context, popover),
           popoverBuilder: (context) {
-            return ClipPath(
-              clipper: DockedRoundedCornersClipper(
-                dockedSide: config.barSide,
-                isVertical: config.isBarVertical,
-                radiusInCross: config.barRadiusInPercCross * config.barWidth,
-                radiusInMain: config.barRadiusInPercMain * config.barWidth,
-                radiusOutCross: config.barRadiusOutPercCross * config.barWidth,
-                radiusOutMain: config.barRadiusOutPercMain * config.barWidth,
+            return Padding(
+              padding: shape.dimensions.add(
+                EdgeInsets.symmetric(
+                  vertical: 128 * vertMult,
+                  horizontal: 64 * horMult,
+                ),
               ),
-              child: Material(
-                color: Colors.red,
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: !config.isBarVertical ? config.barRadiusOutPercMain * config.barWidth : 0,
-                    vertical: config.isBarVertical ? config.barRadiusOutPercMain * config.barWidth : 0,
-                  ),
-                  child: InputRegion(child: component.buildPopover!(context)),
+              child: component.buildPopover!(context),
+            );
+          },
+          popoverContainerBuilder: (context, child) {
+            return Material(
+              animationDuration: config.animationDuration,
+              color: Theme.of(context).canvasColor,
+              elevation: 4, // TODO: 2 expose popover elevation theme option to user
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              shape: shape,
+              child: InputRegion(
+                child: PageTransitionSwitcher(
+                  transitionBuilder: (child, primaryAnimation, secondaryAnimation) {
+                    return SharedAxisTransition(
+                      animation: primaryAnimation,
+                      secondaryAnimation: secondaryAnimation,
+                      transitionType: config.isBarVertical
+                          ? SharedAxisTransitionType.vertical
+                          : SharedAxisTransitionType.horizontal,
+                      fillColor: Colors.transparent,
+                      child: child,
+                    );
+                  },
+                  child: child,
                 ),
               ),
             );

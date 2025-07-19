@@ -81,7 +81,7 @@ class Bar extends StatelessWidget {
           ),
           child: InputRegion(
             child: Material(
-              animationDuration: config.animationDuration,
+              animationDuration: config.animationDuration * 1.5,
               color: Theme.of(context).canvasColor,
               clipBehavior: Clip.antiAliasWithSaveLayer,
               elevation: 6, // TODO: 2 expose bar elevation theme option to user
@@ -261,7 +261,7 @@ class Bar extends StatelessWidget {
       radiusOutMain: 0,
     );
     return Material(
-      animationDuration: config.animationDuration,
+      animationDuration: config.animationDuration * 1.5,
       color: Theme.of(context).canvasColor,
       elevation: 4, // TODO: 2 expose popover elevation theme option to user
       clipBehavior: Clip.antiAliasWithSaveLayer,

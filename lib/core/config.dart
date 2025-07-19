@@ -98,7 +98,8 @@ Future<Config> reloadConfig() async {
   _config = Config._(
     themeMode: ThemeMode.light,
     seedColor: Colors.blue,
-    barSide: ScreenEdge.top,
+    animationDuration: Duration(milliseconds: 250),
+    barSide: ScreenEdge.right,
     barWidth: 64,
     barMarginTop: 380,
     barMarginBottom: 340,

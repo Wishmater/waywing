@@ -1,5 +1,6 @@
 // ignore_for_file: unused_element_parameter  TODO: 2 remove this once reading user config is implemented, which will use all params
 
+import 'package:config/config.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:flutter/material.dart';
 import 'package:waywing/core/feather.dart';
@@ -37,8 +38,8 @@ class Config {
 
   // Bar positioning / sizing
   final ScreenEdge barSide;
-  final int barWidth; // in pixels
-  final double barMarginLeft; // in flutter DIP, maybe also make in pixels so it's consistent
+  final int barSize; // in pixels
+  final double barMarginLeft; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
   final double barMarginRight; // in flutter DIP, maybe also make in pixels so it's consistent
   final double barMarginTop; // in flutter DIP, maybe also make in pixels so it's consistent
   final double barMarginBottom; // in flutter DIP, maybe also make in pixels so it's consistent
@@ -49,10 +50,10 @@ class Config {
   // TODO: 3 validate that you can't add margin on sides that conflict with barSide selected
 
   // Bar border radius
-  final double barRadiusInPercCross; // in percentage of bar cross-size
-  final double barRadiusInPercMain; // in percentage of bar cross-size
-  final double barRadiusOutPercCross; // in percentage of bar cross-size
-  final double barRadiusOutPercMain; // in percentage
+  final double barRadiusInCross; // in percentage of bar cross-size
+  final double barRadiusInMain; // in percentage of bar cross-size
+  final double barRadiusOutCross; // in percentage of bar cross-size
+  final double barRadiusOutMain; // in percentage
   // TODO: 2 also support fixed pixel radius values
   // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
 
@@ -73,42 +74,47 @@ class Config {
     double? exclusiveSizeTop,
     double? exclusiveSizeBottom,
     required this.barSide,
-    required this.barWidth,
+    required this.barSize,
     double? barItemSize,
     this.barMarginLeft = 0,
     this.barMarginRight = 0,
     this.barMarginTop = 0,
     this.barMarginBottom = 0,
-    this.barRadiusInPercCross = 0,
-    this.barRadiusInPercMain = 0,
-    this.barRadiusOutPercCross = 0,
-    this.barRadiusOutPercMain = 0,
+    this.barRadiusInCross = 0,
+    this.barRadiusInMain = 0,
+    this.barRadiusOutCross = 0,
+    this.barRadiusOutMain = 0,
     this.barStartFeathers = const [],
     this.barCenterFeathers = const [],
     this.barEndFeathers = const [],
-  }) : exclusiveSizeLeft = exclusiveSizeLeft ?? (barSide == ScreenEdge.left ? barWidth.toDouble() : null),
-       exclusiveSizeRight = exclusiveSizeRight ?? (barSide == ScreenEdge.right ? barWidth.toDouble() : null),
-       exclusiveSizeTop = exclusiveSizeTop ?? (barSide == ScreenEdge.top ? barWidth.toDouble() : null),
-       exclusiveSizeBottom = exclusiveSizeBottom ?? (barSide == ScreenEdge.bottom ? barWidth.toDouble() : null),
-       barItemSize = barItemSize ?? barWidth.toDouble();
+  }) : exclusiveSizeLeft = exclusiveSizeLeft ?? (barSide == ScreenEdge.left ? barSize.toDouble() : null),
+       exclusiveSizeRight = exclusiveSizeRight ?? (barSide == ScreenEdge.right ? barSize.toDouble() : null),
+       exclusiveSizeTop = exclusiveSizeTop ?? (barSide == ScreenEdge.top ? barSize.toDouble() : null),
+       exclusiveSizeBottom = exclusiveSizeBottom ?? (barSide == ScreenEdge.bottom ? barSize.toDouble() : null),
+       barItemSize = barItemSize ?? barSize.toDouble();
 }
 
+class ConfigSchema {}
+
 Future<Config> reloadConfig() async {
+  final result = ConfigurationParser().parseFromFile(file);
+
   // TODO: 2 get config from user file
+  final barSize = 64;
   _config = Config._(
     themeMode: ThemeMode.light,
     seedColor: Colors.blue,
     animationDuration: Duration(milliseconds: 250),
     barSide: ScreenEdge.right,
-    barWidth: 64,
+    barSize: 64,
     barMarginTop: 380,
     barMarginBottom: 340,
     barMarginLeft: 48,
     barMarginRight: 48,
-    barRadiusInPercCross: 0.5,
-    barRadiusInPercMain: 0.5 * 0.67,
-    barRadiusOutPercCross: 0.5,
-    barRadiusOutPercMain: 0.5 * 1.5,
+    barRadiusInCross: barSize * 0.5,
+    barRadiusInMain: barSize * 0.5 * 0.67,
+    barRadiusOutCross: barSize * 0.5,
+    barRadiusOutMain: barSize * 0.5 * 1.5,
     barStartFeathers: List.unmodifiable([
       featherRegistry.getFeatherByName('Clock'),
       featherRegistry.getFeatherByName('Clock'),

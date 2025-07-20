@@ -136,8 +136,8 @@ class WingedFlatButton extends StatelessWidget {
     var borderRadius = this.borderRadius;
     if (borderRadius == null) {
       // TODO: 1 add these (and maybe other) commonly used values to config
-      final radiusX = config.barRadiusInPercCross * config.barWidth * 0.5;
-      final radiusY = config.barRadiusInPercMain * config.barWidth * 0.5;
+      final radiusX = config.barRadiusInCross * 0.5;
+      final radiusY = config.barRadiusInMain * 0.5;
       borderRadius = BorderRadius.all(Radius.elliptical(radiusX, radiusY));
     }
     return InkResponse(

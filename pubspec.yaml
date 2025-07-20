@@ -15,6 +15,10 @@ dependencies:
   fl_linux_window_manager:
     path: ../fl-linux-window-manager
 
+  # Configuration parser
+  config:
+    path: ../config.dart
+
   # Language utilities
   intl: ^0.20.2
   dartx: ^1.2.0

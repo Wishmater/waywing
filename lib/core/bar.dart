@@ -29,8 +29,8 @@ class Bar extends StatelessWidget {
     // Get actual devicePixelRatio (scale) by comparing the original monitor size to the current one.
     // The devicePixelRatio reported by flutter is different for some reason.
     final devicePixelRatio = originalMonitorSize.width / monitorSize.width;
-    final barCrossSize = config.barWidth.toDouble();
-    final outerRoundedEdgeMainSize = barCrossSize * config.barRadiusOutPercMain;
+    final barCrossSize = config.barSize.toDouble();
+    final outerRoundedEdgeMainSize = config.barRadiusOutMain;
     double? width, height, top, bottom, left, right;
     Alignment barAlignment, startAlignment, endAlignment;
     if (config.isBarVertical) {
@@ -85,12 +85,12 @@ class Bar extends StatelessWidget {
               color: Theme.of(context).canvasColor,
               clipBehavior: Clip.antiAliasWithSaveLayer,
               elevation: 6, // TODO: 2 expose bar elevation theme option to user
-              shape: DockedRoundedCornersBorderPerc(
+              shape: DockedRoundedCornersBorder(
                 dockedSide: config.barSide,
-                radiusInPercCross: config.barRadiusInPercCross,
-                radiusInPercMain: config.barRadiusInPercMain,
-                radiusOutPercCross: config.barRadiusOutPercCross,
-                radiusOutPercMain: config.barRadiusOutPercMain,
+                radiusInCross: config.barRadiusInCross,
+                radiusInMain: config.barRadiusInMain,
+                radiusOutCross: config.barRadiusOutCross,
+                radiusOutMain: config.barRadiusOutMain,
               ),
               child: Stack(
                 clipBehavior: Clip.none,
@@ -129,7 +129,7 @@ class Bar extends StatelessWidget {
   }
 
   Widget buildLayoutWidget(BuildContext context, List<Widget> children) {
-    final outerRoundedEdgeMainSize = config.barWidth * config.barRadiusOutPercMain;
+    final outerRoundedEdgeMainSize = config.barRadiusOutMain;
     final mainAxisPadding = outerRoundedEdgeMainSize + config.barItemSize * 0.2;
     // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
     // this should also solve the issue of widgets being disposed when switching vertical
@@ -194,7 +194,7 @@ class Bar extends StatelessWidget {
     if (component.buildPopover == null) {
       return builder(context, null);
     }
-    final barRadiusIn = config.barRadiusInPercMain * config.barWidth;
+    final barRadiusIn = config.barRadiusInMain;
     final popoverAlignment = switch (config.barSide) {
       ScreenEdge.top => Alignment.bottomCenter,
       ScreenEdge.right => Alignment.centerLeft,
@@ -210,10 +210,10 @@ class Bar extends StatelessWidget {
         final shape = DockedRoundedCornersBorder(
           dockedSide: config.barSide,
           isVertical: config.isBarVertical,
-          radiusInCross: config.barRadiusInPercCross * config.barWidth * rng.nextDouble() * 3,
-          radiusInMain: config.barRadiusInPercMain * config.barWidth * rng.nextDouble() * 3,
-          radiusOutCross: config.barRadiusOutPercCross * config.barWidth * rng.nextDouble() * 5,
-          radiusOutMain: config.barRadiusOutPercMain * config.barWidth * rng.nextDouble() * 1,
+          radiusInCross: config.barRadiusInCross * rng.nextDouble() * 3,
+          radiusInMain: config.barRadiusInMain * rng.nextDouble() * 3,
+          radiusOutCross: config.barRadiusOutCross * rng.nextDouble() * 5,
+          radiusOutMain: config.barRadiusOutMain * rng.nextDouble() * 1,
         );
         return WingedPopover(
           enabled: isEnabled,

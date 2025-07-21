@@ -1,30 +1,83 @@
 // ignore_for_file: unused_element_parameter  TODO: 2 remove this once reading user config is implemented, which will use all params
 
+import 'dart:io';
+
 import 'package:config/config.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:flutter/material.dart';
 import 'package:waywing/core/feather.dart';
 import 'package:waywing/core/feather_registry.dart';
+import 'package:waywing/util/config_fields.dart';
 
-Config get config => _config;
-late Config _config;
+MainConfig get config => _config;
+late MainConfig _config;
 
 @immutable
-class Config {
-  // Theme / styling
-  final ThemeMode themeMode;
-  final Color seedColor;
+abstract class Config {}
 
+@immutable
+class MainConfig extends Config {
+  //===========================================================================
+  // Theme / styling
+  //===========================================================================
+
+  final ThemeMode themeMode;
+  static const _themeMode = EnumField(
+    'themeMode',
+    ThemeMode.values,
+    defaultTo: ThemeMode.system,
+  );
+
+  final Color seedColor;
+  static const _seedColor = ColorField(
+    'seedColor',
+  );
+
+  //===========================================================================
   // Animations
+  //===========================================================================
+
   final Duration animationDuration;
+  static const _animationDuration = DurationField(
+    'animationDuration',
+    defaultTo: Duration(milliseconds: 250),
+  );
+
   final Curve animationCurve;
+  static const _animationCurve = CurveField(
+    'animationCurve',
+    defaultTo: Curves.easeOutCubic,
+  );
   // TODO: 2 we probably want to set different animation "types" and then the user can set duration and curve for each of them
 
+  //===========================================================================
   // Layer settings
+  //===========================================================================
+
   final double? exclusiveSizeLeft;
+  static const _exclusiveSizeLeft = NumberField(
+    'exclusiveSizeLeft',
+    nullable: true,
+  );
+
   final double? exclusiveSizeRight;
+  static const _exclusiveSizeRight = NumberField(
+    'exclusiveSizeRight',
+    nullable: true,
+  );
+
   final double? exclusiveSizeTop;
+  static const _exclusiveSizeTop = NumberField(
+    'exclusiveSizeTop',
+    nullable: true,
+  );
+
   final double? exclusiveSizeBottom;
+  static const _exclusiveSizeBottom = NumberField(
+    'exclusiveSizeBottom',
+    nullable: true,
+  );
+
   // Note (add to readme when it exists): explicitly set exclusiveSice will have priority over Bar size.
   // Set exclusiveSize to zero on same side bar is on to remove autoExclusiveSize on Bar.
   double? getExclusiveSizeForSide(ScreenEdge side) {
@@ -36,35 +89,96 @@ class Config {
     };
   }
 
+  //===========================================================================
   // Bar positioning / sizing
+  //===========================================================================
+
   final ScreenEdge barSide;
+  static const _barSide = EnumField(
+    'barSide',
+    ScreenEdge.values,
+  );
+
   final int barSize; // in pixels
+  static const _barSize = IntField(
+    'barSize',
+  );
+
   final double barMarginLeft; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  final double barMarginRight; // in flutter DIP, maybe also make in pixels so it's consistent
-  final double barMarginTop; // in flutter DIP, maybe also make in pixels so it's consistent
-  final double barMarginBottom; // in flutter DIP, maybe also make in pixels so it's consistent
-  final double barItemSize; // in flutter DIP, maybe also make in pixels so it's consistent
+  static const _barMarginLeft = NumberField(
+    'barMarginLeft',
+    defaultTo: 0,
+  );
+
+  final double barMarginRight; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barMarginRight = NumberField(
+    'barMarginRight',
+    defaultTo: 0,
+  );
+
+  final double barMarginTop; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barMarginTop = NumberField(
+    'barMarginTop',
+    defaultTo: 0,
+  );
+
+  final double barMarginBottom; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barMarginBottom = NumberField(
+    'barMarginBottom',
+    defaultTo: 0,
+  );
+
+  final double barItemSize; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barItemSize = NumberField(
+    'barItemSize',
+    nullable: true, // defaults to barSize
+  );
+
   // Derivates
   late final bool isBarVertical = config.barSide == ScreenEdge.left || config.barSide == ScreenEdge.right;
   // TODO: 3 validate that mainSize is not <=0 after deducting margins
   // TODO: 3 validate that you can't add margin on sides that conflict with barSide selected
 
+  //===========================================================================
   // Bar border radius
-  final double barRadiusInCross; // in percentage of bar cross-size
-  final double barRadiusInMain; // in percentage of bar cross-size
-  final double barRadiusOutCross; // in percentage of bar cross-size
-  final double barRadiusOutMain; // in percentage
-  // TODO: 2 also support fixed pixel radius values
+  //===========================================================================
+
+  final double barRadiusInCross; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barRadiusInCross = NumberField(
+    'barRadiusInCross',
+    defaultTo: 0,
+  );
+
+  final double barRadiusInMain; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barRadiusInMain = NumberField(
+    'barRadiusInMain',
+    defaultTo: 0,
+  );
+
+  final double barRadiusOutCross; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barRadiusOutCross = NumberField(
+    'barRadiusOutCross',
+    defaultTo: 0,
+  );
+
+  final double barRadiusOutMain; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barRadiusOutMain = NumberField(
+    'barRadiusOutMain',
+    defaultTo: 0,
+  );
   // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
 
+  //===========================================================================
   // Bar feathers (components)
+  //===========================================================================
+
   // When implementing reading config, get the instance with Feather.getByName
   final List<Feather> barStartFeathers;
   final List<Feather> barCenterFeathers;
   final List<Feather> barEndFeathers;
   // TODO: 3 validate that passed feather names exist
 
-  Config._({
+  MainConfig._({
     this.themeMode = ThemeMode.system,
     required this.seedColor,
     this.animationDuration = const Duration(milliseconds: 250),
@@ -92,44 +206,130 @@ class Config {
        exclusiveSizeTop = exclusiveSizeTop ?? (barSide == ScreenEdge.top ? barSize.toDouble() : null),
        exclusiveSizeBottom = exclusiveSizeBottom ?? (barSide == ScreenEdge.bottom ? barSize.toDouble() : null),
        barItemSize = barItemSize ?? barSize.toDouble();
+
+  static Schema buildSchema() {
+    return Schema(
+      fields: [
+        _themeMode,
+        _seedColor,
+        _animationDuration,
+        _animationCurve,
+        _exclusiveSizeLeft,
+        _exclusiveSizeRight,
+        _exclusiveSizeTop,
+        _exclusiveSizeBottom,
+        _barSide,
+        _barSize,
+        _barMarginLeft,
+        _barMarginRight,
+        _barMarginTop,
+        _barMarginBottom,
+        _barItemSize,
+        _barRadiusInCross,
+        _barRadiusInMain,
+        _barRadiusOutCross,
+        _barRadiusOutMain,
+      ],
+    );
+  }
+
+  factory MainConfig.fromMap(Map<String, dynamic> values) {
+    _config = MainConfig._(
+      themeMode: values[_themeMode.name],
+      seedColor: values[_seedColor.name],
+      animationDuration: values[_animationDuration.name],
+      animationCurve: values[_animationCurve.name],
+      exclusiveSizeLeft: values[_exclusiveSizeLeft.name],
+      exclusiveSizeRight: values[_exclusiveSizeRight.name],
+      exclusiveSizeTop: values[_exclusiveSizeTop.name],
+      exclusiveSizeBottom: values[_exclusiveSizeBottom.name],
+      barSide: values[_barSide.name],
+      barSize: values[_barSize.name],
+      barMarginLeft: values[_barMarginLeft.name],
+      barMarginRight: values[_barMarginRight.name],
+      barMarginTop: values[_barMarginTop.name],
+      barMarginBottom: values[_barMarginBottom.name],
+      barItemSize: values[_barItemSize.name],
+      barRadiusInCross: values[_barRadiusInCross.name],
+      barRadiusInMain: values[_barRadiusInMain.name],
+      barRadiusOutCross: values[_barRadiusOutCross.name],
+      barRadiusOutMain: values[_barRadiusOutMain.name],
+    );
+    return _config;
+    // TODO: 2 get config from user file
+    final barSize = 64;
+    _config = MainConfig._(
+      themeMode: ThemeMode.system,
+      seedColor: Colors.blue,
+      animationDuration: Duration(milliseconds: 250),
+      barSide: ScreenEdge.right,
+      barSize: 64,
+      barMarginTop: 380,
+      barMarginBottom: 340,
+      barMarginLeft: 48,
+      barMarginRight: 48,
+      barRadiusInCross: barSize * 0.5,
+      barRadiusInMain: barSize * 0.5 * 0.67,
+      barRadiusOutCross: barSize * 0.5,
+      barRadiusOutMain: barSize * 0.5 * 1.5,
+      barStartFeathers: List.unmodifiable([
+        featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName('Clock'),
+      ]),
+      barCenterFeathers: List.unmodifiable([
+        featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName('Clock'),
+      ]),
+      barEndFeathers: List.unmodifiable([
+        featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName('Clock'),
+      ]),
+    );
+    return _config;
+  }
 }
 
-class ConfigSchema {}
-
 Future<Config> reloadConfig() async {
-  final result = ConfigurationParser().parseFromFile(file);
-
-  // TODO: 2 get config from user file
-  final barSize = 64;
-  _config = Config._(
-    themeMode: ThemeMode.light,
-    seedColor: Colors.blue,
-    animationDuration: Duration(milliseconds: 250),
-    barSide: ScreenEdge.right,
-    barSize: 64,
-    barMarginTop: 380,
-    barMarginBottom: 340,
-    barMarginLeft: 48,
-    barMarginRight: 48,
-    barRadiusInCross: barSize * 0.5,
-    barRadiusInMain: barSize * 0.5 * 0.67,
-    barRadiusOutCross: barSize * 0.5,
-    barRadiusOutMain: barSize * 0.5 * 1.5,
-    barStartFeathers: List.unmodifiable([
-      featherRegistry.getFeatherByName('Clock'),
-      featherRegistry.getFeatherByName('Clock'),
-      featherRegistry.getFeatherByName('Clock'),
-    ]),
-    barCenterFeathers: List.unmodifiable([
-      featherRegistry.getFeatherByName('Clock'),
-      featherRegistry.getFeatherByName('Clock'),
-    ]),
-    barEndFeathers: List.unmodifiable([
-      featherRegistry.getFeatherByName('Clock'),
-      featherRegistry.getFeatherByName('Clock'),
-      featherRegistry.getFeatherByName('Clock'),
-      featherRegistry.getFeatherByName('Clock'),
-    ]),
+  final content = '''
+    themeMode = "system"
+    seedColor = "#0000ff"
+    animationDuration = 250
+    barSide = "right"
+    barSize = 64
+    barMarginTop = 380
+    barMarginBottom = 340
+    barMarginLeft = 48
+    barMarginRight = 48
+    barRadiusInCross = barSize * 0.5
+    barRadiusInMain = barSize * 0.5 * 0.67
+    barRadiusOutCross = barSize * 0.5
+    barRadiusOutMain = barSize * 0.5 * 1.5
+  ''';
+  final result = ConfigurationParser().parseFromString(
+    content,
+    schema: MainConfig.buildSchema(),
   );
-  return _config;
+  // final configFile = File(''); // TODO: 1 get default config file path
+  // if (!(await configFile.exists())) {
+  //   // TODO: 1 write default config
+  // }
+  // final result = await ConfigurationParser().parseFromFile(configFile);
+  switch (result) {
+    case EvaluationParseError():
+      print('EvaluationParseError');
+      print(result.errors);
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    case EvaluationValidationError():
+      print('EvaluationValidationError');
+      print(result.errors);
+      print(result.values);
+      // TODO: Handle this case.
+      throw UnimplementedError();
+    case EvaluationSuccess():
+      return MainConfig.fromMap(result.values);
+  }
 }

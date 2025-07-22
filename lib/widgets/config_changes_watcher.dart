@@ -5,9 +5,9 @@ import 'package:waywing/core/config.dart';
 import 'package:waywing/util/window_utils.dart';
 
 class ConfigChangeWatcher extends StatefulWidget {
-  final Widget child;
+  final WidgetBuilder builder;
 
-  const ConfigChangeWatcher({required this.child, super.key});
+  const ConfigChangeWatcher({required this.builder, super.key});
 
   @override
   State<ConfigChangeWatcher> createState() => _ConfigChangeWatcherState();
@@ -27,11 +27,12 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   @override
   void didUpdateWidget(covariant ConfigChangeWatcher oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // TODO: 2 remove this once reading user config is implemented
     // hack to always update hardcoded config on hot reload
-    onConfigUpdated(doSetState: false); // TODO: 2 remove this once reading user config is implemented
+    onConfigUpdated();
   }
 
-  Future<void> onConfigUpdated({bool doSetState = true}) async {
+  Future<void> onConfigUpdated() async {
     final context = this.context; // declare local reference to please the linter
     final oldConfig = config;
     await reloadConfig();
@@ -49,9 +50,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
       onWindowConfigUpdated();
     }
 
-    if (doSetState) {
-      setState(() {});
-    }
+    setState(() {});
   }
 
   Future<void> onWindowConfigUpdated() async {
@@ -61,6 +60,6 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.child;
+    return widget.builder(context);
   }
 }

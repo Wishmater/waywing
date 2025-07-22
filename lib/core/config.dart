@@ -1,7 +1,3 @@
-// ignore_for_file: unused_element_parameter  TODO: 2 remove this once reading user config is implemented, which will use all params
-
-import 'dart:io';
-
 import 'package:config/config.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:flutter/material.dart';
@@ -234,7 +230,7 @@ class MainConfig extends Config {
   }
 
   factory MainConfig.fromMap(Map<String, dynamic> values) {
-    _config = MainConfig._(
+    return MainConfig._(
       themeMode: values[_themeMode.name],
       seedColor: values[_seedColor.name],
       animationDuration: values[_animationDuration.name],
@@ -254,24 +250,7 @@ class MainConfig extends Config {
       barRadiusInMain: values[_barRadiusInMain.name],
       barRadiusOutCross: values[_barRadiusOutCross.name],
       barRadiusOutMain: values[_barRadiusOutMain.name],
-    );
-    return _config;
-    // TODO: 2 get config from user file
-    final barSize = 64;
-    _config = MainConfig._(
-      themeMode: ThemeMode.system,
-      seedColor: Colors.blue,
-      animationDuration: Duration(milliseconds: 250),
-      barSide: ScreenEdge.right,
-      barSize: 64,
-      barMarginTop: 380,
-      barMarginBottom: 340,
-      barMarginLeft: 48,
-      barMarginRight: 48,
-      barRadiusInCross: barSize * 0.5,
-      barRadiusInMain: barSize * 0.5 * 0.67,
-      barRadiusOutCross: barSize * 0.5,
-      barRadiusOutMain: barSize * 0.5 * 1.5,
+      // TODO 2 waiting for lists implementation in config.dart
       barStartFeathers: List.unmodifiable([
         featherRegistry.getFeatherByName('Clock'),
         featherRegistry.getFeatherByName('Clock'),
@@ -288,13 +267,12 @@ class MainConfig extends Config {
         featherRegistry.getFeatherByName('Clock'),
       ]),
     );
-    return _config;
   }
 }
 
 Future<Config> reloadConfig() async {
   final content = '''
-    themeMode = "system"
+    themeMode = "dark"
     seedColor = "#0000ff"
     animationDuration = 250
     barSide = "right"
@@ -330,6 +308,7 @@ Future<Config> reloadConfig() async {
       // TODO: Handle this case.
       throw UnimplementedError();
     case EvaluationSuccess():
-      return MainConfig.fromMap(result.values);
+      _config = MainConfig.fromMap(result.values);
+      return _config;
   }
 }

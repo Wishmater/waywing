@@ -37,31 +37,33 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return InputRegion.negative(
       child: ConfigChangeWatcher(
-        child: MaterialApp(
-          title: 'WayWing',
-          debugShowCheckedModeBanner: false,
-          themeMode: config.themeMode,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: config.seedColor),
-            splashFactory: InkSparkle.splashFactory,
-          ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            colorScheme: ColorScheme.fromSeed(brightness: Brightness.dark, seedColor: config.seedColor),
-            splashFactory: InkSparkle.splashFactory,
-          ),
-          home: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: WingedPopoverProvider(
-              child: Stack(
-                children: [
-                  Bar(),
-                  // TODO: 2 implement Wings
-                ],
+        builder: (context) {
+          return MaterialApp(
+            title: 'WayWing',
+            debugShowCheckedModeBanner: false,
+            themeMode: config.themeMode,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(seedColor: config.seedColor),
+              splashFactory: InkSparkle.splashFactory,
+            ),
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              colorScheme: ColorScheme.fromSeed(brightness: Brightness.dark, seedColor: config.seedColor),
+              splashFactory: InkSparkle.splashFactory,
+            ),
+            home: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: WingedPopoverProvider(
+                child: Stack(
+                  children: [
+                    Bar(),
+                    // TODO: 2 implement Wings
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

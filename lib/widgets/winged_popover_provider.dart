@@ -19,7 +19,7 @@ class WingedPopoverProvider extends StatefulWidget {
 }
 
 class WingedPopoverProviderState extends State<WingedPopoverProvider> {
-  final Map<String, GlobalKey> containerGlobalKeys = {};
+  final Map<String, GlobalKey<WingedPopoverClientState>> containerGlobalKeys = {};
   final Set<WingedPopoverState> activeHosts = {};
   final Set<WingedPopoverState> removedHosts = {};
 
@@ -31,6 +31,9 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       toRemove.addAll(removedHosts.where((e) => e.widget.containerId == host.widget.containerId));
       for (final e in toRemove) {
         _removeHost(e);
+      }
+      if (toRemove.isNotEmpty) {
+        containerGlobalKeys[host.widget.containerId]!.currentState!.triggerContentAnimation();
       }
     }
     setState(() {
@@ -132,34 +135,63 @@ class WingedPopoverClient extends StatefulWidget {
   State<WingedPopoverClient> createState() => WingedPopoverClientState();
 }
 
-class WingedPopoverClientState extends State<WingedPopoverClient> {
+class WingedPopoverClientState extends State<WingedPopoverClient> with TickerProviderStateMixin {
   final childPositioningController = PositioningController();
+
+  @override
+  void initState() {
+    super.initState();
+    _buildContentAnimationController();
+  }
+
+  late AnimationController contentAnimationController;
+  void _buildContentAnimationController() {
+    contentAnimationController = AnimationController(
+      vsync: this,
+      duration: config.animationDuration,
+      value: 1,
+    );
+  }
+
+  void triggerContentAnimation() {
+    _buildContentAnimationController();
+    contentAnimationController.forward(from: 0);
+  }
 
   @override
   Widget build(BuildContext context) {
     widget.host.clientState = this;
     final screenSize = MediaQuery.sizeOf(context);
-    final content = OverflowBox(
-      alignment: widget.host.widget.popupAlignment,
-      fit: OverflowBoxFit.deferToChild,
-      minWidth: 0,
-      minHeight: 0,
-      maxWidth: screenSize.width,
-      maxHeight: screenSize.height,
-      // TODO: 2 add animation transition to the child (for cases with containerId)
-      // maybe allow host to decide the transitionBuilder, so the bar can animate up/down
-      child: PositioningMonitor(
-        controller: childPositioningController,
-        child: NotificationListener<SizeChangedLayoutNotification>(
-          onNotification: (_) {
-            // rebuild when the child size changes
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              setState(() {});
-            });
-            return true;
-          },
-          child: SizeChangedLayoutNotifier(
-            child: widget.host.widget.popoverBuilder(context),
+    final content = AnimatedBuilder(
+      animation: CurvedAnimation(parent: contentAnimationController, curve: config.animationCurve),
+      builder: (context, child) {
+        return Opacity(
+          opacity: contentAnimationController.value,
+          child: child!,
+        );
+      },
+      child: OverflowBox(
+        alignment: widget.host.widget.popupAlignment,
+        fit: OverflowBoxFit.deferToChild,
+        minWidth: 0,
+        minHeight: 0,
+        maxWidth: screenSize.width,
+        maxHeight: screenSize.height,
+        // TODO: 2 add animation transition to the child (for cases with containerId)
+        // maybe allow host to decide the transitionBuilder, so the bar can animate up/down
+        child: PositioningMonitor(
+          controller: childPositioningController,
+          child: NotificationListener<SizeChangedLayoutNotification>(
+            onNotification: (_) {
+              // rebuild when the child size changes
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                setState(() {});
+              });
+              return true;
+            },
+            child: SizeChangedLayoutNotifier(
+              child: widget.host.widget.popoverBuilder(context),
+            ),
           ),
         ),
       ),

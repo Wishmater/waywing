@@ -272,7 +272,7 @@ class MainConfig extends Config {
 
 Future<Config> reloadConfig() async {
   final content = '''
-    themeMode = "dark"
+    themeMode = "light"
     seedColor = "#0000ff"
     animationDuration = 250
     barSide = "right"

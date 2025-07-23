@@ -11,8 +11,32 @@ import 'package:waywing/core/feather.dart';
 import 'package:waywing/core/config.dart';
 import 'package:waywing/widgets/winged_popover.dart';
 
-class Bar extends StatelessWidget {
+class Bar extends StatefulWidget {
   const Bar({super.key});
+
+  @override
+  State<Bar> createState() => _BarState();
+}
+
+class _BarState extends State<Bar> {
+  // adding global keys to feathers ensures their state
+  // won't be lost when reloading config, including popover and tooltip state
+  Map<String, List<GlobalKey>> featherGlobalKeys = {};
+
+  @override
+  void didUpdateWidget(covariant Bar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // remove global keys for feathers no longer declared
+    final allFeathers = [...config.barStartFeathers, ...config.barCenterFeathers, ...config.barEndFeathers];
+    for (final key in featherGlobalKeys.keys) {
+      final count = allFeathers.count((e) => e.name == key);
+      if (count == 0) {
+        featherGlobalKeys.remove(key);
+      } else if (featherGlobalKeys[key]!.length > count) {
+        featherGlobalKeys[key] = featherGlobalKeys[key]!.sublist(0, count);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +87,7 @@ class Bar extends StatelessWidget {
       }
     }
 
+    Map<String, int> feathersCount = {};
     return Positioned.fill(
       child: AnimatedAlign(
         duration: config.animationDuration,
@@ -100,7 +125,7 @@ class Bar extends StatelessWidget {
                     alignment: endAlignment,
                     child: buildLayoutWidget(
                       context,
-                      buildFeatherWidgets(context, config.barEndFeathers),
+                      buildFeatherWidgets(context, config.barEndFeathers, feathersCount),
                     ),
                   ),
 
@@ -108,7 +133,7 @@ class Bar extends StatelessWidget {
                     alignment: Alignment.center,
                     child: buildLayoutWidget(
                       context,
-                      buildFeatherWidgets(context, config.barCenterFeathers),
+                      buildFeatherWidgets(context, config.barCenterFeathers, feathersCount),
                     ),
                   ),
 
@@ -116,7 +141,7 @@ class Bar extends StatelessWidget {
                     alignment: startAlignment,
                     child: buildLayoutWidget(
                       context,
-                      buildFeatherWidgets(context, config.barStartFeathers),
+                      buildFeatherWidgets(context, config.barStartFeathers, feathersCount),
                     ),
                   ),
                 ],
@@ -155,42 +180,61 @@ class Bar extends StatelessWidget {
     }
   }
 
-  List<Widget> buildFeatherWidgets(BuildContext context, List<Feather> feathers) {
+  List<Widget> buildFeatherWidgets(BuildContext context, List<Feather> feathers, Map<String, int> feathersCount) {
     final result = <Widget>[];
     for (final feather in feathers) {
       // TODO: 3 maybe add some visual indication that widgets belong to the same feather
       for (final component in feather.components) {
         if (component.buildIndicators == null) continue;
+        feathersCount[feather.name] ??= 0;
+        final featherIndex = feathersCount[feather.name]!;
+        feathersCount[feather.name] = featherIndex + 1;
+        featherGlobalKeys[feather.name] ??= [GlobalKey()];
+        while (featherGlobalKeys[feather.name]!.length <= featherIndex) {
+          featherGlobalKeys[feather.name]!.add(GlobalKey());
+        }
+        final key = featherGlobalKeys[feather.name]![featherIndex];
+
         // TODO: 1 add tooltip
-        var widget = _buildPopover(context, component, (context, popover) {
-          final indicators = component.buildIndicators!(context, popover, null);
-          if (config.isBarVertical) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: indicators,
-            );
-          } else {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: indicators,
-            );
-          }
-        });
+
+        var widget = _buildPopover(
+          context: context,
+          component: component,
+          builder: (context, popover) {
+            final indicators = component.buildIndicators!(context, popover, null);
+            if (config.isBarVertical) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: indicators,
+              );
+            } else {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: indicators,
+              );
+            }
+          },
+        );
+
         // TODO: 2 listen to component.enabled to have some kind of different decoration?
+
+        // TODO: 2 PERFORMANCE maybe pass a builder instead if a Widget to _buildVisibility
+        // so children aren't build unnecessarily for hidden feathers
         widget = _buildVisibility(context, component, widget);
-        result.add(widget);
+
+        result.add(KeyedSubtree(key: key, child: widget));
       }
     }
     return result;
   }
 
-  Widget _buildPopover(
-    BuildContext context,
-    FeatherComponent component,
-    PopoverBuilder builder,
-  ) {
+  Widget _buildPopover({
+    required BuildContext context,
+    required FeatherComponent component,
+    required PopoverBuilder builder,
+  }) {
     if (component.buildPopover == null) {
       return builder(context, null);
     }

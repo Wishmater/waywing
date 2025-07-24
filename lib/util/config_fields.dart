@@ -34,7 +34,7 @@ Color _fromHex(String hexString) {
   return Color(int.parse(buffer.toString(), radix: 16));
 }
 
-class DurationField extends NumberFieldBase<Duration> {
+class DurationField extends NumberFieldBase<double, Duration> {
   const DurationField(
     super.name, {
     super.defaultTo,
@@ -63,18 +63,6 @@ class CurveField extends StringFieldBase<Curve> {
       // TODO: 2 add rest of the curves
       _ => ValidatorError(MyValError('Unknown curve: $value')),
     };
-  }
-}
-
-class IntField extends NumberFieldBase<int> {
-  const IntField(
-    super.name, {
-    super.defaultTo,
-    super.nullable,
-  }) : super(validator: transform);
-
-  static ValidatorResult<int> transform(double value) {
-    return ValidatorTransform(value.floor());
   }
 }
 

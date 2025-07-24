@@ -51,25 +51,25 @@ class MainConfig extends Config {
   //===========================================================================
 
   final double? exclusiveSizeLeft;
-  static const _exclusiveSizeLeft = NumberField(
+  static const _exclusiveSizeLeft = DoubleNumberField(
     'exclusiveSizeLeft',
     nullable: true,
   );
 
   final double? exclusiveSizeRight;
-  static const _exclusiveSizeRight = NumberField(
+  static const _exclusiveSizeRight = DoubleNumberField(
     'exclusiveSizeRight',
     nullable: true,
   );
 
   final double? exclusiveSizeTop;
-  static const _exclusiveSizeTop = NumberField(
+  static const _exclusiveSizeTop = DoubleNumberField(
     'exclusiveSizeTop',
     nullable: true,
   );
 
   final double? exclusiveSizeBottom;
-  static const _exclusiveSizeBottom = NumberField(
+  static const _exclusiveSizeBottom = DoubleNumberField(
     'exclusiveSizeBottom',
     nullable: true,
   );
@@ -96,36 +96,36 @@ class MainConfig extends Config {
   );
 
   final int barSize; // in pixels
-  static const _barSize = IntField(
+  static const _barSize = IntegerNumberField(
     'barSize',
   );
 
   final double barMarginLeft; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginLeft = NumberField(
+  static const _barMarginLeft = DoubleNumberField(
     'barMarginLeft',
     defaultTo: 0,
   );
 
   final double barMarginRight; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginRight = NumberField(
+  static const _barMarginRight = DoubleNumberField(
     'barMarginRight',
     defaultTo: 0,
   );
 
   final double barMarginTop; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginTop = NumberField(
+  static const _barMarginTop = DoubleNumberField(
     'barMarginTop',
     defaultTo: 0,
   );
 
   final double barMarginBottom; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginBottom = NumberField(
+  static const _barMarginBottom = DoubleNumberField(
     'barMarginBottom',
     defaultTo: 0,
   );
 
   final double barItemSize; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barItemSize = NumberField(
+  static const _barItemSize = DoubleNumberField(
     'barItemSize',
     nullable: true, // defaults to barSize
   );
@@ -140,25 +140,25 @@ class MainConfig extends Config {
   //===========================================================================
 
   final double barRadiusInCross; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusInCross = NumberField(
+  static const _barRadiusInCross = DoubleNumberField(
     'barRadiusInCross',
     defaultTo: 0,
   );
 
   final double barRadiusInMain; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusInMain = NumberField(
+  static const _barRadiusInMain = DoubleNumberField(
     'barRadiusInMain',
     defaultTo: 0,
   );
 
   final double barRadiusOutCross; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusOutCross = NumberField(
+  static const _barRadiusOutCross = DoubleNumberField(
     'barRadiusOutCross',
     defaultTo: 0,
   );
 
   final double barRadiusOutMain; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusOutMain = NumberField(
+  static const _barRadiusOutMain = DoubleNumberField(
     'barRadiusOutMain',
     defaultTo: 0,
   );
@@ -275,7 +275,7 @@ Future<Config> reloadConfig() async {
     themeMode = "light"
     seedColor = "#0000ff"
     animationDuration = 250
-    barSide = "right"
+    barSide = "bottom"
     barSize = 64
     barMarginTop = 380
     barMarginBottom = 340
@@ -286,6 +286,7 @@ Future<Config> reloadConfig() async {
     barRadiusOutCross = barSize * 0.5
     barRadiusOutMain = barSize * 0.5 * 1.5
   ''';
+
   final result = ConfigurationParser().parseFromString(
     content,
     schema: MainConfig.buildSchema(),
@@ -298,12 +299,12 @@ Future<Config> reloadConfig() async {
   switch (result) {
     case EvaluationParseError():
       print('EvaluationParseError');
-      print(result.errors);
+      print(result.errors.join('\n'));
       // TODO: Handle this case.
       throw UnimplementedError();
     case EvaluationValidationError():
       print('EvaluationValidationError');
-      print(result.errors);
+      print(result.errors.join('\n'));
       print(result.values);
       // TODO: Handle this case.
       throw UnimplementedError();

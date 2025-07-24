@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:config/config.dart';
 import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:flutter/material.dart';
 import 'package:waywing/core/feather.dart';
 import 'package:waywing/core/feather_registry.dart';
 import 'package:waywing/util/config_fields.dart';
+import 'package:path/path.dart' as path;
 
 MainConfig get config => _config;
 late MainConfig _config;
@@ -271,7 +274,7 @@ class MainConfig extends Config {
 }
 
 Future<Config> reloadConfig() async {
-  final content = '''
+  String content = '''
     themeMode = "light"
     seedColor = "#0000ff"
     animationDuration = 250
@@ -287,15 +290,16 @@ Future<Config> reloadConfig() async {
     barRadiusOutMain = barSize * 0.5 * 1.5
   ''';
 
+  final configDir = Platform.environment['XDG_CONFIG_HOME'] ?? expandEnvironmentVariables(r'$HOME/.config');
+  final filepath = path.joinAll([configDir, 'waywing', 'config']);
+  try {
+    content = await File(filepath).readAsString();
+  } catch (_) {}
+
   final result = ConfigurationParser().parseFromString(
     content,
     schema: MainConfig.buildSchema(),
   );
-  // final configFile = File(''); // TODO: 1 get default config file path
-  // if (!(await configFile.exists())) {
-  //   // TODO: 1 write default config
-  // }
-  // final result = await ConfigurationParser().parseFromFile(configFile);
   switch (result) {
     case EvaluationParseError():
       print('EvaluationParseError');
@@ -312,4 +316,15 @@ Future<Config> reloadConfig() async {
       _config = MainConfig.fromMap(result.values);
       return _config;
   }
+}
+
+// Only if the dollar sign does not have a backslash before it.
+final _unescapedVariables = RegExp(r'(?<!\\)\$([a-zA-Z_]+[a-zA-Z0-9_]*)');
+
+/// Resolves environment variables. Replaces all $VARS with their value.
+String expandEnvironmentVariables(String path) {
+  return path.replaceAllMapped(_unescapedVariables, (Match match) {
+    String env = match[1]!;
+    return Platform.environment[env] ?? '';
+  });
 }

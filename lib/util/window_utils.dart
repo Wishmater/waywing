@@ -60,14 +60,14 @@ Future<void> updateEdgeWindows() async {
 Future<void> _updateEdgeWindows() async {
   final futures = <Future>[];
   for (final side in ScreenEdge.values) {
-    futures.add(updateEdgeWindow(side));
+    futures.add(updateEdgeWindow(side, config));
   }
   await Future.wait(futures);
 }
 
 Map<ScreenEdge, bool> _existingDummyLayers = {};
 
-Future<void> updateEdgeWindow(ScreenEdge side) async {
+Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
   final exclusiveSize = config.getExclusiveSizeForSide(side)?.round() ?? 0;
   final windowId = 'WayWings$side';
 

@@ -12,7 +12,7 @@ import 'package:waywing/util/window_utils.dart';
 String _defaultConfig = '''
   themeMode = "light"
   seedColor = "#0000ff"
-  animationDuration = 250
+  animationDuration = 250ms
   barSide = "bottom"
   barSize = 64
   barMarginTop = 380

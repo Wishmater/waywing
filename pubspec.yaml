@@ -24,7 +24,7 @@ dependencies:
   dartx: ^1.2.0
   args: ^2.7.0
 
-  # Widgets / UII
+  # Widgets / UI
   sliver_tools: ^0.2.12
   flutter_font_icons: ^2.2.7
   animations: ^2.0.11

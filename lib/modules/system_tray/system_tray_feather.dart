@@ -1,24 +1,38 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:waywing/core/feather_registry.dart';
+import 'package:waywing/core/service_registry.dart';
 import 'package:waywing/modules/system_tray/system_tray_service.dart';
+import 'package:waywing/modules/system_tray/system_tray_widget.dart';
+import 'package:waywing/core/feather.dart';
 
-class SystemTrayWidget extends StatefulWidget {
-  const SystemTrayWidget({super.key});
+class SystemTrayFeather extends Feather {
+  SystemTrayFeather._();
 
-  @override
-  State<SystemTrayWidget> createState() => _SystemTrayWidgetState();
-}
-
-class _SystemTrayWidgetState extends State<SystemTrayWidget> {
-  @override
-  void initState() {
-    super.initState();
-    systemTray.ensureInitialized();
+  static void registerFeather(RegisterFeatherCallback registerFeather) {
+    registerFeather('SystemTray', SystemTrayFeather._);
   }
 
-  // TODO: dispose system tray
+  @override
+  String get name => 'SystemTray';
+
+  late SystemTrayService service;
 
   @override
-  Widget build(BuildContext context) {
-    return Text(systemTray.items.isEmpty ? 'empty' : systemTray.items.reduce((e, v) => '$e, $v'));
+  Future<void> init(BuildContext context) async {
+    service = await serviceRegistry.requestService<SystemTrayService>(this);
   }
+
+  @override
+  late final List<FeatherComponent> components = [systemTrayComponent];
+
+  late final systemTrayComponent = FeatherComponent(
+    buildIndicators: (context, popover, tooltip) {
+      return [
+        SystemTrayWidget(service: service),
+      ];
+    },
+  );
 }
+

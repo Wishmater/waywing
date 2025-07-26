@@ -1,13 +1,20 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:waywing/core/feather_registry.dart';
 import 'package:waywing/widgets/winged_flat_button.dart';
 import 'package:waywing/core/feather.dart';
 import 'package:waywing/core/config.dart';
 import 'package:waywing/util/derived_value_notifier.dart';
 
-class Clock extends Feather {
+class ClockFeather extends Feather {
+  ClockFeather._();
+
+  static void registerFeather(RegisterFeatherCallback registerFeather) {
+    registerFeather('Clock', ClockFeather._);
+  }
+
   @override
   String get name => 'Clock';
 
@@ -68,10 +75,9 @@ class Clock extends Feather {
       return ValueListenableBuilder(
         valueListenable: time,
         builder: (context, value, _) {
-          final isBarVertical = config.isBarVertical;
           return SizedBox(
-            width: !isBarVertical ? config.barItemSize : null,
-            height: isBarVertical ? config.barItemSize : null,
+            width: !config.isBarVertical ? config.barItemSize : null,
+            height: config.isBarVertical ? config.barItemSize : null,
             child: WingedFlatButton(
               onTap: () {},
               child: Center(child: Text(value.toString())),

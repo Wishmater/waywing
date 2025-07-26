@@ -20,11 +20,6 @@ abstract class Feather {
   /// Widgets won't be built until initialization is done.
   Future<void> init(BuildContext context) async {}
 
-  // TODO: 1 how to support this case: the feather spins up a service on init(),
-  // but when dispoisng the feather, others might be depending on that same service,
-  // how do we know if noone else depends on the service, so we can safely dispose it.
-  // Should services inherit a base class that keeps track of dependant feathers?
-
   /// Remove can't receive context, because on application exit context can be dirty and thus unusable
   /// Context shouldn't be necessary to run cleanup code
   Future<void> dispose() async {}

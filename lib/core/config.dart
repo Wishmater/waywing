@@ -255,6 +255,7 @@ class MainConfig extends Config {
         featherRegistry.getFeatherByName('Clock'),
         featherRegistry.getFeatherByName('Clock'),
         featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName('SystemTray'),
       ]),
       barCenterFeathers: List.unmodifiable([
         featherRegistry.getFeatherByName('Clock'),

@@ -6,6 +6,7 @@ import 'package:fl_linux_window_manager/models/screen_edge.dart';
 import 'package:fl_linux_window_manager/widgets/input_region.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:waywing/core/feather_registry.dart';
 import 'package:waywing/widgets/docked_rounded_corners_clipper.dart';
 import 'package:waywing/core/feather.dart';
 import 'package:waywing/core/config.dart';
@@ -87,6 +88,14 @@ class _BarState extends State<Bar> {
       }
     }
 
+    final shape = DockedRoundedCornersBorder(
+      dockedSide: config.barSide,
+      radiusInCross: config.barRadiusInCross,
+      radiusInMain: config.barRadiusInMain,
+      radiusOutCross: config.barRadiusOutCross,
+      radiusOutMain: config.barRadiusOutMain,
+      isVertical: config.isBarVertical,
+    );
     Map<String, int> feathersCount = {};
     return Positioned.fill(
       child: AnimatedAlign(
@@ -110,41 +119,41 @@ class _BarState extends State<Bar> {
               color: Theme.of(context).canvasColor,
               clipBehavior: Clip.antiAliasWithSaveLayer,
               elevation: 6, // TODO: 2 expose bar elevation theme option to user
-              shape: DockedRoundedCornersBorder(
-                dockedSide: config.barSide,
-                radiusInCross: config.barRadiusInCross,
-                radiusInMain: config.barRadiusInMain,
-                radiusOutCross: config.barRadiusOutCross,
-                radiusOutMain: config.barRadiusOutMain,
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                fit: StackFit.expand,
-                children: [
-                  Align(
-                    alignment: endAlignment,
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(context, config.barEndFeathers, feathersCount),
+              shape: shape,
+              // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
+              // this should also solve the issue of widgets being disposed when switching vertical
+              // to horizontal bar (or viceversa) because we switched Row / Column
+              child: Padding(
+                padding: shape.dimensions,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  fit: StackFit.expand,
+                  children: [
+                    Align(
+                      alignment: endAlignment,
+                      child: buildLayoutWidget(
+                        context,
+                        buildFeatherWidgets(context, config.barEndFeathers, feathersCount),
+                      ),
                     ),
-                  ),
 
-                  Align(
-                    alignment: Alignment.center,
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(context, config.barCenterFeathers, feathersCount),
+                    Align(
+                      alignment: Alignment.center,
+                      child: buildLayoutWidget(
+                        context,
+                        buildFeatherWidgets(context, config.barCenterFeathers, feathersCount),
+                      ),
                     ),
-                  ),
 
-                  Align(
-                    alignment: startAlignment,
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(context, config.barStartFeathers, feathersCount),
+                    Align(
+                      alignment: startAlignment,
+                      child: buildLayoutWidget(
+                        context,
+                        buildFeatherWidgets(context, config.barStartFeathers, feathersCount),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -154,28 +163,17 @@ class _BarState extends State<Bar> {
   }
 
   Widget buildLayoutWidget(BuildContext context, List<Widget> children) {
-    final outerRoundedEdgeMainSize = config.barRadiusOutMain;
-    final mainAxisPadding = outerRoundedEdgeMainSize + config.barItemSize * 0.2;
-    // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
-    // this should also solve the issue of widgets being disposed when switching vertical
-    // to horizontal bar (or viceversa) because we switched Row / Column
     if (config.isBarVertical) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: mainAxisPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
-        ),
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
       );
     } else {
-      return Padding(
-        padding: EdgeInsets.symmetric(horizontal: mainAxisPadding),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: children,
-        ),
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
       );
     }
   }
@@ -183,49 +181,67 @@ class _BarState extends State<Bar> {
   List<Widget> buildFeatherWidgets(BuildContext context, List<Feather> feathers, Map<String, int> feathersCount) {
     final result = <Widget>[];
     for (final feather in feathers) {
-      // TODO: 3 maybe add some visual indication that widgets belong to the same feather
-      for (final component in feather.components) {
-        if (component.buildIndicators == null) continue;
-        feathersCount[feather.name] ??= 0;
-        final featherIndex = feathersCount[feather.name]!;
-        feathersCount[feather.name] = featherIndex + 1;
-        featherGlobalKeys[feather.name] ??= [GlobalKey()];
-        while (featherGlobalKeys[feather.name]!.length <= featherIndex) {
-          featherGlobalKeys[feather.name]!.add(GlobalKey());
-        }
-        final key = featherGlobalKeys[feather.name]![featherIndex];
-
-        // TODO: 1 add tooltip
-
-        var widget = _buildPopover(
-          context: context,
-          component: component,
-          builder: (context, popover) {
-            final indicators = component.buildIndicators!(context, popover, null);
-            if (config.isBarVertical) {
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: indicators,
-              );
-            } else {
-              return Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: indicators,
+      if (feather.components.isEmpty) continue;
+      result.add(
+        FutureBuilder(
+          future: featherRegistry.awaitInitialization(feather),
+          builder: (context, snapshot) {
+            // TODO: 1 implement proper error management and animation when switching out of loading state
+            if (snapshot.connectionState != ConnectionState.done) {
+              return SizedBox.square(
+                dimension: config.barItemSize.toDouble(),
+                child: Center(child: CircularProgressIndicator()),
               );
             }
+
+            final result = <Widget>[];
+            // TODO: 3 maybe add some visual indication that widgets belong to the same feather
+            for (final component in feather.components) {
+              if (component.buildIndicators == null) continue;
+              feathersCount[feather.name] ??= 0;
+              final featherIndex = feathersCount[feather.name]!;
+              feathersCount[feather.name] = featherIndex + 1;
+              featherGlobalKeys[feather.name] ??= [GlobalKey()];
+              while (featherGlobalKeys[feather.name]!.length <= featherIndex) {
+                featherGlobalKeys[feather.name]!.add(GlobalKey());
+              }
+              final key = featherGlobalKeys[feather.name]![featherIndex];
+
+              // TODO: 1 add tooltip
+
+              var widget = _buildPopover(
+                context: context,
+                component: component,
+                builder: (context, popover) {
+                  final indicators = component.buildIndicators!(context, popover, null);
+                  if (config.isBarVertical) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: indicators,
+                    );
+                  } else {
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: indicators,
+                    );
+                  }
+                },
+              );
+
+              // TODO: 2 listen to component.enabled to have some kind of different decoration?
+
+              // TODO: 2 PERFORMANCE maybe pass a builder instead if a Widget to _buildVisibility
+              // so children aren't build unnecessarily for hidden feathers
+              widget = _buildVisibility(context, component, widget);
+
+              result.add(KeyedSubtree(key: key, child: widget));
+            }
+            return buildLayoutWidget(context, result);
           },
-        );
-
-        // TODO: 2 listen to component.enabled to have some kind of different decoration?
-
-        // TODO: 2 PERFORMANCE maybe pass a builder instead if a Widget to _buildVisibility
-        // so children aren't build unnecessarily for hidden feathers
-        widget = _buildVisibility(context, component, widget);
-
-        result.add(KeyedSubtree(key: key, child: widget));
-      }
+        ),
+      );
     }
     return result;
   }

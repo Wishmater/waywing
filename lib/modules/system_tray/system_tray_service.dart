@@ -1,6 +1,6 @@
 import 'package:dbus/dbus.dart';
-
-final systemTray = SystemTrayService();
+import 'package:waywing/core/service.dart';
+import 'package:waywing/core/service_registry.dart';
 
 class SystemTrayItem {
   String id;
@@ -21,17 +21,18 @@ class SystemTrayItem {
   });
 }
 
-class SystemTrayService {
-  Future<void>? _initFuture;
+class SystemTrayService extends Service {
+  SystemTrayService._();
+
+  static registerService(RegisterServiceCallback registerService) {
+    registerService<SystemTrayService>(SystemTrayService._);
+  }
+
   late DBusClient _client;
   late _StatusNotifierWatcherObject _watcher;
 
-  Future<void> ensureInitialized() {
-    _initFuture ??= _init();
-    return _initFuture!;
-  }
-
-  Future<void> _init() async {
+  @override
+  Future<void> init() async {
     _client = DBusClient.session();
     await _client.requestName(_StatusNotifierWatcherObject.objectname);
     _watcher = _StatusNotifierWatcherObject(
@@ -40,8 +41,8 @@ class SystemTrayService {
     await _client.registerObject(_watcher);
   }
 
+  @override
   Future<void> dispose() async {
-    if (_initFuture != null) await _initFuture;
     await _client.unregisterObject(_watcher);
     await _client.releaseName(_StatusNotifierWatcherObject.objectname);
     await _client.close();

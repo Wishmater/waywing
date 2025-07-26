@@ -1,6 +1,6 @@
 import 'package:fl_linux_window_manager/controller/input_region_controller.dart';
 import 'package:flutter/widgets.dart';
-import 'package:waywing/core/feather_service.dart';
+import 'package:waywing/core/feather_registry.dart';
 import 'package:waywing/core/config.dart';
 import 'package:waywing/util/window_utils.dart';
 
@@ -19,7 +19,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     super.initState();
 
     // Initialize feathers. This has to be done here, because we don't have a BuildContext in main()
-    feathers.onConfigUpdated(context);
+    featherRegistry.onConfigUpdated(context);
 
     // TODO: 2 listen to config file, and call onConfigUpdated
   }
@@ -39,7 +39,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     if (!context.mounted) return; // something weird happened, probably the app was just closed
     final newConfig = config;
 
-    feathers.onConfigUpdated(context);
+    featherRegistry.onConfigUpdated(context);
 
     if (newConfig.barSide != oldConfig.barSide ||
         newConfig.barSize != oldConfig.barSize ||

@@ -12,15 +12,12 @@ import 'package:waywing/util/window_utils.dart';
 // TODO: 1 move most of this shit to a config util file
 
 String _defaultConfig = '''
-  themeMode = "light"
   seedColor = "#0000ff"
   animationDuration = 250ms
-  barSide = "bottom"
+  barSide = "top"
   barSize = 64
-  barMarginTop = 380
-  barMarginBottom = 340
-  barMarginLeft = 48
-  barMarginRight = 48
+  barMarginLeft = barSize
+  barMarginRight = barSize
   barRadiusInCross = barSize * 0.5
   barRadiusInMain = barSize * 0.5 * 0.67
   barRadiusOutCross = barSize * 0.5

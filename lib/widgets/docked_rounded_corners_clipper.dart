@@ -253,9 +253,9 @@ class DockedRoundedCornersBorder extends ShapeBorder {
     }
     // if dockedSide is different, we default to removing current border and then adding new one
     if (t < 0.5) {
-      return scale(1 - (t * 2));
+      return a.scale(1 - (t * 2));
     }
-    return a.scale((t - 0.5) * 2);
+    return scale((t - 0.5) * 2);
   }
 }
 

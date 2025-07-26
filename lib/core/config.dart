@@ -18,30 +18,29 @@ class MainConfig extends Config {
   //===========================================================================
 
   final ThemeMode themeMode;
+  static const _themeModeName = 'themeMode';
   static const _themeMode = EnumField(
-    'themeMode',
     ThemeMode.values,
     defaultTo: ThemeMode.system,
   );
 
   final Color seedColor;
-  static const _seedColor = ColorField(
-    'seedColor',
-  );
+  static const _seedColorName = 'seedColor';
+  static const _seedColor = ColorField();
 
   //===========================================================================
   // Animations
   //===========================================================================
 
   final Duration animationDuration;
+  static const _animationDurationName = 'animationDuration';
   static const _animationDuration = DurationField(
-    'animationDuration',
     defaultTo: Duration(milliseconds: 250),
   );
 
   final Curve animationCurve;
+  static const _animationCurveName = 'animationCurve';
   static const _animationCurve = CurveField(
-    'animationCurve',
     defaultTo: Curves.easeOutCubic,
   );
   // TODO: 2 we probably want to set different animation "types" and then the user can set duration and curve for each of them
@@ -51,26 +50,26 @@ class MainConfig extends Config {
   //===========================================================================
 
   final double? exclusiveSizeLeft;
+  static const _exclusiveSizeLeftName = 'exclusiveSizeLeft';
   static const _exclusiveSizeLeft = DoubleNumberField(
-    'exclusiveSizeLeft',
     nullable: true,
   );
 
   final double? exclusiveSizeRight;
+  static const _exclusiveSizeRightName = 'exclusiveSizeRight';
   static const _exclusiveSizeRight = DoubleNumberField(
-    'exclusiveSizeRight',
     nullable: true,
   );
 
   final double? exclusiveSizeTop;
+  static const _exclusiveSizeTopName = 'exclusiveSizeTop';
   static const _exclusiveSizeTop = DoubleNumberField(
-    'exclusiveSizeTop',
     nullable: true,
   );
 
   final double? exclusiveSizeBottom;
+  static const _exclusiveSizeBottomName = 'exclusiveSizeBottom';
   static const _exclusiveSizeBottom = DoubleNumberField(
-    'exclusiveSizeBottom',
     nullable: true,
   );
 
@@ -90,43 +89,42 @@ class MainConfig extends Config {
   //===========================================================================
 
   final ScreenEdge barSide;
+  static const _barSideName = 'barSide';
   static const _barSide = EnumField(
-    'barSide',
     ScreenEdge.values,
   );
 
   final int barSize; // in pixels
-  static const _barSize = IntegerNumberField(
-    'barSize',
-  );
+  static const _barSizeName = 'barSize';
+  static const _barSize = IntegerNumberField();
 
   final double barMarginLeft; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barMarginLeftName = 'barMarginLeft';
   static const _barMarginLeft = DoubleNumberField(
-    'barMarginLeft',
     defaultTo: 0,
   );
 
   final double barMarginRight; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barMarginRightName = 'barMarginRight';
   static const _barMarginRight = DoubleNumberField(
-    'barMarginRight',
     defaultTo: 0,
   );
 
   final double barMarginTop; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barMarginTopName = 'barMarginTop';
   static const _barMarginTop = DoubleNumberField(
-    'barMarginTop',
     defaultTo: 0,
   );
 
   final double barMarginBottom; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barMarginBottomName = 'barMarginBottom';
   static const _barMarginBottom = DoubleNumberField(
-    'barMarginBottom',
     defaultTo: 0,
   );
 
   final double barItemSize; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barItemSizeName = 'barItemSize';
   static const _barItemSize = DoubleNumberField(
-    'barItemSize',
     nullable: true, // defaults to barSize
   );
 
@@ -140,26 +138,26 @@ class MainConfig extends Config {
   //===========================================================================
 
   final double barRadiusInCross; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barRadiusInCrossName = 'barRadiusInCross';
   static const _barRadiusInCross = DoubleNumberField(
-    'barRadiusInCross',
     defaultTo: 0,
   );
 
   final double barRadiusInMain; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barRadiusInMainName = 'barRadiusInMain';
   static const _barRadiusInMain = DoubleNumberField(
-    'barRadiusInMain',
     defaultTo: 0,
   );
 
   final double barRadiusOutCross; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barRadiusOutCrossName = 'barRadiusOutCross';
   static const _barRadiusOutCross = DoubleNumberField(
-    'barRadiusOutCross',
     defaultTo: 0,
   );
 
   final double barRadiusOutMain; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
+  static const _barRadiusOutMainName = 'barRadiusOutMain';
   static const _barRadiusOutMain = DoubleNumberField(
-    'barRadiusOutMain',
     defaultTo: 0,
   );
   // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
@@ -170,6 +168,12 @@ class MainConfig extends Config {
 
   // When implementing reading config, get the instance with Feather.getByName
   final List<Feather> barStartFeathers;
+  static const _barStartFeathersName = 'barStartFeathers';
+  static const _barStartFeathers = ListField(
+    FeatherField(),
+    defaultTo: <Feather>[],
+  );
+
   final List<Feather> barCenterFeathers;
   final List<Feather> barEndFeathers;
   // TODO: 3 validate that passed feather names exist
@@ -205,58 +209,54 @@ class MainConfig extends Config {
 
   static Schema buildSchema() {
     return Schema(
-      fields: [
-        _themeMode,
-        _seedColor,
-        _animationDuration,
-        _animationCurve,
-        _exclusiveSizeLeft,
-        _exclusiveSizeRight,
-        _exclusiveSizeTop,
-        _exclusiveSizeBottom,
-        _barSide,
-        _barSize,
-        _barMarginLeft,
-        _barMarginRight,
-        _barMarginTop,
-        _barMarginBottom,
-        _barItemSize,
-        _barRadiusInCross,
-        _barRadiusInMain,
-        _barRadiusOutCross,
-        _barRadiusOutMain,
-      ],
+      fields: {
+        _themeModeName: _themeMode,
+        _seedColorName: _seedColor,
+        _animationDurationName: _animationDuration,
+        _animationCurveName: _animationCurve,
+        _exclusiveSizeLeftName: _exclusiveSizeLeft,
+        _exclusiveSizeRightName: _exclusiveSizeRight,
+        _exclusiveSizeTopName: _exclusiveSizeTop,
+        _exclusiveSizeBottomName: _exclusiveSizeBottom,
+        _barSideName: _barSide,
+        _barSizeName: _barSize,
+        _barMarginLeftName: _barMarginLeft,
+        _barMarginRightName: _barMarginRight,
+        _barMarginTopName: _barMarginTop,
+        _barMarginBottomName: _barMarginBottom,
+        _barItemSizeName: _barItemSize,
+        _barRadiusInCrossName: _barRadiusInCross,
+        _barRadiusInMainName: _barRadiusInMain,
+        _barRadiusOutCrossName: _barRadiusOutCross,
+        _barRadiusOutMainName: _barRadiusOutMain,
+        _barStartFeathersName: _barStartFeathers,
+      },
     );
   }
 
   factory MainConfig.fromMap(Map<String, dynamic> values) {
     return MainConfig._(
-      themeMode: values[_themeMode.name],
-      seedColor: values[_seedColor.name],
-      animationDuration: values[_animationDuration.name],
-      animationCurve: values[_animationCurve.name],
-      exclusiveSizeLeft: values[_exclusiveSizeLeft.name],
-      exclusiveSizeRight: values[_exclusiveSizeRight.name],
-      exclusiveSizeTop: values[_exclusiveSizeTop.name],
-      exclusiveSizeBottom: values[_exclusiveSizeBottom.name],
-      barSide: values[_barSide.name],
-      barSize: values[_barSize.name],
-      barMarginLeft: values[_barMarginLeft.name],
-      barMarginRight: values[_barMarginRight.name],
-      barMarginTop: values[_barMarginTop.name],
-      barMarginBottom: values[_barMarginBottom.name],
-      barItemSize: values[_barItemSize.name],
-      barRadiusInCross: values[_barRadiusInCross.name],
-      barRadiusInMain: values[_barRadiusInMain.name],
-      barRadiusOutCross: values[_barRadiusOutCross.name],
-      barRadiusOutMain: values[_barRadiusOutMain.name],
+      themeMode: values[_themeModeName],
+      seedColor: values[_seedColorName],
+      animationDuration: values[_animationDurationName],
+      animationCurve: values[_animationCurveName],
+      exclusiveSizeLeft: values[_exclusiveSizeLeftName],
+      exclusiveSizeRight: values[_exclusiveSizeRightName],
+      exclusiveSizeTop: values[_exclusiveSizeTopName],
+      exclusiveSizeBottom: values[_exclusiveSizeBottomName],
+      barSide: values[_barSideName],
+      barSize: values[_barSizeName],
+      barMarginLeft: values[_barMarginLeftName],
+      barMarginRight: values[_barMarginRightName],
+      barMarginTop: values[_barMarginTopName],
+      barMarginBottom: values[_barMarginBottomName],
+      barItemSize: values[_barItemSizeName],
+      barRadiusInCross: values[_barRadiusInCrossName],
+      barRadiusInMain: values[_barRadiusInMainName],
+      barRadiusOutCross: values[_barRadiusOutCrossName],
+      barRadiusOutMain: values[_barRadiusOutMainName],
       // TODO 2 waiting for lists implementation in config.dart
-      barStartFeathers: List.unmodifiable([
-        featherRegistry.getFeatherByName('Clock'),
-        featherRegistry.getFeatherByName('Clock'),
-        featherRegistry.getFeatherByName('Clock'),
-        featherRegistry.getFeatherByName('SystemTray'),
-      ]),
+      barStartFeathers: values[_barStartFeathersName],
       barCenterFeathers: List.unmodifiable([
         featherRegistry.getFeatherByName('Clock'),
         featherRegistry.getFeatherByName('Clock'),

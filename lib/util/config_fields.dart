@@ -4,8 +4,7 @@ import 'package:waywing/core/feather.dart';
 import 'package:waywing/core/feather_registry.dart';
 
 class ColorField extends StringFieldBase<Color> {
-  const ColorField(
-    super.name, {
+  const ColorField({
     super.defaultTo,
     super.nullable,
   }) : super(validator: transform);
@@ -35,8 +34,7 @@ Color _fromHex(String hexString) {
 }
 
 class CurveField extends StringFieldBase<Curve> {
-  const CurveField(
-    super.name, {
+  const CurveField({
     super.defaultTo,
     super.nullable,
   }) : super(validator: transform);
@@ -52,8 +50,7 @@ class CurveField extends StringFieldBase<Curve> {
 }
 
 class FeatherField extends StringFieldBase<Feather> {
-  const FeatherField(
-    super.name, {
+  const FeatherField({
     super.defaultTo,
     super.nullable,
   }) : super(validator: transform);

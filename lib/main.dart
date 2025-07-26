@@ -18,7 +18,7 @@ void main(List<String> args) async {
     return;
   }
 
-  final configFuture = reloadConfig();
+  final configFuture = reloadConfig(getConfigurationString());
 
   WidgetsFlutterBinding.ensureInitialized();
 

@@ -32,6 +32,8 @@ dependencies:
 
   # Native plugins
   dbus: ^0.7.11
+  watcher: ^1.1.2
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:

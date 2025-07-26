@@ -276,17 +276,19 @@ Future<Config> reloadConfig(String content) async {
     content,
     schema: MainConfig.buildSchema(),
   );
+  // TODO: 2 implement proper config error handling
   switch (result) {
     case EvaluationParseError():
       print('EvaluationParseError');
       print(result.errors.join('\n'));
-      // TODO: Handle this case.
+      // TODO: 2 on config parse error, we should probably load default config and notify error
       throw UnimplementedError();
     case EvaluationValidationError():
       print('EvaluationValidationError');
       print(result.errors.join('\n'));
       print(result.values);
-      // TODO: Handle this case.
+      // TODO: 2 on config evaluation error: ideally, we have sane defaults on everything
+      // so that result.values is still usable AND we notify errors
       throw UnimplementedError();
     case EvaluationSuccess():
       _config = MainConfig.fromMap(result.values);

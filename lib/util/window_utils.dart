@@ -60,7 +60,7 @@ Future<void> updateEdgeWindows() async {
 Future<void> _updateEdgeWindows() async {
   final futures = <Future>[];
   for (final side in ScreenEdge.values) {
-    updateEdgeWindow(side);
+    futures.add(updateEdgeWindow(side));
   }
   await Future.wait(futures);
 }
@@ -127,6 +127,7 @@ Future<void> updateEdgeWindow(ScreenEdge side) async {
         ScreenEdge.right => ScreenEdge.top.value | ScreenEdge.bottom.value | ScreenEdge.right.value,
       },
     );
+    await Future.delayed(_delayDuration);
   } else {
     // If there is not a real change in the layer (like anchors or size), the exclusiveSize won't
     // be updated immediately, so we change the size to force an update.
@@ -138,9 +139,7 @@ Future<void> updateEdgeWindow(ScreenEdge side) async {
       height: _existingDummyLayers[side]! ? 50 : 0,
       windowId: windowId,
     );
+    await Future.delayed(_delayDuration);
     _existingDummyLayers[side] = !_existingDummyLayers[side]!;
   }
-  await Future.delayed(_delayDuration);
-
-  await Future.delayed(_delayDuration);
 }

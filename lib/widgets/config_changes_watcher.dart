@@ -9,6 +9,8 @@ import 'package:waywing/core/feather_registry.dart';
 import 'package:waywing/core/config.dart';
 import 'package:waywing/util/window_utils.dart';
 
+// TODO: 1 move most of this shit to a config util file
+
 String _defaultConfig = '''
   themeMode = "light"
   seedColor = "#0000ff"
@@ -78,20 +80,10 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   void initState() {
     super.initState();
 
-    _watch();
-
     // Initialize feathers. This has to be done here, because we don't have a BuildContext in main()
     featherRegistry.onConfigUpdated(context);
 
-    // TODO: 2 listen to config file, and call onConfigUpdated
-  }
-
-  @override
-  void didUpdateWidget(covariant ConfigChangeWatcher oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // TODO: 2 remove this once reading user config is implemented
-    // hack to always update hardcoded config on hot reload
-    onConfigUpdated();
+    _watch();
   }
 
   Future<void> onConfigUpdated() async {

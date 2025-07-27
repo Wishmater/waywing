@@ -2,7 +2,6 @@ import "package:config/config.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/feather.dart";
-import "package:waywing/core/feather_registry.dart";
 import "package:waywing/util/config_fields.dart";
 
 MainConfig get config => _config;

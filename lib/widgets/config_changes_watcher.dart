@@ -1,13 +1,13 @@
-import 'dart:async';
-import 'dart:io';
-import 'package:path/path.dart' as path;
-import 'package:watcher/watcher.dart' as watcher;
+import "dart:async";
+import "dart:io";
+import "package:path/path.dart" as path;
+import "package:watcher/watcher.dart" as watcher;
 
-import 'package:fl_linux_window_manager/controller/input_region_controller.dart';
-import 'package:flutter/widgets.dart';
-import 'package:waywing/core/feather_registry.dart';
-import 'package:waywing/core/config.dart';
-import 'package:waywing/util/window_utils.dart';
+import "package:fl_linux_window_manager/controller/input_region_controller.dart";
+import "package:flutter/widgets.dart";
+import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/util/window_utils.dart";
 
 // TODO: 1 move most of this shit to a config util file
 
@@ -25,13 +25,13 @@ String _defaultConfig = '''
 ''';
 
 String getConfigurationFilePath() {
-  final configDir = Platform.environment['XDG_CONFIG_HOME'] ?? expandEnvironmentVariables(r'$HOME/.config');
-  return path.joinAll([configDir, 'waywing', 'config']);
+  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
+  return path.joinAll([configDir, "waywing", "config"]);
 }
 
 String getConfigurationDirectoryPath() {
-  final configDir = Platform.environment['XDG_CONFIG_HOME'] ?? expandEnvironmentVariables(r'$HOME/.config');
-  return path.joinAll([configDir, 'waywing']);
+  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
+  return path.joinAll([configDir, "waywing"]);
 }
 
 String getConfigurationString() {
@@ -62,12 +62,12 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
           if (event.type == watcher.ChangeType.REMOVE) {
             return;
           }
-          print('WATCH CONFIGURATION FILE EVENT $event');
+          print("WATCH CONFIGURATION FILE EVENT $event");
           onConfigUpdated();
         }
       },
       onError: (e) {
-        print('WATCHING DIRECTORY ERROR $e');
+        print("WATCHING DIRECTORY ERROR $e");
       },
       cancelOnError: true,
     );
@@ -91,7 +91,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     if (file.existsSync()) {
       content = await file.readAsString();
     } else {
-      print('CONFIGURATION FILE NOT FOUND');
+      print("CONFIGURATION FILE NOT FOUND");
     }
     await reloadConfig(content);
     if (!context.mounted) return; // something weird happened, probably the app was just closed
@@ -123,12 +123,12 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
 }
 
 // Only if the dollar sign does not have a backslash before it.
-final _unescapedVariables = RegExp(r'(?<!\\)\$([a-zA-Z_]+[a-zA-Z0-9_]*)');
+final _unescapedVariables = RegExp(r"(?<!\\)\$([a-zA-Z_]+[a-zA-Z0-9_]*)");
 
 /// Resolves environment variables. Replaces all $VARS with their value.
 String expandEnvironmentVariables(String path) {
   return path.replaceAllMapped(_unescapedVariables, (Match match) {
     String env = match[1]!;
-    return Platform.environment[env] ?? '';
+    return Platform.environment[env] ?? "";
   });
 }

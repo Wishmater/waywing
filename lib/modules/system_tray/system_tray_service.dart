@@ -1,6 +1,6 @@
-import 'package:dbus/dbus.dart';
-import 'package:waywing/core/service.dart';
-import 'package:waywing/core/service_registry.dart';
+import "package:dbus/dbus.dart";
+import "package:waywing/core/service.dart";
+import "package:waywing/core/service_registry.dart";
 
 class SystemTrayItem {
   String id;
@@ -52,11 +52,11 @@ class SystemTrayService extends Service {
 
   Future<void> onRegisterStatusNotifierItem(String? sender, List<String> values) async {
     final service = values.first;
-    final parts = service.split('/');
+    final parts = service.split("/");
     final serviceName = parts[0];
-    final path = '/${parts.sublist(1).join('/')}';
-    print('');
-    print('parsed item $service\nserviceName=$serviceName\npath=$path');
+    final path = "/${parts.sublist(1).join('/')}";
+    print("");
+    print("parsed item $service\nserviceName=$serviceName\npath=$path");
     getItemDetails(sender ?? service, path);
   }
 
@@ -67,15 +67,15 @@ class SystemTrayService extends Service {
       path: DBusObjectPath(path),
     );
     // Fetch all StatusNotifierItem properties
-    var properties = await object.getAllProperties('org.kde.StatusNotifierItem');
+    var properties = await object.getAllProperties("org.kde.StatusNotifierItem");
     print(properties);
   }
 
   Future<void> getMenuItems(Map<String, dynamic> properties) async {
     // Fetch menu items if Menu property exists
     List<Map<String, dynamic>> menuItems = [];
-    if (properties['Menu'] != null) {
-      var menuPath = properties['Menu']!.asObjectPath();
+    if (properties["Menu"] != null) {
+      var menuPath = properties["Menu"]!.asObjectPath();
       // menuItems = await _fetchMenuItems(service, menuPath);
     }
   }
@@ -84,9 +84,9 @@ class SystemTrayService extends Service {
 typedef _StandardWatcherCallback = void Function(String? sender, List<String> values);
 
 class _StatusNotifierWatcherObject extends DBusObject {
-  static const objectname = 'org.kde.StatusNotifierWatcher';
-  // static const objectname = 'org.kde.StatusNotifierWatcher';
-  static const objectpath = '/StatusNotifierWatcher';
+  static const objectname = "org.kde.StatusNotifierWatcher";
+  // static const objectname = "org.kde.StatusNotifierWatcher";
+  static const objectpath = "/StatusNotifierWatcher";
 
   final _StandardWatcherCallback onRegisterStatusNotifierItem;
   final List<String> registeredItems = [];
@@ -98,27 +98,27 @@ class _StatusNotifierWatcherObject extends DBusObject {
   @override
   Map<String, Map<String, DBusValue>> get interfacesAndProperties => {
     objectname: {
-      'ProtocolVersion': DBusInt32(0),
-      'IsStatusNotifierHostRegistered': DBusBoolean(true),
-      'RegisteredStatusNotifierItems': DBusArray.string(registeredItems),
+      "ProtocolVersion": DBusInt32(0),
+      "IsStatusNotifierHostRegistered": DBusBoolean(true),
+      "RegisteredStatusNotifierItems": DBusArray.string(registeredItems),
     },
   };
 
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
-    print('received method call: $methodCall ${methodCall.interface} ${methodCall.name}');
+    print("received method call: $methodCall ${methodCall.interface} ${methodCall.name}");
     if (methodCall.interface == _StatusNotifierWatcherObject.objectname) {
-      if (methodCall.name == 'RegisterStatusNotifierItem') {
+      if (methodCall.name == "RegisterStatusNotifierItem") {
         final stringValues = methodCall.values.map((e) => e.asString()).toList();
         onRegisterStatusNotifierItem(methodCall.sender, stringValues);
         return DBusMethodSuccessResponse();
       }
 
-      // if (methodCall.name == 'RegisterStatusNotifierHost') {
+      // if (methodCall.name == "RegisterStatusNotifierHost") {
       //   var host = methodCall.values[0].asString();
       // }
 
-      print('unknownMethod: ${methodCall.name}: ${methodCall.values}');
+      print("unknownMethod: ${methodCall.name}: ${methodCall.values}");
     }
     return DBusMethodErrorResponse.unknownMethod();
   }

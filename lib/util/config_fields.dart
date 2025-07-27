@@ -1,7 +1,7 @@
-import 'package:config/config.dart';
-import 'package:flutter/widgets.dart';
-import 'package:waywing/core/feather.dart';
-import 'package:waywing/core/feather_registry.dart';
+import "package:config/config.dart";
+import "package:flutter/widgets.dart";
+import "package:waywing/core/feather.dart";
+import "package:waywing/core/feather_registry.dart";
 
 class ColorField extends StringFieldBase<Color> {
   const ColorField({
@@ -14,7 +14,7 @@ class ColorField extends StringFieldBase<Color> {
       // TODO: 3 also support rgb/rgba colors, and hex with alpha values
       return ValidatorTransform(_fromHex(value));
     } catch (_) {
-      return ValidatorError(MyValError('Failed to parse color value'));
+      return ValidatorError(MyValError("Failed to parse color value"));
     }
   }
 }
@@ -28,8 +28,8 @@ class MyValError extends ValidationError {
 
 Color _fromHex(String hexString) {
   final buffer = StringBuffer();
-  if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
-  buffer.write(hexString.replaceFirst('#', ''));
+  if (hexString.length == 6 || hexString.length == 7) buffer.write("ff");
+  buffer.write(hexString.replaceFirst("#", ""));
   return Color(int.parse(buffer.toString(), radix: 16));
 }
 
@@ -41,10 +41,10 @@ class CurveField extends StringFieldBase<Curve> {
 
   static ValidatorResult<Curve> transform(String value) {
     return switch (value) {
-      'linear' => ValidatorTransform(Curves.linear),
-      'easeOutCubic' => ValidatorTransform(Curves.easeOutCubic),
+      "linear" => ValidatorTransform(Curves.linear),
+      "easeOutCubic" => ValidatorTransform(Curves.easeOutCubic),
       // TODO: 2 add rest of the curves
-      _ => ValidatorError(MyValError('Unknown curve: $value')),
+      _ => ValidatorError(MyValError("Unknown curve: $value")),
     };
   }
 }
@@ -59,7 +59,7 @@ class FeatherField extends StringFieldBase<Feather> {
     try {
       return ValidatorTransform(featherRegistry.getFeatherByName(value));
     } catch (_) {
-      return ValidatorError(MyValError('Unknown feather: $value'));
+      return ValidatorError(MyValError("Unknown feather: $value"));
     }
   }
 }

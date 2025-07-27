@@ -1,6 +1,6 @@
-import 'dart:math';
+import "dart:math";
 
-import 'package:flutter/widgets.dart';
+import "package:flutter/widgets.dart";
 
 Offset getPopoverPosition({
   required Alignment anchorAlignment,
@@ -81,5 +81,3 @@ extension SmartClamp on double {
     return x<y ? clamp(x, y) : clamp(y, x);
   }
 }
-
-

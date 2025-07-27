@@ -1,16 +1,16 @@
-import 'dart:math';
+import "dart:math";
 
-import 'package:animations/animations.dart';
-import 'package:dartx/dartx_io.dart';
-import 'package:fl_linux_window_manager/models/screen_edge.dart';
-import 'package:fl_linux_window_manager/widgets/input_region.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:waywing/core/feather_registry.dart';
-import 'package:waywing/widgets/docked_rounded_corners_clipper.dart';
-import 'package:waywing/core/feather.dart';
-import 'package:waywing/core/config.dart';
-import 'package:waywing/widgets/winged_popover.dart';
+import "package:animations/animations.dart";
+import "package:dartx/dartx_io.dart";
+import "package:fl_linux_window_manager/models/screen_edge.dart";
+import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/foundation.dart";
+import "package:flutter/material.dart";
+import "package:waywing/core/feather_registry.dart";
+import "package:waywing/widgets/docked_rounded_corners_clipper.dart";
+import "package:waywing/core/feather.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/widgets/winged_popover.dart";
 
 class Bar extends StatefulWidget {
   const Bar({super.key});
@@ -277,7 +277,7 @@ class _BarState extends State<Bar> {
         );
         return WingedPopover(
           enabled: isEnabled,
-          containerId: 'BarPopover',
+          containerId: "BarPopover",
           // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
           zIndex: -10,
           popupAlignment: popoverAlignment,

@@ -1,10 +1,10 @@
-import 'package:dartx/dartx.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:waywing/core/config.dart';
-import 'package:waywing/util/popup_utils.dart';
-import 'package:waywing/util/state_positioning.dart';
-import 'package:waywing/widgets/winged_popover.dart';
+import "package:dartx/dartx.dart";
+import "package:flutter/material.dart";
+import "package:flutter/rendering.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/util/popup_utils.dart";
+import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/winged_popover.dart";
 
 class WingedPopoverProvider extends StatefulWidget {
   final Widget child;
@@ -24,7 +24,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   final Set<WingedPopoverState> removedHosts = {};
 
   void showHost(WingedPopoverState host) {
-    assert(!activeHosts.contains(host), 'Trying to register a host that already exists to PopoverProvider.');
+    assert(!activeHosts.contains(host), "Trying to register a host that already exists to PopoverProvider.");
     // hide other popovers with the same containerId
     if (host.widget.containerId != null) {
       final toRemove = activeHosts.where((e) => e.widget.containerId == host.widget.containerId).toList();
@@ -43,7 +43,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   }
 
   void hideHost(WingedPopoverState host) {
-    assert(activeHosts.contains(host), 'Trying to hide a host that doesn\'t exist in PopoverProvider.');
+    assert(activeHosts.contains(host), "Trying to hide a host that doesn't exist in PopoverProvider.");
     setState(() {
       activeHosts.remove(host);
       removedHosts.add(host);
@@ -54,7 +54,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   void _removeHost(WingedPopoverState host) {
     assert(
       activeHosts.contains(host) || removedHosts.contains(host),
-      'Trying to remove a host that doesn\'t exist in PopoverProvider.',
+      "Trying to remove a host that doesn't exist in PopoverProvider.",
     );
     setState(() {
       activeHosts.remove(host);
@@ -203,16 +203,16 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       child: container,
       builder: (context, hostPositioning, container) {
         if (hostPositioning == null) {
-          print('ERROR: Popover client built before host. This should never happen');
+          print("ERROR: Popover client built before host. This should never happen");
           WidgetsBinding.instance.addPostFrameCallback((_) {
             setState(() {});
           });
           return SizedBox.shrink();
         }
         final (hostPosition, hostSize) = hostPositioning;
-        // print('-----------------------------------');
-        // print('hostSize: $hostSize');
-        // print('hostPosition: $hostPosition');
+        // print("-----------------------------------");
+        // print("hostSize: $hostSize");
+        // print("hostPosition: $hostPosition");
         Size childSize;
         Offset childPosition;
         if (widget.isRemoved) {
@@ -247,8 +247,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
             });
           }
         }
-        // print('childSize: $childSize');
-        // print('childPosition: $childPosition');
+        // print("childSize: $childSize");
+        // print("childPosition: $childPosition");
         return AnimatedPositioned(
           duration: config.animationDuration,
           curve: config.animationCurve,

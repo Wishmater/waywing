@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:waywing/core/config.dart';
-import 'package:waywing/core/feather.dart';
-import 'package:waywing/core/service_registry.dart';
-import 'package:waywing/modules/clock/clock_feather.dart';
-import 'package:waywing/modules/system_tray/system_tray_feather.dart';
+import "package:flutter/material.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/core/feather.dart";
+import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/clock/clock_feather.dart";
+import "package:waywing/modules/nm/nm_feather.dart";
+import "package:waywing/modules/system_tray/system_tray_feather.dart";
 
 final featherRegistry = FeatherRegistry._();
 
@@ -22,7 +23,7 @@ class FeatherRegistry {
   final Map<Feather, Future<void>> _initializedFeathers = {};
 
   void registerFeather(String name, FeatherConstructor constructor) {
-    assert(!_registeredFeathers.containsKey(name), 'Trying to register a Feather that already exists: $name');
+    assert(!_registeredFeathers.containsKey(name), "Trying to register a Feather that already exists: $name");
     _registeredFeathers[name] = constructor;
   }
 
@@ -30,7 +31,7 @@ class FeatherRegistry {
   Feather getFeatherByName(String name) {
     var feather = _instancedFeathers[name];
     if (feather == null) {
-      assert(_registeredFeathers.containsKey(name), 'Trying to get an unknown Feather by name: $name');
+      assert(_registeredFeathers.containsKey(name), "Trying to get an unknown Feather by name: $name");
       feather = _registeredFeathers[name]!();
       _instancedFeathers[name] = feather;
     }
@@ -55,7 +56,7 @@ class FeatherRegistry {
     _addNewFeathersNotInOldConfig(context, configFeathers);
     assert(
       !_instancedFeathers.values.any((e) => !_initializedFeathers.containsKey(e)),
-      'After updating Feathers, there are still Feathers that were instanced but not initialized, this should never happen.',
+      "After updating Feathers, there are still Feathers that were instanced but not initialized, this should never happen.",
     );
   }
 
@@ -87,7 +88,7 @@ class FeatherRegistry {
   /// Adds the feather to the provided inner list, and to the all likst, and runs init() on it.
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
-    assert(!_initializedFeathers.containsKey(feather), 'Trying to add a feather that is already in Feathers.all');
+    assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already in Feathers.all");
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
     return initFuture;
@@ -96,7 +97,7 @@ class FeatherRegistry {
   /// Adds the feather to the list and runs dispose() on it.
   /// Returns the Future from calling dispose() on the feather.
   Future<void> _disposeFeather(Feather feather) async {
-    assert(_initializedFeathers.containsKey(feather), 'Trying to remove a feather that is not in Feathers.all');
+    assert(_initializedFeathers.containsKey(feather), "Trying to remove a feather that is not in Feathers.all");
     _initializedFeathers.remove(feather);
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
     featherRegistry._dereferenceFeather(feather.name);
@@ -104,7 +105,7 @@ class FeatherRegistry {
   }
 
   void _dereferenceFeather(String name) {
-    assert(_instancedFeathers.containsKey(name), 'Trying to de-reference a Feather that is not currently built: $name');
+    assert(_instancedFeathers.containsKey(name), "Trying to de-reference a Feather that is not currently built: $name");
     final feather = _instancedFeathers.remove(name)!;
     serviceRegistry.onFeatherDereferenced(feather);
   }
@@ -112,6 +113,7 @@ class FeatherRegistry {
   void _registerDefaultFeathers() {
     ClockFeather.registerFeather(registerFeather);
     SystemTrayFeather.registerFeather(registerFeather);
+    NetworkManagerFeather.registerFeather(registerFeather);
   }
 }
 

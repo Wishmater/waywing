@@ -1,9 +1,9 @@
-import 'package:config/config.dart';
-import 'package:fl_linux_window_manager/models/screen_edge.dart';
-import 'package:flutter/material.dart';
-import 'package:waywing/core/feather.dart';
-import 'package:waywing/core/feather_registry.dart';
-import 'package:waywing/util/config_fields.dart';
+import "package:config/config.dart";
+import "package:fl_linux_window_manager/models/screen_edge.dart";
+import "package:flutter/material.dart";
+import "package:waywing/core/feather.dart";
+import "package:waywing/core/feather_registry.dart";
+import "package:waywing/util/config_fields.dart";
 
 MainConfig get config => _config;
 late MainConfig _config;
@@ -18,14 +18,14 @@ class MainConfig extends Config {
   //===========================================================================
 
   final ThemeMode themeMode;
-  static const _themeModeName = 'themeMode';
+  static const _themeModeName = "themeMode";
   static const _themeMode = EnumField(
     ThemeMode.values,
     defaultTo: ThemeMode.system,
   );
 
   final Color seedColor;
-  static const _seedColorName = 'seedColor';
+  static const _seedColorName = "seedColor";
   static const _seedColor = ColorField();
 
   //===========================================================================
@@ -33,13 +33,13 @@ class MainConfig extends Config {
   //===========================================================================
 
   final Duration animationDuration;
-  static const _animationDurationName = 'animationDuration';
+  static const _animationDurationName = "animationDuration";
   static const _animationDuration = DurationField(
     defaultTo: Duration(milliseconds: 250),
   );
 
   final Curve animationCurve;
-  static const _animationCurveName = 'animationCurve';
+  static const _animationCurveName = "animationCurve";
   static const _animationCurve = CurveField(
     defaultTo: Curves.easeOutCubic,
   );
@@ -50,28 +50,20 @@ class MainConfig extends Config {
   //===========================================================================
 
   final double? exclusiveSizeLeft;
-  static const _exclusiveSizeLeftName = 'exclusiveSizeLeft';
-  static const _exclusiveSizeLeft = DoubleNumberField(
-    nullable: true,
-  );
+  static const _exclusiveSizeLeftName = "exclusiveSizeLeft";
+  static const _exclusiveSizeLeft = DoubleNumberField(nullable: true);
 
   final double? exclusiveSizeRight;
-  static const _exclusiveSizeRightName = 'exclusiveSizeRight';
-  static const _exclusiveSizeRight = DoubleNumberField(
-    nullable: true,
-  );
+  static const _exclusiveSizeRightName = "exclusiveSizeRight";
+  static const _exclusiveSizeRight = DoubleNumberField(nullable: true);
 
   final double? exclusiveSizeTop;
-  static const _exclusiveSizeTopName = 'exclusiveSizeTop';
-  static const _exclusiveSizeTop = DoubleNumberField(
-    nullable: true,
-  );
+  static const _exclusiveSizeTopName = "exclusiveSizeTop";
+  static const _exclusiveSizeTop = DoubleNumberField(nullable: true);
 
   final double? exclusiveSizeBottom;
-  static const _exclusiveSizeBottomName = 'exclusiveSizeBottom';
-  static const _exclusiveSizeBottom = DoubleNumberField(
-    nullable: true,
-  );
+  static const _exclusiveSizeBottomName = "exclusiveSizeBottom";
+  static const _exclusiveSizeBottom = DoubleNumberField(nullable: true);
 
   // Note (add to readme when it exists): explicitly set exclusiveSice will have priority over Bar size.
   // Set exclusiveSize to zero on same side bar is on to remove autoExclusiveSize on Bar.
@@ -89,41 +81,31 @@ class MainConfig extends Config {
   //===========================================================================
 
   final ScreenEdge barSide;
-  static const _barSideName = 'barSide';
-  static const _barSide = EnumField(
-    ScreenEdge.values,
-  );
+  static const _barSideName = "barSide";
+  static const _barSide = EnumField(ScreenEdge.values);
 
   final int barSize; // in pixels
-  static const _barSizeName = 'barSize';
+  static const _barSizeName = "barSize";
   static const _barSize = IntegerNumberField();
 
   final double barMarginLeft; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginLeftName = 'barMarginLeft';
-  static const _barMarginLeft = DoubleNumberField(
-    defaultTo: 0,
-  );
+  static const _barMarginLeftName = "barMarginLeft";
+  static const _barMarginLeft = DoubleNumberField(defaultTo: 0);
 
   final double barMarginRight; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginRightName = 'barMarginRight';
-  static const _barMarginRight = DoubleNumberField(
-    defaultTo: 0,
-  );
+  static const _barMarginRightName = "barMarginRight";
+  static const _barMarginRight = DoubleNumberField(defaultTo: 0);
 
   final double barMarginTop; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginTopName = 'barMarginTop';
-  static const _barMarginTop = DoubleNumberField(
-    defaultTo: 0,
-  );
+  static const _barMarginTopName = "barMarginTop";
+  static const _barMarginTop = DoubleNumberField(defaultTo: 0);
 
   final double barMarginBottom; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginBottomName = 'barMarginBottom';
-  static const _barMarginBottom = DoubleNumberField(
-    defaultTo: 0,
-  );
+  static const _barMarginBottomName = "barMarginBottom";
+  static const _barMarginBottom = DoubleNumberField(defaultTo: 0);
 
   final double barItemSize; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barItemSizeName = 'barItemSize';
+  static const _barItemSizeName = "barItemSize";
   static const _barItemSize = DoubleNumberField(
     nullable: true, // defaults to barSize
   );
@@ -138,28 +120,20 @@ class MainConfig extends Config {
   //===========================================================================
 
   final double barRadiusInCross; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusInCrossName = 'barRadiusInCross';
-  static const _barRadiusInCross = DoubleNumberField(
-    defaultTo: 0,
-  );
+  static const _barRadiusInCrossName = "barRadiusInCross";
+  static const _barRadiusInCross = DoubleNumberField(defaultTo: 0);
 
   final double barRadiusInMain; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusInMainName = 'barRadiusInMain';
-  static const _barRadiusInMain = DoubleNumberField(
-    defaultTo: 0,
-  );
+  static const _barRadiusInMainName = "barRadiusInMain";
+  static const _barRadiusInMain = DoubleNumberField(defaultTo: 0);
 
   final double barRadiusOutCross; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusOutCrossName = 'barRadiusOutCross';
-  static const _barRadiusOutCross = DoubleNumberField(
-    defaultTo: 0,
-  );
+  static const _barRadiusOutCrossName = "barRadiusOutCross";
+  static const _barRadiusOutCross = DoubleNumberField(defaultTo: 0);
 
   final double barRadiusOutMain; // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusOutMainName = 'barRadiusOutMain';
-  static const _barRadiusOutMain = DoubleNumberField(
-    defaultTo: 0,
-  );
+  static const _barRadiusOutMainName = "barRadiusOutMain";
+  static const _barRadiusOutMain = DoubleNumberField(defaultTo: 0);
   // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
 
   //===========================================================================
@@ -168,7 +142,7 @@ class MainConfig extends Config {
 
   // When implementing reading config, get the instance with Feather.getByName
   final List<Feather> barStartFeathers;
-  static const _barStartFeathersName = 'barStartFeathers';
+  static const _barStartFeathersName = "barStartFeathers";
   static const _barStartFeathers = ListField(
     FeatherField(),
     defaultTo: <Feather>[],
@@ -256,16 +230,21 @@ class MainConfig extends Config {
       barRadiusOutCross: values[_barRadiusOutCrossName],
       barRadiusOutMain: values[_barRadiusOutMainName],
       // TODO 2 waiting for lists implementation in config.dart
-      barStartFeathers: values[_barStartFeathersName],
+      barStartFeathers: List.unmodifiable([
+        featherRegistry.getFeatherByName("Clock"),
+        featherRegistry.getFeatherByName("Clock"),
+        featherRegistry.getFeatherByName("Clock"),
+        featherRegistry.getFeatherByName("SystemTray"),
+      ]),
       barCenterFeathers: List.unmodifiable([
-        featherRegistry.getFeatherByName('Clock'),
-        featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName("Clock"),
+        featherRegistry.getFeatherByName("Clock"),
       ]),
       barEndFeathers: List.unmodifiable([
-        featherRegistry.getFeatherByName('Clock'),
-        featherRegistry.getFeatherByName('Clock'),
-        featherRegistry.getFeatherByName('Clock'),
-        featherRegistry.getFeatherByName('Clock'),
+        featherRegistry.getFeatherByName("NetworkManager"),
+        featherRegistry.getFeatherByName("Clock"),
+        featherRegistry.getFeatherByName("Clock"),
+        featherRegistry.getFeatherByName("Clock"),
       ]),
     );
   }
@@ -279,13 +258,13 @@ Future<Config> reloadConfig(String content) async {
   // TODO: 2 implement proper config error handling
   switch (result) {
     case EvaluationParseError():
-      print('EvaluationParseError');
-      print(result.errors.join('\n'));
+      print("EvaluationParseError");
+      print(result.errors.join("\n"));
       // TODO: 2 on config parse error, we should probably load default config and notify error
       throw UnimplementedError();
     case EvaluationValidationError():
-      print('EvaluationValidationError');
-      print(result.errors.join('\n'));
+      print("EvaluationValidationError");
+      print(result.errors.join("\n"));
       print(result.values);
       // TODO: 2 on config evaluation error: ideally, we have sane defaults on everything
       // so that result.values is still usable AND we notify errors

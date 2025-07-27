@@ -1,8 +1,8 @@
-import 'dart:ui';
+import "dart:ui";
 
-import 'package:dartx/dartx.dart';
-import 'package:fl_linux_window_manager/models/screen_edge.dart';
-import 'package:flutter/widgets.dart';
+import "package:dartx/dartx.dart";
+import "package:fl_linux_window_manager/models/screen_edge.dart";
+import "package:flutter/widgets.dart";
 
 getDockedRoundCornersPathForDirection({
   required ScreenEdge dockedSide,
@@ -194,7 +194,7 @@ class DockedRoundedCornersBorder extends ShapeBorder {
 
   @override
   EdgeInsetsGeometry get dimensions {
-    // can't infer verticality because we don'r have size at this point
+    // can't infer verticality because we don't have size at this point
     if (isVertical == null) return EdgeInsets.zero;
     return EdgeInsets.symmetric(
       vertical: !isVertical! ? 0 : radiusOutMain.coerceAtLeast(0),

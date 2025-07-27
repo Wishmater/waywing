@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:waywing/widgets/winged_popover.dart';
+import "package:flutter/material.dart";
+import "package:waywing/widgets/winged_popover.dart";
 
 /// Every "component" added to waywing needs to implement this class.
 /// Here, it will define any services init/cleanup it needs
@@ -12,7 +12,7 @@ abstract class Feather {
   @override
   int get hashCode => Object.hash(Feather, name);
   @override
-  String toString() => 'Feather($name)';
+  String toString() => "Feather($name)";
 
   /// Initialize all services/fields needed inside this function.
   /// Make sure the future doesn't return until initialization is done,

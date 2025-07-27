@@ -1,8 +1,8 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
-import 'package:flutter/material.dart';
-import 'package:waywing/util/state_positioning.dart';
-import 'package:waywing/widgets/winged_popover_provider.dart';
+import "package:flutter/material.dart";
+import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/winged_popover_provider.dart";
 
 typedef WidgetBuilderWithChild =
     Widget Function(

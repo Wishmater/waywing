@@ -1,22 +1,22 @@
-import 'dart:async';
+import "dart:async";
 
-import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart';
-import 'package:waywing/core/feather_registry.dart';
-import 'package:waywing/widgets/winged_flat_button.dart';
-import 'package:waywing/core/feather.dart';
-import 'package:waywing/core/config.dart';
-import 'package:waywing/util/derived_value_notifier.dart';
+import "package:flutter/widgets.dart";
+import "package:intl/intl.dart";
+import "package:waywing/core/feather_registry.dart";
+import "package:waywing/widgets/winged_flat_button.dart";
+import "package:waywing/core/feather.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 
 class ClockFeather extends Feather {
   ClockFeather._();
 
   static void registerFeather(RegisterFeatherCallback registerFeather) {
-    registerFeather('Clock', ClockFeather._);
+    registerFeather("Clock", ClockFeather._);
   }
 
   @override
-  String get name => 'Clock';
+  String get name => "Clock";
 
   // TODO: 2 add this to a TimeService
   late final ValueNotifier<DateTime> time;
@@ -32,9 +32,9 @@ class ClockFeather extends Feather {
     timeString = DerivedValueNotifier(
       dependencies: [time],
       derive: () {
-        final hour = DateFormat('HH').format(time.value);
-        final minute = DateFormat('mm').format(time.value);
-        return '$hour\n$minute';
+        final hour = DateFormat("HH").format(time.value);
+        final minute = DateFormat("mm").format(time.value);
+        return "$hour\n$minute";
       },
     );
   }

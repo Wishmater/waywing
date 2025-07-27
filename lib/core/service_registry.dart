@@ -1,6 +1,7 @@
-import 'package:waywing/core/feather.dart';
-import 'package:waywing/core/service.dart';
-import 'package:waywing/modules/system_tray/system_tray_service.dart';
+import "package:waywing/core/feather.dart";
+import "package:waywing/core/service.dart";
+import "package:waywing/modules/nm/nm_service.dart";
+import "package:waywing/modules/system_tray/system_tray_service.dart";
 
 final serviceRegistry = ServiceRegistry._();
 
@@ -22,7 +23,7 @@ class ServiceRegistry {
     final serviceType = T;
     assert(
       !_registeredServices.containsKey(serviceType),
-      'Trying to register a Feather that already exists: $serviceType',
+      "Trying to register a Feather that already exists: $serviceType",
     );
     _registeredServices[serviceType] = constructor;
   }
@@ -99,6 +100,7 @@ class ServiceRegistry {
 
   void _registerDefaultServices() {
     SystemTrayService.registerService(registerService);
+    NetworkManagerService.registerService(registerService);
   }
 }
 

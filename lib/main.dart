@@ -1,13 +1,13 @@
 // ignore_for_file: prefer_single_quotes
 
-import 'package:args/args.dart';
-import 'package:fl_linux_window_manager/widgets/input_region.dart';
-import 'package:flutter/material.dart';
-import 'package:waywing/core/bar.dart';
-import 'package:waywing/core/config.dart';
-import 'package:waywing/widgets/config_changes_watcher.dart';
-import 'package:waywing/util/window_utils.dart';
-import 'package:waywing/widgets/winged_popover_provider.dart';
+import "package:args/args.dart";
+import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/material.dart";
+import "package:waywing/core/bar.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/widgets/config_changes_watcher.dart";
+import "package:waywing/util/window_utils.dart";
+import "package:waywing/widgets/winged_popover_provider.dart";
 
 void main(List<String> args) async {
   final cliparser = ArgParser()
@@ -26,7 +26,7 @@ void main(List<String> args) async {
 
   await setupMainWindow();
 
-  print('Done setting initial window config, running app...');
+  print("Done setting initial window config, running app...");
   runApp(const App());
 }
 
@@ -39,7 +39,7 @@ class App extends StatelessWidget {
       child: ConfigChangeWatcher(
         builder: (context) {
           return MaterialApp(
-            title: 'WayWing',
+            title: "WayWing",
             debugShowCheckedModeBanner: false,
             themeMode: config.themeMode,
             theme: ThemeData(

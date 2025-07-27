@@ -141,11 +141,22 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
   @override
   void initState() {
     super.initState();
-    _buildContentAnimationController();
+    _buildContentAnimationController(isFirst: true);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    contentAnimationController.dispose();
   }
 
   late AnimationController contentAnimationController;
-  void _buildContentAnimationController() {
+  void _buildContentAnimationController({
+    bool isFirst = false,
+  }) {
+    if (!isFirst) {
+      contentAnimationController.dispose();
+    }
     contentAnimationController = AnimationController(
       vsync: this,
       duration: config.animationDuration,

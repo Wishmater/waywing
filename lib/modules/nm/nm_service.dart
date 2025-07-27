@@ -5,7 +5,7 @@ import "package:flutter/material.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:nm/nm.dart";
-import "package:waywing/util/list_view.dart";
+import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
   final NetworkManagerClient _client;
@@ -50,7 +50,7 @@ class WifiManager {
         _updateActiveAccessPoint();
       }
     });
-    accessPoints.value = InmutableListView(device.accessPoints);
+    accessPoints.value = Slice(device.accessPoints);
     activeAccessPoint.value = device.activeAccessPoint;
   }
 
@@ -65,11 +65,11 @@ class WifiManager {
     activeAccessPoint.value = device.activeAccessPoint;
   }
 
-  final ValueNotifier<InmutableListView<NetworkManagerAccessPoint>> accessPoints = ValueNotifier(
-    InmutableListView([]),
+  final ValueNotifier<Slice<NetworkManagerAccessPoint>> accessPoints = ValueNotifier(
+    Slice([]),
   );
   void _updateAccessPoints() {
-    accessPoints.value = InmutableListView(device.accessPoints);
+    accessPoints.value = Slice(device.accessPoints);
   }
 
   final ValueNotifier<bool> isScanning = ValueNotifier(false);

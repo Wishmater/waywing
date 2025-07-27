@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import "package:intl/intl.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -78,10 +79,7 @@ class ClockFeather extends Feather {
           return SizedBox(
             width: !config.isBarVertical ? config.barItemSize : null,
             height: config.isBarVertical ? config.barItemSize : null,
-            child: WingedFlatButton(
-              onTap: () {},
-              child: Center(child: Text(value.toString())),
-            ),
+            child: Center(child: Text(value.toString())),
           );
         },
       );
@@ -91,12 +89,17 @@ class ClockFeather extends Feather {
       return ValueListenableBuilder(
         valueListenable: time,
         builder: (context, value, _) {
-          return SizedBox(
-            width: 256,
-            height: 128,
-            child: WingedFlatButton(
-              onTap: () {},
-              child: Center(child: Text(value.toString())),
+          return Container(
+            width: 320,
+            padding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            child: CalendarDatePicker(
+              initialDate: value,
+              firstDate: DateTime(2000),
+              lastDate: DateTime(2100),
+              onDateChanged: (_) {},
             ),
           );
         },

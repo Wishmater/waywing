@@ -155,8 +155,18 @@ class MainConfig extends Config {
   );
 
   final List<Feather> barCenterFeathers;
+  static const _barCenterFeathersName = "barCenterFeathers";
+  static const _barCenterFeathers = ListField(
+    FeatherField(),
+    defaultTo: <Feather>[],
+  );
+
   final List<Feather> barEndFeathers;
-  // TODO: 3 validate that passed feather names exist
+  static const _barEndFeathersName = "barEndFeathers";
+  static const _barEndFeathers = ListField(
+    FeatherField(),
+    defaultTo: <Feather>[],
+  );
 
   MainConfig._({
     this.themeMode = ThemeMode.system,
@@ -212,6 +222,8 @@ class MainConfig extends Config {
         _barRadiusOutCrossName: _barRadiusOutCross,
         _barRadiusOutMainName: _barRadiusOutMain,
         _barStartFeathersName: _barStartFeathers,
+        _barCenterFeathersName: _barCenterFeathers,
+        _barEndFeathersName: _barEndFeathers,
       },
     );
   }
@@ -238,23 +250,9 @@ class MainConfig extends Config {
       barRadiusInMain: values[_barRadiusInMainName],
       barRadiusOutCross: values[_barRadiusOutCrossName],
       barRadiusOutMain: values[_barRadiusOutMainName],
-      // TODO 2 waiting for lists implementation in config.dart
-      barStartFeathers: List.unmodifiable([
-        featherRegistry.getFeatherByName("Clock"),
-        featherRegistry.getFeatherByName("Clock"),
-        featherRegistry.getFeatherByName("Clock"),
-        featherRegistry.getFeatherByName("SystemTray"),
-      ]),
-      barCenterFeathers: List.unmodifiable([
-        featherRegistry.getFeatherByName("Clock"),
-        featherRegistry.getFeatherByName("Clock"),
-      ]),
-      barEndFeathers: List.unmodifiable([
-        featherRegistry.getFeatherByName("NetworkManager"),
-        featherRegistry.getFeatherByName("Clock"),
-        featherRegistry.getFeatherByName("Clock"),
-        featherRegistry.getFeatherByName("Clock"),
-      ]),
+      barStartFeathers: values[_barStartFeathersName],
+      barCenterFeathers: values[_barCenterFeathersName],
+      barEndFeathers: values[_barEndFeathersName],
     );
   }
 }

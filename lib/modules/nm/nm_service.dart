@@ -8,9 +8,9 @@ import "package:nm/nm.dart";
 import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
-  final NetworkManagerClient _client;
+  final NetworkManagerClient client;
 
-  NetworkManagerService._() : _client = NetworkManagerClient();
+  NetworkManagerService._() : client = NetworkManagerClient();
 
   static registerService(RegisterServiceCallback registerService) {
     registerService<NetworkManagerService>(NetworkManagerService._);
@@ -18,26 +18,27 @@ class NetworkManagerService extends Service {
 
   @override
   Future<void> dispose() async {
-    await _client.close();
+    await client.close();
   }
 
   @override
   Future<void> init() async {
-    await _client.connect();
+    await client.connect();
   }
 
   NetworkManagerDeviceWireless? getWirelessDevice() {
     // TODO what happens if there is more than one wifi device
-    final device = _client.devices.firstOrNullWhere((e) => e.deviceType == NetworkManagerDeviceType.wifi);
+    final device = client.devices.firstOrNullWhere((e) => e.deviceType == NetworkManagerDeviceType.wifi);
     return device?.wireless;
   }
 }
 
 class WifiManager {
+  final NetworkManagerClient _client;
   final NetworkManagerDeviceWireless device;
   late final StreamSubscription<List<String>> _subscription;
 
-  WifiManager(this.device) {
+  WifiManager(this._client, this.device) {
     _subscription = device.propertiesChanged.listen((properties) {
       print("WIFI MANAGER PROPERTIES CHANGED $properties");
       if (properties.contains("LastScan")) {
@@ -58,6 +59,9 @@ class WifiManager {
     await _subscription.cancel();
     isScanning.dispose();
     accessPoints.dispose();
+  }
+
+  activate() {
   }
 
   final ValueNotifier<NetworkManagerAccessPoint?> activeAccessPoint = ValueNotifier(null);

@@ -1,4 +1,3 @@
-
 import "package:flutter/cupertino.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -14,7 +13,6 @@ class NetworkManagerFeather extends Feather {
   List<FeatherComponent> get components => [networkManagerComponent];
 
   late NetworkManagerService service;
-
 
   @override
   Future<void> init(BuildContext context) async {
@@ -38,6 +36,11 @@ class NetworkManagerFeather extends Feather {
       ];
     },
 
-    buildPopover: (context) =>  NetworkManagerPopover(service: WifiManager(service.getWirelessDevice()!)),
+    buildPopover: (context) => NetworkManagerPopover(
+      service: WifiManager(
+        service.client,
+        service.getWirelessDevice()!,
+      ),
+    ),
   );
 }

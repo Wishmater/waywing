@@ -1,5 +1,3 @@
-import "dart:convert";
-
 import "package:flutter/material.dart";
 import "package:nm/nm.dart";
 import "package:waywing/modules/nm/nm_service.dart";
@@ -21,7 +19,7 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
     super.initState();
 
     final device = widget.service.getWirelessDevice();
-    wifiDevice = WifiManager(device!);
+    wifiDevice = WifiManager(widget.service.client, device!);
   }
 
   @override
@@ -65,9 +63,19 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
       child: ListenableBuilder(
         listenable: widget.service.accessPoints,
         builder: (context, _) {
-          return ListView(
-            shrinkWrap: true,
-            children: [for (final ap in widget.service.accessPoints.value) _AvailableAccessPoint(ap)],
+          return SingleChildScrollView(
+            child: IntrinsicWidth(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final ap in widget.service.accessPoints.value)
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: _AvailableAccessPoint(ap, widget.service.activeAccessPoint.value == ap),
+                    ),
+                ],
+              ),
+            ),
           );
         },
       ),
@@ -77,15 +85,18 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
 
 class _AvailableAccessPoint extends StatelessWidget {
   final NetworkManagerAccessPoint accessPoint;
+  final bool isActive;
 
-  const _AvailableAccessPoint(this.accessPoint);
+  const _AvailableAccessPoint(this.accessPoint, this.isActive);
 
   @override
   Widget build(BuildContext context) {
     final secured = accessPoint.wpaFlags.isNotEmpty || accessPoint.rsnFlags.isNotEmpty;
     final children = <Widget>[];
     if (secured) {
-      children.add(Icon(Icons.lock, size: 12));
+      children.add(
+        Icon(Icons.lock, size: 12, color: isActive ? Colors.green : null),
+      );
       children.add(SizedBox(width: 2));
     }
 
@@ -95,14 +106,27 @@ class _AvailableAccessPoint extends StatelessWidget {
       < 70 => Icons.wifi_2_bar_rounded,
       _ => Icons.wifi_rounded,
     };
-    children.add(Icon(iconStrength, size: 15));
+    children.add(
+      Icon(
+        iconStrength,
+        size: 15,
+        color: isActive ? Colors.green : null,
+      ),
+    );
     children.add(SizedBox(width: 2));
 
-    children.add(Text(accessPoint.ssid.toUtf8()));
+    children.add(Text(accessPoint.ssid.toUtf8(), style: TextStyle(color: isActive ? Colors.green : null)));
 
-    return Row(
-      // mainAxisSize: MainAxisSize.min,
-      children: children,
+    return MaterialButton(
+      onPressed: () {
+        if (isActive) {
+          return;
+        }
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
     );
   }
 }

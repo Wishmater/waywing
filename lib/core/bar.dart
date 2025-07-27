@@ -1,5 +1,3 @@
-import "dart:math";
-
 import "package:animations/animations.dart";
 import "package:dartx/dartx_io.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
@@ -264,16 +262,14 @@ class _BarState extends State<Bar> {
     return ValueListenableBuilder(
       valueListenable: component.isPopoverEnabled,
       builder: (context, isEnabled, child) {
-        final rng = Random(); // TODO: 2 remove randomness once testing on animations is done
-        final vertMult = rng.nextDouble();
-        final horMult = rng.nextDouble();
         final shape = DockedRoundedCornersBorder(
           dockedSide: config.barSide,
           isVertical: config.isBarVertical,
-          radiusInCross: config.barRadiusInCross * rng.nextDouble() * 3,
-          radiusInMain: config.barRadiusInMain * rng.nextDouble() * 3,
-          radiusOutCross: config.barRadiusOutCross * rng.nextDouble() * 5,
-          radiusOutMain: config.barRadiusOutMain * rng.nextDouble() * 1,
+          // TODO: 3 radius should probably vary with popover size, so there is more flare and animations
+          radiusInCross: config.barRadiusInCross,
+          radiusInMain: config.barRadiusInMain,
+          radiusOutCross: config.barRadiusOutCross,
+          radiusOutMain: config.barRadiusOutMain,
         );
         return WingedPopover(
           enabled: isEnabled,
@@ -291,12 +287,7 @@ class _BarState extends State<Bar> {
           builder: (context, popover, _) => builder(context, popover),
           popoverBuilder: (context) {
             return Padding(
-              padding: shape.dimensions.add(
-                EdgeInsets.symmetric(
-                  vertical: 128 * vertMult,
-                  horizontal: 64 * horMult,
-                ),
-              ),
+              padding: shape.dimensions,
               child: component.buildPopover!(context),
             );
           },

@@ -225,6 +225,13 @@ class MainConfig extends Config {
         _barCenterFeathersName: _barCenterFeathers,
         _barEndFeathersName: _barEndFeathers,
       },
+      tables: {
+        "Bar": Schema(
+          fields: {
+            "size": IntegerNumberField(nullable: true),
+          },
+        ),
+      },
     );
   }
 
@@ -277,6 +284,7 @@ Future<Config> reloadConfig(String content) async {
       // so that result.values is still usable AND we notify errors
       throw UnimplementedError();
     case EvaluationSuccess():
+      print(result.values);
       _config = MainConfig.fromMap(result.values);
       return _config;
   }

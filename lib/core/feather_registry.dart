@@ -33,6 +33,10 @@ class FeatherRegistry {
     if (feather == null) {
       assert(_registeredFeathers.containsKey(name), "Trying to get an unknown Feather by name: $name");
       feather = _registeredFeathers[name]!();
+      assert(
+        feather.name == name,
+        "The name exposed by a Feather (${feather.name}) is not the same name that was used to register said Feather ($name).",
+      );
       _instancedFeathers[name] = feather;
     }
     return feather;

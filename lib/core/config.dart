@@ -29,7 +29,7 @@ class MainConfig extends Config {
   static const _seedColor = ColorField();
 
   final Color? surfaceColor;
-  static const _surfaceColorName = 'surfaceColor';
+  static const _surfaceColorName = "surfaceColor";
   static const _surfaceColor = ColorField(
     nullable: true,
   );

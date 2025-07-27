@@ -11,26 +11,38 @@ class ColorField extends StringFieldBase<Color> {
 
   static ValidatorResult<Color> transform(String value) {
     try {
-      // TODO: 3 also support rgb/rgba colors, and hex with alpha values
-      return ValidatorTransform(_fromHex(value));
+      return ValidatorTransform(parseColor(value));
     } catch (_) {
       return ValidatorError(MyValError("Failed to parse color value"));
     }
   }
-}
 
-class MyValError extends ValidationError {
-  String msg;
-  MyValError(this.msg);
-  @override
-  String error() => msg;
-}
-
-Color _fromHex(String hexString) {
-  final buffer = StringBuffer();
-  if (hexString.length == 6 || hexString.length == 7) buffer.write("ff");
-  buffer.write(hexString.replaceFirst("#", ""));
-  return Color(int.parse(buffer.toString(), radix: 16));
+  static Color parseColor(String colorString) {
+    // Remove whitespace and convert to lowercase
+    colorString = colorString.replaceAll(' ', '').toLowerCase();
+    // Handle hex format
+    if (colorString.startsWith('#') || RegExp(r'^[0-9a-fA-F]{6,8}$').hasMatch(colorString)) {
+      String hex = colorString.replaceFirst('#', '');
+      if (hex.length == 6) hex += 'ff'; // Add opaque alpha if not provided
+      // ignore: prefer_interpolation_to_compose_strings
+      if (hex.length == 3) hex = hex.split('').map((c) => c + c).join() + 'ff';
+      return Color(int.parse('0xff$hex'));
+    }
+    // Handle rgb/rgba format
+    RegExp rgbPattern = RegExp(r'^(rgb|rgba)\((\d+),(\d+),(\d+)(?:,([0-1]?\.?\d*))?\)$');
+    var match = rgbPattern.firstMatch(colorString);
+    if (match != null) {
+      int r = int.parse(match.group(2)!);
+      int g = int.parse(match.group(3)!);
+      int b = int.parse(match.group(4)!);
+      double a = match.group(5) != null ? double.parse(match.group(5)!) : 1.0;
+      if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 1) {
+        throw FormatException('Invalid color values');
+      }
+      return Color.fromRGBO(r, g, b, a);
+    }
+    throw FormatException('Invalid color format');
+  }
 }
 
 class CurveField extends StringFieldBase<Curve> {
@@ -62,4 +74,13 @@ class FeatherField extends StringFieldBase<Feather> {
       return ValidatorError(MyValError("Unknown feather: $value"));
     }
   }
+}
+
+class MyValError extends ValidationError {
+  String msg;
+  MyValError(this.msg);
+  @override
+  String error() => msg;
+  @override
+  String toString() => 'ValidationError($msg)';
 }

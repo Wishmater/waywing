@@ -43,12 +43,19 @@ class App extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             themeMode: config.themeMode,
             theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: config.seedColor),
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: config.seedColor,
+                surface: config.surfaceColor,
+              ),
               splashFactory: InkSparkle.splashFactory,
             ),
             darkTheme: ThemeData(
               brightness: Brightness.dark,
-              colorScheme: ColorScheme.fromSeed(brightness: Brightness.dark, seedColor: config.seedColor),
+              colorScheme: ColorScheme.fromSeed(
+                brightness: Brightness.dark,
+                seedColor: config.seedColor,
+                surface: config.surfaceColor,
+              ),
               splashFactory: InkSparkle.splashFactory,
             ),
             home: Scaffold(

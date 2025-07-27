@@ -28,6 +28,12 @@ class MainConfig extends Config {
   static const _seedColorName = "seedColor";
   static const _seedColor = ColorField();
 
+  final Color? surfaceColor;
+  static const _surfaceColorName = 'surfaceColor';
+  static const _surfaceColor = ColorField(
+    nullable: true,
+  );
+
   //===========================================================================
   // Animations
   //===========================================================================
@@ -155,6 +161,7 @@ class MainConfig extends Config {
   MainConfig._({
     this.themeMode = ThemeMode.system,
     required this.seedColor,
+    this.surfaceColor,
     this.animationDuration = const Duration(milliseconds: 250),
     this.animationCurve = Curves.easeOutCubic,
     double? exclusiveSizeLeft,
@@ -186,6 +193,7 @@ class MainConfig extends Config {
       fields: {
         _themeModeName: _themeMode,
         _seedColorName: _seedColor,
+        _surfaceColorName: _surfaceColor,
         _animationDurationName: _animationDuration,
         _animationCurveName: _animationCurve,
         _exclusiveSizeLeftName: _exclusiveSizeLeft,
@@ -212,6 +220,7 @@ class MainConfig extends Config {
     return MainConfig._(
       themeMode: values[_themeModeName],
       seedColor: values[_seedColorName],
+      surfaceColor: values[_surfaceColorName],
       animationDuration: values[_animationDurationName],
       animationCurve: values[_animationCurveName],
       exclusiveSizeLeft: values[_exclusiveSizeLeftName],

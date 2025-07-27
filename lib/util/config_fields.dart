@@ -19,17 +19,17 @@ class ColorField extends StringFieldBase<Color> {
 
   static Color parseColor(String colorString) {
     // Remove whitespace and convert to lowercase
-    colorString = colorString.replaceAll(' ', '').toLowerCase();
+    colorString = colorString.replaceAll(" ", "").toLowerCase();
     // Handle hex format
-    if (colorString.startsWith('#') || RegExp(r'^[0-9a-fA-F]{6,8}$').hasMatch(colorString)) {
-      String hex = colorString.replaceFirst('#', '');
-      if (hex.length == 6) hex += 'ff'; // Add opaque alpha if not provided
+    if (colorString.startsWith("#") || RegExp(r"^[0-9a-fA-F]{6,8}$").hasMatch(colorString)) {
+      String hex = colorString.replaceFirst("#", "");
+      if (hex.length == 6) hex += "ff"; // Add opaque alpha if not provided
       // ignore: prefer_interpolation_to_compose_strings
-      if (hex.length == 3) hex = hex.split('').map((c) => c + c).join() + 'ff';
-      return Color(int.parse('0xff$hex'));
+      if (hex.length == 3) hex = hex.split("").map((c) => c + c).join() + "ff";
+      return Color(int.parse("0xff$hex"));
     }
     // Handle rgb/rgba format
-    RegExp rgbPattern = RegExp(r'^(rgb|rgba)\((\d+),(\d+),(\d+)(?:,([0-1]?\.?\d*))?\)$');
+    RegExp rgbPattern = RegExp(r"^(rgb|rgba)\((\d+),(\d+),(\d+)(?:,([0-1]?\.?\d*))?\)$");
     var match = rgbPattern.firstMatch(colorString);
     if (match != null) {
       int r = int.parse(match.group(2)!);
@@ -37,11 +37,11 @@ class ColorField extends StringFieldBase<Color> {
       int b = int.parse(match.group(4)!);
       double a = match.group(5) != null ? double.parse(match.group(5)!) : 1.0;
       if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 1) {
-        throw FormatException('Invalid color values');
+        throw FormatException("Invalid color values");
       }
       return Color.fromRGBO(r, g, b, a);
     }
-    throw FormatException('Invalid color format');
+    throw FormatException("Invalid color format");
   }
 }
 
@@ -82,5 +82,5 @@ class MyValError extends ValidationError {
   @override
   String error() => msg;
   @override
-  String toString() => 'ValidationError($msg)';
+  String toString() => "ValidationError($msg)";
 }

@@ -37,3 +37,18 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
     );
   }
 }
+
+class NetworkManagerPopover extends StatefulWidget {
+  final WifiManager service;
+  const NetworkManagerPopover({super.key, required this.service});
+
+  @override
+  State<NetworkManagerPopover> createState() => _NetworkManagerPopoverState();
+}
+
+class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(height: 200, width: 200, child: Text("HELLO"));
+  }
+}

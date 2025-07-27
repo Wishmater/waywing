@@ -5,6 +5,7 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 import "package:waywing/modules/nm/nm_widget.dart";
+import "package:waywing/widgets/winged_flat_button.dart";
 
 class NetworkManagerFeather extends Feather {
   NetworkManagerFeather._();
@@ -30,8 +31,13 @@ class NetworkManagerFeather extends Feather {
   late final networkManagerComponent = FeatherComponent(
     buildIndicators: (context, popover, tooltip) {
       return [
-        NetworkManagerWidget(service: service),
+        WingedFlatButton(
+          onTap: () => popover!.toggle(),
+          child: NetworkManagerWidget(service: service),
+        ),
       ];
     },
+
+    buildPopover: (context) =>  NetworkManagerPopover(service: WifiManager(service.getWirelessDevice()!)),
   );
 }

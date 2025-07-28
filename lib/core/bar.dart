@@ -1,4 +1,3 @@
-import "package:animations/animations.dart";
 import "package:dartx/dartx_io.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
@@ -205,9 +204,7 @@ class _BarState extends State<Bar> {
               }
               final key = featherGlobalKeys[feather.name]![featherIndex];
 
-              // TODO: 1 add tooltip
-
-              var widget = _buildPopover(
+              var widget = buildPopover(
                 context: context,
                 component: component,
                 builder: (context, popover) {
@@ -232,7 +229,7 @@ class _BarState extends State<Bar> {
 
               // TODO: 2 PERFORMANCE maybe pass a builder instead if a Widget to _buildVisibility
               // so children aren't build unnecessarily for hidden feathers
-              widget = _buildVisibility(context, component, widget);
+              widget = buildVisibility(context, component, widget);
 
               result.add(KeyedSubtree(key: key, child: widget));
             }
@@ -244,15 +241,14 @@ class _BarState extends State<Bar> {
     return result;
   }
 
-  Widget _buildPopover({
+  Widget buildPopover({
     required BuildContext context,
     required FeatherComponent component,
     required PopoverBuilder builder,
   }) {
-    if (component.buildPopover == null) {
+    if (component.buildPopover == null && component.buildTooltip == null) {
       return builder(context, null);
     }
-    final barRadiusIn = config.barRadiusInMain;
     final popoverAlignment = switch (config.barSide) {
       ScreenEdge.top => Alignment.bottomCenter,
       ScreenEdge.right => Alignment.centerLeft,
@@ -261,41 +257,101 @@ class _BarState extends State<Bar> {
     };
     return ValueListenableBuilder(
       valueListenable: component.isPopoverEnabled,
-      builder: (context, isEnabled, child) {
-        final shape = DockedRoundedCornersBorder(
-          dockedSide: config.barSide,
-          isVertical: config.isBarVertical,
-          // TODO: 3 radius should probably vary with popover size, so there is more flare and animations
-          radiusInCross: config.barRadiusInCross,
-          radiusInMain: config.barRadiusInMain,
-          radiusOutCross: config.barRadiusOutCross,
-          radiusOutMain: config.barRadiusOutMain,
-        );
-        return WingedPopover(
-          enabled: isEnabled,
-          containerId: "BarPopover",
-          // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
-          zIndex: -10,
-          popupAlignment: popoverAlignment,
-          anchorAlignment: popoverAlignment,
-          screenPadding: EdgeInsets.only(
-            left: config.isBarVertical ? 0 : config.barMarginLeft + barRadiusIn,
-            right: config.isBarVertical ? 0 : config.barMarginRight + barRadiusIn,
-            top: !config.isBarVertical ? 0 : config.barMarginTop + barRadiusIn,
-            bottom: !config.isBarVertical ? 0 : config.barMarginBottom + barRadiusIn,
-          ),
-          builder: (context, popover, _) => builder(context, popover),
-          popoverBuilder: (context) {
-            return Padding(
-              padding: shape.dimensions,
-              child: component.buildPopover!(context),
+      builder: (context, isPopoverEnabled, _) {
+        return ValueListenableBuilder(
+          valueListenable: component.isTooltipEnabled,
+          builder: (context, isTooltipEnabled, _) {
+            final popoverShape = DockedRoundedCornersBorder(
+              dockedSide: config.barSide,
+              isVertical: config.isBarVertical,
+              // TODO: 3 radius should probably vary with popover size, so there is more flare and animations
+              radiusInCross: config.barRadiusInCross,
+              radiusInMain: config.barRadiusInMain,
+              radiusOutCross: config.barRadiusOutCross,
+              radiusOutMain: config.barRadiusOutMain,
             );
-          },
-          popoverContainerBuilder: (context, child) {
-            return buildPopoverContainer(context, child, shape);
-          },
-          popoverClosedContainerBuilder: (context, child) {
-            return buildPopoverContainer(context, child, null);
+            final tooltipShape = RoundedRectangleBorder(
+              borderRadius: config.isBarVertical
+                  ? BorderRadius.all(Radius.elliptical(config.barRadiusInCross, config.barRadiusInMain))
+                  : BorderRadius.all(Radius.elliptical(config.barRadiusInMain, config.barRadiusInCross)),
+            );
+            return WingedPopover(
+              builder: (context, controller, _) => builder(context, controller),
+              popoverParams: component.buildPopover == null
+                  ? null
+                  : PopoverParams(
+                      enabled: isPopoverEnabled,
+                      containerId: "BarPopover",
+                      // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
+                      zIndex: -10,
+                      popupAlignment: popoverAlignment,
+                      anchorAlignment: popoverAlignment,
+                      screenPadding: EdgeInsets.only(
+                        left: config.isBarVertical ? 0 : config.barMarginLeft + config.barRadiusInMain,
+                        right: config.isBarVertical ? 0 : config.barMarginRight + config.barRadiusInMain,
+                        top: !config.isBarVertical ? 0 : config.barMarginTop + config.barRadiusInMain,
+                        bottom: !config.isBarVertical ? 0 : config.barMarginBottom + config.barRadiusInMain,
+                      ),
+                      builder: (context) {
+                        return Padding(
+                          padding: popoverShape.dimensions,
+                          child: component.buildPopover!(context),
+                        );
+                      },
+                      containerBuilder: (context, child) {
+                        return buildPopoverContainer(context, child, popoverShape);
+                      },
+                      closedContainerBuilder: (context, child) {
+                        return buildPopoverContainer(context, child, null);
+                      },
+                    ),
+              tooltipParams: component.buildTooltip == null
+                  ? null
+                  : PopoverParams(
+                      enabled: isTooltipEnabled,
+                      // containerId: "BarTooltip",
+                      // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
+                      zIndex: 10,
+                      popupAlignment: popoverAlignment,
+                      anchorAlignment: popoverAlignment,
+                      builder: (context) {
+                        return component.buildTooltip!(context);
+                      },
+                      containerBuilder: (context, child) {
+                        // TODO: 1 TOOLTIPS implement a proper way of adding padding/offset to Popovers
+                        return AnimatedOpacity(
+                          opacity: 1,
+                          duration: config.animationDuration,
+                          curve: config.animationCurve,
+                          child: Padding(
+                            padding: switch (config.barSide) {
+                              ScreenEdge.top => const EdgeInsets.only(top: 16),
+                              ScreenEdge.right => const EdgeInsets.only(right: 16),
+                              ScreenEdge.bottom => const EdgeInsets.only(bottom: 16),
+                              ScreenEdge.left => const EdgeInsets.only(left: 16),
+                            },
+                            child: buildPopoverContainer(context, child, tooltipShape),
+                          ),
+                        );
+                      },
+                      closedContainerBuilder: (context, child) {
+                        return AnimatedOpacity(
+                          opacity: 0,
+                          duration: config.animationDuration,
+                          curve: config.animationCurve,
+                          child: Padding(
+                            padding: switch (config.barSide) {
+                              ScreenEdge.top => const EdgeInsets.only(top: 16),
+                              ScreenEdge.right => const EdgeInsets.only(right: 16),
+                              ScreenEdge.bottom => const EdgeInsets.only(bottom: 16),
+                              ScreenEdge.left => const EdgeInsets.only(left: 16),
+                            },
+                            child: buildPopoverContainer(context, child, null),
+                          ),
+                        );
+                      },
+                    ),
+            );
           },
         );
       },
@@ -318,26 +374,13 @@ class _BarState extends State<Bar> {
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shape: shape,
       child: InputRegion(
-        child: PageTransitionSwitcher(
-          transitionBuilder: (child, primaryAnimation, secondaryAnimation) {
-            return SharedAxisTransition(
-              animation: primaryAnimation,
-              secondaryAnimation: secondaryAnimation,
-              transitionType: config.isBarVertical
-                  ? SharedAxisTransitionType.vertical
-                  : SharedAxisTransitionType.horizontal,
-              fillColor: Colors.transparent,
-              child: child,
-            );
-          },
-          child: child,
-        ),
+        child: child,
       ),
     );
   }
 
   /// hides widget if component.isIndicatorsVisible is false
-  Widget _buildVisibility(
+  Widget buildVisibility(
     BuildContext context,
     FeatherComponent component,
     Widget child,

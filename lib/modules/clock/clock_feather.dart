@@ -1,7 +1,6 @@
 import "dart:async";
 
 import "package:flutter/material.dart";
-import "package:flutter/widgets.dart";
 import "package:intl/intl.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/widgets/winged_flat_button.dart";
@@ -62,7 +61,7 @@ class ClockFeather extends Feather {
               height: isBarVertical ? config.barItemSize : null,
               child: WingedFlatButton(
                 onTap: () {
-                  popover!.toggle();
+                  popover!.togglePopover();
                 },
                 child: Center(child: Text(value)),
               ),
@@ -76,10 +75,14 @@ class ClockFeather extends Feather {
       return ValueListenableBuilder(
         valueListenable: time,
         builder: (context, value, _) {
-          return SizedBox(
-            width: !config.isBarVertical ? config.barItemSize : null,
-            height: config.isBarVertical ? config.barItemSize : null,
-            child: Center(child: Text(value.toString())),
+          return IntrinsicWidth(
+            child: Container(
+              width: !config.isBarVertical ? config.barItemSize : null,
+              height: config.isBarVertical ? config.barItemSize : null,
+              alignment: Alignment.center,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(value.toString()),
+            ),
           );
         },
       );

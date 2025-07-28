@@ -30,7 +30,7 @@ class NetworkManagerFeather extends Feather {
     buildIndicators: (context, popover, tooltip) {
       return [
         WingedFlatButton(
-          onTap: () => popover!.toggle(),
+          onTap: () => popover!.togglePopover(),
           child: NetworkManagerWidget(service: service),
         ),
       ];

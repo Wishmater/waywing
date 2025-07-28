@@ -18,45 +18,57 @@ typedef WingedPopoverChildBuilder =
     );
 
 abstract class WingedPopoverController {
-  bool get isShown;
-  void show();
-  void hide();
-  void toggle();
+  bool get isPopoverShown;
+  bool get isTooltipShown;
+  void showPopover();
+  void hidePopover();
+  void togglePopover();
+  void hideTooltip();
 }
 
-class WingedPopover extends StatefulWidget {
-  final WidgetBuilder popoverBuilder;
-  final WingedPopoverChildBuilder builder;
-  final Widget? child;
-  final bool enabled;
+@immutable
+class PopoverParams {
+  final WidgetBuilder builder;
   final EdgeInsets screenPadding;
   final Alignment anchorAlignment;
   final Alignment popupAlignment;
   final String? containerId;
   final int zIndex;
+  final bool enabled;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
-  final WidgetBuilderWithChild popoverContainerBuilder;
+  final WidgetBuilderWithChild containerBuilder;
 
   /// Useful to trigger implicit animations in container (borders, etc.)
-  final WidgetBuilderWithChild? popoverClosedContainerBuilder;
+  final WidgetBuilderWithChild? closedContainerBuilder;
 
-  const WingedPopover({
-    // TODO: 2 maybe set a default for this (probably not)
-    required this.popoverContainerBuilder,
-    required this.popoverBuilder,
+  const PopoverParams({
     required this.builder,
-    this.child,
-    this.containerId,
-    this.enabled = true,
+    required this.containerBuilder,
     this.screenPadding = EdgeInsets.zero,
     this.anchorAlignment = Alignment.center,
     this.popupAlignment = Alignment.center,
+    this.containerId,
+    this.closedContainerBuilder,
     this.zIndex = 10,
-    this.popoverClosedContainerBuilder,
-    super.key,
+    this.enabled = true,
   });
+}
+
+class WingedPopover extends StatefulWidget {
+  final WingedPopoverChildBuilder builder;
+  final Widget? child;
+  final PopoverParams? popoverParams;
+  final PopoverParams? tooltipParams;
+
+  const WingedPopover({
+    required this.builder,
+    this.popoverParams,
+    this.tooltipParams,
+    this.child,
+    super.key,
+  }) : assert(popoverParams != null || tooltipParams != null);
 
   @override
   State<WingedPopover> createState() => WingedPopoverState();
@@ -67,11 +79,16 @@ class WingedPopoverState extends State<WingedPopover>
     implements WingedPopoverController {
   late final WingedPopoverProviderState _provider;
 
+  late final clientKey = GlobalKey<WingedPopoverClientState>();
+
   @override
-  bool isShown = false;
+  bool isPopoverShown = false;
+  @override
+  bool isTooltipShown = false;
   WingedPopoverClientState? clientState;
 
   // TODO: 1 handle widget.enabled in didUpdateWidget (and maybe add asserts to methods)
+  // also, if popover or tooltip params is removed while it's being shown, hide it
 
   @override
   void initState() {
@@ -85,9 +102,9 @@ class WingedPopoverState extends State<WingedPopover>
   @override
   void dispose() {
     super.dispose();
-    if (isShown) {
+    if (isPopoverShown) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        hide();
+        hidePopover();
       });
     }
   }
@@ -103,16 +120,31 @@ class WingedPopoverState extends State<WingedPopover>
   }
 
   @override
-  void show() => _provider.showHost(this);
+  void showPopover() => _provider.showHost(this);
 
   @override
-  void hide() => _provider.hideHost(this);
+  void hidePopover() => _provider.hideHost(this);
 
   @override
-  void toggle() => _provider.toggleHost(this);
+  void togglePopover() => _provider.toggleHost(this);
+
+  @override
+  void hideTooltip() => _provider.hideHost(this);
 
   @override
   Widget build(BuildContext context) {
-    return widget.builder(context, this, widget.child);
+    Widget result = widget.builder(context, this, widget.child);
+    // TODO: 3 changes to .showAsTooltip value while the state is alive are not handled properly
+    // like it is right now the tree will change, so the children will be rebuilt, and there is
+    // also a chance the tooltip will be stuck show (because onExit will never be called).
+    // I can't think of a situation where you would change the value of .showAsTooltip, so whatever...
+    if (widget.tooltipParams != null) {
+      result = MouseRegion(
+        onEnter: (_) => _provider.onMouseEnterHost(this),
+        onExit: (_) => _provider.onMouseExitHost(this),
+        child: result,
+      );
+    }
+    return result;
   }
 }

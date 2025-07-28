@@ -12,20 +12,18 @@ class NetworkManagerWidget extends StatefulWidget {
 }
 
 class _NetworkManagerState extends State<NetworkManagerWidget> {
-  late final WifiManager wifiDevice;
+  late final WifiManagerService wifiDevice;
 
   @override
   void initState() {
     super.initState();
 
-    final device = widget.service.getWirelessDevice();
-    wifiDevice = WifiManager(widget.service.client, device!);
+    wifiDevice = WifiManagerService(widget.service.client);
   }
 
   @override
   void dispose() {
     wifiDevice.dispose();
-
     super.dispose();
   }
 
@@ -45,7 +43,7 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
 }
 
 class NetworkManagerPopover extends StatefulWidget {
-  final WifiManager service;
+  final WifiManagerService service;
   const NetworkManagerPopover({super.key, required this.service});
 
   @override
@@ -63,18 +61,28 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
       child: ListenableBuilder(
         listenable: widget.service.accessPoints,
         builder: (context, _) {
-          return SingleChildScrollView(
-            child: IntrinsicWidth(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  for (final ap in widget.service.accessPoints.value)
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: _AvailableAccessPoint(ap, widget.service.activeAccessPoint.value == ap),
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("HELLO WIFI"),
+                SingleChildScrollView(
+                  child: IntrinsicWidth(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final ap in widget.service.accessPoints.value)
+                          _AvailableAccessPoint(
+                            ap,
+                            widget.service.activeAccessPoint.value == ap,
+                            widget.service.activate,
+                          ),
+                      ],
                     ),
-                ],
-              ),
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -86,8 +94,9 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
 class _AvailableAccessPoint extends StatelessWidget {
   final NetworkManagerAccessPoint accessPoint;
   final bool isActive;
+  final void Function(NetworkManagerAccessPoint) activate;
 
-  const _AvailableAccessPoint(this.accessPoint, this.isActive);
+  const _AvailableAccessPoint(this.accessPoint, this.isActive, this.activate);
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +131,7 @@ class _AvailableAccessPoint extends StatelessWidget {
         if (isActive) {
           return;
         }
+        activate(accessPoint);
       },
       child: Row(
         mainAxisSize: MainAxisSize.min,

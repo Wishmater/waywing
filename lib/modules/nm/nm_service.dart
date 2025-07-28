@@ -1,10 +1,12 @@
 import "dart:async" show StreamSubscription;
 
 import "package:dartx/dartx_io.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:nm/nm.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
@@ -33,52 +35,57 @@ class NetworkManagerService extends Service {
   }
 }
 
-class WifiManager {
-  final NetworkManagerClient _client;
-  final NetworkManagerDeviceWireless device;
+class WifiManagerService {
+  final NetworkManagerClient client;
+  late final NetworkManagerDevice device;
+  late final NetworkManagerDeviceWireless wireless;
   late final StreamSubscription<List<String>> _subscription;
 
-  WifiManager(this._client, this.device) {
-    _subscription = device.propertiesChanged.listen((properties) {
-      print("WIFI MANAGER PROPERTIES CHANGED $properties");
-      if (properties.contains("LastScan")) {
-        isScanning.value = false;
-      }
-      if (properties.contains("AccessPoints")) {
-        _updateAccessPoints();
-      }
-      if (properties.contains("ActiveAccessPoint")) {
-        _updateActiveAccessPoint();
-      }
-    });
-    accessPoints.value = Slice(device.accessPoints);
-    activeAccessPoint.value = device.activeAccessPoint;
+  WifiManagerService(this.client) {
+    device = client.devices.firstWhere((e) => e.deviceType == NetworkManagerDeviceType.wifi);
+    wireless = device.wireless!;
+    _subscription = wireless.propertiesChanged.listen(_listener);
+
+    activeAccessPoint.value = wireless.activeAccessPoint;
+    accessPoints.value = wireless.accessPoints;
+  }
+
+  void _listener(List<String> properties) {
+    print("WIFI MANAGER PROPERTIES CHANGED $properties");
+    if (properties.contains("LastScan")) {
+      isScanning.value = false;
+    }
+    if (properties.contains("AccessPoints")) {
+      accessPoints.markAsDirty();
+    }
+    if (properties.contains("ActiveAccessPoint")) {
+      _updateAccessPoint();
+    }
+  }
+
+  final BatchChangeNotifier<NetworkManagerAccessPoint?> activeAccessPoint = BatchChangeNotifier(null);
+  final BatchChangeNotifier<List<NetworkManagerAccessPoint>> accessPoints = BatchChangeNotifier([]);
+  final ValueNotifier<bool> isScanning = ValueNotifier(false);
+
+  void requestScan() {
+    wireless.requestScan().then((_) => isScanning.value = true);
+  }
+
+  void _updateAccessPoint() {
+    activeAccessPoint.value = wireless.activeAccessPoint;
+    activeAccessPoint.value?.propertiesChanged.listen(
+      (properties) {
+      activeAccessPoint.markAsDirty();
+      },
+      onDone: () => print("activeAccessPoint.propertiesChanged ON DONE")
+    );
+  }
+
+  Future<void> activate(NetworkManagerAccessPoint accessPoint) async {
+    await client.activateConnection(device: device, accessPoint: accessPoint);
   }
 
   Future<void> dispose() async {
-    await _subscription.cancel();
-    isScanning.dispose();
-    accessPoints.dispose();
-  }
-
-  activate() {
-  }
-
-  final ValueNotifier<NetworkManagerAccessPoint?> activeAccessPoint = ValueNotifier(null);
-  void _updateActiveAccessPoint() {
-    activeAccessPoint.value = device.activeAccessPoint;
-  }
-
-  final ValueNotifier<Slice<NetworkManagerAccessPoint>> accessPoints = ValueNotifier(
-    Slice([]),
-  );
-  void _updateAccessPoints() {
-    accessPoints.value = Slice(device.accessPoints);
-  }
-
-  final ValueNotifier<bool> isScanning = ValueNotifier(false);
-  void requestScan() {
-    device.requestScan();
-    isScanning.value = true;
+    _subscription.cancel();
   }
 }

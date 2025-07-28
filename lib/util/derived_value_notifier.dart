@@ -1,3 +1,4 @@
+import "package:flutter/scheduler.dart";
 import "package:flutter/widgets.dart";
 
 typedef DeriveCallback<T> = T Function();
@@ -26,5 +27,34 @@ class DerivedValueNotifier<T> extends ValueNotifier<T> {
       e.removeListener(_update);
     }
     super.dispose();
+  }
+}
+
+/// Allows to call markAsDirty as much as needed without hitting performance because
+/// it batches the calls to notifyListeners
+class BatchChangeNotifier<T> with ChangeNotifier {
+  T _value;
+  T get value => _value;
+  set value(T v) {
+    _value = v;
+    markAsDirty();
+  }
+
+  bool _isDirty = false;
+
+  BatchChangeNotifier(this._value);
+
+  /// This function will mark the value as dirty and notify all listeners
+  void markAsDirty() {
+    if (!_isDirty) {
+      _isDirty = true;
+      SchedulerBinding.instance.scheduleTask(
+        () {
+          notifyListeners();
+          _isDirty = false;
+        },
+        Priority.idle,
+      );
+    }
   }
 }

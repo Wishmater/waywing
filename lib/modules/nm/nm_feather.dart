@@ -36,11 +36,6 @@ class NetworkManagerFeather extends Feather {
       ];
     },
 
-    buildPopover: (context) => NetworkManagerPopover(
-      service: WifiManager(
-        service.client,
-        service.getWirelessDevice()!,
-      ),
-    ),
+    buildPopover: (context) => NetworkManagerPopover(service: WifiManagerService(service.client)),
   );
 }

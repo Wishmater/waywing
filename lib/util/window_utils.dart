@@ -98,6 +98,7 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
     await FlLinuxWindowManager.instance.createWindow(
       windowId: windowId,
       isLayer: true,
+      initializeFlutter: false,
       args: ["--dummy-layer"],
       title: windowId,
       width: 0,

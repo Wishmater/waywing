@@ -309,7 +309,7 @@ class _BarState extends State<Bar> {
                   ? null
                   : PopoverParams(
                       enabled: isTooltipEnabled,
-                      // containerId: "BarTooltip",
+                      containerId: "BarTooltip",
                       // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
                       zIndex: 10,
                       popupAlignment: popoverAlignment,

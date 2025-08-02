@@ -34,28 +34,8 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (tooltipHosts.containsKey(host) || removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    // hide other popovers with the same containerId
-    final popoverParams = host.widget.popoverParams!;
-    if (popoverParams.containerId != null) {
-      final toRemove = activeHosts.where((e) {
-        return e.widget.popoverParams!.containerId == popoverParams.containerId;
-      }).toList();
-      toRemove.addAll(
-        tooltipHosts.keys.where((e) {
-          return e.widget.popoverParams!.containerId == popoverParams.containerId;
-        }),
-      );
-      toRemove.addAll(
-        removedHosts.keys.where((e) {
-          return e.widget.popoverParams!.containerId == popoverParams.containerId;
-        }),
-      );
-      for (final e in toRemove) {
-        _removeHost(e);
-      }
-      if (toRemove.isNotEmpty) {
-        containerGlobalKeys[popoverParams.containerId]!.currentState!.triggerContentAnimation();
-      }
+    if (host.widget.popoverParams!.containerId case final containerId?) {
+      _removeAllWithContainerId(containerId);
     }
     activeHosts.add(host);
     host.isPopoverShown = true;
@@ -124,9 +104,37 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     }
     // TODO: 1 implement containerIds for tooltips
     // TODO: 1 add delay to showint tooltip after entering host (param passed to the host)
+    if (host.widget.tooltipParams!.containerId case final containerId?) {
+      _removeAllWithContainerId(containerId);
+    }
     tooltipHosts[host] = TooltipHoverStatus(host: true);
     host.isTooltipShown = true;
     setState(() {});
+  }
+
+  void _removeAllWithContainerId(String containerId) {
+    final toRemove = activeHosts.where((e) {
+      return e.widget.popoverParams!.containerId == containerId;
+    }).toList();
+    toRemove.addAll(
+      tooltipHosts.keys.where((e) {
+        return e.widget.tooltipParams!.containerId == containerId;
+      }),
+    );
+    toRemove.addAll(
+      removedHosts.keys.where((e) {
+        final removedContainerId = removedHosts[e]!
+            ? e.widget.tooltipParams!.containerId
+            : e.widget.popoverParams!.containerId;
+        return removedContainerId == containerId;
+      }),
+    );
+    for (final e in toRemove) {
+      _removeHost(e);
+    }
+    if (toRemove.isNotEmpty) {
+      containerGlobalKeys[containerId]!.currentState!.triggerContentAnimation();
+    }
   }
 
   // necessary because when mouse goes from host to client, if we check immediately
@@ -142,8 +150,8 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   bool _isCheckHideTooltipScheduled = false;
   void _checkHideTooltip(WingedPopoverState host) {
-    final status = tooltipHosts[host]!;
-    if (!status.client && !status.host) {
+    final status = tooltipHosts[host];
+    if (status != null && !status.client && !status.host) {
       hideHost(host);
     }
   }

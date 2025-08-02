@@ -94,7 +94,7 @@ class FeatherRegistry {
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
     assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already in Feathers.all");
-    final initFuture = feather.init(context, logger.clone(properties: [LogType(feather.name)]));
+    final initFuture = feather.init(context, mainLogger.clone(properties: [LogType(feather.name)]));
     _initializedFeathers[feather] = initFuture;
     return initFuture;
   }

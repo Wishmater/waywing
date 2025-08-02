@@ -1,11 +1,15 @@
 import "package:tronco/tronco.dart";
 import "package:chalkdart/chalk.dart";
+import "package:waywing/modules/nm/nm_service.dart";
 
-late Logger logger;
+late Logger mainLogger;
 
 void initializeLogger() {
-  logger = Logger(
-    filter: Filter(Level.info, {}),
+  mainLogger = Logger(
+    // TODO: 1 add this to config (at least filter level and levels by type)
+    filter: Filter(Level.info, {
+      LogType("$NetworkManagerService"): Level.warning,
+    }),
     output: ConsoleOutput(),
     printer: Printer(),
   );
@@ -45,7 +49,7 @@ class Filter extends LogFilter {
     if (found) {
       return true;
     }
-    return event.level < defaultLevel;
+    return event.level > defaultLevel;
   }
 }
 

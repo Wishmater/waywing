@@ -273,16 +273,16 @@ Future<Config> reloadConfig(String content) async {
   // TODO: 2 implement proper config error handling
   switch (result) {
     case EvaluationParseError():
-      logger.log(Level.fatal, "EvaluationParseError\n${result.errors.join("\n")}");
+      mainLogger.log(Level.fatal, "EvaluationParseError\n${result.errors.join("\n")}");
       // TODO: 2 on config parse error, we should probably load default config and notify error
       throw UnimplementedError();
     case EvaluationValidationError():
-      logger.log(Level.fatal, "EvaluationValidationError\n${result.errors.join("\n")} ${result.values}");
+      mainLogger.log(Level.fatal, "EvaluationValidationError\n${result.errors.join("\n")} ${result.values}");
       // TODO: 2 on config evaluation error: ideally, we have sane defaults on everything
       // so that result.values is still usable AND we notify errors
       throw UnimplementedError();
     case EvaluationSuccess():
-      logger.log(Level.debug, "${result.values}");
+      mainLogger.log(Level.debug, "${result.values}");
       _config = MainConfig.fromMap(result.values);
       return _config;
   }

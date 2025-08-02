@@ -7,6 +7,8 @@ import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
 
+final logger = mainLogger.clone(properties: [LogType("FlLinuxWindowManager")]);
+
 // we need to await an arbitrary time in between windowManager calls
 // to avoid race conditions, because Futures returned by the lib cant' be trusted
 const _delayDuration = Duration(milliseconds: 100);
@@ -25,7 +27,7 @@ Future<void> setupMainWindow() async {
   await FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
   await Future.delayed(_delayDuration);
 
-  // TODO: 1 implement options for the user to set fixed monitor(s?)
+  // TODO: 1 ??? implement options for the user to set fixed monitor(s?) ??? each wing specifies its monitor ???
 
   logger.log(Level.debug, "Setting main window anchors...");
   await FlLinuxWindowManager.instance.setLayerAnchor(

@@ -29,7 +29,7 @@ void main(List<String> args) async {
 
   await setupMainWindow();
 
-  logger.log(Level.debug, "Done setting initial window config, running app...");
+  mainLogger.log(Level.debug, "Done setting initial window config, running app...");
   runApp(const App());
 }
 

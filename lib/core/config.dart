@@ -1,8 +1,10 @@
 import "package:config/config.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/material.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/util/config_fields.dart";
+import "package:waywing/util/logger.dart";
 
 MainConfig get config => _config;
 late MainConfig _config;
@@ -271,19 +273,16 @@ Future<Config> reloadConfig(String content) async {
   // TODO: 2 implement proper config error handling
   switch (result) {
     case EvaluationParseError():
-      print("EvaluationParseError");
-      print(result.errors.join("\n"));
+      logger.log(Level.fatal, "EvaluationParseError\n${result.errors.join("\n")}");
       // TODO: 2 on config parse error, we should probably load default config and notify error
       throw UnimplementedError();
     case EvaluationValidationError():
-      print("EvaluationValidationError");
-      print(result.errors.join("\n"));
-      print(result.values);
+      logger.log(Level.fatal, "EvaluationValidationError\n${result.errors.join("\n")} ${result.values}");
       // TODO: 2 on config evaluation error: ideally, we have sane defaults on everything
       // so that result.values is still usable AND we notify errors
       throw UnimplementedError();
     case EvaluationSuccess():
-      print(result.values);
+      logger.log(Level.debug, "${result.values}");
       _config = MainConfig.fromMap(result.values);
       return _config;
   }

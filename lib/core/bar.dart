@@ -311,28 +311,19 @@ class _BarState extends State<Bar> {
                       enabled: isTooltipEnabled,
                       containerId: "BarTooltip",
                       // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
-                      zIndex: 10,
+                      zIndex: -5,
                       popupAlignment: popoverAlignment,
                       anchorAlignment: popoverAlignment,
-                      extraOffset: Offset(
-                        switch (config.barSide) {
-                          ScreenEdge.top => 0,
-                          ScreenEdge.bottom => 0,
-                          ScreenEdge.left => config.barSize / 2,
-                          ScreenEdge.right => -config.barSize / 2,
-                        }.toDouble(),
-                        switch (config.barSide) {
-                          ScreenEdge.top => config.barSize / 2,
-                          ScreenEdge.bottom => -config.barSize / 2,
-                          ScreenEdge.left => 0,
-                          ScreenEdge.right => -0,
-                        }.toDouble(),
+                      extraPadding: EdgeInsets.only(
+                        top: config.barSide == ScreenEdge.top ? config.barSize / 2 : 0,
+                        bottom: config.barSide == ScreenEdge.bottom ? config.barSize / 2 : 0,
+                        left: config.barSide == ScreenEdge.left ? config.barSize / 2 : 0,
+                        right: config.barSide == ScreenEdge.right ? config.barSize / 2 : 0,
                       ),
                       builder: (context) {
                         return component.buildTooltip!(context);
                       },
                       containerBuilder: (context, child) {
-                        // TODO: 1 TOOLTIPS implement a proper way of adding padding/offset to Popovers
                         return AnimatedOpacity(
                           opacity: 1,
                           duration: config.animationDuration,

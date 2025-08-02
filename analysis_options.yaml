@@ -2,7 +2,7 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
-    avoid_print: false # TODO set this to true once we decide on a logging lib to use
+    avoid_print: true
     prefer_double_quotes: true
     lines_longer_than_80_chars: false
 

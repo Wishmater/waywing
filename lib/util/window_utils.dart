@@ -7,14 +7,14 @@ import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
 
-final logger = mainLogger.clone(properties: [LogType("FlLinuxWindowManager")]);
+final _logger = mainLogger.clone(properties: [LogType("FlLinuxWindowManager")]);
 
 // we need to await an arbitrary time in between windowManager calls
 // to avoid race conditions, because Futures returned by the lib cant' be trusted
 const _delayDuration = Duration(milliseconds: 100);
 
 Future<void> setupMainWindow() async {
-  logger.log(Level.debug, "Setting main window title...");
+  _logger.log(Level.debug, "Setting main window title...");
   await FlLinuxWindowManager.instance.setTitle(title: "WayWings");
   await Future.delayed(_delayDuration);
 
@@ -23,19 +23,19 @@ Future<void> setupMainWindow() async {
   // await FlLinuxWindowManager.instance.enableTransparency();
   // await Future.delayed(_delayDuration);
 
-  logger.log(Level.debug, "Setting main window layer...");
+  _logger.log(Level.debug, "Setting main window layer...");
   await FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
   await Future.delayed(_delayDuration);
 
   // TODO: 1 ??? implement options for the user to set fixed monitor(s?) ??? each wing specifies its monitor ???
 
-  logger.log(Level.debug, "Setting main window anchors...");
+  _logger.log(Level.debug, "Setting main window anchors...");
   await FlLinuxWindowManager.instance.setLayerAnchor(
     anchor: ScreenEdge.values.map((e) => e.value).reduce((a, b) => a | b), // all anchors
   );
   await Future.delayed(_delayDuration);
 
-  logger.log(Level.debug, "Setting main window exclusive zone...");
+  _logger.log(Level.debug, "Setting main window exclusive zone...");
   // setting -1 exclusiveSize makes this layer ignore exclusiveZones set by other layers
   await FlLinuxWindowManager.instance.setLayerExclusiveZone(-1);
   await Future.delayed(_delayDuration);
@@ -75,13 +75,10 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
   final exclusiveSize = config.getExclusiveSizeForSide(side)?.round() ?? 0;
   final windowId = "WayWings$side";
 
-  // TODO: 3 performance: only create layers for necessary sides to maybe save memory,
-  // also, maybe modify the lib to create empty dummy layers whithout running dart/flutter process
-
   // // removing a window crashes the app for some reason, so just init all at the start
   if (exclusiveSize == 0) {
     if (_existingDummyLayers.contains(side)) {
-      logger.log(Level.debug, "Closing window layer for side $side...");
+      _logger.log(Level.debug, "Closing window layer for side $side...");
       _existingDummyLayers.remove(side);
       await FlLinuxWindowManager.instance.closeWindow(
         windowId: windowId,
@@ -93,7 +90,7 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
 
   bool create = !_existingDummyLayers.contains(side);
   if (create) {
-    logger.log(Level.debug, "Creating window layer for side $side...");
+    _logger.log(Level.debug, "Creating window layer for side $side...");
     _existingDummyLayers.add(side);
     await FlLinuxWindowManager.instance.createWindow(
       windowId: windowId,
@@ -106,7 +103,7 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
     );
     await Future.delayed(_delayDuration);
 
-    logger.log(Level.debug, "Setting window layer for side $side...");
+    _logger.log(Level.debug, "Setting window layer for side $side...");
     await FlLinuxWindowManager.instance.setLayer(
       WindowLayer.background,
       windowId: windowId,
@@ -114,7 +111,7 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
     await Future.delayed(_delayDuration);
   }
 
-  logger.log(Level.debug, "Setting window layer exclusive zone = $exclusiveSize for side $side...");
+  _logger.log(Level.debug, "Setting window layer exclusive zone = $exclusiveSize for side $side...");
   await FlLinuxWindowManager.instance.setLayerExclusiveZone(
     exclusiveSize,
     windowId: windowId,
@@ -122,7 +119,7 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
   await Future.delayed(_delayDuration);
 
   if (create) {
-    logger.log(Level.debug, "Setting window layer anchors for side $side...");
+    _logger.log(Level.debug, "Setting window layer anchors for side $side...");
     await FlLinuxWindowManager.instance.setLayerAnchor(
       windowId: windowId,
       anchor: switch (side) {

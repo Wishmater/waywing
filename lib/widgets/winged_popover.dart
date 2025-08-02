@@ -36,6 +36,7 @@ class PopoverParams {
   final int zIndex;
   final bool enabled;
   final Offset extraOffset;
+  final EdgeInsets extraPadding;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -55,6 +56,7 @@ class PopoverParams {
     this.zIndex = 10,
     this.enabled = true,
     this.extraOffset = Offset.zero,
+    this.extraPadding = EdgeInsets.zero,
   });
 }
 

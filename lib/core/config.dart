@@ -9,7 +9,7 @@ import "package:waywing/core/feather.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/logger.dart";
 
-final logger = mainLogger.clone(properties: [LogType("Config")]);
+final _logger = mainLogger.clone(properties: [LogType("Config")]);
 
 MainConfig get config => _config;
 late MainConfig _config;
@@ -278,18 +278,18 @@ Future<Config> reloadConfig(String content) async {
   // TODO: 2 implement proper config error handling
   switch (result) {
     case EvaluationParseError():
-      logger.log(Level.fatal, "Read config EvaluationParseError\n${result.errors.join("\n")}");
+      _logger.log(Level.fatal, "Read config EvaluationParseError\n${result.errors.join("\n")}");
       // TODO: 2 on config parse error, we should probably load default config and notify error
       throw UnimplementedError();
     case EvaluationValidationError():
-      logger.log(Level.fatal, "Read config EvaluationValidationError\n${result.errors.join("\n")}");
-      logger.log(Level.debug, _toPrettyJson(result.values));
+      _logger.log(Level.fatal, "Read config EvaluationValidationError\n${result.errors.join("\n")}");
+      _logger.log(Level.debug, _toPrettyJson(result.values));
       // TODO: 2 on config evaluation error: ideally, we have sane defaults on everything
       // so that result.values is still usable AND we notify errors
       throw UnimplementedError();
     case EvaluationSuccess():
-      logger.log(Level.info, "Read config EvaluationSuccess");
-      logger.log(Level.debug, _toPrettyJson(result.values));
+      _logger.log(Level.info, "Read config EvaluationSuccess");
+      _logger.log(Level.debug, _toPrettyJson(result.values));
       _config = MainConfig.fromMap(result.values);
       return _config;
   }

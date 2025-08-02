@@ -1,10 +1,15 @@
 import "package:dartx/dartx.dart";
+import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/util/logger.dart";
 import "package:waywing/util/popup_utils.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/winged_popover.dart";
+
+final _logger = mainLogger.clone(properties: [LogType("PopoverProvider")]);
 
 class WingedPopoverProvider extends StatefulWidget {
   final Widget child;
@@ -28,7 +33,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   void showHost(WingedPopoverState host) {
     assert(host.widget.popoverParams != null, "Trying to show popover for a host that doesn't specify popoverParams");
     if (activeHosts.contains(host)) {
-      print("ERROR: Trying to register a host that already exists to PopoverProvider.");
+      _logger.log(Level.error, "Trying to register a host that already exists to PopoverProvider.");
       return;
     }
     if (tooltipHosts.containsKey(host) || removedHosts.containsKey(host)) {
@@ -46,9 +51,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     final isActive = activeHosts.remove(host);
     final isTooltip = tooltipHosts.remove(host) != null;
     if (!isActive && !isTooltip) {
-      print(
-        "ERROR: Trying to hide a host that doesn't exist in PopoverProvider.",
-      );
+      _logger.log(Level.error, "Trying to hide a host that doesn't exist in PopoverProvider.");
       return;
     }
     if (host.clientState?.passedMeaningfulPaint ?? false) {
@@ -93,7 +96,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   void _showTooltip(WingedPopoverState host) {
     if (tooltipHosts.containsKey(host)) {
-      print("ERROR: Trying to register a tooltip host that already exists to PopoverProvider.");
+      _logger.log(Level.error, "Trying to register a tooltip host that already exists to PopoverProvider.");
       return;
     }
     if (activeHosts.contains(host)) {
@@ -102,8 +105,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    // TODO: 1 implement containerIds for tooltips
-    // TODO: 1 add delay to showint tooltip after entering host (param passed to the host)
+    // TODO: 1 add delay to showing tooltip after entering host (param passed to the host)
     if (host.widget.tooltipParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }
@@ -142,9 +144,14 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   void _scheduleCheckHideTooltip(WingedPopoverState host) {
     if (_isCheckHideTooltipScheduled) return;
     _isCheckHideTooltipScheduled = true;
+    // this NEEDS to wait 2 frames for it to be consistent
+    WidgetsBinding.instance.scheduleFrame();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkHideTooltip(host);
-      _isCheckHideTooltipScheduled = false;
+      WidgetsBinding.instance.scheduleFrame();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _checkHideTooltip(host);
+        _isCheckHideTooltipScheduled = false;
+      });
     });
   }
 
@@ -359,7 +366,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
           child: container,
           builder: (context, childPositioning, container) {
             if (hostPositioning == null) {
-              print("ERROR: Popover client built before host. This should never happen");
+              mainLogger.log(Level.error, "Popover client built before host. This should never happen");
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 setState(() {});
               });
@@ -400,11 +407,20 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               );
               passedMeaningfulPaint = true;
             }
+            container = Padding(
+              padding: popoverParams.extraPadding,
+              child: container,
+            );
             if (widget.isTooltip) {
-              container = MouseRegion(
-                onEnter: (_) => provider.onMouseEnterClient(this),
-                onExit: (_) => provider.onMouseExitClient(this),
-                child: container,
+              // TODO: 2 this InputRegion is necessary only when extraPadding is declared (like on bar tooltip)
+              // this solution is not ideal because it may conflict with the better declared InputRegion on the
+              // Popover container, which might include detailed border radius, etc.
+              container = InputRegion(
+                child: MouseRegion(
+                  onEnter: (_) => provider.onMouseEnterClient(this),
+                  onExit: (_) => provider.onMouseExitClient(this),
+                  child: container,
+                ),
               );
             }
             // print("childSize: $childSize");
@@ -417,7 +433,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               width: childSize.width,
               height: childSize.height,
               onEnd: !widget.isRemoved ? null : onRemoveAnimationEnd,
-              child: container!,
+              child: container,
             );
           },
         );

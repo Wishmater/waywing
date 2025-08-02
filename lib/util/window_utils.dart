@@ -24,7 +24,7 @@ Future<void> setupMainWindow() async {
   // await Future.delayed(_delayDuration);
 
   logger.log(Level.debug, "Setting main window layer...");
-  await FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
+  await FlLinuxWindowManager.instance.setLayer(WindowLayer.bottom);
   await Future.delayed(_delayDuration);
 
   // TODO: 1 ??? implement options for the user to set fixed monitor(s?) ??? each wing specifies its monitor ???
@@ -69,7 +69,7 @@ Future<void> _updateEdgeWindows() async {
   await Future.wait(futures);
 }
 
-Map<ScreenEdge, bool> _existingDummyLayers = {};
+Set<ScreenEdge> _existingDummyLayers = {};
 
 Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
   final exclusiveSize = config.getExclusiveSizeForSide(side)?.round() ?? 0;
@@ -91,10 +91,10 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
   //   return;
   // }
 
-  bool create = !_existingDummyLayers.containsKey(side);
+  bool create = !_existingDummyLayers.contains(side);
   if (create) {
     logger.log(Level.debug, "Creating window layer for side $side...");
-    _existingDummyLayers[side] = true;
+    _existingDummyLayers.add(side);
     await FlLinuxWindowManager.instance.createWindow(
       windowId: windowId,
       isLayer: true,
@@ -132,18 +132,5 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
       },
     );
     await Future.delayed(_delayDuration);
-  } else {
-    // If there is not a real change in the layer (like anchors or size), the exclusiveSize won't
-    // be updated immediately, so we change the size to force an update.
-    // Apparently there is a method wl_surface_commit wich is the proper way of doing this,
-    // using it would require adding it to the native lib.
-    logger.log(Level.debug, "Setting window layer size for side $side...");
-    await FlLinuxWindowManager.instance.setSize(
-      width: _existingDummyLayers[side]! ? 50 : 0,
-      height: _existingDummyLayers[side]! ? 50 : 0,
-      windowId: windowId,
-    );
-    await Future.delayed(_delayDuration);
-    _existingDummyLayers[side] = !_existingDummyLayers[side]!;
   }
 }

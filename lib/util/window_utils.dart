@@ -80,7 +80,7 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
 
   // // removing a window crashes the app for some reason, so just init all at the start
   if (exclusiveSize == 0) {
-    if (_existingDummyLayers.containsKey(side)) {
+    if (_existingDummyLayers.contains(side)) {
       logger.log(Level.debug, "Closing window layer for side $side...");
       _existingDummyLayers.remove(side);
       await FlLinuxWindowManager.instance.closeWindow(

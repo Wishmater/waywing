@@ -24,7 +24,7 @@ Future<void> setupMainWindow() async {
   // await Future.delayed(_delayDuration);
 
   logger.log(Level.debug, "Setting main window layer...");
-  await FlLinuxWindowManager.instance.setLayer(WindowLayer.bottom);
+  await FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
   await Future.delayed(_delayDuration);
 
   // TODO: 1 ??? implement options for the user to set fixed monitor(s?) ??? each wing specifies its monitor ???

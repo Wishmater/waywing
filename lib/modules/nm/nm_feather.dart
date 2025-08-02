@@ -34,11 +34,14 @@ class NetworkManagerFeather extends Feather {
       return [
         WingedFlatButton(
           onTap: () => popover!.togglePopover(),
-          child: NetworkManagerWidget(service: service),
+          child: Padding(
+            padding: const EdgeInsets.all(2.0),
+            child: NetworkManagerWidget(service: service, wifi: service.getWirelessDevice()!),
+          ),
         ),
       ];
     },
 
-    buildPopover: (context) => NetworkManagerPopover(service: WifiManagerService(service.client, service.logger)),
+    buildPopover: (context) => NetworkManagerPopover(service: service, wifi: service.getWirelessDevice()!),
   );
 }

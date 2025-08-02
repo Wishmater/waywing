@@ -9,7 +9,7 @@ Offset getPopoverPosition({
   required Size hostSize,
   required Size childSize,
   required Size screenSize,
-  Offset offsetCorrection = Offset.zero,
+  Offset extraOffset = Offset.zero,
   EdgeInsets padding = EdgeInsets.zero,
 }) {
   const animationValue = 1; // probably not needed in this project
@@ -25,11 +25,11 @@ Offset getPopoverPosition({
   x = hostPosition.dx
       + hostSize.width*((anchorAlignment.x+1)/2)
       - popupWidth*((popupAlignment.x-1)/-2)
-      + offsetCorrection.dx;
+      + extraOffset.dx;
   y = hostPosition.dy
       + hostSize.height*((anchorAlignment.y+1)/2)
       - childSize.height*((popupAlignment.y-1)/-2)
-      + offsetCorrection.dy;
+      + extraOffset.dy;
   x = x.clamp(padding.left, maxWidthWithPaddingLeft);
   y = y.clamp(padding.top, maxHeightWithPaddingTop);
   if (maxWidthWithPaddingLeft-x < popupWidth) {
@@ -46,10 +46,10 @@ Offset getPopoverPosition({
   currentChildHeight = overlappingHeight + ((childSize.height-overlappingHeight) * animationValue);
   final overlappingCorrectionX = (x < hostPosition.dx  // add offsetCorrection only if not already accounted for in overlappingMeassure
       ? x - hostPosition.dx
-      : x - (hostPosition.dx + hostSize.width)).smartClamp(0, offsetCorrection.dx);
+      : x - (hostPosition.dx + hostSize.width)).smartClamp(0, extraOffset.dx);
   final overlappingCorrectionY = (y < hostPosition.dy  // add offsetCorrection only if not already accounted for in overlappingMeassure
       ? y - hostPosition.dy
-      : y - (hostPosition.dy + hostSize.height)).smartClamp(0, offsetCorrection.dy);
+      : y - (hostPosition.dy + hostSize.height)).smartClamp(0, extraOffset.dy);
   if (overlappingWidth >= hostSize.width) {
     x = hostPosition.dx - ((currentChildWidth-hostSize.width) * ((popupAlignment.x-1)/-2));
   } else if (hostPosition.dx < x) {

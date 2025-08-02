@@ -35,6 +35,7 @@ class PopoverParams {
   final String? containerId;
   final int zIndex;
   final bool enabled;
+  final Offset extraOffset;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -53,6 +54,7 @@ class PopoverParams {
     this.closedContainerBuilder,
     this.zIndex = 10,
     this.enabled = true,
+    this.extraOffset = Offset.zero,
   });
 }
 

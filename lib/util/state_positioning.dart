@@ -57,8 +57,64 @@ class PositioningMonitor extends StatefulWidget {
 
 class _PositioningMonitorState extends State<PositioningMonitor> with StatePositioningMixin {
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     widget.controller.getPositioning = getPositioning;
+  }
+
+  @override
+  void didUpdateWidget(covariant PositioningMonitor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      widget.controller.getPositioning = getPositioning;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
+class PositioningNotifierController extends PositioningController {
+  final ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+}
+
+class PositioningNotifierMonitor extends StatefulWidget {
+  final PositioningNotifierController controller;
+  final Widget child;
+
+  const PositioningNotifierMonitor({
+    required this.controller,
+    required this.child,
+    super.key,
+  });
+
+  @override
+  State<PositioningNotifierMonitor> createState() => _PositioningNotidierMonitorState();
+}
+
+class _PositioningNotidierMonitorState extends State<PositioningNotifierMonitor>
+    with StatePositioningMixin, StatePositioningNotifierMixin {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.getPositioning = getPositioning;
+    positioningNotifier = widget.controller.positioningNotifier;
+    scheduleCheckPositioningChange();
+  }
+
+  @override
+  void didUpdateWidget(covariant PositioningNotifierMonitor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      widget.controller.getPositioning = getPositioning;
+      positioningNotifier = widget.controller.positioningNotifier;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return widget.child;
   }
 }

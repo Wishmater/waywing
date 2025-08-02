@@ -314,6 +314,20 @@ class _BarState extends State<Bar> {
                       zIndex: 10,
                       popupAlignment: popoverAlignment,
                       anchorAlignment: popoverAlignment,
+                      extraOffset: Offset(
+                        switch (config.barSide) {
+                          ScreenEdge.top => 0,
+                          ScreenEdge.bottom => 0,
+                          ScreenEdge.left => config.barSize / 2,
+                          ScreenEdge.right => -config.barSize / 2,
+                        }.toDouble(),
+                        switch (config.barSide) {
+                          ScreenEdge.top => config.barSize / 2,
+                          ScreenEdge.bottom => -config.barSize / 2,
+                          ScreenEdge.left => 0,
+                          ScreenEdge.right => -0,
+                        }.toDouble(),
+                      ),
                       builder: (context) {
                         return component.buildTooltip!(context);
                       },
@@ -323,15 +337,7 @@ class _BarState extends State<Bar> {
                           opacity: 1,
                           duration: config.animationDuration,
                           curve: config.animationCurve,
-                          child: Padding(
-                            padding: switch (config.barSide) {
-                              ScreenEdge.top => const EdgeInsets.only(top: 16),
-                              ScreenEdge.right => const EdgeInsets.only(right: 16),
-                              ScreenEdge.bottom => const EdgeInsets.only(bottom: 16),
-                              ScreenEdge.left => const EdgeInsets.only(left: 16),
-                            },
-                            child: buildPopoverContainer(context, child, tooltipShape),
-                          ),
+                          child: buildPopoverContainer(context, child, tooltipShape),
                         );
                       },
                       closedContainerBuilder: (context, child) {
@@ -339,14 +345,10 @@ class _BarState extends State<Bar> {
                           opacity: 0,
                           duration: config.animationDuration,
                           curve: config.animationCurve,
-                          child: Padding(
-                            padding: switch (config.barSide) {
-                              ScreenEdge.top => const EdgeInsets.only(top: 16),
-                              ScreenEdge.right => const EdgeInsets.only(right: 16),
-                              ScreenEdge.bottom => const EdgeInsets.only(bottom: 16),
-                              ScreenEdge.left => const EdgeInsets.only(left: 16),
-                            },
-                            child: buildPopoverContainer(context, child, null),
+                          child: buildPopoverContainer(
+                            context,
+                            child,
+                            RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(0))),
                           ),
                         );
                       },

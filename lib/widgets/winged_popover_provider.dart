@@ -273,7 +273,7 @@ class WingedPopoverClient extends StatefulWidget {
 }
 
 class WingedPopoverClientState extends State<WingedPopoverClient> with TickerProviderStateMixin {
-  final childPositioningController = PositioningController();
+  final childPositioningController = PositioningNotifierController();
 
   // this means it passed the 2nd frame, where we can actually get child sizing
   bool passedMeaningfulPaint = false;
@@ -288,8 +288,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
 
   @override
   void dispose() {
-    super.dispose();
     contentAnimationController.dispose();
+    super.dispose();
   }
 
   late AnimationController contentAnimationController;
@@ -306,7 +306,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     );
   }
 
-  // TODO: 1 make this trigget in didUpdateWidget when host or isTooltip changes,
+  // TODO: 1 make this trigger in didUpdateWidget when host or isTooltip changes,
   // instead of being manually triggered by provider
   void triggerContentAnimation() {
     _buildContentAnimationController();
@@ -342,20 +342,9 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
         maxHeight: screenSize.height,
         // TODO: 2 add animation transition to the child (for cases with containerId)
         // maybe allow host to decide the transitionBuilder, so the bar can animate up/down
-        child: PositioningMonitor(
+        child: PositioningNotifierMonitor(
           controller: childPositioningController,
-          child: NotificationListener<SizeChangedLayoutNotification>(
-            onNotification: (_) {
-              // rebuild when the child size changes
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                setState(() {});
-              });
-              return true;
-            },
-            child: SizeChangedLayoutNotifier(
-              child: popoverParams.builder(context),
-            ),
-          ),
+          child: popoverParams.builder(context),
         ),
       ),
     );
@@ -365,70 +354,72 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       valueListenable: widget.host.positioningNotifier,
       child: container,
       builder: (context, hostPositioning, container) {
-        if (hostPositioning == null) {
-          print("ERROR: Popover client built before host. This should never happen");
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            setState(() {});
-          });
-          return SizedBox.shrink();
-        }
-        final (hostPosition, hostSize) = hostPositioning;
-        // print("-----------------------------------");
-        // print("hostSize: $hostSize");
-        // print("hostPosition: $hostPosition");
-        Size childSize;
-        Offset childPosition;
-        if (widget.isRemoved) {
-          childSize = hostSize;
-          childPosition = hostPosition;
-          if (popoverParams.closedContainerBuilder != null) {
-            container = popoverParams.closedContainerBuilder!(context, content);
-          }
-        } else {
-          try {
-            childSize = childPositioningController.getPositioning().$2;
-            childPosition = getPopoverPosition(
-              anchorAlignment: popoverParams.anchorAlignment,
-              popupAlignment: popoverParams.popupAlignment,
-              hostPosition: hostPosition,
-              hostSize: hostSize,
-              childSize: childSize,
-              screenSize: screenSize,
-              padding: popoverParams.screenPadding,
-            );
-            passedMeaningfulPaint = true;
-          } catch (_) {
-            // assuming this happens the first time the widget builds
-            // fall back to setting the size/position of the host,
-            // which should have the added effect of animating entry
-            childSize = hostSize;
-            childPosition = hostPosition;
-            if (popoverParams.closedContainerBuilder != null) {
-              container = popoverParams.closedContainerBuilder!(context, content);
+        return ValueListenableBuilder(
+          valueListenable: childPositioningController.positioningNotifier,
+          child: container,
+          builder: (context, childPositioning, container) {
+            if (hostPositioning == null) {
+              print("ERROR: Popover client built before host. This should never happen");
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                setState(() {});
+              });
+              return SizedBox.shrink();
             }
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              setState(() {});
-            });
-          }
-        }
-        if (widget.isTooltip) {
-          container = MouseRegion(
-            onEnter: (_) => provider.onMouseEnterClient(this),
-            onExit: (_) => provider.onMouseExitClient(this),
-            child: container,
-          );
-        }
-        // print("childSize: $childSize");
-        // print("childPosition: $childPosition");
-        return AnimatedPositioned(
-          duration: config.animationDuration,
-          curve: config.animationCurve,
-          left: childPosition.dx,
-          top: childPosition.dy,
-          width: childSize.width,
-          height: childSize.height,
-          onEnd: !widget.isRemoved ? null : onRemoveAnimationEnd,
-          child: container!,
+            final (hostPosition, hostSize) = hostPositioning;
+            // print("-----------------------------------");
+            // print("hostSize: $hostSize");
+            // print("hostPosition: $hostPosition");
+            Size childSize;
+            Offset childPosition;
+            if (widget.isRemoved) {
+              childSize = hostSize;
+              childPosition = hostPosition;
+              if (popoverParams.closedContainerBuilder != null) {
+                container = popoverParams.closedContainerBuilder!(context, content);
+              }
+            } else if (childPositioning == null) {
+              // assuming this happens the first time the widget builds
+              // fall back to setting the size/position of the host,
+              // which should have the added effect of animating entry
+              childSize = hostSize;
+              childPosition = hostPosition;
+              if (popoverParams.closedContainerBuilder != null) {
+                container = popoverParams.closedContainerBuilder!(context, content);
+              }
+            } else {
+              childSize = childPositioning.$2;
+              childPosition = getPopoverPosition(
+                anchorAlignment: popoverParams.anchorAlignment,
+                popupAlignment: popoverParams.popupAlignment,
+                hostPosition: hostPosition,
+                hostSize: hostSize,
+                childSize: childSize,
+                screenSize: screenSize,
+                padding: popoverParams.screenPadding,
+                extraOffset: popoverParams.extraOffset,
+              );
+              passedMeaningfulPaint = true;
+            }
+            if (widget.isTooltip) {
+              container = MouseRegion(
+                onEnter: (_) => provider.onMouseEnterClient(this),
+                onExit: (_) => provider.onMouseExitClient(this),
+                child: container,
+              );
+            }
+            // print("childSize: $childSize");
+            // print("childPosition: $childPosition");
+            return AnimatedPositioned(
+              duration: config.animationDuration,
+              curve: config.animationCurve,
+              left: childPosition.dx,
+              top: childPosition.dy,
+              width: childSize.width,
+              height: childSize.height,
+              onEnd: !widget.isRemoved ? null : onRemoveAnimationEnd,
+              child: container!,
+            );
+          },
         );
       },
     );

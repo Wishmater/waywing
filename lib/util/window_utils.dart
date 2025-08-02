@@ -79,17 +79,17 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
   // also, maybe modify the lib to create empty dummy layers whithout running dart/flutter process
 
   // // removing a window crashes the app for some reason, so just init all at the start
-  // if (exclusiveSize == 0) {
-  //   if (_existingExclusiveScreenEdgeWindows.containsKey(side)) {
-  //     logger.log(Level.debug, "Closing window layer for side $side...");
-  //     _existingExclusiveScreenEdgeWindows.remove(side);
-  //     await FlLinuxWindowManager.instance.closeWindow(
-  //       windowId: windowId,
-  //     );
-  //     await Future.delayed(_delayDuration);
-  //   }
-  //   return;
-  // }
+  if (exclusiveSize == 0) {
+    if (_existingDummyLayers.containsKey(side)) {
+      logger.log(Level.debug, "Closing window layer for side $side...");
+      _existingDummyLayers.remove(side);
+      await FlLinuxWindowManager.instance.closeWindow(
+        windowId: windowId,
+      );
+      await Future.delayed(_delayDuration);
+    }
+    return;
+  }
 
   bool create = !_existingDummyLayers.contains(side);
   if (create) {

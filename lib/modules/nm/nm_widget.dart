@@ -195,7 +195,7 @@ class _Connected extends StatelessWidget {
       children: [
         Icon(icon),
         SizedBox(width: 2),
-        Text(name),
+        Expanded(child: Text(name)),
       ],
     );
   }

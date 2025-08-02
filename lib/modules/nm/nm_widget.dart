@@ -191,12 +191,14 @@ class _Connected extends StatelessWidget {
       < 70 => Icons.wifi_2_bar_rounded,
       _ => Icons.wifi_rounded,
     };
-    return Row(
-      children: [
-        Icon(icon),
-        SizedBox(width: 2),
-        Expanded(child: Text(name)),
-      ],
+    return IntrinsicWidth(
+      child: Row(
+        children: [
+          Icon(icon),
+          SizedBox(width: 2),
+          Expanded(child: Text(name)),
+        ],
+      ),
     );
   }
 }

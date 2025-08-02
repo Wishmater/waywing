@@ -1,4 +1,5 @@
 import "package:dbus/dbus.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 
@@ -22,6 +23,8 @@ class SystemTrayItem {
 }
 
 class SystemTrayService extends Service {
+  late Logger logger;
+
   SystemTrayService._();
 
   static registerService(RegisterServiceCallback registerService) {
@@ -32,7 +35,8 @@ class SystemTrayService extends Service {
   late _StatusNotifierWatcherObject _watcher;
 
   @override
-  Future<void> init() async {
+  Future<void> init(Logger logger) async {
+    this.logger = logger;
     _client = DBusClient.session();
     await _client.requestName(_StatusNotifierWatcherObject.objectname);
     _watcher = _StatusNotifierWatcherObject(
@@ -46,6 +50,7 @@ class SystemTrayService extends Service {
     await _client.unregisterObject(_watcher);
     await _client.releaseName(_StatusNotifierWatcherObject.objectname);
     await _client.close();
+    await logger.destroy();
   }
 
   List<String> get items => [];

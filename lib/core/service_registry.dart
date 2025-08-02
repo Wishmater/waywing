@@ -2,6 +2,7 @@ import "package:waywing/core/feather.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 import "package:waywing/modules/system_tray/system_tray_service.dart";
+import "package:waywing/util/logger.dart";
 
 final serviceRegistry = ServiceRegistry._();
 
@@ -52,7 +53,7 @@ class ServiceRegistry {
   Future<T> initializeService<T extends Service>() async {
     final serviceType = T;
     final service = _registeredServices[serviceType]!() as T;
-    await service.init();
+    await service.init(logger.clone(properties: [LogType("$serviceType")]));
     return service;
   }
 

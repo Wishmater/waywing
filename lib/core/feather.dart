@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/widgets/winged_popover.dart";
 
 /// Every "component" added to waywing needs to implement this class.
@@ -18,7 +19,7 @@ abstract class Feather {
   /// Make sure the future doesn't return until initialization is done,
   /// so you can use services/fields in the widget builders without fear.
   /// Widgets won't be built until initialization is done.
-  Future<void> init(BuildContext context) async {}
+  Future<void> init(BuildContext context, Logger logger) async {}
 
   /// Remove can't receive context, because on application exit context can be dirty and thus unusable
   /// Context shouldn't be necessary to run cleanup code

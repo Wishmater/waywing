@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/widgets/winged_flat_button.dart";
 import "package:waywing/core/feather.dart";
@@ -9,6 +10,8 @@ import "package:waywing/core/config.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
 class ClockFeather extends Feather {
+  late Logger logger;
+
   ClockFeather._();
 
   static void registerFeather(RegisterFeatherCallback registerFeather) {
@@ -24,7 +27,8 @@ class ClockFeather extends Feather {
   late final Timer _timer;
 
   @override
-  Future<void> init(BuildContext context) async {
+  Future<void> init(BuildContext context, Logger logger) async {
+    this.logger = logger;
     time = ValueNotifier(DateTime.now());
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       time.value = DateTime.now();

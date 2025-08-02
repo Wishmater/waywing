@@ -5,6 +5,7 @@ import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
 import "package:waywing/modules/nm/nm_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_feather.dart";
+import "package:waywing/util/logger.dart";
 
 final featherRegistry = FeatherRegistry._();
 
@@ -93,7 +94,7 @@ class FeatherRegistry {
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
     assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already in Feathers.all");
-    final initFuture = feather.init(context);
+    final initFuture = feather.init(context, logger.clone(properties: [LogType(feather.name)]));
     _initializedFeathers[feather] = initFuture;
     return initFuture;
   }

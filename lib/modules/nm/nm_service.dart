@@ -3,13 +3,14 @@ import "dart:async" show StreamSubscription;
 import "package:dartx/dartx_io.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:nm/nm.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
+  late Logger logger;
   final NetworkManagerClient client;
 
   NetworkManagerService._() : client = NetworkManagerClient();
@@ -24,8 +25,10 @@ class NetworkManagerService extends Service {
   }
 
   @override
-  Future<void> init() async {
+  Future<void> init(Logger logger) async {
+    this.logger = logger;
     await client.connect();
+    await logger.destroy();
   }
 
   NetworkManagerDeviceWireless? getWirelessDevice() {
@@ -36,12 +39,14 @@ class NetworkManagerService extends Service {
 }
 
 class WifiManagerService {
+  final Logger logger;
   final NetworkManagerClient client;
   late final NetworkManagerDevice device;
   late final NetworkManagerDeviceWireless wireless;
   late final StreamSubscription<List<String>> _subscription;
 
-  WifiManagerService(this.client) {
+  WifiManagerService(this.client, this.logger) {
+    logger.log(Level.debug, "creating WifiManagerService");
     device = client.devices.firstWhere((e) => e.deviceType == NetworkManagerDeviceType.wifi);
     wireless = device.wireless!;
     _subscription = wireless.propertiesChanged.listen(_listener);
@@ -51,7 +56,7 @@ class WifiManagerService {
   }
 
   void _listener(List<String> properties) {
-    print("WIFI MANAGER PROPERTIES CHANGED $properties");
+    logger.log(Level.debug, "WIFI MANAGER PROPERTIES CHANGED $properties");
     if (properties.contains("LastScan")) {
       isScanning.value = false;
     }

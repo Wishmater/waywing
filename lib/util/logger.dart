@@ -115,7 +115,7 @@ class Printer extends LogPrinter {
 
     final properties = event.properties.map((e) => e.print()).join(" ");
     if (properties != "") {
-      buffer.write("$properties ");
+      buffer.write("${chalk.cyan(chalk.underline(properties))} ");
     }
     buffer.write(event.message);
     yield buffer.toString();

@@ -18,7 +18,7 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
   void initState() {
     super.initState();
 
-    wifiDevice = WifiManagerService(widget.service.client);
+    wifiDevice = WifiManagerService(widget.service.client, widget.service.logger);
   }
 
   @override

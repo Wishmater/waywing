@@ -8,6 +8,8 @@ void initializeLogger() {
   mainLogger = Logger(
     // TODO: 1 add this to config (at least filter level and levels by type)
     filter: Filter(Level.info, {
+      LogType("Config"): Level.debug,
+      LogType("FlLinuxWindowManager"): Level.info,
       LogType("$NetworkManagerService"): Level.warning,
     }),
     output: ConsoleOutput(),
@@ -49,7 +51,7 @@ class Filter extends LogFilter {
     if (found) {
       return true;
     }
-    return event.level > defaultLevel;
+    return event.level >= defaultLevel;
   }
 }
 

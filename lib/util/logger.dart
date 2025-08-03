@@ -10,7 +10,7 @@ void initializeLogger() {
     filter: Filter(Level.info, {
       LogType("Config"): Level.debug,
       LogType("FlLinuxWindowManager"): Level.info,
-      LogType("$NetworkManagerService"): Level.warning,
+      LogType("$NetworkManagerService"): Level.trace,
     }),
     output: ConsoleOutput(),
     printer: Printer(),

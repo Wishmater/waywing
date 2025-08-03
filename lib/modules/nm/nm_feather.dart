@@ -36,12 +36,20 @@ class NetworkManagerFeather extends Feather {
           onTap: () => popover!.togglePopover(),
           child: Padding(
             padding: const EdgeInsets.all(2.0),
-            child: NetworkManagerWidget(service: service, device: service.getWirelessDevice()!),
+            child: NetworkManagerWidget(
+              logger: logger,
+              service: service,
+              device: service.getWirelessDevice()!,
+            ),
           ),
         ),
       ];
     },
 
-    buildPopover: (context) => NetworkManagerPopover(service: service, device: service.getWirelessDevice()!),
+    buildPopover: (context) => NetworkManagerPopover(
+      logger: logger,
+      service: service,
+      device: service.getWirelessDevice()!,
+    ),
   );
 }

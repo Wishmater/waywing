@@ -1,3 +1,4 @@
+import "dart:async";
 import "dart:convert";
 
 import "package:dartx/dartx_io.dart";
@@ -35,10 +36,11 @@ class NetworkManagerService extends Service {
     return device;
   }
 
-  Future<void> connect(
+  Future<ConnectResponse> connect(
     NetworkManagerDevice device,
     NetworkManagerAccessPoint ap, {
     bool autoconnect = false,
+    String? userPassword,
   }) async {
     final connAndSettings = await _searchForConnection(device, ap);
     if (connAndSettings != null) {
@@ -46,12 +48,19 @@ class NetworkManagerService extends Service {
       logger.debug("Activating connection: ${device.interface} ${utf8.decode(ap.ssid)}");
 
       if (ap.rsnFlags.isNotEmpty) {
-        final pass = await _getSavedWifiPsk(device, ap, conn, settings);
-        if (pass != null) {
-          throw UnimplementedError("TODO ask for password");
-          // TODO ask for password and modify connectionSetting
-          // TODO update connection settings, add password
+        final password = userPassword ?? await _getSavedWifiPsk(device, ap, conn, settings);
+        if (password == null) {
+          return ConnectResponse.needsPassword;
         }
+        final securityField = _getSecurityField(settings);
+        if (settings[securityField] == null) {
+          throw StateError("Settings does not has a security field:\n$settings");
+        }
+        logger.trace("Updating connection settings\n$settings");
+        settings[securityField]!["psk"] = DBusString(password);
+        logger.trace("New connection settings\n$settings");
+        await _updateConnectionAndWait(conn, settings);
+        logger.trace("Connection settings after update\n${await conn.getSettings()}");
       }
 
       await client.activateConnection(device: device, accessPoint: ap, connection: conn);
@@ -59,6 +68,33 @@ class NetworkManagerService extends Service {
       logger.debug("Creating and activating connection: ${device.interface} ${utf8.decode(ap.ssid)}");
       await client.addAndActivateConnection(device: device, accessPoint: ap);
     }
+    return ConnectResponse.success;
+  }
+
+  Future<void> _updateConnectionAndWait(
+    NetworkManagerSettingsConnection conn,
+    Map<String, Map<String, DBusValue>> settings,
+  ) async {
+    await conn.update(settings);
+    final completer = Completer<void>();
+
+    final subscription = conn.propertiesChanged.listen((properties) {
+      if (properties.contains("Updated")) {
+        completer.complete();
+      }
+    });
+    unawaited(Future.delayed(Duration(seconds: 1), () => completer.complete()));
+    await completer.future;
+    subscription.cancel();
+  }
+
+  String _getSecurityField(Map<String, Map<String, DBusValue>> settings) {
+    final type = settings["connection"]?["type"];
+    if (type == null) {
+      throw StateError("Connection settings does not have a connection type: $settings");
+    }
+    final securityName = "${type.asString()}-security";
+    return securityName;
   }
 
   Future<String?> _getSavedWifiPsk(
@@ -67,8 +103,7 @@ class NetworkManagerService extends Service {
     NetworkManagerSettingsConnection connSettings,
     Map<String, Map<String, DBusValue>> settings,
   ) async {
-    final type = settings["connection"]?["type"];
-    final securityName = type != null ? "${type.asString()}-security" : "802-11-wireless-security";
+    final securityName = _getSecurityField(settings);
     final secrets = await connSettings.getSecrets(securityName);
     if (secrets.isNotEmpty) {
       final security = secrets[securityName];
@@ -105,4 +140,9 @@ class NetworkManagerService extends Service {
     logger.debug("Disconnecting device: ${device.interface}");
     await device.disconnect();
   }
+}
+
+enum ConnectResponse {
+  needsPassword,
+  success,
 }

@@ -2,16 +2,18 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 import "package:nm/nm.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 import "package:waywing/util/string_utils.dart";
 
 class NetworkManagerWidget extends StatefulWidget {
   final NetworkManagerService service;
   final NetworkManagerDevice device;
+  final Logger logger;
 
   NetworkManagerDeviceWireless get wifi => device.wireless!;
 
-  const NetworkManagerWidget({super.key, required this.service, required this.device});
+  const NetworkManagerWidget({super.key, required this.service, required this.device, required this.logger});
 
   @override
   State<NetworkManagerWidget> createState() => _NetworkManagerState();
@@ -71,9 +73,11 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
 class NetworkManagerPopover extends StatefulWidget {
   final NetworkManagerService service;
   final NetworkManagerDevice device;
+  final Logger logger;
+
   NetworkManagerDeviceWireless get wifi => device.wireless!;
 
-  const NetworkManagerPopover({super.key, required this.service, required this.device});
+  const NetworkManagerPopover({super.key, required this.service, required this.device, required this.logger});
 
   @override
   State<NetworkManagerPopover> createState() => _NetworkManagerPopoverState();
@@ -85,12 +89,39 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   NetworkManagerDevice get device => widget.device;
   NetworkManagerDeviceWireless get wifiDevice => widget.wifi;
   List<NetworkManagerAccessPoint> get accessPoints => wifiDevice.accessPoints;
+  Logger get logger => widget.logger;
 
   @override
   void initState() {
     super.initState();
 
     accessPointsListener = NMObjectListener(wifiDevice.propertiesChanged, {"AccessPoints": null});
+  }
+
+  Future<void> connect(NetworkManagerAccessPoint accessPoint) async {
+    // final response = await widget.service.connect(device, accessPoint);
+    final response = ConnectResponse.needsPassword;
+    if (response != ConnectResponse.needsPassword) {
+      return;
+    }
+    if (!context.mounted) {
+      logger.warning("connect needs password but context is not mounted and cannot ask for password");
+      return;
+    }
+    if (!mounted) {
+      logger.warning("connect needs password but state is not mounted and cannot ask for password");
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Text("HELLO");
+      },
+    );
+
+    // ask password
+    //
+    // await widget.service.connect(device, accessPoint, userPassword: password);
   }
 
   @override
@@ -117,9 +148,12 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             for (final ap in accessPoints)
-                              _AvailableAccessPoint(ap, wifiDevice.activeAccessPoint == ap, (accessPoint) {
-                                widget.service.connect(device, accessPoint);
-                              }, () => widget.service.disconnect(device)),
+                              _AvailableAccessPoint(
+                                ap,
+                                wifiDevice.activeAccessPoint == ap,
+                                connect,
+                                () => widget.service.disconnect(device),
+                              ),
                           ],
                         ),
                       ),

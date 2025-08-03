@@ -26,13 +26,17 @@ class _BarState extends State<Bar> {
     super.didUpdateWidget(oldWidget);
     // remove global keys for feathers no longer declared
     final allFeathers = [...config.barStartFeathers, ...config.barCenterFeathers, ...config.barEndFeathers];
+    final toRemove = <String>[];
     for (final key in featherGlobalKeys.keys) {
       final count = allFeathers.count((e) => e.name == key);
       if (count == 0) {
-        featherGlobalKeys.remove(key);
+        toRemove.add(key);
       } else if (featherGlobalKeys[key]!.length > count) {
         featherGlobalKeys[key] = featherGlobalKeys[key]!.sublist(0, count);
       }
+    }
+    for (final key in toRemove) {
+      featherGlobalKeys.remove(key);
     }
   }
 
@@ -115,7 +119,7 @@ class _BarState extends State<Bar> {
             clipBehavior: Clip.antiAliasWithSaveLayer,
             elevation: 6, // TODO: 2 expose bar elevation theme option to user
             shape: shape,
-            // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
+            // TODO: 2 implement a proper layout that handles gracefully when widgets overflow
             // this should also solve the issue of widgets being disposed when switching vertical
             // to horizontal bar (or viceversa) because we switched Row / Column
             child: Padding(
@@ -180,7 +184,7 @@ class _BarState extends State<Bar> {
         FutureBuilder(
           future: featherRegistry.awaitInitialization(feather),
           builder: (context, snapshot) {
-            // TODO: 1 implement proper error management and animation when switching out of loading state
+            // TODO: 2 implement proper error management and animation when switching out of loading state
             if (snapshot.connectionState != ConnectionState.done) {
               return SizedBox.square(
                 dimension: config.barItemSize.toDouble(),

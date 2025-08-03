@@ -15,7 +15,12 @@ const _delayDuration = Duration(milliseconds: 100);
 
 Future<void> setupMainWindow() async {
   _logger.log(Level.debug, "Setting main window title...");
-  await FlLinuxWindowManager.instance.setTitle(title: "WayWings");
+  // we need to set monitor here as well, otherwise it flashes on the wrong monitor on startup
+  await Future.wait([
+    FlLinuxWindowManager.instance.setMonitor(config.barMonitor),
+    FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),
+    FlLinuxWindowManager.instance.setTitle(title: "WayWings"),
+  ]);
   await Future.delayed(_delayDuration);
 
   // // this doesn't seem to be necessary
@@ -27,25 +32,18 @@ Future<void> setupMainWindow() async {
   await FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
   await Future.delayed(_delayDuration);
 
-  // TODO: 1 ??? implement options for the user to set fixed monitor(s?) ??? each wing specifies its monitor ???
-
   _logger.log(Level.debug, "Setting main window anchors...");
   await FlLinuxWindowManager.instance.setLayerAnchor(
     anchor: ScreenEdge.values.map((e) => e.value).reduce((a, b) => a | b), // all anchors
   );
   await Future.delayed(_delayDuration);
 
-  _logger.log(Level.debug, "Setting main window exclusive zone...");
-  // setting -1 exclusiveSize makes this layer ignore exclusiveZones set by other layers
-  await FlLinuxWindowManager.instance.setLayerExclusiveZone(-1);
-  await Future.delayed(_delayDuration);
-
-  return updateEdgeWindows();
+  return updateWindows();
 }
 
 Future<void>? _runningEdgeWindowsUpdate; // rudimentary safety mechanism to make sure updates don't run at the same time
 Future<void>? _waitingEdgeWindowsUpdate; // if another update is already waiting, this one is just not necessary
-Future<void> updateEdgeWindows() async {
+Future<void> updateWindows() async {
   final completer = Completer();
   if (_runningEdgeWindowsUpdate != null) {
     if (_waitingEdgeWindowsUpdate != null) {
@@ -56,22 +54,44 @@ Future<void> updateEdgeWindows() async {
     _waitingEdgeWindowsUpdate = null;
   }
   _runningEdgeWindowsUpdate = completer.future;
-  await _updateEdgeWindows();
+
+  Future.wait([
+    _updateEdgeWindows(),
+    _updateMainWindow(),
+  ]);
+
   completer.complete();
   _runningEdgeWindowsUpdate = null;
+}
+
+Future<void> _updateMainWindow() async {
+  // TODO: 3 allow setting monitor by name, would need to get more data from
+  // hyprctl or wlr_randr, because gtk only returns model
+  _logger.log(Level.debug, "Setting main window monitor...");
+  _logger.log(Level.debug, "Setting main window exclusive zone...");
+  // final monitors = await FlLinuxWindowManager.instance.listMonitors();
+  // monitors.first.connector;
+  await Future.wait([
+    FlLinuxWindowManager.instance.setMonitor(config.barMonitor),
+    FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),
+  ]);
+
+  // this needs to be re-applied every time main window changes monitors
+  // setting -1 exclusiveSize makes this layer ignore exclusiveZones set by other layers
+  await Future.delayed(_delayDuration);
 }
 
 Future<void> _updateEdgeWindows() async {
   final futures = <Future>[];
   for (final side in ScreenEdge.values) {
-    futures.add(updateEdgeWindow(side, config));
+    futures.add(_updateEdgeWindow(side, config));
   }
   await Future.wait(futures);
 }
 
 Set<ScreenEdge> _existingDummyLayers = {};
 
-Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
+Future<void> _updateEdgeWindow(ScreenEdge side, MainConfig config) async {
   final exclusiveSize = config.getExclusiveSizeForSide(side)?.round() ?? 0;
   final windowId = "WayWings$side";
 
@@ -110,6 +130,13 @@ Future<void> updateEdgeWindow(ScreenEdge side, MainConfig config) async {
     );
     await Future.delayed(_delayDuration);
   }
+
+  _logger.log(Level.debug, "Setting window layer monitor for side $side...");
+  await FlLinuxWindowManager.instance.setMonitor(
+    config.barMonitor,
+    windowId: windowId,
+  );
+  await Future.delayed(_delayDuration);
 
   _logger.log(Level.debug, "Setting window layer exclusive zone = $exclusiveSize for side $side...");
   await FlLinuxWindowManager.instance.setLayerExclusiveZone(

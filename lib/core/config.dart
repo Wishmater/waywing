@@ -92,6 +92,10 @@ class MainConfig extends Config {
   // Bar positioning / sizing
   //===========================================================================
 
+  final int barMonitor;
+  static const _barMonitorName = "barMonitor";
+  static const _barMonitor = IntegerNumberField(defaultTo: 0);
+
   final ScreenEdge barSide;
   static const _barSideName = "barSide";
   static const _barSide = EnumField(ScreenEdge.values);
@@ -188,6 +192,7 @@ class MainConfig extends Config {
     double? exclusiveSizeRight,
     double? exclusiveSizeTop,
     double? exclusiveSizeBottom,
+    this.barMonitor = 0,
     required this.barSide,
     required this.barSize,
     double? barItemSize,
@@ -220,6 +225,7 @@ class MainConfig extends Config {
         _exclusiveSizeRightName: _exclusiveSizeRight,
         _exclusiveSizeTopName: _exclusiveSizeTop,
         _exclusiveSizeBottomName: _exclusiveSizeBottom,
+        _barMonitorName: _barMonitor,
         _barSideName: _barSide,
         _barSizeName: _barSize,
         _barMarginLeftName: _barMarginLeft,
@@ -256,6 +262,7 @@ class MainConfig extends Config {
       exclusiveSizeRight: values[_exclusiveSizeRightName],
       exclusiveSizeTop: values[_exclusiveSizeTopName],
       exclusiveSizeBottom: values[_exclusiveSizeBottomName],
+      barMonitor: values[_barMonitorName],
       barSide: values[_barSideName],
       barSize: values[_barSizeName],
       barMarginLeft: values[_barMarginLeftName],

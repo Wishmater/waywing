@@ -91,9 +91,6 @@ class WingedPopoverState extends State<WingedPopover>
   bool isTooltipShown = false;
   WingedPopoverClientState? clientState;
 
-  // TODO: 1 handle widget.enabled in didUpdateWidget (and maybe add asserts to methods)
-  // also, if popover or tooltip params is removed while it's being shown, hide it
-
   @override
   void initState() {
     super.initState();
@@ -116,6 +113,12 @@ class WingedPopoverState extends State<WingedPopover>
   @override
   void didUpdateWidget(covariant WingedPopover oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (isPopoverShown && (widget.popoverParams == null || !widget.popoverParams!.enabled)) {
+      hidePopover();
+    }
+    if (isTooltipShown && (widget.tooltipParams == null || !widget.tooltipParams!.enabled)) {
+      hideTooltip();
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (clientState?.mounted ?? false) {
         clientState?.setState(() {});

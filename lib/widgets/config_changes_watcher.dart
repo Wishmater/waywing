@@ -107,7 +107,8 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
         newConfig.exclusiveSizeLeft != oldConfig.exclusiveSizeLeft ||
         newConfig.exclusiveSizeRight != oldConfig.exclusiveSizeRight ||
         newConfig.exclusiveSizeTop != oldConfig.exclusiveSizeTop ||
-        newConfig.exclusiveSizeBottom != oldConfig.exclusiveSizeBottom) {
+        newConfig.exclusiveSizeBottom != oldConfig.exclusiveSizeBottom ||
+        newConfig.barMonitor != oldConfig.barMonitor) {
       onWindowConfigUpdated();
     }
 
@@ -115,7 +116,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   }
 
   Future<void> onWindowConfigUpdated() async {
-    await updateEdgeWindows();
+    await updateWindows();
     InputRegionController.notifyConfigChange();
   }
 

@@ -40,17 +40,24 @@ class NetworkManagerService extends Service {
     NetworkManagerAccessPoint ap, {
     bool autoconnect = false,
   }) async {
-    final connSettings = await _searchForConnection(device, ap);
-    if (connSettings != null) {
+    final connAndSettings = await _searchForConnection(device, ap);
+    if (connAndSettings != null) {
+      var (conn, settings) = connAndSettings;
       logger.debug("Activating connection: ${device.interface} ${utf8.decode(ap.ssid)}");
 
-      final pass = await _getSavedWifiPsk(device, ap, connSettings);
-      if (pass != null){}
+      if (ap.rsnFlags.isNotEmpty) {
+        final pass = await _getSavedWifiPsk(device, ap, conn, settings);
+        if (pass != null) {
+          throw UnimplementedError("TODO ask for password");
+          // TODO ask for password and modify connectionSetting
+          // TODO update connection settings, add password
+        }
+      }
 
-      await client.activateConnection(device: device, accessPoint: ap, connection: connSettings);
+      await client.activateConnection(device: device, accessPoint: ap, connection: conn);
     } else {
       logger.debug("Creating and activating connection: ${device.interface} ${utf8.decode(ap.ssid)}");
-      final conn = await client.addAndActivateConnection(device: device, accessPoint: ap);
+      await client.addAndActivateConnection(device: device, accessPoint: ap);
     }
   }
 
@@ -58,8 +65,8 @@ class NetworkManagerService extends Service {
     NetworkManagerDevice device,
     NetworkManagerAccessPoint accessPoint,
     NetworkManagerSettingsConnection connSettings,
+    Map<String, Map<String, DBusValue>> settings,
   ) async {
-    final settings = await connSettings.getSettings();
     final type = settings["connection"]?["type"];
     final securityName = type != null ? "${type.asString()}-security" : "802-11-wireless-security";
     final secrets = await connSettings.getSecrets(securityName);
@@ -75,7 +82,7 @@ class NetworkManagerService extends Service {
     return null;
   }
 
-  Future<NetworkManagerSettingsConnection?> _searchForConnection(
+  Future<(NetworkManagerSettingsConnection, Map<String, Map<String, DBusValue>>)?> _searchForConnection(
     NetworkManagerDevice device,
     NetworkManagerAccessPoint ap,
   ) async {
@@ -88,7 +95,7 @@ class NetworkManagerService extends Service {
         continue;
       }
       if (connSettings["id"] == ssid && connSettings["interface-name"] == interface) {
-        return conn;
+        return (conn, settings);
       }
     }
     return null;

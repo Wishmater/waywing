@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:flutter/material.dart";
 import "package:nm/nm.dart";
 import "package:waywing/modules/nm/nm_service.dart";
@@ -5,8 +7,11 @@ import "package:waywing/util/string_utils.dart";
 
 class NetworkManagerWidget extends StatefulWidget {
   final NetworkManagerService service;
-  final NetworkManagerDeviceWireless wifi;
-  const NetworkManagerWidget({super.key, required this.service, required this.wifi});
+  final NetworkManagerDevice device;
+
+  NetworkManagerDeviceWireless get wifi => device.wireless!;
+
+  const NetworkManagerWidget({super.key, required this.service, required this.device});
 
   @override
   State<NetworkManagerWidget> createState() => _NetworkManagerState();
@@ -65,9 +70,10 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
 
 class NetworkManagerPopover extends StatefulWidget {
   final NetworkManagerService service;
-  final NetworkManagerDeviceWireless wifi;
+  final NetworkManagerDevice device;
+  NetworkManagerDeviceWireless get wifi => device.wireless!;
 
-  const NetworkManagerPopover({super.key, required this.service, required this.wifi});
+  const NetworkManagerPopover({super.key, required this.service, required this.device});
 
   @override
   State<NetworkManagerPopover> createState() => _NetworkManagerPopoverState();
@@ -76,6 +82,7 @@ class NetworkManagerPopover extends StatefulWidget {
 class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   late final NMObjectListener accessPointsListener;
 
+  NetworkManagerDevice get device => widget.device;
   NetworkManagerDeviceWireless get wifiDevice => widget.wifi;
   List<NetworkManagerAccessPoint> get accessPoints => wifiDevice.accessPoints;
 
@@ -108,7 +115,9 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         for (final ap in accessPoints)
-                          _AvailableAccessPoint(ap, wifiDevice.activeAccessPoint == ap, (e) {}),
+                          _AvailableAccessPoint(ap, wifiDevice.activeAccessPoint == ap, (accessPoint) {
+                            widget.service.connect(device, accessPoint);
+                          }, () => widget.service.disconnect(device)),
                       ],
                     ),
                   ),
@@ -126,8 +135,9 @@ class _AvailableAccessPoint extends StatelessWidget {
   final NetworkManagerAccessPoint accessPoint;
   final bool isActive;
   final void Function(NetworkManagerAccessPoint) activate;
+  final void Function() disconnect;
 
-  const _AvailableAccessPoint(this.accessPoint, this.isActive, this.activate);
+  const _AvailableAccessPoint(this.accessPoint, this.isActive, this.activate, this.disconnect);
 
   @override
   Widget build(BuildContext context) {
@@ -160,9 +170,10 @@ class _AvailableAccessPoint extends StatelessWidget {
     return MaterialButton(
       onPressed: () {
         if (isActive) {
-          return;
+          disconnect();
+        } else {
+          activate(accessPoint);
         }
-        activate(accessPoint);
       },
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -231,9 +242,10 @@ class OwnedNullableListener<T extends ChangeNotifier> with ChangeNotifier {
 class NMObjectListener with ChangeNotifier {
   Stream<List<String>> stream;
   final Map<String, VoidCallback?> properties;
+  late final StreamSubscription<List<String>> _subscription;
 
   NMObjectListener(this.stream, this.properties) {
-    stream.listen((propertiesChanged) {
+    _subscription = stream.listen((propertiesChanged) {
       for (final changed in propertiesChanged) {
         if (properties.containsKey(changed)) {
           notifyListeners();
@@ -244,6 +256,11 @@ class NMObjectListener with ChangeNotifier {
         }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel().then((_) => super.dispose());
   }
 
   @override

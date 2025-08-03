@@ -105,24 +105,28 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
         builder: (context, _) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("Connect to wifi"),
-                SingleChildScrollView(
-                  child: IntrinsicWidth(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (final ap in accessPoints)
-                          _AvailableAccessPoint(ap, wifiDevice.activeAccessPoint == ap, (accessPoint) {
-                            widget.service.connect(device, accessPoint);
-                          }, () => widget.service.disconnect(device)),
-                      ],
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Connect to wifi"),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: IntrinsicWidth(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (final ap in accessPoints)
+                              _AvailableAccessPoint(ap, wifiDevice.activeAccessPoint == ap, (accessPoint) {
+                                widget.service.connect(device, accessPoint);
+                              }, () => widget.service.disconnect(device)),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         },

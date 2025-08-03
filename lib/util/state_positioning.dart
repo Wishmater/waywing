@@ -19,7 +19,9 @@ mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {
 }
 
 mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositioningMixin<T> {
-  ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+  late ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+  late ValueNotifier<Offset?> offsetNotifier = ValueNotifier(null);
+  late ValueNotifier<Size?> sizeNotifier = ValueNotifier(null);
 
   void scheduleCheckPositioningChange() {
     WidgetsBinding.instance.addPostFrameCallback(checkPositioningChange);
@@ -28,9 +30,9 @@ mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositionin
   void checkPositioningChange(_) {
     if (!mounted) return;
     final newPositioning = getPositioning();
-    if (newPositioning != positioningNotifier.value) {
-      positioningNotifier.value = newPositioning;
-    }
+    positioningNotifier.value = newPositioning;
+    offsetNotifier.value = newPositioning.$1;
+    sizeNotifier.value = newPositioning.$2;
     scheduleCheckPositioningChange();
   }
 }
@@ -78,6 +80,8 @@ class _PositioningMonitorState extends State<PositioningMonitor> with StatePosit
 
 class PositioningNotifierController extends PositioningController {
   final ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+  final ValueNotifier<Offset?> offsetNotifier = ValueNotifier(null);
+  final ValueNotifier<Size?> sizeNotifier = ValueNotifier(null);
 }
 
 class PositioningNotifierMonitor extends StatefulWidget {
@@ -99,8 +103,7 @@ class _PositioningNotidierMonitorState extends State<PositioningNotifierMonitor>
   @override
   void initState() {
     super.initState();
-    widget.controller.getPositioning = getPositioning;
-    positioningNotifier = widget.controller.positioningNotifier;
+    _updateControllerReferences();
     scheduleCheckPositioningChange();
   }
 
@@ -108,9 +111,15 @@ class _PositioningNotidierMonitorState extends State<PositioningNotifierMonitor>
   void didUpdateWidget(covariant PositioningNotifierMonitor oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
-      widget.controller.getPositioning = getPositioning;
-      positioningNotifier = widget.controller.positioningNotifier;
+      _updateControllerReferences();
     }
+  }
+
+  void _updateControllerReferences() {
+    widget.controller.getPositioning = getPositioning;
+    positioningNotifier = widget.controller.positioningNotifier;
+    offsetNotifier = widget.controller.offsetNotifier;
+    sizeNotifier = widget.controller.sizeNotifier;
   }
 
   @override

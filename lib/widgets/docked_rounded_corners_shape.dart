@@ -236,26 +236,99 @@ class DockedRoundedCornersBorder extends ShapeBorder {
   }
 
   @override
+  ShapeBorder? lerpTo(ShapeBorder? b, double t) {
+    if (b == null) {
+      return super.lerpTo(b, t);
+    }
+    if (b is DockedRoundedCornersBorder) {
+      return null; // defer to lerpFrom of b
+    }
+    if (b is RoundedRectangleBorder) {
+      if (t < 0.5) {
+        return DockedRoundedCornersBorder(
+          dockedSide: dockedSide,
+          radiusInCross: radiusInCross,
+          radiusInMain: radiusInMain,
+          radiusOutCross: lerpDouble(radiusOutCross, 0, t * 2)!,
+          radiusOutMain: lerpDouble(radiusOutMain, 0, t * 2)!,
+          isVertical: isVertical,
+        );
+      } else {
+        return b.lerpFrom(_asRoundedRectangleBorder(), (t - 0.5) * 2);
+      }
+    }
+    if (t < 0.5) {
+      return scale(1 - (t * 2));
+    }
+    return b.scale((t - 0.5) * 2);
+  }
+
+  @override
   ShapeBorder? lerpFrom(ShapeBorder? a, double t) {
-    if (a == null || a is! DockedRoundedCornersBorder) {
+    if (a == null) {
       return super.lerpFrom(a, t);
     }
     // if dockedSide and isVertical are the same, we can interpolate gracefully
-    if (dockedSide == a.dockedSide && isVertical == a.isVertical) {
-      return DockedRoundedCornersBorder(
-        dockedSide: dockedSide,
-        radiusInCross: lerpDouble(a.radiusInCross, radiusInCross, t)!,
-        radiusInMain: lerpDouble(a.radiusInMain, radiusInMain, t)!,
-        radiusOutCross: lerpDouble(a.radiusOutCross, radiusOutCross, t)!,
-        radiusOutMain: lerpDouble(a.radiusOutMain, radiusOutMain, t)!,
-        isVertical: isVertical,
-      );
+    if (a is DockedRoundedCornersBorder) {
+      if (dockedSide == a.dockedSide && isVertical == a.isVertical) {
+        return DockedRoundedCornersBorder(
+          dockedSide: dockedSide,
+          radiusInCross: lerpDouble(a.radiusInCross, radiusInCross, t)!,
+          radiusInMain: lerpDouble(a.radiusInMain, radiusInMain, t)!,
+          radiusOutCross: lerpDouble(a.radiusOutCross, radiusOutCross, t)!,
+          radiusOutMain: lerpDouble(a.radiusOutMain, radiusOutMain, t)!,
+          isVertical: isVertical,
+        );
+      }
+      // if dockedSide is different, we default to removing current border and then adding new one
     }
-    // if dockedSide is different, we default to removing current border and then adding new one
+    if (a is RoundedRectangleBorder) {
+      if (t < 0.5) {
+        return a.lerpTo(_asRoundedRectangleBorder(), t * 2);
+      } else {
+        return DockedRoundedCornersBorder(
+          dockedSide: dockedSide,
+          radiusInCross: radiusInCross,
+          radiusInMain: radiusInMain,
+          radiusOutCross: lerpDouble(0, radiusOutCross, (t - 0.5) * 2)!,
+          radiusOutMain: lerpDouble(0, radiusOutMain, (t - 0.5) * 2)!,
+          isVertical: isVertical,
+        );
+      }
+    }
     if (t < 0.5) {
       return a.scale(1 - (t * 2));
     }
     return scale((t - 0.5) * 2);
+  }
+
+  RoundedRectangleBorder _asRoundedRectangleBorder() {
+    return switch (dockedSide) {
+      ScreenEdge.top => RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.zero,
+          bottom: Radius.elliptical(radiusInMain, radiusInCross),
+        ),
+      ),
+      ScreenEdge.bottom => RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.zero,
+          top: Radius.elliptical(radiusInMain, radiusInCross),
+        ),
+      ),
+      ScreenEdge.left => RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(
+          left: Radius.zero,
+          right: Radius.elliptical(radiusInCross, radiusInMain),
+        ),
+      ),
+      ScreenEdge.right => RoundedRectangleBorder(
+        borderRadius: BorderRadius.horizontal(
+          right: Radius.zero,
+          left: Radius.elliptical(radiusInCross, radiusInMain),
+        ),
+      ),
+    };
   }
 }
 

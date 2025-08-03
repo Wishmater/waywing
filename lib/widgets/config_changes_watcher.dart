@@ -1,13 +1,16 @@
 import "dart:async";
 import "dart:io";
 import "package:path/path.dart" as path;
-import "package:watcher/watcher.dart" as watcher;
 
 import "package:fl_linux_window_manager/controller/input_region_controller.dart";
 import "package:flutter/widgets.dart";
+import "package:watcher/watcher.dart" as watcher;
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/util/logger.dart";
 import "package:waywing/util/window_utils.dart";
+
+final _logger = mainLogger.clone(properties: [LogType("ConfigWatcher")]);
 
 // TODO: 1 move most of this shit to a config util file
 
@@ -62,12 +65,12 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
           if (event.type == watcher.ChangeType.REMOVE) {
             return;
           }
-          print("WATCH CONFIGURATION FILE EVENT $event");
+          _logger.trace("watch configuration file event $event");
           onConfigUpdated();
         }
       },
       onError: (e) {
-        print("WATCHING DIRECTORY ERROR $e");
+        _logger.error("watching directory error $e");
       },
       cancelOnError: true,
     );
@@ -91,7 +94,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     if (file.existsSync()) {
       content = await file.readAsString();
     } else {
-      print("CONFIGURATION FILE NOT FOUND");
+      _logger.debug("configuration file not found");
     }
     await reloadConfig(content);
     if (!context.mounted) return; // something weird happened, probably the app was just closed

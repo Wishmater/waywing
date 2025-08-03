@@ -362,9 +362,9 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       child: container,
       builder: (context, hostPositioning, container) {
         return ValueListenableBuilder(
-          valueListenable: childPositioningController.positioningNotifier,
+          valueListenable: childPositioningController.sizeNotifier,
           child: container,
-          builder: (context, childPositioning, container) {
+          builder: (context, childSize, container) {
             if (hostPositioning == null) {
               mainLogger.log(Level.error, "Popover client built before host. This should never happen");
               WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -376,7 +376,6 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
             // print("-----------------------------------");
             // print("hostSize: $hostSize");
             // print("hostPosition: $hostPosition");
-            Size childSize;
             Offset childPosition;
             if (widget.isRemoved) {
               childSize = hostSize;
@@ -384,7 +383,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               if (popoverParams.closedContainerBuilder != null) {
                 container = popoverParams.closedContainerBuilder!(context, content);
               }
-            } else if (childPositioning == null) {
+            } else if (childSize == null) {
               // assuming this happens the first time the widget builds
               // fall back to setting the size/position of the host,
               // which should have the added effect of animating entry
@@ -394,7 +393,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                 container = popoverParams.closedContainerBuilder!(context, content);
               }
             } else {
-              childSize = childPositioning.$2;
+              childSize += Offset(popoverParams.extraPadding.horizontal, popoverParams.extraPadding.vertical);
               childPosition = getPopoverPosition(
                 anchorAlignment: popoverParams.anchorAlignment,
                 popupAlignment: popoverParams.popupAlignment,
@@ -407,8 +406,10 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               );
               passedMeaningfulPaint = true;
             }
-            container = Padding(
-              padding: popoverParams.extraPadding,
+            container = AnimatedPadding(
+              duration: config.animationDuration,
+              curve: config.animationCurve,
+              padding: passedMeaningfulPaint ? popoverParams.extraPadding : EdgeInsets.zero,
               child: container,
             );
             if (widget.isTooltip) {

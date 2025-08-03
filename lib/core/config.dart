@@ -122,7 +122,7 @@ class MainConfig extends Config {
     nullable: true, // defaults to barSize
   );
 
-  // Derivates
+  // Derived
   late final bool isBarVertical = config.barSide == ScreenEdge.left || config.barSide == ScreenEdge.right;
   // TODO: 3 validate that mainSize is not <=0 after deducting margins
   // TODO: 3 validate that you can't add margin on sides that conflict with barSide selected
@@ -147,6 +147,10 @@ class MainConfig extends Config {
   static const _barRadiusOutMainName = "barRadiusOutMain";
   static const _barRadiusOutMain = DoubleNumberField(defaultTo: 0);
   // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
+
+  // Derived
+  late final double buttonRadiusX = 0.5 * (isBarVertical ? barRadiusInCross : barRadiusInMain);
+  late final double buttonRadiusY = 0.5 * (isBarVertical ? barRadiusInMain : barRadiusInCross);
 
   //===========================================================================
   // Bar feathers (components)

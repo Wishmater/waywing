@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 
-class WingedFlatButton extends StatelessWidget {
+class WingedButton extends StatelessWidget {
   final Widget child;
 
   /// Called when the user taps this part of the material.
@@ -111,7 +111,7 @@ class WingedFlatButton extends StatelessWidget {
   /// If this is null, it is interpreted as [BorderRadius.zero].
   final BorderRadius? borderRadius;
 
-  const WingedFlatButton({
+  const WingedButton({
     required this.child,
     this.onTap,
     this.onTapDown,
@@ -134,12 +134,7 @@ class WingedFlatButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var borderRadius = this.borderRadius;
-    if (borderRadius == null) {
-      // TODO: 1 add these (and maybe other) commonly used values to config
-      final radiusX = config.barRadiusInCross * 0.5;
-      final radiusY = config.barRadiusInMain * 0.5;
-      borderRadius = BorderRadius.all(Radius.elliptical(radiusX, radiusY));
-    }
+    borderRadius ??= BorderRadius.all(Radius.elliptical(config.buttonRadiusX, config.buttonRadiusY));
     return InkResponse(
       highlightShape: BoxShape.rectangle,
       hoverDuration: config.animationDuration * 0.5,

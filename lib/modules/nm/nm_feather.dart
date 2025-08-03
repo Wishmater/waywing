@@ -5,7 +5,7 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 import "package:waywing/modules/nm/nm_widget.dart";
-import "package:waywing/widgets/winged_flat_button.dart";
+import "package:waywing/widgets/winged_button.dart";
 
 class NetworkManagerFeather extends Feather {
   late Logger logger;
@@ -32,7 +32,7 @@ class NetworkManagerFeather extends Feather {
   late final networkManagerComponent = FeatherComponent(
     buildIndicators: (context, popover, tooltip) {
       return [
-        WingedFlatButton(
+        WingedButton(
           onTap: () => popover!.togglePopover(),
           child: Padding(
             padding: const EdgeInsets.all(2.0),

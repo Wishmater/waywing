@@ -4,7 +4,7 @@ import "package:flutter/material.dart";
 import "package:intl/intl.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
-import "package:waywing/widgets/winged_flat_button.dart";
+import "package:waywing/widgets/winged_button.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/derived_value_notifier.dart";
@@ -63,7 +63,7 @@ class ClockFeather extends Feather {
             return SizedBox(
               width: !isBarVertical ? config.barItemSize : null,
               height: isBarVertical ? config.barItemSize : null,
-              child: WingedFlatButton(
+              child: WingedButton(
                 onTap: () {
                   popover!.togglePopover();
                 },

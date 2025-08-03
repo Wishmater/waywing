@@ -77,12 +77,12 @@ class SystemTrayService extends Service {
   }
 
   Future<void> getMenuItems(Map<String, dynamic> properties) async {
-    // Fetch menu items if Menu property exists
-    List<Map<String, dynamic>> menuItems = [];
-    if (properties["Menu"] != null) {
-      var menuPath = properties["Menu"]!.asObjectPath();
-      // menuItems = await _fetchMenuItems(service, menuPath);
-    }
+    // // Fetch menu items if Menu property exists
+    // List<Map<String, dynamic>> menuItems = [];
+    // if (properties["Menu"] != null) {
+    //   var menuPath = properties["Menu"]!.asObjectPath();
+    //   // menuItems = await _fetchMenuItems(service, menuPath);
+    // }
   }
 }
 

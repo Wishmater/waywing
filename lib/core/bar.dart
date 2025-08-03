@@ -1,12 +1,12 @@
 import "package:dartx/dartx_io.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
-import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/feather_registry.dart";
-import "package:waywing/widgets/docked_rounded_corners_clipper.dart";
+import "package:waywing/widgets/docked_rounded_corners_shape.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/widgets/winged_container.dart";
 import "package:waywing/widgets/winged_popover.dart";
 
 class Bar extends StatefulWidget {
@@ -110,47 +110,44 @@ class _BarState extends State<Bar> {
             left: left?.coerceAtLeast(0) ?? 0,
             right: right?.coerceAtLeast(0) ?? 0,
           ),
-          child: InputRegion(
-            child: Material(
-              animationDuration: config.animationDuration * 1.5,
-              color: Theme.of(context).canvasColor,
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              elevation: 6, // TODO: 2 expose bar elevation theme option to user
-              shape: shape,
-              // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
-              // this should also solve the issue of widgets being disposed when switching vertical
-              // to horizontal bar (or viceversa) because we switched Row / Column
-              child: Padding(
-                padding: shape.dimensions,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  fit: StackFit.expand,
-                  children: [
-                    Align(
-                      alignment: endAlignment,
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(context, config.barEndFeathers, feathersCount),
-                      ),
+          child: WingedContainer(
+            // animationDuration: config.animationDuration * 1.5,
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+            elevation: 6, // TODO: 2 expose bar elevation theme option to user
+            shape: shape,
+            // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
+            // this should also solve the issue of widgets being disposed when switching vertical
+            // to horizontal bar (or viceversa) because we switched Row / Column
+            child: Padding(
+              padding: shape.dimensions,
+              child: Stack(
+                clipBehavior: Clip.none,
+                fit: StackFit.expand,
+                children: [
+                  Align(
+                    alignment: endAlignment,
+                    child: buildLayoutWidget(
+                      context,
+                      buildFeatherWidgets(context, config.barEndFeathers, feathersCount),
                     ),
+                  ),
 
-                    Align(
-                      alignment: Alignment.center,
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(context, config.barCenterFeathers, feathersCount),
-                      ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: buildLayoutWidget(
+                      context,
+                      buildFeatherWidgets(context, config.barCenterFeathers, feathersCount),
                     ),
+                  ),
 
-                    Align(
-                      alignment: startAlignment,
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(context, config.barStartFeathers, feathersCount),
-                      ),
+                  Align(
+                    alignment: startAlignment,
+                    child: buildLayoutWidget(
+                      context,
+                      buildFeatherWidgets(context, config.barStartFeathers, feathersCount),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -275,6 +272,11 @@ class _BarState extends State<Bar> {
                   ? BorderRadius.all(Radius.elliptical(config.barRadiusInCross, config.barRadiusInMain))
                   : BorderRadius.all(Radius.elliptical(config.barRadiusInMain, config.barRadiusInCross)),
             );
+            final buttonShape = RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(
+                Radius.elliptical(config.buttonRadiusX, config.buttonRadiusY),
+              ),
+            );
             return WingedPopover(
               builder: (context, controller, _) => builder(context, controller),
               popoverParams: component.buildPopover == null
@@ -302,7 +304,7 @@ class _BarState extends State<Bar> {
                         return buildPopoverContainer(context, child, popoverShape);
                       },
                       closedContainerBuilder: (context, child) {
-                        return buildPopoverContainer(context, child, null);
+                        return buildPopoverContainer(context, child, buttonShape);
                       },
                     ),
               tooltipParams: component.buildTooltip == null
@@ -336,11 +338,7 @@ class _BarState extends State<Bar> {
                           opacity: 0,
                           duration: config.animationDuration,
                           curve: config.animationCurve,
-                          child: buildPopoverContainer(
-                            context,
-                            child,
-                            RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(0))),
-                          ),
+                          child: buildPopoverContainer(context, child, buttonShape),
                         );
                       },
                     ),
@@ -351,24 +349,13 @@ class _BarState extends State<Bar> {
     );
   }
 
-  Widget buildPopoverContainer(BuildContext context, Widget child, ShapeBorder? shape) {
-    shape ??= DockedRoundedCornersBorder(
-      dockedSide: config.barSide,
-      isVertical: config.isBarVertical,
-      radiusInCross: 0,
-      radiusInMain: 0,
-      radiusOutCross: 0,
-      radiusOutMain: 0,
-    );
-    return Material(
-      animationDuration: config.animationDuration * 1.5,
-      color: Theme.of(context).canvasColor,
+  Widget buildPopoverContainer(BuildContext context, Widget child, ShapeBorder shape) {
+    return WingedContainer(
+      // animationDuration: config.animationDuration * 1.5,
       elevation: 4, // TODO: 2 expose popover elevation theme option to user
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shape: shape,
-      child: InputRegion(
-        child: child,
-      ),
+      child: child,
     );
   }
 

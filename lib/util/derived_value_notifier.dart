@@ -32,17 +32,9 @@ class DerivedValueNotifier<T> extends ValueNotifier<T> {
 
 /// Allows to call markAsDirty as much as needed without hitting performance because
 /// it batches the calls to notifyListeners
-class BatchChangeNotifier<T> with ChangeNotifier {
-  T _value;
-  T get value => _value;
-  set value(T v) {
-    _value = v;
-    markAsDirty();
-  }
-
+class BatchChangeNotifier with ChangeNotifier {
   bool _isDirty = false;
-
-  BatchChangeNotifier(this._value);
+  BatchChangeNotifier();
 
   /// This function will mark the value as dirty and notify all listeners
   void markAsDirty() {
@@ -53,7 +45,7 @@ class BatchChangeNotifier<T> with ChangeNotifier {
           notifyListeners();
           _isDirty = false;
         },
-        Priority.idle,
+        Priority.animation,
       );
     }
   }

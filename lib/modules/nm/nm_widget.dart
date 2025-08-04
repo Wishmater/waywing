@@ -1,9 +1,11 @@
 import "dart:async";
 
+import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:nm/nm.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/modules/nm/nm_service.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/string_utils.dart";
 
 class NetworkManagerWidget extends StatefulWidget {
@@ -95,12 +97,15 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   void initState() {
     super.initState();
 
-    accessPointsListener = NMObjectListener(wifiDevice.propertiesChanged, {"AccessPoints": null});
+    accessPointsListener = NMObjectListener(wifiDevice.propertiesChanged, {
+      "AccessPoints": null,
+      "LastScan": null,
+      "ActiveAccessPoint": null,
+    });
   }
 
   Future<void> connect(NetworkManagerAccessPoint accessPoint) async {
-    // final response = await widget.service.connect(device, accessPoint);
-    final response = ConnectResponse.needsPassword;
+    final response = await widget.service.connect(device, accessPoint);
     if (response != ConnectResponse.needsPassword) {
       return;
     }
@@ -112,16 +117,18 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
       logger.warning("connect needs password but state is not mounted and cannot ask for password");
       return;
     }
-    showDialog(
+    final password = await showDialog<String>(
       context: context,
+      requestFocus: true,
+      barrierColor: Colors.transparent,
       builder: (context) {
-        return Text("HELLO");
+        return _AskPassword();
       },
     );
-
-    // ask password
-    //
-    // await widget.service.connect(device, accessPoint, userPassword: password);
+    if (password == null) {
+      return;
+    }
+    await widget.service.connect(device, accessPoint, userPassword: password);
   }
 
   @override
@@ -277,7 +284,76 @@ class OwnedNullableListener<T extends ChangeNotifier> with ChangeNotifier {
   }
 }
 
-class NMObjectListener with ChangeNotifier {
+class _AskPassword extends StatefulWidget {
+  @override
+  State<_AskPassword> createState() => _AskPasswordState();
+}
+
+class _AskPasswordState extends State<_AskPassword> {
+  late final TextEditingController controller;
+  bool obscureText = true;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: InputRegion(
+        child: Material(
+          clipBehavior: Clip.antiAlias,
+          type: MaterialType.card,
+          borderRadius: BorderRadius.all(Radius.circular(10)),
+          child: SizedBox(
+            height: 150,
+            width: 300,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                spacing: 5,
+                children: [
+                  Text("Write password"),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: controller,
+                          autofocus: true,
+                          obscureText: obscureText,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(obscureText ? Icons.visibility : Icons.visibility_off, size: 20),
+                        onPressed: () => setState(() => obscureText = !obscureText),
+                      ),
+                    ],
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(context).pop(controller.text),
+                    child: Text("OK"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// class Utility to react to NMObject changedProperties stream
+class NMObjectListener extends BatchChangeNotifier {
   Stream<List<String>> stream;
   final Map<String, VoidCallback?> properties;
   late final StreamSubscription<List<String>> _subscription;
@@ -286,7 +362,9 @@ class NMObjectListener with ChangeNotifier {
     _subscription = stream.listen((propertiesChanged) {
       for (final changed in propertiesChanged) {
         if (properties.containsKey(changed)) {
-          notifyListeners();
+          // instead of spamming notifyListener calls (which can be some what expensive)
+          // use markAsDirty to allow BatchChangeNotifier to efficiently call notifyListener
+          markAsDirty();
           final cb = properties[changed];
           if (cb != null) {
             cb();

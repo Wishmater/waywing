@@ -52,21 +52,41 @@ class NetworkManagerService extends Service {
         if (password == null) {
           return ConnectResponse.needsPassword;
         }
-        final securityField = _getSecurityField(settings);
-        if (settings[securityField] == null) {
-          throw StateError("Settings does not has a security field:\n$settings");
+        if (userPassword != null) {
+          // if a user password was provided, update connection settings
+          final securityField = _getSecurityField(settings);
+          if (settings[securityField] == null) {
+            throw StateError("Settings does not has a security field:\n$settings");
+          }
+          logger.trace("Updating connection settings\n$settings");
+          settings[securityField]!["psk"] = DBusString(password);
+          logger.trace("New connection settings\n$settings");
+          await _updateConnectionAndWait(conn, settings);
+          logger.trace("Connection settings after update\n${await conn.getSettings()}");
         }
-        logger.trace("Updating connection settings\n$settings");
-        settings[securityField]!["psk"] = DBusString(password);
-        logger.trace("New connection settings\n$settings");
-        await _updateConnectionAndWait(conn, settings);
-        logger.trace("Connection settings after update\n${await conn.getSettings()}");
       }
-
-      await client.activateConnection(device: device, accessPoint: ap, connection: conn);
+      try {
+        await client.activateConnection(device: device, accessPoint: ap, connection: conn);
+      } catch (e, st) {
+        if (e.toString() == "Null check operator used on a null value") {
+          logger.warning(
+            "It seems there is a bug on the nm "
+            "library, it throws a null check operator error and "
+            "ignoring the error seems to be safe",
+            error: e,
+            stackTrace: st,
+          );
+        }
+        logger.error("client.activateConnection", error: e, stackTrace: st);
+      }
     } else {
-      logger.debug("Creating and activating connection: ${device.interface} ${utf8.decode(ap.ssid)}");
+      logger.trace(
+        "Creating ${ap.rsnFlags.isNotEmpty ? '' : 'and activating '}connection: ${device.interface} ${utf8.decode(ap.ssid)}",
+      );
       await client.addAndActivateConnection(device: device, accessPoint: ap);
+      if (ap.rsnFlags.isNotEmpty) {
+        return ConnectResponse.needsPassword;
+      }
     }
     return ConnectResponse.success;
   }
@@ -76,16 +96,6 @@ class NetworkManagerService extends Service {
     Map<String, Map<String, DBusValue>> settings,
   ) async {
     await conn.update(settings);
-    final completer = Completer<void>();
-
-    final subscription = conn.propertiesChanged.listen((properties) {
-      if (properties.contains("Updated")) {
-        completer.complete();
-      }
-    });
-    unawaited(Future.delayed(Duration(seconds: 1), () => completer.complete()));
-    await completer.future;
-    subscription.cancel();
   }
 
   String _getSecurityField(Map<String, Map<String, DBusValue>> settings) {
@@ -104,7 +114,13 @@ class NetworkManagerService extends Service {
     Map<String, Map<String, DBusValue>> settings,
   ) async {
     final securityName = _getSecurityField(settings);
-    final secrets = await connSettings.getSecrets(securityName);
+    Map<String, Map<String, DBusValue>> secrets;
+    try {
+      secrets = await connSettings.getSecrets(securityName);
+    } on DBusMethodResponseException catch (e) {
+      logger.debug("connSettings.getSecrets exception throw, assuming no secrets\n$e");
+      return null;
+    }
     if (secrets.isNotEmpty) {
       final security = secrets[securityName];
       if (security != null) {

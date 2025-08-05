@@ -281,31 +281,6 @@ class _Connected extends StatelessWidget {
   }
 }
 
-/// Class to manage a nullable listener.
-///
-/// Owns the listener, which means that will dispose the previous listener on a change
-class OwnedNullableListener<T extends ChangeNotifier> with ChangeNotifier {
-  T? _listener;
-  T? get listener => _listener;
-
-  set listener(T? newListener) {
-    if (_listener != newListener) {
-      _listener?.dispose();
-      _listener = newListener;
-      notifyListeners();
-      _listener?.addListener(notifyListeners);
-    }
-  }
-
-  OwnedNullableListener(this._listener);
-
-  @override
-  void dispose() {
-    listener?.dispose();
-    super.dispose();
-  }
-}
-
 class _AskPassword extends StatefulWidget {
   @override
   State<_AskPassword> createState() => _AskPasswordState();
@@ -371,6 +346,31 @@ class _AskPasswordState extends State<_AskPassword> {
         ),
       ),
     );
+  }
+}
+
+/// Class to manage a nullable listener.
+///
+/// Owns the listener, which means that will dispose the previous listener on a change
+class OwnedNullableListener<T extends ChangeNotifier> with ChangeNotifier {
+  T? _listener;
+  T? get listener => _listener;
+
+  set listener(T? newListener) {
+    if (_listener != newListener) {
+      _listener?.dispose();
+      _listener = newListener;
+      notifyListeners();
+      _listener?.addListener(notifyListeners);
+    }
+  }
+
+  OwnedNullableListener(this._listener);
+
+  @override
+  void dispose() {
+    listener?.dispose();
+    super.dispose();
   }
 }
 

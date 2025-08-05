@@ -3,10 +3,13 @@ import "dart:convert";
 
 import "package:dartx/dartx_io.dart";
 import "package:dbus/dbus.dart";
+import "package:flutter/material.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:nm/nm.dart";
+import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/util/logger.dart";
 
 class NetworkManagerService extends Service {
   late Logger logger;
@@ -165,4 +168,88 @@ class NetworkManagerService extends Service {
 enum ConnectResponse {
   needsPassword,
   success,
+}
+
+class TxRxWatcher {
+  final NetworkManagerDeviceStatistics statistics;
+  int _prevTxBytes;
+  final ValueNotifier<int> txBytes;
+  int _prevRxBytes;
+  final ValueNotifier<int> rxBytes;
+  late final DerivedValueNotifier<double> txRate;
+  late final DerivedValueNotifier<double> rxRate;
+
+  // late final DerivedValueNotifier reactToAll;
+
+  final Completer<void> _initRefreshRateMs;
+  late int _refreshRateMs;
+  late StreamSubscription _subscription;
+
+  TxRxWatcher(this.statistics)
+    : txBytes = ValueNotifier(statistics.txBytes),
+      rxBytes = ValueNotifier(statistics.rxBytes),
+      _prevTxBytes = statistics.txBytes,
+      _prevRxBytes = statistics.rxBytes,
+      _initRefreshRateMs = Completer();
+
+  void _dispose() {
+    txBytes.dispose();
+    rxBytes.dispose();
+    txRate.dispose();
+    rxRate.dispose();
+  }
+
+  void dispose() {
+    _subscription.cancel().then(
+      (_) => _dispose(),
+      onError: (e, st) {
+        _dispose();
+        mainLogger.log(
+          // TODO we need to inject logger here instead of relaying on a hardcoded LogType
+          Level.error,
+          "error while canceling subscription to device statistic refreshRateMs",
+          properties: [LogType("$NetworkManagerService")],
+          error: e,
+          stackTrace: st,
+        );
+      },
+    );
+  }
+
+  void init() {
+    txRate = DerivedValueNotifier(
+      dependencies: [txBytes],
+      derive: () => (txBytes.value - _prevTxBytes).toDouble() / _refreshRateMs.toDouble(),
+      defaultsTo: 0,
+    );
+    rxRate = DerivedValueNotifier(
+      dependencies: [rxBytes],
+      derive: () => (rxBytes.value - _prevRxBytes).toDouble() / _refreshRateMs.toDouble(),
+      defaultsTo: 0,
+    );
+
+    if (statistics.refreshRateMs != 0) {
+      _refreshRateMs = statistics.refreshRateMs;
+      _initRefreshRateMs.complete();
+    } else {
+      statistics.setRefreshRateMs(1000).then((_) {
+        _refreshRateMs = 1000;
+        _initRefreshRateMs.complete();
+      });
+    }
+
+    _subscription = statistics.propertiesChanged.listen((properties) {
+      if (!_initRefreshRateMs.isCompleted) {
+        return;
+      }
+      if (properties.contains("TxBytes")) {
+        _prevTxBytes = txBytes.value;
+        txBytes.value = statistics.txBytes;
+      }
+      if (properties.contains("RxBytes")) {
+        _prevRxBytes = rxBytes.value;
+        rxBytes.value = statistics.rxBytes;
+      }
+    });
+  }
 }

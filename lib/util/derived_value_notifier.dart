@@ -10,8 +10,9 @@ class DerivedValueNotifier<T> extends ValueNotifier<T> {
   DerivedValueNotifier({
     required List<Listenable> dependencies,
     required this.derive,
+    T? defaultsTo,
   }) : dependencies = List.unmodifiable(dependencies),
-       super(derive()) {
+       super(defaultsTo ?? derive()) {
     for (final e in dependencies) {
       e.addListener(_update);
     }

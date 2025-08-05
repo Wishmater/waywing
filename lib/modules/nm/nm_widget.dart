@@ -23,8 +23,7 @@ class NetworkManagerWidget extends StatefulWidget {
 
 class _NetworkManagerState extends State<NetworkManagerWidget> {
   late final NMObjectListener wifiListener;
-  late final NMObjectListener deviceListener;
-  OwnedNullableListener<NMObjectListener> deviceRxTxRateListener = OwnedNullableListener(null);
+  late final TxRxWatcher txRxWatcher;
   OwnedNullableListener<NMObjectListener> activeAccessPointListener = OwnedNullableListener(null);
 
   NetworkManagerDeviceWireless get wifiDevice => widget.wifi;
@@ -33,14 +32,12 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
   @override
   void initState() {
     super.initState();
+    txRxWatcher = TxRxWatcher(widget.device.statistics!);
+    txRxWatcher.init();
     _setActiveAccessPointListener();
-    _setDeviceRxTxRateListener();
 
     wifiListener = NMObjectListener(wifiDevice.propertiesChanged, {
       "ActiveAccessPoint": _setActiveAccessPointListener,
-    });
-    deviceListener = NMObjectListener(widget.device.propertiesChanged, {
-      "ActiveConnection": _setDeviceRxTxRateListener,
     });
   }
 
@@ -51,19 +48,6 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
       });
     } else {
       activeAccessPointListener.listener = null;
-    }
-  }
-
-  void _setDeviceRxTxRateListener() {
-    final statistics = widget.device.statistics;
-    if (statistics != null) {
-      if (statistics.refreshRateMs == 0) {
-        unawaited(statistics.setRefreshRateMs(1000));
-      }
-      deviceRxTxRateListener.listener = NMObjectListener(statistics.propertiesChanged, {
-        "TxBytes": null,
-        "RxBytes": null,
-      });
     }
   }
 
@@ -94,9 +78,9 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
         }
       },
       child: ListenableBuilder(
-        listenable: deviceRxTxRateListener,
+        listenable: Listenable.merge([txRxWatcher.rxRate, txRxWatcher.txRate]),
         builder: (context, _) {
-          return Text("up: ${widget.device.statistics?.rxBytes} : down: ${widget.device.statistics?.txBytes}");
+          return Text(" up: ${txRxWatcher.rxRate.value}kB/s : down: ${txRxWatcher.rxRate.value}kB/s");
         },
       ),
     );

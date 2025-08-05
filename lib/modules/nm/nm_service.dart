@@ -156,6 +156,10 @@ class NetworkManagerService extends Service {
     logger.debug("Disconnecting device: ${device.interface}");
     await device.disconnect();
   }
+
+  Future<void> requestScan(NetworkManagerDeviceWireless device) async {
+    await device.requestScan();
+  }
 }
 
 enum ConnectResponse {

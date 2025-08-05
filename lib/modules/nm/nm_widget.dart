@@ -23,6 +23,8 @@ class NetworkManagerWidget extends StatefulWidget {
 
 class _NetworkManagerState extends State<NetworkManagerWidget> {
   late final NMObjectListener wifiListener;
+  late final NMObjectListener deviceListener;
+  OwnedNullableListener<NMObjectListener> deviceRxTxRateListener = OwnedNullableListener(null);
   OwnedNullableListener<NMObjectListener> activeAccessPointListener = OwnedNullableListener(null);
 
   NetworkManagerDeviceWireless get wifiDevice => widget.wifi;
@@ -32,8 +34,13 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
   void initState() {
     super.initState();
     _setActiveAccessPointListener();
+    _setDeviceRxTxRateListener();
+
     wifiListener = NMObjectListener(wifiDevice.propertiesChanged, {
       "ActiveAccessPoint": _setActiveAccessPointListener,
+    });
+    deviceListener = NMObjectListener(widget.device.propertiesChanged, {
+      "ActiveConnection": _setDeviceRxTxRateListener,
     });
   }
 
@@ -44,6 +51,19 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
       });
     } else {
       activeAccessPointListener.listener = null;
+    }
+  }
+
+  void _setDeviceRxTxRateListener() {
+    final statistics = widget.device.statistics;
+    if (statistics != null) {
+      if (statistics.refreshRateMs == 0) {
+        unawaited(statistics.setRefreshRateMs(1000));
+      }
+      deviceRxTxRateListener.listener = NMObjectListener(statistics.propertiesChanged, {
+        "TxBytes": null,
+        "RxBytes": null,
+      });
     }
   }
 
@@ -58,16 +78,27 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: activeAccessPointListener,
-      builder: (context, _) {
+      builder: (context, child) {
         if (activeAccessPoint != null) {
-          return _Connected(
-            name: activeAccessPoint!.ssid.toUtf8(),
-            strength: activeAccessPoint!.strength,
+          return Row(
+            children: [
+              _Connected(
+                name: activeAccessPoint!.ssid.toUtf8(),
+                strength: activeAccessPoint!.strength,
+              ),
+              child!,
+            ],
           );
         } else {
           return _NotConnected();
         }
       },
+      child: ListenableBuilder(
+        listenable: deviceRxTxRateListener,
+        builder: (context, _) {
+          return Text("up: ${widget.device.statistics?.rxBytes} : down: ${widget.device.statistics?.txBytes}");
+        },
+      ),
     );
   }
 }
@@ -92,6 +123,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   NetworkManagerDeviceWireless get wifiDevice => widget.wifi;
   List<NetworkManagerAccessPoint> get accessPoints => wifiDevice.accessPoints;
   Logger get logger => widget.logger;
+  bool isScanning = false;
 
   @override
   void initState() {
@@ -99,7 +131,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
 
     accessPointsListener = NMObjectListener(wifiDevice.propertiesChanged, {
       "AccessPoints": null,
-      "LastScan": null,
+      "LastScan": () => isScanning ? setState(() => isScanning = false) : null,
       "ActiveAccessPoint": null,
     });
   }
@@ -147,7 +179,13 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Connect to wifi"),
+                  TextButton(
+                    onPressed: () async {
+                      await widget.service.requestScan(wifiDevice);
+                      setState(() => isScanning = true);
+                    },
+                    child: Text("Scan wifi ${isScanning ? 'scanning' : ''}"),
+                  ),
                   Expanded(
                     child: SingleChildScrollView(
                       child: IntrinsicWidth(
@@ -357,8 +395,13 @@ class NMObjectListener extends BatchChangeNotifier {
   Stream<List<String>> stream;
   final Map<String, VoidCallback?> properties;
   late final StreamSubscription<List<String>> _subscription;
+  Timer? _automaticNotifierTimer;
 
-  NMObjectListener(this.stream, this.properties) {
+  NMObjectListener(
+    this.stream,
+    this.properties, {
+    Duration? automaticNotifier,
+  }) {
     _subscription = stream.listen((propertiesChanged) {
       for (final changed in propertiesChanged) {
         if (properties.containsKey(changed)) {
@@ -372,10 +415,14 @@ class NMObjectListener extends BatchChangeNotifier {
         }
       }
     });
+    if (automaticNotifier != null) {
+      _automaticNotifierTimer = Timer.periodic(automaticNotifier, (_) => markAsDirty());
+    }
   }
 
   @override
   void dispose() {
+    _automaticNotifierTimer?.cancel();
     _subscription.cancel().then((_) => super.dispose());
   }
 

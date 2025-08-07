@@ -39,7 +39,6 @@ class NetworkManagerFeather extends Feather {
             child: NetworkManagerWidget(
               logger: logger,
               service: service,
-              device: service.getWirelessDevice()!,
             ),
           ),
         ),
@@ -49,7 +48,6 @@ class NetworkManagerFeather extends Feather {
     buildPopover: (context) => NetworkManagerPopover(
       logger: logger,
       service: service,
-      device: service.getWirelessDevice()!,
     ),
   );
 }

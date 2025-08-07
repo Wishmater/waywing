@@ -1,7 +1,6 @@
 import "dart:async";
 import "dart:convert";
 
-import "package:dartx/dartx_io.dart";
 import "package:dbus/dbus.dart";
 import "package:flutter/material.dart";
 import "package:tronco/tronco.dart";
@@ -13,9 +12,10 @@ import "package:waywing/util/logger.dart";
 
 class NetworkManagerService extends Service {
   late Logger logger;
+  List<WifiDeviceValues> wifiDevicesValues;
   final NetworkManagerClient client;
 
-  NetworkManagerService._() : client = NetworkManagerClient();
+  NetworkManagerService._() : client = NetworkManagerClient(), wifiDevicesValues = [];
 
   static registerService(RegisterServiceCallback registerService) {
     registerService<NetworkManagerService>(NetworkManagerService._);
@@ -31,12 +31,19 @@ class NetworkManagerService extends Service {
   Future<void> init(Logger logger) async {
     this.logger = logger;
     await client.connect();
+
+    for (final device in client.devices) {
+      if (device.deviceType == NetworkManagerDeviceType.wifi) {
+        wifiDevicesValues.add(WifiDeviceValues(device));
+      }
+    }
+    if (wifiDevicesValues.isEmpty) {
+      throw UnimplementedError("TODO: handle when there is no wifi device");
+    }
   }
 
-  NetworkManagerDevice? getWirelessDevice() {
-    // TODO what happens if there is more than one wifi device
-    final device = client.devices.firstOrNullWhere((e) => e.deviceType == NetworkManagerDeviceType.wifi);
-    return device;
+  WifiDeviceValues getWifiDeviceValuesFirst() {
+    return wifiDevicesValues[0];
   }
 
   Future<ConnectResponse> connect(
@@ -127,7 +134,7 @@ class NetworkManagerService extends Service {
     if (secrets.isNotEmpty) {
       final security = secrets[securityName];
       if (security != null) {
-        final psk = security["psk"]; // TODO this could be other value???
+        final psk = security["psk"]; // TODO could this be other value???
         if (psk != null) {
           return psk.toNative();
         }
@@ -156,7 +163,7 @@ class NetworkManagerService extends Service {
   }
 
   Future<void> disconnect(NetworkManagerDevice device) async {
-    logger.debug("Disconnecting device: ${device.interface}");
+    logger.trace("Disconnecting device: ${device.interface}");
     await device.disconnect();
   }
 
@@ -251,5 +258,162 @@ class TxRxWatcher {
         rxBytes.value = statistics.rxBytes;
       }
     });
+  }
+}
+
+class WifiDeviceValues {
+  final NetworkManagerDevice device;
+  NetworkManagerDeviceWireless get wirelessDevice => device.wireless!;
+
+  WifiDeviceValues(this.device) {
+    accessPoints = _accessPoints();
+    activeAccessPoint = _activeAccessPoint();
+  }
+
+  void dispose() {
+    accessPoints.dispose();
+    activeAccessPoint.dispose();
+  }
+
+  late ValueNotifier<List<NetworkManagerAccessPoint>> accessPoints;
+  ValueNotifier<List<NetworkManagerAccessPoint>> _accessPoints() {
+    return NMObjectValueNotfier(
+      wirelessDevice.accessPoints,
+      NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
+        "AccessPoints": null,
+        "LastScan": null,
+        "ActiveAccessPoint": null,
+      }),
+    );
+  }
+
+
+  late ValueNotifier<NetworkManagerAccessPoint?> activeAccessPoint;
+  ValueNotifier<NetworkManagerAccessPoint?> _activeAccessPoint() {
+    return NMObjectValueNotfier(
+      wirelessDevice.activeAccessPoint,
+      NullableChangeNotifier(
+        // This function will be called whenever the second param notifies
+        () {
+          if (wirelessDevice.activeAccessPoint != null) {
+            return NMObjectChangeNotifier(wirelessDevice.activeAccessPoint!.propertiesChanged, {
+              "Strength": null,
+            });
+          } else {
+            return null;
+          }
+        },
+        NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
+          "ActiveAccessPoint": null,
+        }),
+      ),
+    );
+  }
+}
+
+class NMObjectValueNotfier<T> extends ValueNotifier<T> {
+  final ChangeNotifier notifier;
+
+  NMObjectValueNotfier(super.value, this.notifier) {
+    notifier.addListener(notifyListeners);
+  }
+
+  @override
+  void dispose() {
+    notifier.dispose();
+    super.dispose();
+  }
+}
+
+/// class Utility to react to NMObject changedProperties stream
+class NMObjectChangeNotifier extends BatchChangeNotifier {
+  Stream<List<String>> stream;
+  final Map<String, VoidCallback?> properties;
+  late final StreamSubscription<List<String>> _subscription;
+  Timer? _automaticNotifierTimer;
+
+  NMObjectChangeNotifier(
+    this.stream,
+    this.properties, {
+    Duration? automaticNotifier,
+  }) {
+    _subscription = stream.listen((propertiesChanged) {
+      for (final changed in propertiesChanged) {
+        if (properties.containsKey(changed)) {
+          // instead of spamming notifyListener calls (which can be some what expensive)
+          // use markAsDirty to allow BatchChangeNotifier to efficiently call notifyListener
+          markAsDirty();
+          final cb = properties[changed];
+          if (cb != null) {
+            cb();
+          }
+        }
+      }
+    });
+    if (automaticNotifier != null) {
+      _automaticNotifierTimer = Timer.periodic(automaticNotifier, (_) => markAsDirty());
+    }
+  }
+
+  @override
+  void dispose() {
+    _automaticNotifierTimer?.cancel();
+    _subscription.cancel().then((_) => super.dispose());
+  }
+}
+
+class NullableChangeNotifier<T extends ChangeNotifier> with ChangeNotifier {
+  T? _changeNotifier;
+
+  final ChangeNotifier _notifyChangeNotifier;
+  final T? Function() _getChangeNotifier;
+
+  void _changeChangeNotifier() {
+    final newChangeNotifier = _getChangeNotifier();
+    if (newChangeNotifier != _changeNotifier) {
+      _changeNotifier?.dispose();
+      _changeNotifier = newChangeNotifier;
+
+      notifyListeners();
+      _changeNotifier?.addListener(notifyListeners);
+    }
+  }
+
+  NullableChangeNotifier(this._getChangeNotifier, this._notifyChangeNotifier) {
+    _changeNotifier = _getChangeNotifier();
+    _changeNotifier?.addListener(notifyListeners);
+    _notifyChangeNotifier.addListener(_changeChangeNotifier);
+  }
+
+  @override
+  void dispose() {
+    _changeNotifier?.dispose();
+    _notifyChangeNotifier.dispose();
+    super.dispose();
+  }
+}
+
+/// Class to manage a nullable listener.
+///
+/// Owns the listener, which means that will dispose the previous listener on a change
+class OwnedNullableListener<T extends ChangeNotifier> with ChangeNotifier {
+  T? _listener;
+  T? get listener => _listener;
+
+  set listener(T? newListener) {
+    if (_listener != newListener) {
+      _listener?.dispose();
+      _listener = newListener;
+      notifyListeners();
+      _listener?.addListener(notifyListeners);
+    }
+  }
+
+  OwnedNullableListener(this._listener);
+
+  @override
+  void dispose() {
+    listener?.dispose();
+    super.dispose();
   }
 }

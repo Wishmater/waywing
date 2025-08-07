@@ -5,70 +5,48 @@ import "package:flutter/material.dart";
 import "package:nm/nm.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/modules/nm/nm_service.dart";
-import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/string_utils.dart";
 
 class NetworkManagerWidget extends StatefulWidget {
   final NetworkManagerService service;
-  final NetworkManagerDevice device;
   final Logger logger;
 
-  NetworkManagerDeviceWireless get wifi => device.wireless!;
-
-  const NetworkManagerWidget({super.key, required this.service, required this.device, required this.logger});
+  const NetworkManagerWidget({super.key, required this.service, required this.logger});
 
   @override
   State<NetworkManagerWidget> createState() => _NetworkManagerState();
 }
 
 class _NetworkManagerState extends State<NetworkManagerWidget> {
-  late final NMObjectListener wifiListener;
   late final TxRxWatcher txRxWatcher;
-  OwnedNullableListener<NMObjectListener> activeAccessPointListener = OwnedNullableListener(null);
-
-  NetworkManagerDeviceWireless get wifiDevice => widget.wifi;
-  NetworkManagerAccessPoint? get activeAccessPoint => wifiDevice.activeAccessPoint;
+  late WifiDeviceValues wifi;
 
   @override
   void initState() {
     super.initState();
-    txRxWatcher = TxRxWatcher(widget.device.statistics!);
+    wifi = widget.service.getWifiDeviceValuesFirst();
+
+    txRxWatcher = TxRxWatcher(wifi.device.statistics!);
     txRxWatcher.init();
-    _setActiveAccessPointListener();
-
-    wifiListener = NMObjectListener(wifiDevice.propertiesChanged, {
-      "ActiveAccessPoint": _setActiveAccessPointListener,
-    });
-  }
-
-  void _setActiveAccessPointListener() {
-    if (wifiDevice.activeAccessPoint != null) {
-      activeAccessPointListener.listener = NMObjectListener(wifiDevice.activeAccessPoint!.propertiesChanged, {
-        "Strength": null,
-      });
-    } else {
-      activeAccessPointListener.listener = null;
-    }
   }
 
   @override
   void dispose() {
-    wifiListener.dispose();
-    activeAccessPointListener.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: activeAccessPointListener,
+      listenable: wifi.activeAccessPoint,
       builder: (context, child) {
-        if (activeAccessPoint != null) {
+        final activeAP = wifi.activeAccessPoint.value;
+        if (activeAP != null) {
           return Row(
             children: [
               _Connected(
-                name: activeAccessPoint!.ssid.toUtf8(),
-                strength: activeAccessPoint!.strength,
+                name: activeAP.ssid.toUtf8(),
+                strength: activeAP.strength,
               ),
               child!,
             ],
@@ -89,39 +67,27 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
 
 class NetworkManagerPopover extends StatefulWidget {
   final NetworkManagerService service;
-  final NetworkManagerDevice device;
   final Logger logger;
 
-  NetworkManagerDeviceWireless get wifi => device.wireless!;
-
-  const NetworkManagerPopover({super.key, required this.service, required this.device, required this.logger});
+  const NetworkManagerPopover({super.key, required this.service, required this.logger});
 
   @override
   State<NetworkManagerPopover> createState() => _NetworkManagerPopoverState();
 }
 
 class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
-  late final NMObjectListener accessPointsListener;
-
-  NetworkManagerDevice get device => widget.device;
-  NetworkManagerDeviceWireless get wifiDevice => widget.wifi;
-  List<NetworkManagerAccessPoint> get accessPoints => wifiDevice.accessPoints;
+  late WifiDeviceValues wifi;
   Logger get logger => widget.logger;
   bool isScanning = false;
 
   @override
   void initState() {
     super.initState();
-
-    accessPointsListener = NMObjectListener(wifiDevice.propertiesChanged, {
-      "AccessPoints": null,
-      "LastScan": () => isScanning ? setState(() => isScanning = false) : null,
-      "ActiveAccessPoint": null,
-    });
+    wifi = widget.service.getWifiDeviceValuesFirst();
   }
 
   Future<void> connect(NetworkManagerAccessPoint accessPoint) async {
-    final response = await widget.service.connect(device, accessPoint);
+    final response = await widget.service.connect(wifi.device, accessPoint);
     if (response != ConnectResponse.needsPassword) {
       return;
     }
@@ -144,7 +110,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
     if (password == null) {
       return;
     }
-    await widget.service.connect(device, accessPoint, userPassword: password);
+    await widget.service.connect(wifi.device, accessPoint, userPassword: password);
   }
 
   @override
@@ -155,7 +121,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
         maxWidth: 400,
       ),
       child: ListenableBuilder(
-        listenable: accessPointsListener,
+        listenable: wifi.accessPoints,
         builder: (context, _) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -165,7 +131,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                 children: [
                   TextButton(
                     onPressed: () async {
-                      await widget.service.requestScan(wifiDevice);
+                      await wifi.wirelessDevice.requestScan();
                       setState(() => isScanning = true);
                     },
                     child: Text("Scan wifi ${isScanning ? 'scanning' : ''}"),
@@ -176,12 +142,12 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            for (final ap in accessPoints)
+                            for (final ap in wifi.accessPoints.value)
                               _AvailableAccessPoint(
                                 ap,
-                                wifiDevice.activeAccessPoint == ap,
+                                wifi.wirelessDevice.activeAccessPoint == ap,
                                 connect,
-                                () => widget.service.disconnect(device),
+                                () => widget.service.disconnect(wifi.device),
                               ),
                           ],
                         ),
@@ -346,94 +312,5 @@ class _AskPasswordState extends State<_AskPassword> {
         ),
       ),
     );
-  }
-}
-
-/// Class to manage a nullable listener.
-///
-/// Owns the listener, which means that will dispose the previous listener on a change
-class OwnedNullableListener<T extends ChangeNotifier> with ChangeNotifier {
-  T? _listener;
-  T? get listener => _listener;
-
-  set listener(T? newListener) {
-    if (_listener != newListener) {
-      _listener?.dispose();
-      _listener = newListener;
-      notifyListeners();
-      _listener?.addListener(notifyListeners);
-    }
-  }
-
-  OwnedNullableListener(this._listener);
-
-  @override
-  void dispose() {
-    listener?.dispose();
-    super.dispose();
-  }
-}
-
-/// class Utility to react to NMObject changedProperties stream
-class NMObjectListener extends BatchChangeNotifier {
-  Stream<List<String>> stream;
-  final Map<String, VoidCallback?> properties;
-  late final StreamSubscription<List<String>> _subscription;
-  Timer? _automaticNotifierTimer;
-
-  NMObjectListener(
-    this.stream,
-    this.properties, {
-    Duration? automaticNotifier,
-  }) {
-    _subscription = stream.listen((propertiesChanged) {
-      for (final changed in propertiesChanged) {
-        if (properties.containsKey(changed)) {
-          // instead of spamming notifyListener calls (which can be some what expensive)
-          // use markAsDirty to allow BatchChangeNotifier to efficiently call notifyListener
-          markAsDirty();
-          final cb = properties[changed];
-          if (cb != null) {
-            cb();
-          }
-        }
-      }
-    });
-    if (automaticNotifier != null) {
-      _automaticNotifierTimer = Timer.periodic(automaticNotifier, (_) => markAsDirty());
-    }
-  }
-
-  @override
-  void dispose() {
-    _automaticNotifierTimer?.cancel();
-    _subscription.cancel().then((_) => super.dispose());
-  }
-
-  @override
-  // ignore: hash_and_equals
-  bool operator ==(covariant NMObjectListener other) {
-    return stream == other.stream && _propertiesEquality(other.properties);
-  }
-
-  bool _propertiesEquality(Map<String, VoidCallback?> other) {
-    if (other == properties) {
-      return true;
-    }
-    if (properties.length != other.length) {
-      return false;
-    }
-    final otherKeys = other.keys.iterator;
-    final keys = properties.keys.iterator;
-    while (keys.moveNext()) {
-      otherKeys.moveNext();
-      if (keys.current != otherKeys.current) {
-        return false;
-      }
-      if (properties[keys.current] != other[otherKeys.current]) {
-        return false;
-      }
-    }
-    return true;
   }
 }

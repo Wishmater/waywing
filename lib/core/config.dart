@@ -1,9 +1,11 @@
 import "dart:convert";
+import "dart:io";
 
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/material.dart";
+import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/util/config_fields.dart";
@@ -304,6 +306,49 @@ Future<Config> reloadConfig(String content) async {
       _config = MainConfig.fromMap(result.values);
       return _config;
   }
+}
+
+String getConfigurationFilePath() {
+  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
+  return path.joinAll([configDir, "waywing", "config"]);
+}
+
+String getConfigurationDirectoryPath() {
+  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
+  return path.joinAll([configDir, "waywing"]);
+}
+
+Future<String> getConfigurationString() async {
+  final file = File(getConfigurationFilePath());
+  if (await file.exists()) {
+    return file.readAsString();
+  } else {
+    return defaultConfig;
+  }
+}
+
+const String defaultConfig = '''
+  seedColor = "#0000ff"
+  animationDuration = 250ms
+  barSide = "top"
+  barSize = 64
+  barMarginLeft = barSize
+  barMarginRight = barSize
+  barRadiusInCross = barSize * 0.5
+  barRadiusInMain = barSize * 0.5 * 0.67
+  barRadiusOutCross = barSize * 0.5
+  barRadiusOutMain = barSize * 0.5 * 1.5
+''';
+
+// Only if the dollar sign does not have a backslash before it.
+final _unescapedVariables = RegExp(r"(?<!\\)\$([a-zA-Z_]+[a-zA-Z0-9_]*)");
+
+/// Resolves environment variables. Replaces all $VARS with their value.
+String expandEnvironmentVariables(String path) {
+  return path.replaceAllMapped(_unescapedVariables, (Match match) {
+    String env = match[1]!;
+    return Platform.environment[env] ?? "";
+  });
 }
 
 dynamic _toPrettyJson(dynamic values) {

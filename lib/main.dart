@@ -21,12 +21,8 @@ void main(List<String> args) async {
   }
 
   initializeLogger();
-  final configFuture = reloadConfig(getConfigurationString());
-
+  await reloadConfig(await getConfigurationString());
   WidgetsFlutterBinding.ensureInitialized();
-
-  await configFuture; // everything below here needs config to already be loaded
-
   await setupMainWindow();
 
   mainLogger.log(Level.debug, "Done setting initial window config, running app...");

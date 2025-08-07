@@ -1,6 +1,5 @@
 import "dart:async";
 import "dart:io";
-import "package:path/path.dart" as path;
 
 import "package:fl_linux_window_manager/controller/input_region_controller.dart";
 import "package:flutter/widgets.dart";
@@ -11,40 +10,6 @@ import "package:waywing/util/logger.dart";
 import "package:waywing/util/window_utils.dart";
 
 final _logger = mainLogger.clone(properties: [LogType("ConfigWatcher")]);
-
-// TODO: 1 move most of this shit to a config util file
-
-String _defaultConfig = '''
-  seedColor = "#0000ff"
-  animationDuration = 250ms
-  barSide = "top"
-  barSize = 64
-  barMarginLeft = barSize
-  barMarginRight = barSize
-  barRadiusInCross = barSize * 0.5
-  barRadiusInMain = barSize * 0.5 * 0.67
-  barRadiusOutCross = barSize * 0.5
-  barRadiusOutMain = barSize * 0.5 * 1.5
-''';
-
-String getConfigurationFilePath() {
-  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
-  return path.joinAll([configDir, "waywing", "config"]);
-}
-
-String getConfigurationDirectoryPath() {
-  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
-  return path.joinAll([configDir, "waywing"]);
-}
-
-String getConfigurationString() {
-  final file = File(getConfigurationFilePath());
-  if (file.existsSync()) {
-    return file.readAsStringSync();
-  } else {
-    return _defaultConfig;
-  }
-}
 
 class ConfigChangeWatcher extends StatefulWidget {
   final WidgetBuilder builder;
@@ -89,7 +54,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   Future<void> onConfigUpdated() async {
     final context = this.context; // declare local reference to please the linter
     final oldConfig = config;
-    String content = _defaultConfig;
+    String content = defaultConfig;
     final file = File(getConfigurationFilePath());
     if (file.existsSync()) {
       content = await file.readAsString();
@@ -124,15 +89,4 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   Widget build(BuildContext context) {
     return widget.builder(context);
   }
-}
-
-// Only if the dollar sign does not have a backslash before it.
-final _unescapedVariables = RegExp(r"(?<!\\)\$([a-zA-Z_]+[a-zA-Z0-9_]*)");
-
-/// Resolves environment variables. Replaces all $VARS with their value.
-String expandEnvironmentVariables(String path) {
-  return path.replaceAllMapped(_unescapedVariables, (Match match) {
-    String env = match[1]!;
-    return Platform.environment[env] ?? "";
-  });
 }

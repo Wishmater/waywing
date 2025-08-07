@@ -80,7 +80,7 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
       child: ListenableBuilder(
         listenable: Listenable.merge([txRxWatcher.rxRate, txRxWatcher.txRate]),
         builder: (context, _) {
-          return Text(" up: ${txRxWatcher.rxRate.value}kB/s : down: ${txRxWatcher.rxRate.value}kB/s");
+          return Text(" up: ${txRxWatcher.txRate.value}kB/s : down: ${txRxWatcher.rxRate.value}kB/s");
         },
       ),
     );

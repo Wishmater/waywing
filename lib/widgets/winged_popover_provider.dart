@@ -105,7 +105,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    // TODO: 1 add delay to showing tooltip after entering host (param passed to the host)
+    // TODO: 2 add delay to showing tooltip after entering host (param passed to the host)
     if (host.widget.tooltipParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }
@@ -299,6 +299,14 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant WingedPopoverClient oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.host != oldWidget.host || widget.isTooltip != oldWidget.isTooltip) {
+      _triggerContentAnimation();
+    }
+  }
+
   late AnimationController contentAnimationController;
   void _buildContentAnimationController({
     bool isFirst = false,
@@ -313,9 +321,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     );
   }
 
-  // TODO: 1 make this trigger in didUpdateWidget when host or isTooltip changes,
-  // instead of being manually triggered by provider
-  void triggerContentAnimation() {
+  void _triggerContentAnimation() {
     _buildContentAnimationController();
     contentAnimationController.forward(from: 0);
   }

@@ -135,7 +135,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       _removeHost(e);
     }
     if (toRemove.isNotEmpty) {
-      containerGlobalKeys[containerId]!.currentState!.triggerContentAnimation();
+      containerGlobalKeys[containerId]!.currentState!._triggerContentAnimation();
     }
   }
 

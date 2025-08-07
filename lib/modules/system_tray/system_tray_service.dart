@@ -38,8 +38,12 @@ class SystemTrayService extends Service {
   Future<void> init(Logger logger) async {
     this.logger = logger;
     _client = DBusClient.session();
-    await _client.requestName(_StatusNotifierWatcherObject.objectname);
+    final reply = await _client.requestName(_StatusNotifierWatcherObject.objectname);
+    if (reply == DBusRequestNameReply.exists) {
+      // create Host only
+    }
     _watcher = _StatusNotifierWatcherObject(
+      logger: logger,
       onRegisterStatusNotifierItem: onRegisterStatusNotifierItem,
     );
     await _client.registerObject(_watcher);
@@ -60,8 +64,8 @@ class SystemTrayService extends Service {
     final parts = service.split("/");
     final serviceName = parts[0];
     final path = "/${parts.sublist(1).join('/')}";
-    print("");
-    print("parsed item $service\nserviceName=$serviceName\npath=$path");
+    logger.debug("");
+    logger.debug("parsed item $service\nserviceName=$serviceName\npath=$path");
     getItemDetails(sender ?? service, path);
   }
 
@@ -73,7 +77,7 @@ class SystemTrayService extends Service {
     );
     // Fetch all StatusNotifierItem properties
     var properties = await object.getAllProperties("org.kde.StatusNotifierItem");
-    print(properties);
+    logger.debug(properties.toString());
   }
 
   Future<void> getMenuItems(Map<String, dynamic> properties) async {
@@ -95,8 +99,10 @@ class _StatusNotifierWatcherObject extends DBusObject {
 
   final _StandardWatcherCallback onRegisterStatusNotifierItem;
   final List<String> registeredItems = [];
+  final Logger logger;
 
   _StatusNotifierWatcherObject({
+    required this.logger,
     required this.onRegisterStatusNotifierItem,
   }) : super(DBusObjectPath(objectpath));
 
@@ -111,7 +117,7 @@ class _StatusNotifierWatcherObject extends DBusObject {
 
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
-    print("received method call: $methodCall ${methodCall.interface} ${methodCall.name}");
+    logger.debug("received method call: $methodCall ${methodCall.interface} ${methodCall.name}");
     if (methodCall.interface == _StatusNotifierWatcherObject.objectname) {
       if (methodCall.name == "RegisterStatusNotifierItem") {
         final stringValues = methodCall.values.map((e) => e.asString()).toList();
@@ -123,7 +129,7 @@ class _StatusNotifierWatcherObject extends DBusObject {
       //   var host = methodCall.values[0].asString();
       // }
 
-      print("unknownMethod: ${methodCall.name}: ${methodCall.values}");
+      logger.debug("unknownMethod: ${methodCall.name}: ${methodCall.values}");
     }
     return DBusMethodErrorResponse.unknownMethod();
   }

@@ -1,16 +1,18 @@
 import "dart:async";
 
 import "package:flutter/material.dart";
-import "package:intl/intl.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
-import "package:waywing/widgets/winged_button.dart";
+import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/clock/clock_indicator.dart";
+import "package:waywing/modules/clock/clock_popover.dart";
+import "package:waywing/modules/clock/clock_tooltip.dart";
+import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/core/feather.dart";
-import "package:waywing/core/config.dart";
-import "package:waywing/util/derived_value_notifier.dart";
 
 class ClockFeather extends Feather {
   late Logger logger;
+  late TimeService service;
 
   ClockFeather._();
 
@@ -21,33 +23,15 @@ class ClockFeather extends Feather {
   @override
   String get name => "Clock";
 
-  // TODO: 2 add this to a TimeService
-  late final ValueNotifier<DateTime> time;
-  late final ValueNotifier<String> timeString;
-  late final Timer _timer;
-
   @override
   Future<void> init(BuildContext context, Logger logger) async {
     this.logger = logger;
-    time = ValueNotifier(DateTime.now());
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      time.value = DateTime.now();
-    });
-    timeString = DerivedValueNotifier(
-      dependencies: [time],
-      derive: () {
-        final hour = DateFormat("HH").format(time.value);
-        final minute = DateFormat("mm").format(time.value);
-        return "$hour\n$minute";
-      },
-    );
+    service = await serviceRegistry.requestService<TimeService>(this);
   }
 
   @override
   Future<void> dispose() async {
-    _timer.cancel();
-    timeString.dispose();
-    time.dispose();
+    logger.destroy(); // TODO: 1 maybe the registry should do this so we don't have to ?
   }
 
   @override
@@ -56,61 +40,14 @@ class ClockFeather extends Feather {
   late final clockComponent = FeatherComponent(
     buildIndicators: (context, popover, tooltip) {
       return [
-        ValueListenableBuilder(
-          valueListenable: timeString,
-          builder: (context, value, _) {
-            final isBarVertical = config.isBarVertical;
-            return SizedBox(
-              width: !isBarVertical ? config.barItemSize : null,
-              height: isBarVertical ? config.barItemSize : null,
-              child: WingedButton(
-                onTap: () {
-                  popover!.togglePopover();
-                },
-                child: Center(child: Text(value)),
-              ),
-            );
-          },
-        ),
+        ClockIndicator(service: service, popover: popover!),
       ];
     },
-
     buildTooltip: (context) {
-      return ValueListenableBuilder(
-        valueListenable: time,
-        builder: (context, value, _) {
-          return IntrinsicWidth(
-            child: Container(
-              width: !config.isBarVertical ? config.barItemSize : null,
-              height: config.isBarVertical ? config.barItemSize : null,
-              alignment: Alignment.center,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(value.toString()),
-            ),
-          );
-        },
-      );
+      return ClockTooltip(service: service);
     },
-
     buildPopover: (context) {
-      return ValueListenableBuilder(
-        valueListenable: time,
-        builder: (context, value, _) {
-          return Container(
-            width: 320,
-            padding: EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            child: CalendarDatePicker(
-              initialDate: value,
-              firstDate: DateTime(2000),
-              lastDate: DateTime(2100),
-              onDateChanged: (_) {},
-            ),
-          );
-        },
-      );
+      return ClockPopover(service: service);
     },
   );
 }

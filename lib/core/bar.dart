@@ -128,8 +128,12 @@ class _BarState extends State<Bar> {
                 clipBehavior: Clip.none,
                 fit: StackFit.expand,
                 children: [
-                  Align(
+                  Container(
                     alignment: endAlignment,
+                    padding: EdgeInsets.only(
+                      right: !config.isBarVertical ? config.barSize * 0.2 : 0,
+                      bottom: config.isBarVertical ? config.barSize * 0.2 : 0,
+                    ),
                     child: buildLayoutWidget(
                       context,
                       buildFeatherWidgets(context, config.barEndFeathers, feathersCount),
@@ -144,8 +148,12 @@ class _BarState extends State<Bar> {
                     ),
                   ),
 
-                  Align(
+                  Container(
                     alignment: startAlignment,
+                    padding: EdgeInsets.only(
+                      left: !config.isBarVertical ? config.barSize * 0.2 : 0,
+                      top: config.isBarVertical ? config.barSize * 0.2 : 0,
+                    ),
                     child: buildLayoutWidget(
                       context,
                       buildFeatherWidgets(context, config.barStartFeathers, feathersCount),
@@ -210,6 +218,15 @@ class _BarState extends State<Bar> {
                 component: component,
                 builder: (context, popover) {
                   final indicators = component.buildIndicators!(context, popover, null);
+                  for (int i = 0; i < indicators.length; i++) {
+                    indicators[i] = ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minWidth: !config.isBarVertical ? config.barItemSize : 0,
+                        minHeight: config.isBarVertical ? config.barItemSize : 0,
+                      ),
+                      child: indicators[i],
+                    );
+                  }
                   if (config.isBarVertical) {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
@@ -301,7 +318,13 @@ class _BarState extends State<Bar> {
                       builder: (context) {
                         return Padding(
                           padding: popoverShape.dimensions,
-                          child: component.buildPopover!(context),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minWidth: !config.isBarVertical ? config.barItemSize : 0,
+                              minHeight: config.isBarVertical ? config.barItemSize : 0,
+                            ),
+                            child: component.buildPopover!(context),
+                          ),
                         );
                       },
                       containerBuilder: (context, child) {
@@ -327,7 +350,13 @@ class _BarState extends State<Bar> {
                         right: config.barSide == ScreenEdge.right ? config.barSize / 2 : 0,
                       ),
                       builder: (context) {
-                        return component.buildTooltip!(context);
+                        return ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: !config.isBarVertical ? config.barItemSize : 0,
+                            minHeight: config.isBarVertical ? config.barItemSize : 0,
+                          ),
+                          child: component.buildTooltip!(context),
+                        );
                       },
                       containerBuilder: (context, child) {
                         return AnimatedOpacity(

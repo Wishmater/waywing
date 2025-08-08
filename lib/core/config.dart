@@ -165,21 +165,21 @@ class MainConfig extends Config {
   // When implementing reading config, get the instance with Feather.getByName
   final List<Feather> barStartFeathers;
   static const _barStartFeathersName = "barStartFeathers";
-  static const _barStartFeathers = ListField(
+  static final ListField<String, Feather> _barStartFeathers = ListField(
     FeatherField(),
     defaultTo: <Feather>[],
   );
 
   final List<Feather> barCenterFeathers;
   static const _barCenterFeathersName = "barCenterFeathers";
-  static const _barCenterFeathers = ListField(
+  static final ListField<String, Feather> _barCenterFeathers = ListField(
     FeatherField(),
     defaultTo: <Feather>[],
   );
 
   final List<Feather> barEndFeathers;
   static const _barEndFeathersName = "barEndFeathers";
-  static const _barEndFeathers = ListField(
+  static final ListField<String, Feather> _barEndFeathers = ListField(
     FeatherField(),
     defaultTo: <Feather>[],
   );

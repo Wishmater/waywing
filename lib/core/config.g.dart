@@ -135,7 +135,8 @@ class MainConfig with MainConfigI, MainConfigBase {
     );
   }
 
-  static const schema = TableSchema(
+  static TableSchema get schema => TableSchema(
+    tables: MainConfigBase._getSchemaTables(),
     fields: {
       'themeMode': MainConfigBase._themeMode,
       'seedColor': MainConfigBase._seedColor,

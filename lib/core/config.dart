@@ -103,6 +103,14 @@ mixin MainConfigBase on MainConfigI {
   static const _barStartFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
   static const _barCenterFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
   static const _barEndFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
+
+  //===========================================================================
+  // Add config tables defined in other files
+  //===========================================================================
+
+  static Map<String, TableSchema> _getSchemaTables() => {
+    "Logging": LoggingConfig.schema,
+  };
 }
 
 Future<MainConfig> reloadConfig(String content) async {
@@ -126,6 +134,7 @@ Future<MainConfig> reloadConfig(String content) async {
       _logger.log(Level.info, "Read config EvaluationSuccess");
       _logger.log(Level.debug, _toPrettyJson(result.values));
       _config = MainConfig.fromMap(result.values);
+      initializeLogger(LoggingConfig.fromMap(result.values["Logging"]));
       return _config;
   }
 }

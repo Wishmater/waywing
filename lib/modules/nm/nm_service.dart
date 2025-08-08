@@ -9,6 +9,7 @@ import "package:waywing/core/service_registry.dart";
 import "package:nm/nm.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
+import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
   late Logger logger;
@@ -86,8 +87,9 @@ class NetworkManagerService extends Service {
             error: e,
             stackTrace: st,
           );
+        } else {
+          logger.error("client.activateConnection", error: e, stackTrace: st);
         }
-        logger.error("client.activateConnection", error: e, stackTrace: st);
       }
     } else {
       logger.trace(
@@ -266,48 +268,74 @@ class WifiDeviceValues {
   NetworkManagerDeviceWireless get wirelessDevice => device.wireless!;
 
   WifiDeviceValues(this.device) {
-    accessPoints = _accessPoints();
-    activeAccessPoint = _activeAccessPoint();
+    accessPoints = ValueNotifier(Slice(wirelessDevice.accessPoints));
+    __accessPointsChangeNotifier = _accessPointsChangeNotifier();
+    __accessPointsChangeNotifier.addListener(() => accessPoints.value = Slice(wirelessDevice.accessPoints));
+
+    activeAccessPoint = ValueNotifier(wirelessDevice.activeAccessPoint);
+    __activeAPChangeNotifier = _activeAccessPointChangeNotifier();
+    __activeAPChangeNotifier.addListener(() => activeAccessPoint.value = wirelessDevice.activeAccessPoint);
+
+    isScanning = ValueNotifier(false);
+    __receieveLastScan = _recieveLastScan();
+    __receieveLastScan.addListener(() => isScanning.value = false);
   }
 
   void dispose() {
     accessPoints.dispose();
+    __accessPointsChangeNotifier.dispose();
+
     activeAccessPoint.dispose();
+    __activeAPChangeNotifier.dispose();
+
+    isScanning.dispose();
+    __receieveLastScan.dispose();
   }
 
-  late ValueNotifier<List<NetworkManagerAccessPoint>> accessPoints;
-  ValueNotifier<List<NetworkManagerAccessPoint>> _accessPoints() {
-    return NMObjectValueNotfier(
-      wirelessDevice.accessPoints,
+  late ValueNotifier<Slice<NetworkManagerAccessPoint>> accessPoints;
+  late NMObjectChangeNotifier __accessPointsChangeNotifier;
+  NMObjectChangeNotifier _accessPointsChangeNotifier() {
+    return NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
+      "AccessPoints": null,
+      "LastScan": null,
+      "ActiveAccessPoint": null,
+    });
+  }
+
+  late ValueNotifier<NetworkManagerAccessPoint?> activeAccessPoint;
+  late ChangeNotifier __activeAPChangeNotifier;
+  ChangeNotifier _activeAccessPointChangeNotifier() {
+    return NullableChangeNotifier(
+      // This function will be called whenever the second param notifies
+      () {
+        if (wirelessDevice.activeAccessPoint != null) {
+          return NMObjectChangeNotifier(wirelessDevice.activeAccessPoint!.propertiesChanged, {
+            "Strength": null,
+          });
+        } else {
+          return null;
+        }
+      },
       NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
-        "AccessPoints": null,
-        "LastScan": null,
         "ActiveAccessPoint": null,
       }),
     );
   }
 
+  late ValueNotifier<bool> isScanning;
+  late ChangeNotifier __receieveLastScan;
+  ChangeNotifier _recieveLastScan() {
+    return NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
+      "LastScan": null,
+    });
+  }
 
-  late ValueNotifier<NetworkManagerAccessPoint?> activeAccessPoint;
-  ValueNotifier<NetworkManagerAccessPoint?> _activeAccessPoint() {
-    return NMObjectValueNotfier(
-      wirelessDevice.activeAccessPoint,
-      NullableChangeNotifier(
-        // This function will be called whenever the second param notifies
-        () {
-          if (wirelessDevice.activeAccessPoint != null) {
-            return NMObjectChangeNotifier(wirelessDevice.activeAccessPoint!.propertiesChanged, {
-              "Strength": null,
-            });
-          } else {
-            return null;
-          }
-        },
-        NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
-          "ActiveAccessPoint": null,
-        }),
-      ),
-    );
+  Future<void> requestScan() async {
+    if (isScanning.value) {
+      return;
+    }
+    isScanning.value = true;
+    await wirelessDevice.requestScan();
   }
 }
 

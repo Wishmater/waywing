@@ -78,7 +78,6 @@ class NetworkManagerPopover extends StatefulWidget {
 class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   late WifiDeviceValues wifi;
   Logger get logger => widget.logger;
-  bool isScanning = false;
 
   @override
   void initState() {
@@ -121,7 +120,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
         maxWidth: 400,
       ),
       child: ListenableBuilder(
-        listenable: wifi.accessPoints,
+        listenable: Listenable.merge([wifi.accessPoints, wifi.isScanning]),
         builder: (context, _) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -131,10 +130,9 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                 children: [
                   TextButton(
                     onPressed: () async {
-                      await wifi.wirelessDevice.requestScan();
-                      setState(() => isScanning = true);
+                      await wifi.requestScan();
                     },
-                    child: Text("Scan wifi ${isScanning ? 'scanning' : ''}"),
+                    child: Text("Scan wifi ${wifi.isScanning.value ? 'scanning' : ''}"),
                   ),
                   Expanded(
                     child: SingleChildScrollView(

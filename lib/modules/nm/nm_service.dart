@@ -12,7 +12,6 @@ import "package:waywing/util/logger.dart";
 import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
-  late Logger logger;
   List<WifiDeviceValues> wifiDevicesValues;
   final NetworkManagerClient client;
 
@@ -25,12 +24,10 @@ class NetworkManagerService extends Service {
   @override
   Future<void> dispose() async {
     await client.close();
-    await logger.destroy();
   }
 
   @override
-  Future<void> init(Logger logger) async {
-    this.logger = logger;
+  Future<void> init() async {
     await client.connect();
 
     for (final device in client.devices) {

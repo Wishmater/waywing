@@ -6,6 +6,8 @@ import "package:waywing/widgets/winged_popover.dart";
 /// Here, it will define any services init/cleanup it needs
 /// And also define the UI elements it provides
 abstract class Feather {
+  late Logger logger;
+
   String get name;
 
   @override
@@ -19,7 +21,7 @@ abstract class Feather {
   /// Make sure the future doesn't return until initialization is done,
   /// so you can use services/fields in the widget builders without fear.
   /// Widgets won't be built until initialization is done.
-  Future<void> init(BuildContext context, Logger logger) async {}
+  Future<void> init(BuildContext context) async {}
 
   /// Remove can't receive context, because on application exit context can be dirty and thus unusable
   /// Context shouldn't be necessary to run cleanup code

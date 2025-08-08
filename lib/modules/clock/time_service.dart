@@ -1,13 +1,10 @@
 import "dart:async";
 
 import "package:flutter/widgets.dart";
-import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 
 class TimeService extends Service {
-  late Logger logger;
-
   late final ValueNotifier<DateTime> time;
   late final Timer _timer;
 
@@ -18,8 +15,7 @@ class TimeService extends Service {
   }
 
   @override
-  Future<void> init(Logger logger) async {
-    this.logger = logger;
+  Future<void> init() async {
     time = ValueNotifier(DateTime.now());
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       time.value = DateTime.now();
@@ -28,7 +24,6 @@ class TimeService extends Service {
 
   @override
   Future<void> dispose() async {
-    _timer.cancel(); // TODO: 1 maybe the registry should do this so we don't have to ?
-    await logger.destroy();
+    _timer.cancel();
   }
 }

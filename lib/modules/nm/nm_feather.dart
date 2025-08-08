@@ -1,5 +1,4 @@
 import "package:flutter/cupertino.dart";
-import "package:tronco/tronco.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
@@ -8,7 +7,6 @@ import "package:waywing/modules/nm/nm_widget.dart";
 import "package:waywing/widgets/winged_button.dart";
 
 class NetworkManagerFeather extends Feather {
-  late Logger logger;
   NetworkManagerFeather._();
 
   @override
@@ -17,8 +15,7 @@ class NetworkManagerFeather extends Feather {
   late NetworkManagerService service;
 
   @override
-  Future<void> init(BuildContext context, Logger logger) async {
-    this.logger = logger;
+  Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<NetworkManagerService>(this);
   }
 

@@ -1,7 +1,6 @@
 import "dart:async";
 
 import "package:flutter/material.dart";
-import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/system_tray/system_tray_service.dart";
@@ -9,7 +8,6 @@ import "package:waywing/modules/system_tray/system_tray_widget.dart";
 import "package:waywing/core/feather.dart";
 
 class SystemTrayFeather extends Feather {
-  late Logger logger;
   SystemTrayFeather._();
 
   static void registerFeather(RegisterFeatherCallback registerFeather) {
@@ -22,8 +20,7 @@ class SystemTrayFeather extends Feather {
   late SystemTrayService service;
 
   @override
-  Future<void> init(BuildContext context, Logger logger) async {
-    this.logger = logger;
+  Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<SystemTrayService>(this);
   }
 

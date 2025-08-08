@@ -94,7 +94,8 @@ class FeatherRegistry {
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
     assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already in Feathers.all");
-    final initFuture = feather.init(context, mainLogger.clone(properties: [LogType(feather.name)]));
+    feather.logger = mainLogger.clone(properties: [LogType(feather.name)]);
+    final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
     return initFuture;
   }
@@ -106,7 +107,8 @@ class FeatherRegistry {
     _initializedFeathers.remove(feather);
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
     featherRegistry._dereferenceFeather(feather.name);
-    return feather.dispose();
+    await feather.dispose();
+    await feather.logger.destroy();
   }
 
   void _dereferenceFeather(String name) {

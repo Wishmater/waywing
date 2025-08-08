@@ -1,7 +1,6 @@
 import "dart:async";
 
 import "package:flutter/material.dart";
-import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/clock/clock_indicator.dart";
@@ -11,7 +10,6 @@ import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/core/feather.dart";
 
 class ClockFeather extends Feather {
-  late Logger logger;
   late TimeService service;
 
   ClockFeather._();
@@ -24,14 +22,8 @@ class ClockFeather extends Feather {
   String get name => "Clock";
 
   @override
-  Future<void> init(BuildContext context, Logger logger) async {
-    this.logger = logger;
+  Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<TimeService>(this);
-  }
-
-  @override
-  Future<void> dispose() async {
-    await logger.destroy(); // TODO: 1 maybe the registry should do this so we don't have to ?
   }
 
   @override

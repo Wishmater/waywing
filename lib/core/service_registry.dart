@@ -54,7 +54,8 @@ class ServiceRegistry {
   Future<T> initializeService<T extends Service>() async {
     final serviceType = T;
     final service = _registeredServices[serviceType]!() as T;
-    await service.init(mainLogger.clone(properties: [LogType("$serviceType")]));
+    service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
+    await service.init();
     return service;
   }
 

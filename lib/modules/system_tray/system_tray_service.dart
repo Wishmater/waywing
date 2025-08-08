@@ -23,8 +23,6 @@ class SystemTrayItem {
 }
 
 class SystemTrayService extends Service {
-  late Logger logger;
-
   SystemTrayService._();
 
   static registerService(RegisterServiceCallback registerService) {
@@ -35,8 +33,7 @@ class SystemTrayService extends Service {
   late _StatusNotifierWatcherObject _watcher;
 
   @override
-  Future<void> init(Logger logger) async {
-    this.logger = logger;
+  Future<void> init() async {
     _client = DBusClient.session();
     final reply = await _client.requestName(_StatusNotifierWatcherObject.objectname);
     if (reply == DBusRequestNameReply.exists) {
@@ -54,7 +51,6 @@ class SystemTrayService extends Service {
     await _client.unregisterObject(_watcher);
     await _client.releaseName(_StatusNotifierWatcherObject.objectname);
     await _client.close();
-    await logger.destroy();
   }
 
   List<String> get items => [];

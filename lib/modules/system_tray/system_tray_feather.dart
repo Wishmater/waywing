@@ -3,7 +3,7 @@ import "dart:async";
 import "package:flutter/material.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
-import "package:waywing/modules/system_tray/system_tray_service.dart";
+import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "package:waywing/modules/system_tray/system_tray_widget.dart";
 import "package:waywing/core/feather.dart";
 

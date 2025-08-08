@@ -14,15 +14,17 @@ mixin LoggingConfigBase on LoggingConfigI {
   static const _typeLevelFilters = MapField(StringField(), EnumField(Level.values));
 }
 
-void initializeLogger([LoggingConfig? config]) {
+void initializeLogger() {
   mainLogger = Logger(
     output: ConsoleOutput(),
     printer: Printer(),
-    filter: Filter(
-      config?.levelFilter ?? Level.info,
-      config?.typeLevelFilters.mapKeys((e) => LogType(e.key)) ?? {},
-    ),
+    filter: Filter(Level.info, {}),
   );
+}
+
+void updateLoggerConfig(LoggingConfig config) {
+  (mainLogger.filter.value as Filter)._defaultLevel = config.levelFilter;
+  (mainLogger.filter.value as Filter)._types = config.typeLevelFilters.mapKeys((e) => LogType(e.key));
 }
 
 class LogType extends LogEventProperty {
@@ -40,10 +42,13 @@ class LogType extends LogEventProperty {
 }
 
 class Filter extends LogFilter {
-  final Level defaultLevel;
-  final Map<LogType, Level> types;
+  Level _defaultLevel;
+  Level get defaultLevel => _defaultLevel;
 
-  Filter(this.defaultLevel, this.types);
+  Map<LogType, Level> _types;
+  Map<LogType, Level> get types => _types;
+
+  Filter(Level defaultLevel, Map<LogType, Level> types) : _defaultLevel = defaultLevel, _types = types;
 
   @override
   bool shouldLog(LogEvent event) {

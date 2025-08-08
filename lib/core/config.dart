@@ -134,7 +134,7 @@ Future<MainConfig> reloadConfig(String content) async {
       _logger.log(Level.info, "Read config EvaluationSuccess");
       _logger.log(Level.debug, _toPrettyJson(result.values));
       _config = MainConfig.fromMap(result.values);
-      initializeLogger(LoggingConfig.fromMap(result.values["Logging"]));
+      updateLoggerConfig(LoggingConfig.fromMap(result.values["Logging"]));
       return _config;
   }
 }

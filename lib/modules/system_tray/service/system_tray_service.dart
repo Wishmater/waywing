@@ -28,12 +28,15 @@ class SystemTrayItem {
 }
 
 class SystemTrayService extends Service {
-  late Logger logger;
 
   SystemTrayService._();
 
   static registerService(RegisterServiceCallback registerService) {
-    registerService<SystemTrayService>(SystemTrayService._);
+    registerService<SystemTrayService, dynamic>(
+      ServiceRegistration(
+        constructor: SystemTrayService._,
+      ),
+    );
   }
 
   late DBusClient _client;
@@ -42,8 +45,7 @@ class SystemTrayService extends Service {
   late StatusNotifierItemsValues values;
 
   @override
-  Future<void> init(Logger logger) async {
-    this.logger = logger;
+  Future<void> init() async {
     _client = DBusClient.session();
     final reply = await _client.requestName(
       OrgKdeStatusNotifierWatcherImpl.interfaceName,

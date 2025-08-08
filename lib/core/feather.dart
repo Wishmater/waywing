@@ -5,8 +5,9 @@ import "package:waywing/widgets/winged_popover.dart";
 /// Every "component" added to waywing needs to implement this class.
 /// Here, it will define any services init/cleanup it needs
 /// And also define the UI elements it provides
-abstract class Feather {
+abstract class Feather<Conf> {
   late Logger logger;
+  covariant late Conf config;
 
   String get name;
 
@@ -28,6 +29,8 @@ abstract class Feather {
   Future<void> dispose() async {}
 
   List<FeatherComponent> get components;
+
+  onConfigUpdated(Conf oldConfig) {}
 }
 
 @immutable

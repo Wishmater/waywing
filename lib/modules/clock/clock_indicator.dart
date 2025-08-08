@@ -1,14 +1,17 @@
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
+import "package:waywing/modules/clock/clock_config.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/widgets/winged_button.dart";
 import "package:waywing/widgets/winged_popover.dart";
 
 class ClockIndicator extends StatelessWidget {
+  final ClockConfig config;
   final TimeService service;
   final WingedPopoverController popover;
 
   const ClockIndicator({
+    required this.config,
     required this.service,
     required this.popover,
     super.key,
@@ -24,9 +27,9 @@ class ClockIndicator extends StatelessWidget {
             final isVertical = constraints.maxHeight > constraints.maxWidth;
             String value;
             if (isVertical) {
-              value = DateFormat("HH\nmm").format(time);
+              value = DateFormat("${config.use24HourFormat ? "HH" : "hh"}\nmm").format(time);
             } else {
-              value = DateFormat("HH:mm").format(time);
+              value = DateFormat("${config.use24HourFormat ? "HH" : "hh"}:mm").format(time);
             }
             return WingedButton(
               onTap: () {

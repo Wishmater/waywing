@@ -11,7 +11,12 @@ class SystemTrayFeather extends Feather {
   SystemTrayFeather._();
 
   static void registerFeather(RegisterFeatherCallback registerFeather) {
-    registerFeather("SystemTray", SystemTrayFeather._);
+    registerFeather(
+      "SystemTray",
+      FeatherRegistration(
+        constructor: SystemTrayFeather._,
+      ),
+    );
   }
 
   @override

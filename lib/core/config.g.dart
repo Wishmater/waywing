@@ -29,9 +29,9 @@ mixin MainConfigI {
   double get barRadiusInMain;
   double get barRadiusOutCross;
   double get barRadiusOutMain;
-  List<Feather> get barStartFeathers;
-  List<Feather> get barCenterFeathers;
-  List<Feather> get barEndFeathers;
+  List<Feather<dynamic>> get barStartFeathers;
+  List<Feather<dynamic>> get barCenterFeathers;
+  List<Feather<dynamic>> get barEndFeathers;
 }
 
 class MainConfig with MainConfigI, MainConfigBase {
@@ -56,9 +56,9 @@ class MainConfig with MainConfigI, MainConfigBase {
   final double barRadiusInMain;
   final double barRadiusOutCross;
   final double barRadiusOutMain;
-  final List<Feather> barStartFeathers;
-  final List<Feather> barCenterFeathers;
-  final List<Feather> barEndFeathers;
+  final List<Feather<dynamic>> barStartFeathers;
+  final List<Feather<dynamic>> barCenterFeathers;
+  final List<Feather<dynamic>> barEndFeathers;
 
   MainConfig({
     ThemeMode? themeMode,
@@ -82,9 +82,9 @@ class MainConfig with MainConfigI, MainConfigBase {
     double? barRadiusInMain,
     double? barRadiusOutCross,
     double? barRadiusOutMain,
-    List<Feather>? barStartFeathers,
-    List<Feather>? barCenterFeathers,
-    List<Feather>? barEndFeathers,
+    List<Feather<dynamic>>? barStartFeathers,
+    List<Feather<dynamic>>? barCenterFeathers,
+    List<Feather<dynamic>>? barEndFeathers,
   }) : themeMode = themeMode ?? ThemeMode.system,
        animationDuration = animationDuration ?? Duration(milliseconds: 250),
        animationCurve = animationCurve ?? Curves.easeOutCubic,

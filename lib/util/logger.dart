@@ -11,7 +11,7 @@ late Logger mainLogger;
 @Config()
 mixin LoggingConfigBase on LoggingConfigI {
   static const _levelFilter = EnumField(Level.values, defaultTo: Level.info);
-  static const _typeLevelFilters = MapField(StringField(), EnumField(Level.values));
+  static const _typeLevelFilters = MapField(StringField(), EnumField(Level.values), defaultTo: <String, Level>{});
 }
 
 void initializeLogger() {

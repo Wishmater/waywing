@@ -20,7 +20,12 @@ class NetworkManagerFeather extends Feather {
   }
 
   static void registerFeather(RegisterFeatherCallback registerFeather) {
-    registerFeather("NetworkManager", NetworkManagerFeather._);
+    registerFeather(
+      "NetworkManager",
+      FeatherRegistration(
+        constructor: NetworkManagerFeather._,
+      ),
+    );
   }
 
   @override

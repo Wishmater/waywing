@@ -9,6 +9,7 @@ import "package:flutter/material.dart";
 import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather.dart";
+import "package:waywing/core/feather_registry.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/logger.dart";
 
@@ -18,6 +19,9 @@ final _logger = mainLogger.clone(properties: [LogType("Config")]);
 
 MainConfig get config => _config;
 late MainConfig _config;
+
+Map<String, dynamic> get rawMainConfig => _rawMainConfig;
+late Map<String, dynamic> _rawMainConfig;
 
 @Config()
 mixin MainConfigBase on MainConfigI {
@@ -110,6 +114,7 @@ mixin MainConfigBase on MainConfigI {
 
   static Map<String, TableSchema> _getSchemaTables() => {
     "Logging": LoggingConfig.schema,
+    ...featherRegistry.getSchemaTables(),
   };
 }
 
@@ -133,6 +138,7 @@ Future<MainConfig> reloadConfig(String content) async {
     case EvaluationSuccess():
       _logger.log(Level.info, "Read config EvaluationSuccess");
       _logger.log(Level.debug, _toPrettyJson(result.values));
+      _rawMainConfig = Map.unmodifiable(result.values);
       _config = MainConfig.fromMap(result.values);
       updateLoggerConfig(LoggingConfig.fromMap(result.values["Logging"]));
       return _config;

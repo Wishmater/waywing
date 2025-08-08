@@ -1,3 +1,4 @@
+import "package:config/config.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
@@ -9,7 +10,21 @@ import "package:waywing/util/logger.dart";
 
 final featherRegistry = FeatherRegistry._();
 
-typedef FeatherConstructor = Feather Function();
+typedef FeatherConstructor<T extends Feather> = T Function();
+typedef SchemaBuilder = TableSchema Function();
+typedef ConfigBuilder<Conf> = Conf Function(Map<String, dynamic> map);
+
+class FeatherRegistration<T extends Feather<Conf>, Conf> {
+  final FeatherConstructor<T> constructor;
+  final SchemaBuilder? schemaBuilder;
+  final ConfigBuilder? configBuilder;
+
+  FeatherRegistration({
+    required this.constructor,
+    this.schemaBuilder,
+    this.configBuilder,
+  }) : assert(schemaBuilder == null && configBuilder == null || schemaBuilder != null && configBuilder != null);
+}
 
 /// FeatherRegistry keeps track of all feather types and can map name strings to instances
 /// this also makes sure that only one instance of each Feather is constructed,
@@ -19,13 +34,13 @@ class FeatherRegistry {
     _registerDefaultFeathers();
   }
 
-  final Map<String, FeatherConstructor> _registeredFeathers = {};
+  final Map<String, FeatherRegistration> _registeredFeathers = {};
   final Map<String, Feather> _instancedFeathers = {};
   final Map<Feather, Future<void>> _initializedFeathers = {};
 
-  void registerFeather(String name, FeatherConstructor constructor) {
+  void registerFeather(String name, FeatherRegistration registration) {
     assert(!_registeredFeathers.containsKey(name), "Trying to register a Feather that already exists: $name");
-    _registeredFeathers[name] = constructor;
+    _registeredFeathers[name] = registration;
   }
 
   // TODO: 3 only Config should be able to access this
@@ -33,7 +48,8 @@ class FeatherRegistry {
     var feather = _instancedFeathers[name];
     if (feather == null) {
       assert(_registeredFeathers.containsKey(name), "Trying to get an unknown Feather by name: $name");
-      feather = _registeredFeathers[name]!();
+      final registration = _registeredFeathers[name]!;
+      feather = registration.constructor();
       assert(
         feather.name == name,
         "The name exposed by a Feather (${feather.name}) is not the same name that was used to register said Feather ($name).",
@@ -56,8 +72,14 @@ class FeatherRegistry {
     return _initializedFeathers[feather]!;
   }
 
+  Map<String, TableSchema> getSchemaTables() => {
+    for (final e in _registeredFeathers.entries)
+      if (e.value.schemaBuilder != null) e.key: e.value.schemaBuilder!(),
+  };
+
   void _updateFeathers(BuildContext context, Iterable<Feather> configFeathers) {
     _removeOldFeathersNotInNewConfig(configFeathers);
+    _updateFeathersConfig();
     _addNewFeathersNotInOldConfig(context, configFeathers);
     assert(
       !_instancedFeathers.values.any((e) => !_initializedFeathers.containsKey(e)),
@@ -74,6 +96,17 @@ class FeatherRegistry {
     }
     for (final e in toRemove) {
       _disposeFeather(e);
+    }
+  }
+
+  void _updateFeathersConfig() {
+    for (final e in _initializedFeathers.keys) {
+      final registration = _registeredFeathers[e.name]!;
+      if (registration.configBuilder == null) continue;
+      final oldConfig = e.config;
+      final newConfig = registration.configBuilder!(rawMainConfig[e.name]);
+      e.config = newConfig;
+      e.onConfigUpdated(oldConfig);
     }
   }
 
@@ -95,6 +128,10 @@ class FeatherRegistry {
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
     assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already in Feathers.all");
     feather.logger = mainLogger.clone(properties: [LogType(feather.name)]);
+    final registration = _registeredFeathers[feather.name]!;
+    if (registration.configBuilder != null) {
+      feather.config = registration.configBuilder!(rawMainConfig[feather.name]);
+    }
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
     return initFuture;
@@ -124,4 +161,4 @@ class FeatherRegistry {
   }
 }
 
-typedef RegisterFeatherCallback = void Function(String name, FeatherConstructor constructor);
+typedef RegisterFeatherCallback = void Function(String name, FeatherRegistration registration);

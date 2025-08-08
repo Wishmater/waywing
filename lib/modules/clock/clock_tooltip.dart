@@ -1,11 +1,14 @@
 import "package:flutter/material.dart";
 import "package:intl/intl.dart";
+import "package:waywing/modules/clock/clock_config.dart";
 import "package:waywing/modules/clock/time_service.dart";
 
 class ClockTooltip extends StatelessWidget {
+  final ClockConfig config;
   final TimeService service;
 
   const ClockTooltip({
+    required this.config,
     required this.service,
     super.key,
   });
@@ -15,7 +18,8 @@ class ClockTooltip extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: service.time,
       builder: (context, time, _) {
-        final value = "${DateFormat.yMMMMEEEEd().format(time)} - ${DateFormat.Hms().format(time)}";
+        final timeFormat = config.use24HourFormat ? DateFormat.Hms() : DateFormat.jms();
+        final value = "${DateFormat.yMMMMEEEEd().format(time)} - ${timeFormat.format(time)}";
         return IntrinsicHeight(
           child: IntrinsicWidth(
             child: Container(

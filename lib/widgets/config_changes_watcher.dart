@@ -6,6 +6,7 @@ import "package:flutter/widgets.dart";
 import "package:watcher/watcher.dart" as watcher;
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/core/service_registry.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/window_utils.dart";
 
@@ -66,6 +67,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     final newConfig = config;
 
     featherRegistry.onConfigUpdated(context);
+    serviceRegistry.onConfigUpdated();
 
     if (newConfig.barSide != oldConfig.barSide ||
         newConfig.barSize != oldConfig.barSize ||

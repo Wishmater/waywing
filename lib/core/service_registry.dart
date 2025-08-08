@@ -1,3 +1,5 @@
+import "package:config/config.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/modules/clock/time_service.dart";
@@ -9,6 +11,18 @@ final serviceRegistry = ServiceRegistry._();
 
 typedef ServiceConstructor<T extends Service> = T Function();
 
+class ServiceRegistration<T extends Service<Conf>, Conf> {
+  final ServiceConstructor<T> constructor;
+  final SchemaBuilder? schemaBuilder;
+  final ConfigBuilder? configBuilder;
+
+  ServiceRegistration({
+    required this.constructor,
+    this.schemaBuilder,
+    this.configBuilder,
+  }) : assert(schemaBuilder == null && configBuilder == null || schemaBuilder != null && configBuilder != null);
+}
+
 /// FeatherRegistry keeps track of all feather types and can map name strings to instances
 /// this also makes sure that only one instance of each Feather is constructed,
 /// and that it is de-referenced when disposing it
@@ -17,17 +31,17 @@ class ServiceRegistry {
     _registerDefaultServices();
   }
 
-  final Map<Type, ServiceConstructor> _registeredServices = {};
+  final Map<Type, ServiceRegistration> _registeredServices = {};
   final Map<Type, List<Feather>> _requestedServices = {};
   final Map<Type, Future<Service>> _initializedServices = {};
 
-  void registerService<T extends Service>(ServiceConstructor<T> constructor) {
+  void registerService<T extends Service<Conf>, Conf>(ServiceRegistration<T, Conf> registration) {
     final serviceType = T;
     assert(
       !_registeredServices.containsKey(serviceType),
       "Trying to register a Feather that already exists: $serviceType",
     );
-    _registeredServices[serviceType] = constructor;
+    _registeredServices[serviceType] = registration;
   }
 
   /// Feathers usually want to call this in their init method, await it,
@@ -53,7 +67,8 @@ class ServiceRegistry {
 
   Future<T> initializeService<T extends Service>() async {
     final serviceType = T;
-    final service = _registeredServices[serviceType]!() as T;
+    final registration = _registeredServices[serviceType]!;
+    final service = registration.constructor() as T;
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
     await service.init();
     return service;
@@ -73,6 +88,24 @@ class ServiceRegistry {
       "Trying to release a service that hasn't been requested by this feather: $serviceType $feather",
     );
     return _releaseService(feather, serviceType);
+  }
+
+  Map<String, TableSchema> getSchemaTables() => {
+    for (final e in _registeredServices.entries)
+      if (e.value.schemaBuilder != null) e.key.toString(): e.value.schemaBuilder!(),
+  };
+
+  void onConfigUpdated() {
+    for (final e in _initializedServices.values) {
+      final registration = _registeredServices[e.runtimeType]!;
+      if (registration.configBuilder == null) continue;
+      e.then((e) {
+        final oldConfig = e.config;
+        final newConfig = registration.configBuilder!(rawMainConfig[e.runtimeType.toString()]);
+        e.config = newConfig;
+        e.onConfigUpdated(oldConfig);
+      });
+    }
   }
 
   Future<void> _releaseService(Feather feather, Type serviceType) async {
@@ -108,4 +141,5 @@ class ServiceRegistry {
   }
 }
 
-typedef RegisterServiceCallback = void Function<T extends Service>(ServiceConstructor<T> constructor);
+typedef RegisterServiceCallback =
+    void Function<T extends Service<Conf>, Conf>(ServiceRegistration<T, Conf> constructor);

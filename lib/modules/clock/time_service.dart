@@ -11,7 +11,11 @@ class TimeService extends Service {
   TimeService._();
 
   static registerService(RegisterServiceCallback registerService) {
-    registerService<TimeService>(TimeService._);
+    registerService<TimeService, dynamic>(
+      ServiceRegistration(
+        constructor: TimeService._,
+      ),
+    );
   }
 
   @override

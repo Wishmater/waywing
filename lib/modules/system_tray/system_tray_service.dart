@@ -26,7 +26,11 @@ class SystemTrayService extends Service {
   SystemTrayService._();
 
   static registerService(RegisterServiceCallback registerService) {
-    registerService<SystemTrayService>(SystemTrayService._);
+    registerService<SystemTrayService, dynamic>(
+      ServiceRegistration(
+        constructor: SystemTrayService._,
+      ),
+    );
   }
 
   late DBusClient _client;

@@ -18,7 +18,11 @@ class NetworkManagerService extends Service {
   NetworkManagerService._() : client = NetworkManagerClient(), wifiDevicesValues = [];
 
   static registerService(RegisterServiceCallback registerService) {
-    registerService<NetworkManagerService>(NetworkManagerService._);
+    registerService<NetworkManagerService, dynamic>(
+      ServiceRegistration(
+        constructor: NetworkManagerService._,
+      ),
+    );
   }
 
   @override

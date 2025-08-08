@@ -10,6 +10,7 @@ import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/service_registry.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/logger.dart";
 
@@ -22,6 +23,9 @@ late MainConfig _config;
 
 Map<String, dynamic> get rawMainConfig => _rawMainConfig;
 late Map<String, dynamic> _rawMainConfig;
+
+typedef SchemaBuilder = TableSchema Function();
+typedef ConfigBuilder<Conf> = Conf Function(Map<String, dynamic> map);
 
 @Config()
 mixin MainConfigBase on MainConfigI {
@@ -115,6 +119,7 @@ mixin MainConfigBase on MainConfigI {
   static Map<String, TableSchema> _getSchemaTables() => {
     "Logging": LoggingConfig.schema,
     ...featherRegistry.getSchemaTables(),
+    ...serviceRegistry.getSchemaTables(),
   };
 }
 

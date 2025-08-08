@@ -11,8 +11,6 @@ import "package:waywing/util/logger.dart";
 final featherRegistry = FeatherRegistry._();
 
 typedef FeatherConstructor<T extends Feather> = T Function();
-typedef SchemaBuilder = TableSchema Function();
-typedef ConfigBuilder<Conf> = Conf Function(Map<String, dynamic> map);
 
 class FeatherRegistration<T extends Feather<Conf>, Conf> {
   final FeatherConstructor<T> constructor;
@@ -38,7 +36,7 @@ class FeatherRegistry {
   final Map<String, Feather> _instancedFeathers = {};
   final Map<Feather, Future<void>> _initializedFeathers = {};
 
-  void registerFeather(String name, FeatherRegistration registration) {
+  void registerFeather<T extends Feather<Conf>, Conf>(String name, FeatherRegistration<T, Conf> registration) {
     assert(!_registeredFeathers.containsKey(name), "Trying to register a Feather that already exists: $name");
     _registeredFeathers[name] = registration;
   }

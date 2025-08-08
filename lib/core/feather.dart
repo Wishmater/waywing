@@ -7,7 +7,7 @@ import "package:waywing/widgets/winged_popover.dart";
 /// And also define the UI elements it provides
 abstract class Feather<Conf> {
   late Logger logger;
-  covariant late Conf config;
+  late Conf config;
 
   String get name;
 

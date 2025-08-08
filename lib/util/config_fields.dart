@@ -3,13 +3,21 @@ import "package:flutter/widgets.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 
-class ColorField extends StringFieldBase<Color> {
+// Hack because Color class breaks codegen for some reason :)))
+class MyColor extends Color {
+  MyColor(super.value);
+  MyColor.from({required super.alpha, required super.red, required super.green, required super.blue}) : super.from();
+  MyColor.fromARGB(super.a, super.r, super.g, super.b) : super.fromARGB();
+  MyColor.fromRGBO(super.r, super.g, super.b, super.opacity) : super.fromRGBO();
+}
+
+class ColorField extends StringFieldBase<MyColor> {
   const ColorField({
     super.defaultTo,
     super.nullable,
   }) : super(validator: transform);
 
-  static ValidatorResult<Color> transform(String value) {
+  static ValidatorResult<MyColor> transform(String value) {
     try {
       return ValidatorTransform(parseColor(value));
     } catch (_) {
@@ -17,7 +25,7 @@ class ColorField extends StringFieldBase<Color> {
     }
   }
 
-  static Color parseColor(String colorString) {
+  static MyColor parseColor(String colorString) {
     // Remove whitespace and convert to lowercase
     colorString = colorString.replaceAll(" ", "").toLowerCase();
     // Handle hex format
@@ -26,7 +34,7 @@ class ColorField extends StringFieldBase<Color> {
       if (hex.length == 6) hex += "ff"; // Add opaque alpha if not provided
       // ignore: prefer_interpolation_to_compose_strings
       if (hex.length == 3) hex = hex.split("").map((c) => c + c).join() + "ff";
-      return Color(int.parse("0xff$hex"));
+      return MyColor(int.parse("0xff$hex"));
     }
     // Handle rgb/rgba format
     RegExp rgbPattern = RegExp(r"^(rgb|rgba)\((\d+),(\d+),(\d+)(?:,([0-1]?\.?\d*))?\)$");
@@ -39,7 +47,7 @@ class ColorField extends StringFieldBase<Color> {
       if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255 || a < 0 || a > 1) {
         throw FormatException("Invalid color values");
       }
-      return Color.fromRGBO(r, g, b, a);
+      return MyColor.fromRGBO(r, g, b, a);
     }
     throw FormatException("Invalid color format");
   }

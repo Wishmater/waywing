@@ -18,6 +18,8 @@ dependencies:
   # Configuration parser
   config:
     path: ../config.dart
+  config_gen:
+    path: ../config_gen
 
   # Logger
   tronco:
@@ -45,6 +47,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  build_runner: ^2.6.0
 
 flutter:
   uses-material-design: true

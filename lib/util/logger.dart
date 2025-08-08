@@ -1,15 +1,27 @@
+import "package:config/config.dart";
 import "package:tronco/tronco.dart";
 import "package:chalkdart/chalk.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 
 late Logger mainLogger;
 
+TableSchema buildLoggingSchema() {
+  return TableSchema(
+    fields: {
+      "levelFilter": EnumField(Level.values, defaultTo: Level.info),
+    },
+    // tables: {
+    //   "typeLevelFilters": DynamicTable(EnumField(Level.values)),
+    // },
+  );
+}
+
 void initializeLogger() {
   mainLogger = Logger(
     // TODO: 1 add this to config (at least filter level and levels by type)
     filter: Filter(Level.info, {
       LogType("Config"): Level.debug,
-      LogType("FlLinuxWindowManager"): Level.info,
+      LogType("FlLinuxWindowManager"): Level.trace,
       LogType("$NetworkManagerService"): Level.info,
     }),
     output: ConsoleOutput(),

@@ -134,9 +134,6 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     for (final e in toRemove) {
       _removeHost(e);
     }
-    if (toRemove.isNotEmpty) {
-      containerGlobalKeys[containerId]!.currentState!._triggerContentAnimation();
-    }
   }
 
   // necessary because when mouse goes from host to client, if we check immediately

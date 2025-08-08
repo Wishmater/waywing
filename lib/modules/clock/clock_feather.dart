@@ -31,7 +31,7 @@ class ClockFeather extends Feather {
 
   @override
   Future<void> dispose() async {
-    logger.destroy(); // TODO: 1 maybe the registry should do this so we don't have to ?
+    await logger.destroy(); // TODO: 1 maybe the registry should do this so we don't have to ?
   }
 
   @override

@@ -96,14 +96,14 @@ class ServiceRegistry {
   };
 
   void onConfigUpdated() {
-    for (final e in _initializedServices.values) {
-      final registration = _registeredServices[e.runtimeType]!;
+    for (final e in _initializedServices.entries) {
+      final registration = _registeredServices[e.key]!;
       if (registration.configBuilder == null) continue;
-      e.then((e) {
-        final oldConfig = e.config;
-        final newConfig = registration.configBuilder!(rawMainConfig[e.runtimeType.toString()]);
-        e.config = newConfig;
-        e.onConfigUpdated(oldConfig);
+      e.value.then((service) {
+        final oldConfig = service.config;
+        final newConfig = registration.configBuilder!(rawMainConfig[e.key.toString()]);
+        service.config = newConfig;
+        service.onConfigUpdated(oldConfig);
       });
     }
   }

@@ -56,11 +56,6 @@ class _SystemTrayWidgetState extends State<SystemTrayWidget> {
           return Row(
             children: [
               for (final item in values.items.value) _SystemTrayElementWidget(item),
-              // SizedBox(
-              //   width: !config.isBarVertical ? config.barItemSize : null,
-              //   height: config.isBarVertical ? config.barItemSize : null,
-              //   child: Text("${item.title.value} "),
-              // ),
             ],
           );
         }

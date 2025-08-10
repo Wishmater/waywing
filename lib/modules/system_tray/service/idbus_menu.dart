@@ -1,10 +1,12 @@
 // This file was generated using the following command and may be overwritten.
 // dart-dbus generate-remote-object spec/DBusMenu.xml
 
+// ignore_for_file: use_super_parameters, unintended_html_in_doc_comment
+
 import "dart:async";
 
 import "package:dbus/dbus.dart";
-import "package:flutter/cupertino.dart";
+import "package:flutter/widgets.dart";
 
 /// Signal data for com.canonical.dbusmenu.ItemsPropertiesUpdated.
 ///
@@ -512,7 +514,10 @@ class DBusMenuItemProperties {
       visible: (map.children[DBusString("visible")] as DBusVariant?)?.value.asBoolean(),
       iconName: (map.children[DBusString("icon-name")] as DBusVariant?)?.value.asString(),
       iconData: (map.children[DBusString("icon-data")] as DBusVariant?)?.value.asByteArray().toList(),
-      shortcuts: (map.children[DBusString("shortcuts")] as DBusVariant?)?.value.asArray().map((e) => e.asString()).toList(),
+      shortcuts: (map.children[DBusString("shortcuts")] as DBusVariant?)?.value
+          .asArray()
+          .map((e) => e.asString())
+          .toList(),
       toggleType: (map.children[DBusString("toggle-type")] as DBusVariant?)?.value.asString(),
       toggleState: (map.children[DBusString("toggle-state")] as DBusVariant?)?.value.asInt32(),
       childrenDisplay: (map.children[DBusString("children-display")] as DBusVariant?)?.value.asString(),

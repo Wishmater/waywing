@@ -7,17 +7,9 @@ import "package:waywing/modules/nm/nm_widget.dart";
 import "package:waywing/widgets/winged_button.dart";
 
 class NetworkManagerFeather extends Feather {
-  NetworkManagerFeather._();
-
-  @override
-  List<FeatherComponent> get components => [networkManagerComponent];
-
   late NetworkManagerService service;
 
-  @override
-  Future<void> init(BuildContext context) async {
-    service = await serviceRegistry.requestService<NetworkManagerService>(this);
-  }
+  NetworkManagerFeather._();
 
   static void registerFeather(RegisterFeatherCallback registerFeather) {
     registerFeather(
@@ -31,7 +23,15 @@ class NetworkManagerFeather extends Feather {
   @override
   String get name => "NetworkManager";
 
-  late final networkManagerComponent = FeatherComponent(
+  @override
+  Future<void> init(BuildContext context) async {
+    service = await serviceRegistry.requestService<NetworkManagerService>(this);
+  }
+
+  @override
+  List<FeatherComponent> get components => [nmComponent];
+
+  late final nmComponent = FeatherComponent(
     buildIndicators: (context, popover, tooltip) {
       return [
         WingedButton(

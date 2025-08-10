@@ -80,10 +80,17 @@ class _SystemTrayElementState extends State<_SystemTrayElementWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: We are missing overlayIcon.. and when to show it
     return SizedBox(
       width: !config.isBarVertical ? config.barItemSize : null,
       height: config.isBarVertical ? config.barItemSize : null,
-      child: _IconUtils(item.iconName.value, item.iconPixmap.value),
+      child: switch (item.status.value) {
+        // TODO: What icon should passive show or should passive be shown?
+        "Passive" => _IconUtils(item.iconName.value, item.iconPixmap.value),
+        "Active" => _IconUtils(item.iconName.value, item.iconPixmap.value),
+        "NeedsAttention" => _IconUtils(item.attentionIconName.value, item.attentionIconPixmap.value),
+        _ => _IconUtils(item.iconName.value, item.iconPixmap.value),
+      },
     );
   }
 }

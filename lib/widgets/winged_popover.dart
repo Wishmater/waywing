@@ -65,11 +65,13 @@ class WingedPopover extends StatefulWidget {
   final Widget? child;
   final PopoverParams? popoverParams;
   final PopoverParams? tooltipParams;
+  final List<(ShapeBorder, ValueNotifier<(Offset, Size)?>)> extraClientClippers;
 
   const WingedPopover({
     required this.builder,
     this.popoverParams,
     this.tooltipParams,
+    this.extraClientClippers = const [],
     this.child,
     super.key,
   }) : assert(popoverParams != null || tooltipParams != null);
@@ -97,7 +99,6 @@ class WingedPopoverState extends State<WingedPopover>
     // this fails to detect changes upstream in the tree to register a new provider,
     // but this shouldn't happen in our use case
     _provider = context.findAncestorStateOfType<WingedPopoverProviderState>()!;
-    scheduleCheckPositioningChange();
   }
 
   @override

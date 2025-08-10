@@ -16,8 +16,9 @@ class LoggingConfig with LoggingConfigI, LoggingConfigBase {
   final Level levelFilter;
   final Map<String, Level> typeLevelFilters;
 
-  LoggingConfig({Level? levelFilter, required this.typeLevelFilters})
-    : levelFilter = levelFilter ?? Level.info;
+  LoggingConfig({Level? levelFilter, Map<String, Level>? typeLevelFilters})
+    : levelFilter = levelFilter ?? Level.info,
+      typeLevelFilters = typeLevelFilters ?? <String, Level>{};
 
   factory LoggingConfig.fromMap(Map<String, dynamic> map) {
     return LoggingConfig(

@@ -23,6 +23,12 @@ mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositionin
   late ValueNotifier<Offset?> offsetNotifier = ValueNotifier(null);
   late ValueNotifier<Size?> sizeNotifier = ValueNotifier(null);
 
+  @override
+  void initState() {
+    super.initState();
+    scheduleCheckPositioningChange();
+  }
+
   void scheduleCheckPositioningChange() {
     WidgetsBinding.instance.addPostFrameCallback(checkPositioningChange);
   }
@@ -104,7 +110,6 @@ class _PositioningNotidierMonitorState extends State<PositioningNotifierMonitor>
   void initState() {
     super.initState();
     _updateControllerReferences();
-    scheduleCheckPositioningChange();
   }
 
   @override

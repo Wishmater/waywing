@@ -7,6 +7,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/popup_utils.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/shape_clipper.dart";
 import "package:waywing/widgets/winged_popover.dart";
 
 final _logger = mainLogger.clone(properties: [LogType("PopoverProvider")]);
@@ -429,7 +430,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
             }
             // print("childSize: $childSize");
             // print("childPosition: $childPosition");
-            return AnimatedPositioned(
+            Widget result = AnimatedPositioned(
               duration: config.animationDuration,
               curve: config.animationCurve,
               left: childPosition.dx,
@@ -439,6 +440,35 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               onEnd: !widget.isRemoved ? null : onRemoveAnimationEnd,
               child: container,
             );
+
+            // add extra client clippers
+            if (widget.host.widget.extraClientClippers.isNotEmpty) {
+              result = Stack(
+                fit: StackFit.expand,
+                clipBehavior: Clip.none,
+                children: [result],
+              );
+              for (final e in widget.host.widget.extraClientClippers) {
+                result = ValueListenableBuilder(
+                  valueListenable: e.$2,
+                  child: result,
+                  builder: (context, positioning, child) {
+                    Rect? rect;
+                    if (positioning != null) {
+                      final (offset, size) = positioning;
+                      rect = Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
+                    }
+                    return ClipPath(
+                      clipper: ShapeClipper(shape: e.$1, rectOverride: rect),
+                      child: child,
+                    );
+                  },
+                );
+              }
+              result = Positioned.fill(child: result);
+            }
+
+            return result;
           },
         );
       },

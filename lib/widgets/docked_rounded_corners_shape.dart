@@ -6,7 +6,7 @@ import "package:flutter/widgets.dart";
 
 getDockedRoundCornersPathForDirection({
   required ScreenEdge dockedSide,
-  required Size size,
+  required Rect rect,
   required double radiusInCross,
   required double radiusInMain,
   double radiusOutCross = 0,
@@ -14,7 +14,7 @@ getDockedRoundCornersPathForDirection({
   bool? isVertical,
 }) {
   final double radiusInX, radiusInY, radiusOutX, radiusOutY;
-  if (isVertical ?? (size.width < size.height)) {
+  if (isVertical ?? (rect.width < rect.height)) {
     radiusOutX = radiusOutCross;
     radiusOutY = radiusOutMain;
     radiusInX = radiusInCross;
@@ -27,7 +27,7 @@ getDockedRoundCornersPathForDirection({
   }
   return getDockedRoundCornersPath(
     dockedSide: dockedSide,
-    size: size,
+    rect: rect,
     radiusInX: radiusInX,
     radiusInY: radiusInY,
     radiusOutX: radiusOutX,
@@ -37,15 +37,15 @@ getDockedRoundCornersPathForDirection({
 
 getDockedRoundCornersPathPercForDirection({
   required ScreenEdge dockedSide,
-  required Size size,
+  required Rect rect,
   required double radiusInPercCross,
   required double radiusInPercMain,
   double radiusOutPercCross = 0,
   double radiusOutPercMain = 0,
   bool? isVertical,
 }) {
-  final width = size.width;
-  final height = size.height;
+  final width = rect.width;
+  final height = rect.height;
   final double radiusInX, radiusInY, radiusOutX, radiusOutY;
   if (isVertical ?? (width < height)) {
     radiusOutX = width * radiusOutPercCross;
@@ -60,7 +60,7 @@ getDockedRoundCornersPathPercForDirection({
   }
   return getDockedRoundCornersPath(
     dockedSide: dockedSide,
-    size: size,
+    rect: rect,
     radiusInX: radiusInX,
     radiusInY: radiusInY,
     radiusOutX: radiusOutX,
@@ -70,14 +70,14 @@ getDockedRoundCornersPathPercForDirection({
 
 getDockedRoundCornersPath({
   required ScreenEdge dockedSide,
-  required Size size,
+  required Rect rect,
   required double radiusInX,
   required double radiusInY,
   double radiusOutX = 0,
   double radiusOutY = 0,
 }) {
-  final width = size.width;
-  final height = size.height;
+  final width = rect.width;
+  final height = rect.height;
   final path = Path();
 
   // do not allow negative values (would probably cause a lot of breakage)
@@ -89,86 +89,88 @@ getDockedRoundCornersPath({
   // don't allow radius to exceed size (would probably cause a lot of breakage)
   if (dockedSide == ScreenEdge.left || dockedSide == ScreenEdge.right) {
     // vertical
-    if ((radiusInX + radiusOutX) > size.width) {
+    if ((radiusInX + radiusOutX) > rect.width) {
       final ratio = radiusInX / (radiusInX + radiusOutX);
-      radiusInX = size.width * ratio;
-      radiusOutX = size.width * (1 - ratio);
+      radiusInX = rect.width * ratio;
+      radiusOutX = rect.width * (1 - ratio);
     }
-    if (radiusInY * 2 > size.height) {
-      final ratio = size.height / (radiusInY * 2);
+    if (radiusInY * 2 > rect.height) {
+      final ratio = rect.height / (radiusInY * 2);
       radiusInY *= ratio;
       radiusOutY *= ratio;
     }
   } else {
     // horizontal
-    if (radiusInX * 2 > size.width) {
-      final ratio = size.width / (radiusInX * 2);
+    if (radiusInX * 2 > rect.width) {
+      final ratio = rect.width / (radiusInX * 2);
       radiusInX *= ratio;
       radiusOutX *= ratio;
     }
-    if ((radiusInY + radiusOutY) > size.height) {
+    if ((radiusInY + radiusOutY) > rect.height) {
       final ratio = (radiusInY / (radiusInY + radiusOutY));
-      radiusInY = size.height * ratio;
-      radiusOutY = size.height * (1 - ratio);
+      radiusInY = rect.height * ratio;
+      radiusOutY = rect.height * (1 - ratio);
     }
   }
+  final x = rect.left;
+  final y = rect.top;
 
   switch (dockedSide) {
     case ScreenEdge.right:
       // Top-left corner
-      path.moveTo(0, radiusInY);
-      path.quadraticBezierTo(0, radiusOutY, radiusInX, radiusOutY);
+      path.moveTo(x, y + radiusInY);
+      path.quadraticBezierTo(x, y + radiusOutY, x + radiusInX, y + radiusOutY);
       // Top-right corner
-      path.lineTo(width - radiusOutX, radiusOutY);
-      path.quadraticBezierTo(width, radiusOutY, width, 0);
+      path.lineTo(x + width - radiusOutX, y + radiusOutY);
+      path.quadraticBezierTo(x + width, y + radiusOutY, x + width, y);
       // Bottom-right corner
-      path.lineTo(width, height);
-      path.quadraticBezierTo(width, height - radiusOutY, width - radiusOutX, height - radiusOutY);
+      path.lineTo(x + width, y + height);
+      path.quadraticBezierTo(x + width, y + height - radiusOutY, x + width - radiusOutX, y + height - radiusOutY);
       // Bottom-left corner
-      path.lineTo(radiusInX, height - radiusOutY);
-      path.quadraticBezierTo(0, height - radiusOutY, 0, height - radiusInY);
+      path.lineTo(x + radiusInX, y + height - radiusOutY);
+      path.quadraticBezierTo(x, y + height - radiusOutY, x, y + height - radiusInY);
 
     case ScreenEdge.left:
       // Top-left corner
-      path.moveTo(0, 0);
-      path.quadraticBezierTo(0, radiusOutY, radiusOutX, radiusOutY);
+      path.moveTo(x, y);
+      path.quadraticBezierTo(x, y + radiusOutY, x + radiusOutX, y + radiusOutY);
       // Top-right corner
-      path.lineTo(width - radiusInX, radiusOutY);
-      path.quadraticBezierTo(width, radiusOutY, width, radiusInY);
+      path.lineTo(x + width - radiusInX, y + radiusOutY);
+      path.quadraticBezierTo(x + width, y + radiusOutY, x + width, y + radiusInY);
       // Bottom-right corner
-      path.lineTo(width, height - radiusInY);
-      path.quadraticBezierTo(width, height - radiusOutY, width - radiusInX, height - radiusOutY);
+      path.lineTo(x + width, y + height - radiusInY);
+      path.quadraticBezierTo(x + width, y + height - radiusOutY, x + width - radiusInX, y + height - radiusOutY);
       // Bottom-left corner
-      path.lineTo(radiusOutX, height - radiusOutY);
-      path.quadraticBezierTo(0, height - radiusOutY, 0, height);
+      path.lineTo(x + radiusOutX, y + height - radiusOutY);
+      path.quadraticBezierTo(x, y + height - radiusOutY, x, y + height);
 
     case ScreenEdge.top:
       // Top-left corner
-      path.moveTo(radiusOutX, radiusOutY);
-      path.quadraticBezierTo(radiusOutX, 0, 0, 0);
+      path.moveTo(x + radiusOutX, y + radiusOutY);
+      path.quadraticBezierTo(x + radiusOutX, y, x, y);
       // Top-right corner
-      path.lineTo(width, 0);
-      path.quadraticBezierTo(width - radiusOutX, 0, width - radiusOutX, radiusOutY);
+      path.lineTo(x + width, y);
+      path.quadraticBezierTo(x + width - radiusOutX, y, x + width - radiusOutX, y + radiusOutY);
       // Bottom-right corner
-      path.lineTo(width - radiusOutX, height - radiusInY);
-      path.quadraticBezierTo(width - radiusOutX, height, width - radiusInX, height);
+      path.lineTo(x + width - radiusOutX, y + height - radiusInY);
+      path.quadraticBezierTo(x + width - radiusOutX, y + height, x + width - radiusInX, y + height);
       // Bottom-left corner
-      path.lineTo(radiusInX, height);
-      path.quadraticBezierTo(radiusOutX, height, radiusOutX, height - radiusInY);
+      path.lineTo(x + radiusInX, y + height);
+      path.quadraticBezierTo(x + radiusOutX, y + height, x + radiusOutX, y + height - radiusInY);
 
     case ScreenEdge.bottom:
       // Top-left corner
-      path.moveTo(0, height);
-      path.quadraticBezierTo(radiusOutX, height, radiusOutX, height - radiusOutY);
+      path.moveTo(x, y + height);
+      path.quadraticBezierTo(x + radiusOutX, y + height, x + radiusOutX, y + height - radiusOutY);
       // Top-right corner
-      path.lineTo(radiusOutX, radiusInY);
-      path.quadraticBezierTo(radiusOutX, 0, radiusInX, 0);
+      path.lineTo(x + radiusOutX, y + radiusInY);
+      path.quadraticBezierTo(x + radiusOutX, y, x + radiusInX, y);
       // Bottom-right corner
-      path.lineTo(width - radiusInX, 0);
-      path.quadraticBezierTo(width - radiusOutX, 0, width - radiusOutX, radiusInY);
+      path.lineTo(x + width - radiusInX, y);
+      path.quadraticBezierTo(x + width - radiusOutX, y, x + width - radiusOutX, y + radiusInY);
       // Bottom-left corner
-      path.lineTo(width - radiusOutX, height - radiusOutY);
-      path.quadraticBezierTo(width - radiusOutX, height, width, height);
+      path.lineTo(x + width - radiusOutX, y + height - radiusOutY);
+      path.quadraticBezierTo(x + width - radiusOutX, y + height, x + width, y + height);
   }
 
   path.close();
@@ -206,7 +208,7 @@ class DockedRoundedCornersBorder extends ShapeBorder {
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
     return getDockedRoundCornersPathForDirection(
       dockedSide: dockedSide,
-      size: rect.size,
+      rect: rect,
       radiusInCross: radiusInCross,
       radiusInMain: radiusInMain,
       radiusOutCross: radiusOutCross,
@@ -357,7 +359,7 @@ class DockedRoundedCornersBorderPerc extends ShapeBorder {
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
     return getDockedRoundCornersPathPercForDirection(
       dockedSide: dockedSide,
-      size: rect.size,
+      rect: rect,
       radiusInPercCross: radiusInPercCross,
       radiusInPercMain: radiusInPercMain,
       radiusOutPercCross: radiusOutPercCross,
@@ -431,7 +433,7 @@ class DockedRoundedCornersClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     return getDockedRoundCornersPathForDirection(
       dockedSide: dockedSide,
-      size: size,
+      rect: Rect.fromLTWH(0, 0, size.width, size.height),
       radiusInCross: radiusInCross,
       radiusInMain: radiusInMain,
       radiusOutCross: radiusOutCross,
@@ -471,7 +473,7 @@ class DockedRoundedCornersClipperPerc extends CustomClipper<Path> {
   Path getClip(Size size) {
     return getDockedRoundCornersPathPercForDirection(
       dockedSide: dockedSide,
-      size: size,
+      rect: Rect.fromLTWH(0, 0, size.width, size.height),
       radiusInPercCross: radiusInPercCross,
       radiusInPercMain: radiusInPercMain,
       radiusOutPercCross: radiusOutPercCross,

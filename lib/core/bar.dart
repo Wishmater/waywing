@@ -3,6 +3,7 @@ import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/docked_rounded_corners_shape.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/config.dart";
@@ -20,6 +21,7 @@ class _BarState extends State<Bar> {
   // adding global keys to feathers ensures their state
   // won't be lost when reloading config, including popover and tooltip state
   Map<String, List<GlobalKey>> featherGlobalKeys = {};
+  final PositioningNotifierController barPositioningController = PositioningNotifierController();
 
   @override
   void didUpdateWidget(covariant Bar oldWidget) {
@@ -114,52 +116,70 @@ class _BarState extends State<Bar> {
             left: left?.coerceAtLeast(0) ?? 0,
             right: right?.coerceAtLeast(0) ?? 0,
           ),
-          child: WingedContainer(
-            // animationDuration: config.animationDuration * 1.5,
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            elevation: 6, // TODO: 2 expose bar elevation theme option to user
-            shape: shape,
-            // TODO: 2 implement a proper layout that handles gracefully when widgets overflow
-            // this should also solve the issue of widgets being disposed when switching vertical
-            // to horizontal bar (or viceversa) because we switched Row / Column
-            child: Padding(
-              padding: shape.dimensions,
-              child: Stack(
-                clipBehavior: Clip.none,
-                fit: StackFit.expand,
-                children: [
-                  Container(
-                    alignment: endAlignment,
-                    padding: EdgeInsets.only(
-                      right: !config.isBarVertical ? config.barSize * 0.2 : 0,
-                      bottom: config.isBarVertical ? config.barSize * 0.2 : 0,
+          child: PositioningNotifierMonitor(
+            controller: barPositioningController,
+            child: WingedContainer(
+              // animationDuration: config.animationDuration * 1.5,
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              elevation: 6, // TODO: 2 expose bar elevation theme option to user
+              shape: shape,
+              // TODO: 2 implement a proper layout that handles gracefully when widgets overflow
+              // this should also solve the issue of widgets being disposed when switching vertical
+              // to horizontal bar (or viceversa) because we switched Row / Column
+              child: Padding(
+                padding: shape.dimensions,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  fit: StackFit.expand,
+                  children: [
+                    Container(
+                      alignment: endAlignment,
+                      padding: EdgeInsets.only(
+                        right: !config.isBarVertical ? config.barSize * 0.2 : 0,
+                        bottom: config.isBarVertical ? config.barSize * 0.2 : 0,
+                      ),
+                      child: buildLayoutWidget(
+                        context,
+                        buildFeatherWidgets(
+                          context: context,
+                          feathers: config.barEndFeathers,
+                          feathersCount: feathersCount,
+                          barShape: shape,
+                        ),
+                      ),
                     ),
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(context, config.barEndFeathers, feathersCount),
-                    ),
-                  ),
 
-                  Align(
-                    alignment: Alignment.center,
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(context, config.barCenterFeathers, feathersCount),
+                    Align(
+                      alignment: Alignment.center,
+                      child: buildLayoutWidget(
+                        context,
+                        buildFeatherWidgets(
+                          context: context,
+                          feathers: config.barCenterFeathers,
+                          feathersCount: feathersCount,
+                          barShape: shape,
+                        ),
+                      ),
                     ),
-                  ),
 
-                  Container(
-                    alignment: startAlignment,
-                    padding: EdgeInsets.only(
-                      left: !config.isBarVertical ? config.barSize * 0.2 : 0,
-                      top: config.isBarVertical ? config.barSize * 0.2 : 0,
+                    Container(
+                      alignment: startAlignment,
+                      padding: EdgeInsets.only(
+                        left: !config.isBarVertical ? config.barSize * 0.2 : 0,
+                        top: config.isBarVertical ? config.barSize * 0.2 : 0,
+                      ),
+                      child: buildLayoutWidget(
+                        context,
+                        buildFeatherWidgets(
+                          context: context,
+                          feathers: config.barStartFeathers,
+                          feathersCount: feathersCount,
+                          barShape: shape,
+                        ),
+                      ),
                     ),
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(context, config.barStartFeathers, feathersCount),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -184,7 +204,12 @@ class _BarState extends State<Bar> {
     }
   }
 
-  List<Widget> buildFeatherWidgets(BuildContext context, List<Feather> feathers, Map<String, int> feathersCount) {
+  List<Widget> buildFeatherWidgets({
+    required BuildContext context,
+    required List<Feather> feathers,
+    required Map<String, int> feathersCount,
+    required ShapeBorder barShape,
+  }) {
     final result = <Widget>[];
     for (final feather in feathers) {
       if (feather.components.isEmpty) continue;
@@ -216,6 +241,7 @@ class _BarState extends State<Bar> {
               var widget = buildPopover(
                 context: context,
                 component: component,
+                barShape: barShape,
                 builder: (context, popover) {
                   final indicators = component.buildIndicators!(context, popover, null);
                   for (int i = 0; i < indicators.length; i++) {
@@ -263,6 +289,7 @@ class _BarState extends State<Bar> {
     required BuildContext context,
     required FeatherComponent component,
     required PopoverBuilder builder,
+    required ShapeBorder barShape,
   }) {
     if (component.buildPopover == null && component.buildTooltip == null) {
       return builder(context, null);
@@ -300,6 +327,7 @@ class _BarState extends State<Bar> {
             );
             return WingedPopover(
               builder: (context, controller, _) => builder(context, controller),
+              extraClientClippers: [(barShape, barPositioningController.positioningNotifier)],
               popoverParams: component.buildPopover == null
                   ? null
                   : PopoverParams(

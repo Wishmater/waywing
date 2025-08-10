@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:dbus/dbus.dart";
 import "package:flutter/material.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/modules/system_tray/service/istatus_notifier_item.dart";
 import "package:waywing/modules/system_tray/service/istatus_notifier_watcher.dart";
 import "package:waywing/modules/system_tray/service/status_notifier_watcher.dart";
@@ -10,12 +11,13 @@ import "package:waywing/util/slice.dart";
 class OrgKdeStatusNotifierHostImpl extends DBusObject {
   late final OrgKdeStatusNotifierWatcher _watcher;
 
-  final Map<String, OrgKdeStatusNotifierItem> _items;
-  ValueNotifier<Slice<OrgKdeStatusNotifierItem>> items;
+  final Map<String, OrgKdeStatusNotifierItemValues> _items;
+  ValueNotifier<Slice<OrgKdeStatusNotifierItemValues>> items;
+  final Logger logger;
 
   final List<StreamSubscription> _subscriptions;
 
-  OrgKdeStatusNotifierHostImpl(super.path) : _items = {}, items = ValueNotifier(Slice([])), _subscriptions = [];
+  OrgKdeStatusNotifierHostImpl(this.logger, super.path) : _items = {}, items = ValueNotifier(Slice([])), _subscriptions = [];
 
   /// Init all resources needed to work normally
   ///
@@ -39,28 +41,35 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
       e.cancel();
     }
     items.dispose();
+    for (final value in _items.values) {
+      value.dispose();
+    }
+    _items.clear();
   }
 
-  void _addItem(String itemPath) {
+  Future<void> _addItem(String itemPath) async {
     final (destination, path) = OrgKdeStatusNotifierItem.splitItemStr(itemPath);
-    _items[itemPath] = OrgKdeStatusNotifierItem(client!, destination, path);
+    final item = OrgKdeStatusNotifierItem(client!, destination, path);
+    _items[itemPath] = OrgKdeStatusNotifierItemValues(item, logger);
+    await _items[itemPath]?.initFields();
   }
 
   void _removeItem(String itemPath) {
-    _items.remove(itemPath);
+    final itemValues = _items.remove(itemPath);
+    itemValues?.dispose();
   }
 
   Future<void> _fillStatusNotifierItems() async {
     final itemsPath = await _watcher.getRegisteredStatusNotifierItems();
     for (final itemPath in itemsPath) {
-      _addItem(itemPath);
+      await _addItem(itemPath);
     }
     items.value = Slice(_items.values);
 
     // listen to signal of new registered item
     _subscriptions.add(
-      _watcher.statusNotifierItemRegistered.listen((v) {
-        _addItem(v.arg_0);
+      _watcher.statusNotifierItemRegistered.listen((v) async {
+        await _addItem(v.arg_0);
         items.value = Slice(_items.values);
       }),
     );

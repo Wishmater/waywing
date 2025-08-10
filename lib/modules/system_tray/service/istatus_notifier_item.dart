@@ -383,6 +383,14 @@ class PixmapIcons {
     }
     return response;
   }
+
+  @override
+  bool operator ==(covariant PixmapIcons other) {
+    return icons == other.icons;
+  }
+
+  @override
+  int get hashCode => icons.hashCode;
 }
 
 class OrgKdeStatusNotifierItemToolTip {
@@ -622,7 +630,9 @@ class OrgKdeStatusNotifierItemValues {
       statusNotifierItem.getCategory().then((v) => category = v).onError((_, _) => category = "ApplicationStatus"),
       statusNotifierItem.getWindowId().then((v) => windowsId = v).onError((_, _) => windowsId = 0),
       statusNotifierItem.getItemIsMenu().then((v) => itemIsMenu = v).onError((_, _) => itemIsMenu = false),
-      statusNotifierItem.getMenu().then((v) => menu = v).onError((_, _) => menu = DBusObjectPath.unchecked("")).then((v) {
+      statusNotifierItem.getMenu().then((v) => menu = v).onError((_, _) => menu = DBusObjectPath.unchecked("")).then((
+        v,
+      ) {
         final obj = ComCanonicalDbusmenu(statusNotifierItem.client, statusNotifierItem.name, path: v);
         dbusmenu = DBusMenuValues(obj);
       }),

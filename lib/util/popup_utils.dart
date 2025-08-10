@@ -52,6 +52,8 @@ Offset getPopoverPosition({
       : y - (hostPosition.dy + hostSize.height)).smartClamp(0, extraOffset.dy);
   if (overlappingWidth >= hostSize.width) {
     x = hostPosition.dx - ((currentChildWidth-hostSize.width) * ((popupAlignment.x-1)/-2));
+  } else if (overlappingWidth >= childSize.width) {
+    x = hostPosition.dx + ((-currentChildWidth+hostSize.width) * ((popupAlignment.x-1)/-2));
   } else if (hostPosition.dx < x) {
     x = hostPosition.dx + hostSize.width - overlappingWidth;
   } else {
@@ -59,6 +61,8 @@ Offset getPopoverPosition({
   }
   if (overlappingHeight >= hostSize.height) {
     y = hostPosition.dy - ((currentChildHeight-hostSize.height) * ((popupAlignment.y-1)/-2));
+  } else if (overlappingHeight >= childSize.height) {
+    y = hostPosition.dy + ((-currentChildHeight+hostSize.height) * ((popupAlignment.y-1)/-2));
   } else if (hostPosition.dy < y) {
     y = hostPosition.dy + hostSize.height - overlappingHeight;
   } else {

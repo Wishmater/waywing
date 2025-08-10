@@ -8,6 +8,8 @@ import "package:waywing/modules/system_tray/service/istatus_notifier_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "dart:ui" as ui;
 
+import "package:xdg_icons/xdg_icons.dart";
+
 class SystemTrayWidget extends StatefulWidget {
   final SystemTrayService service;
 
@@ -110,7 +112,7 @@ class _IconUtils extends StatelessWidget {
         ),
       );
     } else {
-      return Text(path);
+      return XdgIcon(name: path, size: config.barItemSize.floor());
     }
   }
 }

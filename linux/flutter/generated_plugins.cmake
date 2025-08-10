@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   fl_linux_window_manager
+  xdg_icons
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

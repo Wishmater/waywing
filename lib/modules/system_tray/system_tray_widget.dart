@@ -6,8 +6,6 @@ import "package:flutter/services.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/system_tray/service/istatus_notifier_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
-import "package:waywing/widgets/winged_button.dart";
-import "package:image/image.dart" as img;
 import "dart:ui" as ui;
 
 class SystemTrayWidget extends StatefulWidget {

@@ -547,14 +547,18 @@ class OrgKdeStatusNotifierItemValues {
 
   Future<void>? _initialized;
 
-  OrgKdeStatusNotifierItemValues(this.statusNotifierItem, Logger logger) {
-    title = DBusValueNotifier("", statusNotifierItem.getTitle, statusNotifierItem.newTitle, logger);
+  final Logger _logger;
+
+  OrgKdeStatusNotifierItemValues(this.statusNotifierItem, this._logger) {
+    _logger.debug("create OrgKdeStatusNotifierItemValues");
+
+    title = DBusValueNotifier("", statusNotifierItem.getTitle, statusNotifierItem.newTitle, _logger);
 
     iconName = DBusValueNotifier(
       "",
       statusNotifierItem.getIconName,
       statusNotifierItem.newIcon,
-      logger,
+      _logger,
     );
     iconPixmap = DBusValueNotifier(
       PixmapIcons.empty(),
@@ -563,14 +567,14 @@ class OrgKdeStatusNotifierItemValues {
         return PixmapIcons.fromDBusData(data);
       },
       statusNotifierItem.newIcon,
-      logger,
+      _logger,
     );
 
     attentionIconName = DBusValueNotifier(
       "",
       statusNotifierItem.getAttentionIconName,
       statusNotifierItem.newAttentionIcon,
-      logger,
+      _logger,
     );
     attentionIconPixmap = DBusValueNotifier(
       PixmapIcons.empty(),
@@ -579,20 +583,20 @@ class OrgKdeStatusNotifierItemValues {
         return PixmapIcons.fromDBusData(data);
       },
       statusNotifierItem.newAttentionIcon,
-      logger,
+      _logger,
     );
     attentionMovieName = DBusValueNotifier(
       "",
       statusNotifierItem.getAttentionMovieName,
       statusNotifierItem.newAttentionIcon,
-      logger,
+      _logger,
     );
 
     overlayIconName = DBusValueNotifier(
       "",
       statusNotifierItem.getOverlayIconName,
       statusNotifierItem.newOverlayIcon,
-      logger,
+      _logger,
     );
     overlayIconPixmap = DBusValueNotifier(
       PixmapIcons.empty(),
@@ -601,7 +605,7 @@ class OrgKdeStatusNotifierItemValues {
         return PixmapIcons.fromDBusData(data);
       },
       statusNotifierItem.newOverlayIcon,
-      logger,
+      _logger,
     );
 
     tooltip = DBusValueNotifier(
@@ -611,14 +615,14 @@ class OrgKdeStatusNotifierItemValues {
         return OrgKdeStatusNotifierItemToolTip.fromDBusData(data);
       },
       statusNotifierItem.newToolTip,
-      logger,
+      _logger,
     );
 
     status = DBusValueNotifier(
       "",
       statusNotifierItem.getStatus,
       statusNotifierItem.newToolTip,
-      logger,
+      _logger,
     );
     initFields();
   }
@@ -639,7 +643,10 @@ class OrgKdeStatusNotifierItemValues {
         dbusmenu = DBusMenuValues(obj);
       }),
     ];
-    _initialized = Future.wait(futures);
+    _initialized = futures.wait.timeout(Duration(milliseconds: 200)).onError((e, st) {
+      _logger.error("initialization failed", error: e, stackTrace: st);
+      return [];
+    });
   }
 
   void dispose() {

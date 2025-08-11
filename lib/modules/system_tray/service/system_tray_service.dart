@@ -45,25 +45,16 @@ class SystemTrayService extends Service {
   @override
   Future<void> init() async {
     _client = DBusClient.session();
-    final reply = await _client.requestName(
+
+    _watcher = OrgKdeStatusNotifierWatcherImpl(logger, path: OrgKdeStatusNotifierWatcherImpl.objectPath);
+    await _client.registerObject(_watcher!);
+    final _ = await _client.requestName(
       OrgKdeStatusNotifierWatcherImpl.interfaceName,
       flags: {DBusRequestNameFlag.doNotQueue},
     );
+    await _watcher!.emitStatusNotifierHostRegistered();
 
-    if (reply == DBusRequestNameReply.alreadyOwner || reply == DBusRequestNameReply.primaryOwner) {
-      _watcher = OrgKdeStatusNotifierWatcherImpl(logger, path: OrgKdeStatusNotifierWatcherImpl.objectPath);
-      await _client.registerObject(_watcher!);
-      // Apparently we need to emit this signal for clients to know that the watcher is up
-      // I did not find any documentation about this... this is thanks to AI
-      _watcher!.emitSignal("org.kde.StatusNotifierWatcher", "StatusNotifierWatcher");
-      // await _watcher!.emitStatusNotifierHostRegistered();
-      _watcher!.emitPropertiesChanged(
-        "org.kde.StatusNotifierWatcher",
-        changedProperties: {"IsStatusNotifierHostRegistered": DBusVariant(DBusBoolean(true))},
-      );
-    }
-
-    await _client.requestName("shell.waywing.StatusNotifierHost");
+    await _client.requestName("shell.waywing.StatusNotifierHost", flags: {DBusRequestNameFlag.doNotQueue});
     try {
       _host = OrgKdeStatusNotifierHostImpl(logger, DBusObjectPath("/"));
     } catch (e, st) {

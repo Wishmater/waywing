@@ -679,9 +679,9 @@ class DBusValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> 
         _value = newValue;
         notifyListeners();
       } on DBusUnknownPropertyException catch (e) {
-        logger.warning("[$debugLabel] Error calling method: ", error: e);
+        logger.debug("[$debugLabel] Error calling method: ", error: e);
       } on DBusInvalidArgsException catch (e) {
-        logger.warning("[$debugLabel] Error calling method: ", error: e);
+        logger.debug("[$debugLabel] Error calling method: ", error: e);
       } catch (e, st) {
         logger.error("[$debugLabel] Error calling method: ", error: e, stackTrace: st);
       }
@@ -696,7 +696,7 @@ class DBusValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> 
         })
         .onError((e, st) {
           if (e is DBusUnknownPropertyException || e is DBusInvalidArgsException) {
-            logger.warning("[$debugLabel] Error calling method: ", error: e);
+            logger.debug("[$debugLabel] Error calling method: ", error: e);
           } else {
             logger.error("[$debugLabel] Error calling method: ", error: e, stackTrace: st);
           }

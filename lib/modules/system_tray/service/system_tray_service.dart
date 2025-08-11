@@ -27,7 +27,6 @@ class SystemTrayItem {
 }
 
 class SystemTrayService extends Service {
-
   SystemTrayService._();
 
   static registerService(RegisterServiceCallback registerService) {
@@ -52,20 +51,28 @@ class SystemTrayService extends Service {
     );
 
     if (reply == DBusRequestNameReply.alreadyOwner || reply == DBusRequestNameReply.primaryOwner) {
-      _watcher = OrgKdeStatusNotifierWatcherImpl(path: OrgKdeStatusNotifierWatcherImpl.objectPath);
+      _watcher = OrgKdeStatusNotifierWatcherImpl(logger, path: OrgKdeStatusNotifierWatcherImpl.objectPath);
       await _client.registerObject(_watcher!);
+      // Apparently we need to emit this signal for clients to know that the watcher is up
+      // I did not find any documentation about this... this is thanks to AI
+      _watcher!.emitSignal("org.kde.StatusNotifierWatcher", "StatusNotifierWatcher");
+      // await _watcher!.emitStatusNotifierHostRegistered();
+      _watcher!.emitPropertiesChanged(
+        "org.kde.StatusNotifierWatcher",
+        changedProperties: {"IsStatusNotifierHostRegistered": DBusVariant(DBusBoolean(true))},
+      );
     }
 
     await _client.requestName("shell.waywing.StatusNotifierHost");
     try {
       _host = OrgKdeStatusNotifierHostImpl(logger, DBusObjectPath("/"));
-    } catch(e,st) {
+    } catch (e, st) {
       logger.fatal('DBusObjectPath("shell.waywing.StatusNotifierHost") failed', error: e, stackTrace: st);
     }
     await _client.registerObject(_host);
     try {
       await _host.init();
-    } catch(e, st) {
+    } catch (e, st) {
       logger.fatal("Host initialization failed", error: e, stackTrace: st);
     }
 
@@ -79,6 +86,9 @@ class SystemTrayService extends Service {
       await _client.releaseName(OrgKdeStatusNotifierWatcherImpl.interfaceName);
       _watcher!.dispose();
     }
+    await _client.unregisterObject(_host);
+    _host.dispose();
+
     await _client.close();
     await logger.destroy();
   }

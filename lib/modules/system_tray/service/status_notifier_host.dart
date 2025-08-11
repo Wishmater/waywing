@@ -52,11 +52,13 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
     final item = OrgKdeStatusNotifierItem(client!, destination, path);
     _items[itemPath] = OrgKdeStatusNotifierItemValues(item, logger);
     await _items[itemPath]?.initFields();
+    items.value = Slice(_items.values);
   }
 
   void _removeItem(String itemPath) {
     final itemValues = _items.remove(itemPath);
     itemValues?.dispose();
+    items.value = Slice(_items.values);
   }
 
   Future<void> _fillStatusNotifierItems() async {

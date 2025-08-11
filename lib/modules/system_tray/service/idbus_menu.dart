@@ -504,9 +504,6 @@ class DBusMenuItemProperties {
        disposition = disposition ?? "normal";
 
   factory DBusMenuItemProperties.fromDBus(DBusDict map) {
-    for (final sads in map.children.entries) {
-      print("${sads.key}  ${sads.value} ${sads.value.signature}");
-    }
     return DBusMenuItemProperties(
       type: (map.children[DBusString("type")] as DBusVariant?)?.value.asString(),
       label: (map.children[DBusString("label")] as DBusVariant?)?.value.asString(),

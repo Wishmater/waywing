@@ -43,6 +43,7 @@ dependencies:
   nm: ^0.5.0
   chalkdart: ^3.0.5
   xdg_icons: ^0.1.2
+  upower: ^0.7.0
 
 dev_dependencies:
   flutter_test:

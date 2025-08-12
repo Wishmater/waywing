@@ -13,9 +13,10 @@ import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
   List<WifiDeviceValues> wifiDevicesValues;
+  List<EthernetDeviceValues> ethernetDevicesValues; // TODO this values can go off.. we need to handle this
   final NetworkManagerClient client;
 
-  NetworkManagerService._() : client = NetworkManagerClient(), wifiDevicesValues = [];
+  NetworkManagerService._() : client = NetworkManagerClient(), wifiDevicesValues = [], ethernetDevicesValues = [];
 
   static registerService(RegisterServiceCallback registerService) {
     registerService<NetworkManagerService, dynamic>(
@@ -27,6 +28,12 @@ class NetworkManagerService extends Service {
 
   @override
   Future<void> dispose() async {
+    for (final wifi in wifiDevicesValues) {
+      wifi.dispose();
+    }
+    for (final ethernet in ethernetDevicesValues) {
+      ethernet.dispose();
+    }
     await client.close();
   }
 
@@ -37,6 +44,8 @@ class NetworkManagerService extends Service {
     for (final device in client.devices) {
       if (device.deviceType == NetworkManagerDeviceType.wifi) {
         wifiDevicesValues.add(WifiDeviceValues(device));
+      } else if (device.deviceType == NetworkManagerDeviceType.ethernet) {
+        ethernetDevicesValues.add(EthernetDeviceValues(device));
       }
     }
     if (wifiDevicesValues.isEmpty) {
@@ -46,6 +55,10 @@ class NetworkManagerService extends Service {
 
   WifiDeviceValues getWifiDeviceValuesFirst() {
     return wifiDevicesValues[0];
+  }
+
+  EthernetDeviceValues getEtherenetDeviceValuesFirst() {
+    return ethernetDevicesValues[0];
   }
 
   Future<ConnectResponse> connect(
@@ -444,5 +457,34 @@ class OwnedNullableListener<T extends ChangeNotifier> with ChangeNotifier {
   void dispose() {
     listener?.dispose();
     super.dispose();
+  }
+}
+
+class EthernetDeviceValues {
+  NetworkManagerDevice device;
+  NetworkManagerDeviceWired get wiredDevice => device.wired!;
+
+  /// Design speed of the device, in megabits/second (Mb/s).
+  ///
+  /// TODO: this needs testing connecting different cables to see how the update should work
+  final int speed;
+
+  final DBusProperyValueNotifier<bool> isConnected;
+
+  EthernetDeviceValues(this.device)
+    : speed = device.wired!.speed,
+      isConnected = DBusProperyValueNotifier(
+        value: device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier),
+        name: "InterfaceFlags",
+        stream: device.propertiesChanged,
+        callback: () => device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier),
+      ) {
+        print(device.interfaceFlags);
+        print(device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier));
+      }
+
+
+  void dispose() {
+    isConnected.dispose();
   }
 }

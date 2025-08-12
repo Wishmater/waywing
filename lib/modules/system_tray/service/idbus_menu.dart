@@ -743,7 +743,7 @@ class _RemovedProps {
   factory _RemovedProps.fromDBus(List<DBusValue> values) {
     return _RemovedProps(
       values[0].asInt32(),
-      values[0].asArray().map((e) => e.asString()).toList(),
+      values[1].asArray().map((e) => e.asString()).toList(),
     );
   }
 }

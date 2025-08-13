@@ -478,10 +478,7 @@ class EthernetDeviceValues {
         name: "InterfaceFlags",
         stream: device.propertiesChanged,
         callback: () => device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier),
-      ) {
-        print(device.interfaceFlags);
-        print(device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier));
-      }
+      );
 
 
   void dispose() {

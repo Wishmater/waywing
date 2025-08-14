@@ -2,11 +2,12 @@ import "package:flutter/cupertino.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/nm/nm_config.dart";
+import "package:waywing/modules/nm/nm_indicator.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 import "package:waywing/modules/nm/nm_widget.dart";
-import "package:waywing/widgets/winged_button.dart";
 
-class NetworkManagerFeather extends Feather {
+class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
   late NetworkManagerService service;
 
   NetworkManagerFeather._();
@@ -16,6 +17,8 @@ class NetworkManagerFeather extends Feather {
       "NetworkManager",
       FeatherRegistration(
         constructor: NetworkManagerFeather._,
+        schemaBuilder: () => NetworkManagerConfig.schema,
+        configBuilder: NetworkManagerConfig.fromMap,
       ),
     );
   }
@@ -34,22 +37,11 @@ class NetworkManagerFeather extends Feather {
   late final nmComponent = FeatherComponent(
     buildIndicators: (context, popover, tooltip) {
       return [
-        WingedButton(
-          onTap: () => popover!.togglePopover(),
-          child: Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: NetworkManagerWidget(
-              logger: logger,
-              service: service,
-            ),
-          ),
-        ),
+        NetworkManagerIndicator(config: config, service: service, popover: popover!),
       ];
     },
-
-    buildPopover: (context) => NetworkManagerPopover(
-      logger: logger,
-      service: service,
-    ),
+    buildPopover: (context) {
+      return NetworkManagerPopover(logger: logger, service: service);
+    },
   );
 }

@@ -12,10 +12,10 @@ import "package:waywing/util/logger.dart";
 import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
-  List<WifiDeviceValues> wifiDevicesValues;
-  final NetworkManagerClient client;
+  final List<WifiDeviceValues> wifiDevicesValues = [];
+  final NetworkManagerClient client = NetworkManagerClient();
 
-  NetworkManagerService._() : client = NetworkManagerClient(), wifiDevicesValues = [];
+  NetworkManagerService._();
 
   static registerService(RegisterServiceCallback registerService) {
     registerService<NetworkManagerService, dynamic>(
@@ -26,22 +26,28 @@ class NetworkManagerService extends Service {
   }
 
   @override
-  Future<void> dispose() async {
-    await client.close();
-  }
-
-  @override
   Future<void> init() async {
     await client.connect();
 
+    // TODO: 1 NetwokManager do we need to listen to device changes? (new devices / device removed)
     for (final device in client.devices) {
+      // TODO: 1 NetwokManager properly handle other/multiple/no device types, probably by creating several FeatherComponents
+      // this requires a new core feature of making FeatherComponents list listenable somehow
+      // !!! should we use client.primaryConnection.devices so it uses wifi/lan smartly (test this)
       if (device.deviceType == NetworkManagerDeviceType.wifi) {
         wifiDevicesValues.add(WifiDeviceValues(device));
       }
     }
     if (wifiDevicesValues.isEmpty) {
+      // TODO: 1 NetwokManager remove this when multiple devices are handled properly
       throw UnimplementedError("TODO: handle when there is no wifi device");
     }
+  }
+
+  @override
+  Future<void> dispose() async {
+    // TODO: 1 NetwokManager do we need to dispose all the Listenables created ?
+    await client.close();
   }
 
   WifiDeviceValues getWifiDeviceValuesFirst() {

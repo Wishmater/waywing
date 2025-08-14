@@ -1,0 +1,12 @@
+import "package:config/config.dart";
+import "package:config_gen/config_gen.dart";
+
+part "nm_config.g.dart";
+
+@Config()
+mixin NetworkManagerConfigBase on NetworkManagerConfigI {
+  static const _showWiFiNameIndicator = BooleanField(defaultTo: false);
+  static const _showUploadIndicator = BooleanField(defaultTo: false);
+  static const _showDownloadIndicator = BooleanField(defaultTo: false);
+  static const _showThroughputIndicator = BooleanField(defaultTo: true);
+}

@@ -3,9 +3,11 @@ import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
 import "package:waywing/modules/nm/nm_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_feather.dart";
+import "package:waywing/modules/volume/volume_feather.dart";
 import "package:waywing/util/logger.dart";
 
 final featherRegistry = FeatherRegistry._();
@@ -156,6 +158,8 @@ class FeatherRegistry {
     ClockFeather.registerFeather(registerFeather);
     SystemTrayFeather.registerFeather(registerFeather);
     NetworkManagerFeather.registerFeather(registerFeather);
+    BatteryFeather.registerFeather(registerFeather);
+    VolumeFeather.registerFeather(registerFeather);
   }
 }
 

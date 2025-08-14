@@ -27,7 +27,6 @@ class SystemTrayItem {
 }
 
 class SystemTrayService extends Service {
-
   SystemTrayService._();
 
   static registerService(RegisterServiceCallback registerService) {
@@ -46,26 +45,25 @@ class SystemTrayService extends Service {
   @override
   Future<void> init() async {
     _client = DBusClient.session();
-    final reply = await _client.requestName(
+
+    _watcher = OrgKdeStatusNotifierWatcherImpl(logger, path: OrgKdeStatusNotifierWatcherImpl.objectPath);
+    await _client.registerObject(_watcher!);
+    final _ = await _client.requestName(
       OrgKdeStatusNotifierWatcherImpl.interfaceName,
       flags: {DBusRequestNameFlag.doNotQueue},
     );
+    await _watcher!.emitStatusNotifierHostRegistered();
 
-    if (reply == DBusRequestNameReply.alreadyOwner || reply == DBusRequestNameReply.primaryOwner) {
-      _watcher = OrgKdeStatusNotifierWatcherImpl(path: OrgKdeStatusNotifierWatcherImpl.objectPath);
-      await _client.registerObject(_watcher!);
-    }
-
-    await _client.requestName("shell.waywing.StatusNotifierHost");
+    await _client.requestName("shell.waywing.StatusNotifierHost", flags: {DBusRequestNameFlag.doNotQueue});
     try {
       _host = OrgKdeStatusNotifierHostImpl(logger, DBusObjectPath("/"));
-    } catch(e,st) {
+    } catch (e, st) {
       logger.fatal('DBusObjectPath("shell.waywing.StatusNotifierHost") failed', error: e, stackTrace: st);
     }
     await _client.registerObject(_host);
     try {
       await _host.init();
-    } catch(e, st) {
+    } catch (e, st) {
       logger.fatal("Host initialization failed", error: e, stackTrace: st);
     }
 
@@ -79,6 +77,9 @@ class SystemTrayService extends Service {
       await _client.releaseName(OrgKdeStatusNotifierWatcherImpl.interfaceName);
       _watcher!.dispose();
     }
+    await _client.unregisterObject(_host);
+    _host.dispose();
+
     await _client.close();
     await logger.destroy();
   }

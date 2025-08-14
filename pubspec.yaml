@@ -11,10 +11,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # Linux window / shellLayer manager
-  fl_linux_window_manager:
-    path: ../fl-linux-window-manager
-
   # Configuration parser
   config:
     path: ../config.dart
@@ -37,12 +33,21 @@ dependencies:
   auto_size_text: ^3.0.0
 
   # Native plugins
-  dbus: ^0.7.11
-  watcher: ^1.1.2
-  path: ^1.9.1
-  nm: ^0.5.0
+  pulseaudio: # for audio mixing
+    path: ../pulseaudio.dart
+  dbus: ^0.7.11 # interprocess comunication library for linux
+  nm: ^0.5.0 # network manager
+  xdg_icons: ^0.1.2 # render icons from string as defined in xdg icons spec
+  upower: ^0.7.0 # battery and other power options
+  fl_linux_window_manager: # Linux window / shellLayer manager
+    path: ../fl-linux-window-manager
+
+  # cli colors
   chalkdart: ^3.0.5
-  xdg_icons: ^0.1.2
+  # directory/file watcher library
+  watcher: ^1.1.2
+  # libray for path operations
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:

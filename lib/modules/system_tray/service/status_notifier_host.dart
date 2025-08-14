@@ -17,7 +17,10 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
 
   final List<StreamSubscription> _subscriptions;
 
-  OrgKdeStatusNotifierHostImpl(this.logger, super.path) : _items = {}, items = ValueNotifier(Slice([])), _subscriptions = [];
+  OrgKdeStatusNotifierHostImpl(this.logger, super.path)
+    : _items = {},
+      items = ValueNotifier(Slice([])),
+      _subscriptions = [];
 
   /// Init all resources needed to work normally
   ///
@@ -48,19 +51,50 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
   }
 
   Future<void> _addItem(String itemPath) async {
+    logger.debug("Host addItem $itemPath");
     final (destination, path) = OrgKdeStatusNotifierItem.splitItemStr(itemPath);
+
+    // check name owner exists
+    if ((await client!.getNameOwner(destination)) == null) {
+      logger.warning("no name owner for $destination");
+      return;
+    }
+
     final item = OrgKdeStatusNotifierItem(client!, destination, path);
-    _items[itemPath] = OrgKdeStatusNotifierItemValues(item, logger);
-    await _items[itemPath]?.initFields();
+
+    OrgKdeStatusNotifierItemValues itemValues;
+    try {
+      itemValues = OrgKdeStatusNotifierItemValues(
+        item,
+        logger.clone(
+          properties: [
+            ...logger.defaultProperties,
+            StringProperty("OrgKdeStatusNotifierItemValues $itemPath")
+          ],
+        ),
+      );
+    } catch (e, st) {
+      logger.error("failed to initialize OrgKdeStatusNotifierItem", error: e, stackTrace: st);
+      return;
+    }
+    _items[itemPath] = itemValues;
+    try {
+      await _items[itemPath]?.initFields();
+    } catch(e, st) {
+      logger.error("initFields failed", error: e, stackTrace: st);
+    }
+    items.value = Slice(_items.values);
   }
 
   void _removeItem(String itemPath) {
     final itemValues = _items.remove(itemPath);
     itemValues?.dispose();
+    items.value = Slice(_items.values);
   }
 
   Future<void> _fillStatusNotifierItems() async {
     final itemsPath = await _watcher.getRegisteredStatusNotifierItems();
+    logger.debug("_fillStatusNotifierItems $itemsPath");
     for (final itemPath in itemsPath) {
       await _addItem(itemPath);
     }

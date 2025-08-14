@@ -1,3 +1,6 @@
+import "dart:async";
+
+import "package:flutter/foundation.dart";
 import "package:flutter/scheduler.dart";
 import "package:flutter/widgets.dart";
 
@@ -49,5 +52,34 @@ class BatchChangeNotifier with ChangeNotifier {
         Priority.animation,
       );
     }
+  }
+}
+
+class DBusProperyValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
+  T _value;
+
+  @override
+  T get value => _value;
+
+  late final StreamSubscription<List<String>> _subscription;
+
+  DBusProperyValueNotifier({
+    required T value,
+    required Stream<List<String>> stream,
+    required String name,
+    required FutureOr<T> Function() callback,
+  }): _value = value {
+    _subscription = stream.listen((changedProperties) async {
+      if (changedProperties.contains(name)) {
+        _value = await callback();
+        notifyListeners();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
 }

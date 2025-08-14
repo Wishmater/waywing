@@ -448,7 +448,7 @@ class OrgKdeStatusNotifierItemValues {
   late final String id;
 
   /// It's a name that describes the application, it can be more descriptive than Id.
-  late final DBusValueNotifier<String> title;
+  late final DBusValueSignalNotifier<String> title;
 
   /// Describes the status of this item or of the associated application.
   ///
@@ -465,7 +465,7 @@ class OrgKdeStatusNotifierItemValues {
   /// such as battery charge running out and is wants to incentive the direct user
   /// intervention. Visualizations should emphasize in some way the items with
   /// NeedsAttention status.
-  late final DBusValueNotifier<String> status;
+  late final DBusValueSignalNotifier<String> status;
 
   /// Describes the category of this item.
   ///
@@ -497,41 +497,41 @@ class OrgKdeStatusNotifierItemValues {
   /// An icon can either be identified by its Freedesktop-compliant icon name,
   /// carried by this property of by the icon data itself, carried by the property IconPixmap.
   /// Visualizations are encouraged to prefer icon names over icon pixmaps if both are available
-  late final DBusValueNotifier<String> iconName;
+  late final DBusValueSignalNotifier<String> iconName;
 
   /// Carries an ARGB32 binary representation of the icon
   ///
   /// {@macro IconData}
-  late final DBusValueNotifier<PixmapIcons> iconPixmap;
+  late final DBusValueSignalNotifier<PixmapIcons> iconPixmap;
 
   /// The Freedesktop-compliant name of an icon. This can be used by the visualization to
   /// indicate extra state information, for instance as an overlay for the main icon.
-  late final DBusValueNotifier<String> overlayIconName;
+  late final DBusValueSignalNotifier<String> overlayIconName;
 
   /// ARGB32 binary representation of the overlay icon.
   ///
   /// {@macro IconData}
-  late final DBusValueNotifier<PixmapIcons> overlayIconPixmap;
+  late final DBusValueSignalNotifier<PixmapIcons> overlayIconPixmap;
 
   /// The Freedesktop-compliant name of an icon. this can be used by the visualization
   /// to indicate that the item is in RequestingAttention state.
-  late final DBusValueNotifier<String> attentionIconName;
+  late final DBusValueSignalNotifier<String> attentionIconName;
 
   /// ARGB32 binary representation of the requesting attention icon describe in the previous paragraph.
   ///
   /// {@macro IconData}
-  late final DBusValueNotifier<PixmapIcons> attentionIconPixmap;
+  late final DBusValueSignalNotifier<PixmapIcons> attentionIconPixmap;
 
   /// An item can also specify an animation associated to the RequestingAttention state.
   /// This should be either a Freedesktop-compliant icon name or a full path.
   /// The visualization can chose between the movie or AttentionIconPixmap
   /// (or using neither of those) at its discretion.
-  late final DBusValueNotifier<String> attentionMovieName;
+  late final DBusValueSignalNotifier<String> attentionMovieName;
 
   /// Data structure that describes extra information associated to this item,
   /// that can be visualized for instance by a tooltip (or by any other mean the
   /// visualization consider appropriate
-  late final DBusValueNotifier<OrgKdeStatusNotifierItemToolTip> tooltip;
+  late final DBusValueSignalNotifier<OrgKdeStatusNotifierItemToolTip> tooltip;
 
   /// The item only support the context menu, the visualization should prefer
   /// showing the menu or sending ContextMenu() instead of Activate
@@ -547,78 +547,82 @@ class OrgKdeStatusNotifierItemValues {
 
   Future<void>? _initialized;
 
-  OrgKdeStatusNotifierItemValues(this.statusNotifierItem, Logger logger) {
-    title = DBusValueNotifier("", statusNotifierItem.getTitle, statusNotifierItem.newTitle, logger);
+  final Logger _logger;
 
-    iconName = DBusValueNotifier(
+  OrgKdeStatusNotifierItemValues(this.statusNotifierItem, this._logger) {
+    _logger.debug("create OrgKdeStatusNotifierItemValues");
+
+    title = DBusValueSignalNotifier("", statusNotifierItem.getTitle, statusNotifierItem.newTitle, _logger);
+
+    iconName = DBusValueSignalNotifier(
       "",
       statusNotifierItem.getIconName,
       statusNotifierItem.newIcon,
-      logger,
+      _logger,
     );
-    iconPixmap = DBusValueNotifier(
+    iconPixmap = DBusValueSignalNotifier(
       PixmapIcons.empty(),
       () async {
         final data = await statusNotifierItem.getIconPixmap();
         return PixmapIcons.fromDBusData(data);
       },
       statusNotifierItem.newIcon,
-      logger,
+      _logger,
     );
 
-    attentionIconName = DBusValueNotifier(
+    attentionIconName = DBusValueSignalNotifier(
       "",
       statusNotifierItem.getAttentionIconName,
       statusNotifierItem.newAttentionIcon,
-      logger,
+      _logger,
     );
-    attentionIconPixmap = DBusValueNotifier(
+    attentionIconPixmap = DBusValueSignalNotifier(
       PixmapIcons.empty(),
       () async {
         final data = await statusNotifierItem.getAttentionIconPixmap();
         return PixmapIcons.fromDBusData(data);
       },
       statusNotifierItem.newAttentionIcon,
-      logger,
+      _logger,
     );
-    attentionMovieName = DBusValueNotifier(
+    attentionMovieName = DBusValueSignalNotifier(
       "",
       statusNotifierItem.getAttentionMovieName,
       statusNotifierItem.newAttentionIcon,
-      logger,
+      _logger,
     );
 
-    overlayIconName = DBusValueNotifier(
+    overlayIconName = DBusValueSignalNotifier(
       "",
       statusNotifierItem.getOverlayIconName,
       statusNotifierItem.newOverlayIcon,
-      logger,
+      _logger,
     );
-    overlayIconPixmap = DBusValueNotifier(
+    overlayIconPixmap = DBusValueSignalNotifier(
       PixmapIcons.empty(),
       () async {
         final data = await statusNotifierItem.getOverlayIconPixmap();
         return PixmapIcons.fromDBusData(data);
       },
       statusNotifierItem.newOverlayIcon,
-      logger,
+      _logger,
     );
 
-    tooltip = DBusValueNotifier(
+    tooltip = DBusValueSignalNotifier(
       OrgKdeStatusNotifierItemToolTip.emtpy(),
       () async {
         final data = await statusNotifierItem.getToolTip();
         return OrgKdeStatusNotifierItemToolTip.fromDBusData(data);
       },
       statusNotifierItem.newToolTip,
-      logger,
+      _logger,
     );
 
-    status = DBusValueNotifier(
+    status = DBusValueSignalNotifier(
       "",
       statusNotifierItem.getStatus,
       statusNotifierItem.newToolTip,
-      logger,
+      _logger,
     );
     initFields();
   }
@@ -639,7 +643,10 @@ class OrgKdeStatusNotifierItemValues {
         dbusmenu = DBusMenuValues(obj);
       }),
     ];
-    _initialized = Future.wait(futures);
+    _initialized = futures.wait.timeout(Duration(milliseconds: 200)).onError((e, st) {
+      _logger.error("initialization failed", error: e, stackTrace: st);
+      return [];
+    });
   }
 
   void dispose() {
@@ -657,7 +664,7 @@ class OrgKdeStatusNotifierItemValues {
   }
 }
 
-class DBusValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
+class DBusValueSignalNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
   @override
   T get value => _value;
   T _value;
@@ -666,7 +673,7 @@ class DBusValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> 
 
   late final StreamSubscription<DBusSignal> subscription;
 
-  DBusValueNotifier(
+  DBusValueSignalNotifier(
     this._value,
     this.callback,
     Stream<DBusSignal> signalStream,
@@ -679,11 +686,12 @@ class DBusValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> 
         _value = newValue;
         notifyListeners();
       } on DBusUnknownPropertyException catch (e) {
-        logger.warning("[$debugLabel] Error calling method: ", error: e);
+        logger.debug("[$debugLabel] Error calling method: ", error: e);
       } on DBusInvalidArgsException catch (e) {
-        logger.warning("[$debugLabel] Error calling method: ", error: e);
+        logger.debug("[$debugLabel] Error calling method: ", error: e);
       } catch (e, st) {
-        logger.error("[$debugLabel] Error calling method: ", error: e, stackTrace: st);
+        logger.error("[$debugLabel] Error calling method. Canceling subscrption, value will recieve no more updates", error: e, stackTrace: st);
+        subscription.cancel();
       }
     });
 
@@ -696,7 +704,7 @@ class DBusValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> 
         })
         .onError((e, st) {
           if (e is DBusUnknownPropertyException || e is DBusInvalidArgsException) {
-            logger.warning("[$debugLabel] Error calling method: ", error: e);
+            logger.debug("[$debugLabel] Error calling method: ", error: e);
           } else {
             logger.error("[$debugLabel] Error calling method: ", error: e, stackTrace: st);
           }

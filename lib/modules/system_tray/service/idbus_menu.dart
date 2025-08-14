@@ -504,9 +504,6 @@ class DBusMenuItemProperties {
        disposition = disposition ?? "normal";
 
   factory DBusMenuItemProperties.fromDBus(DBusDict map) {
-    for (final sads in map.children.entries) {
-      print("${sads.key}  ${sads.value} ${sads.value.signature}");
-    }
     return DBusMenuItemProperties(
       type: (map.children[DBusString("type")] as DBusVariant?)?.value.asString(),
       label: (map.children[DBusString("label")] as DBusVariant?)?.value.asString(),
@@ -746,7 +743,7 @@ class _RemovedProps {
   factory _RemovedProps.fromDBus(List<DBusValue> values) {
     return _RemovedProps(
       values[0].asInt32(),
-      values[0].asArray().map((e) => e.asString()).toList(),
+      values[1].asArray().map((e) => e.asString()).toList(),
     );
   }
 }

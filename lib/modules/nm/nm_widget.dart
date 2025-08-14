@@ -4,8 +4,10 @@ import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:nm/nm.dart";
 import "package:tronco/tronco.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 import "package:waywing/util/string_utils.dart";
+import "package:xdg_icons/xdg_icons.dart";
 
 class NetworkManagerWidget extends StatefulWidget {
   final NetworkManagerService service;
@@ -20,11 +22,13 @@ class NetworkManagerWidget extends StatefulWidget {
 class _NetworkManagerState extends State<NetworkManagerWidget> {
   late final TxRxWatcher txRxWatcher;
   late WifiDeviceValues wifi;
+  late List<EthernetDeviceValues> ethernet;
 
   @override
   void initState() {
     super.initState();
     wifi = widget.service.getWifiDeviceValuesFirst();
+    ethernet = widget.service.ethernetDevicesValues;
 
     txRxWatcher = TxRxWatcher(wifi.device.statistics!);
     txRxWatcher.init();
@@ -44,6 +48,7 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
         if (activeAP != null) {
           return Row(
             children: [
+              _EtherenetWidget(ethernet),
               _Connected(
                 name: activeAP.ssid.toUtf8(),
                 strength: activeAP.strength,
@@ -52,7 +57,7 @@ class _NetworkManagerState extends State<NetworkManagerWidget> {
             ],
           );
         } else {
-          return _NotConnected();
+          return Row(children: [_EtherenetWidget(ethernet), _NotConnected()]);
         }
       },
       child: ListenableBuilder(
@@ -78,11 +83,15 @@ class NetworkManagerPopover extends StatefulWidget {
 class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   late WifiDeviceValues wifi;
   Logger get logger => widget.logger;
+  bool isScanning = false;
 
   @override
   void initState() {
     super.initState();
     wifi = widget.service.getWifiDeviceValuesFirst();
+    wifi.lastScan.addListener(() {
+      setState(() => isScanning = false);
+    });
   }
 
   Future<void> connect(NetworkManagerAccessPoint accessPoint) async {
@@ -120,7 +129,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
         maxWidth: 400,
       ),
       child: ListenableBuilder(
-        listenable: Listenable.merge([wifi.accessPoints, wifi.isScanning]),
+        listenable: Listenable.merge([wifi.accessPoints, wifi.lastScan]),
         builder: (context, _) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -130,9 +139,10 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                 children: [
                   TextButton(
                     onPressed: () async {
-                      await wifi.requestScan();
+                      setState(() => isScanning = true);
+                      await wifi.device.wireless!.requestScan();
                     },
-                    child: Text("Scan wifi ${wifi.isScanning.value ? 'scanning' : ''}"),
+                    child: Text("Scan wifi ${isScanning ? 'scanning' : ''}"),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -143,7 +153,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                             for (final ap in wifi.accessPoints.value)
                               _AvailableAccessPoint(
                                 ap,
-                                wifi.wirelessDevice.activeAccessPoint == ap,
+                                wifi.wireless.activeAccessPoint == ap,
                                 connect,
                                 () => widget.service.disconnect(wifi.device),
                               ),
@@ -310,5 +320,30 @@ class _AskPasswordState extends State<_AskPassword> {
         ),
       ),
     );
+  }
+}
+
+class _EtherenetWidget extends StatelessWidget {
+  final List<EthernetDeviceValues> values;
+
+  const _EtherenetWidget(this.values);
+
+  Widget render(EthernetDeviceValues value) {
+    return ListenableBuilder(
+      listenable: value.isConnected,
+      builder: (context, _) {
+        return value.isConnected.value ? XdgIcon(name: "network-wired", size: 64) : SizedBox.shrink();
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final children = [for (final value in values) render(value)];
+    if (config.isBarVertical) {
+      return Column(children: children);
+    } else {
+      return Row(children: children);
+    }
   }
 }

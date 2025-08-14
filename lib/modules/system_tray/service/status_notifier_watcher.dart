@@ -1,17 +1,21 @@
 import "dart:async";
 
 import "package:dbus/dbus.dart";
+// ignore: implementation_imports
+import "package:dbus/src/dbus_bus_name.dart";
+import "package:tronco/tronco.dart";
 
 class OrgKdeStatusNotifierWatcherImpl extends DBusObject {
   final List<DBusString> itemRegister;
   final List<DBusString> hostRegister;
   final _DBusRegistrationWatcher _registrationWatcher;
+  final Logger logger;
 
   static const String interfaceName = "org.kde.StatusNotifierWatcher";
   static final DBusObjectPath objectPath = DBusObjectPath("/StatusNotifierWatcher");
 
   /// Creates a new object to expose on [path].
-  OrgKdeStatusNotifierWatcherImpl({DBusObjectPath path = const DBusObjectPath.unchecked("/")})
+  OrgKdeStatusNotifierWatcherImpl(this.logger, {DBusObjectPath path = const DBusObjectPath.unchecked("/")})
     : itemRegister = [],
       hostRegister = [],
       _registrationWatcher = _DBusRegistrationWatcher(),
@@ -23,38 +27,73 @@ class OrgKdeStatusNotifierWatcherImpl extends DBusObject {
 
   /// Gets value of property org.kde.StatusNotifierWatcher.RegisteredStatusNotifierItems
   Future<DBusMethodResponse> getRegisteredStatusNotifierItems() async {
-    return DBusMethodSuccessResponse([DBusArray(DBusSignature.string, itemRegister)]);
+    logger.debug("doRegisterStatusNotifierItem $itemRegister");
+    return DBusGetPropertyResponse(DBusArray(DBusSignature.string, itemRegister));
   }
 
   /// Gets value of property org.kde.StatusNotifierWatcher.IsStatusNotifierHostRegistered
   Future<DBusMethodResponse> getIsStatusNotifierHostRegistered() async {
-    return DBusMethodSuccessResponse([DBusBoolean(hostRegister.isNotEmpty)]);
+    logger.debug("getIsStatusNotifierHostRegistered");
+    return DBusGetPropertyResponse(DBusBoolean(true));
   }
 
   /// Gets value of property org.kde.StatusNotifierWatcher.ProtocolVersion
   Future<DBusMethodResponse> getProtocolVersion() async {
-    return DBusMethodSuccessResponse([DBusInt32(0)]);
+    return DBusGetPropertyResponse(DBusInt32(0));
   }
 
   /// Implementation of org.kde.StatusNotifierWatcher.RegisterStatusNotifierItem()
-  Future<DBusMethodResponse> doRegisterStatusNotifierItem(String service) async {
-    final val = DBusString(service);
-    if (!itemRegister.contains(val)) {
-      itemRegister.add(DBusString(service));
-      emitStatusNotifierItemRegistered(service);
+  ///
+  /// This implemenation is based on the waybar implementation
+  Future<DBusMethodResponse> doRegisterStatusNotifierItem(DBusMethodCall methodCall, String service) async {
+    logger.debug("doRegisterStatusNotifierItem $service");
+    String busname = service;
+    String objectPath = "/StatusNotifierItem";
+    if (service.startsWith("/")) {
+      busname = methodCall.sender ?? "";
+      objectPath = service;
+    }
+    try {
+      // validate dbusname
+      final _ = DBusBusName(busname);
+    } catch (_) {
+      return DBusMethodErrorResponse.invalidArgs("D-Bus bus name '$busname' is not valid");
+    }
+    final val = DBusString("$busname$objectPath");
 
-      _registrationWatcher.registerWatch(service, (_, newName) {
+    if (!itemRegister.contains(val)) {
+      itemRegister.add(val);
+      emitStatusNotifierItemRegistered(val);
+
+      _registrationWatcher.registerWatch(busname, (_, newName) {
         if (newName == null) {
-          emitStatusNotifierItemUnregistered(service);
+          itemRegister.remove(val);
+          emitStatusNotifierItemUnregistered(val);
         }
-      });
+      }, "Status Notifier Item");
     }
     return DBusMethodSuccessResponse([]);
   }
 
   /// Implementation of org.kde.StatusNotifierWatcher.RegisterStatusNotifierHost()
-  Future<DBusMethodResponse> doRegisterStatusNotifierHost(String service) async {
-    final val = DBusString(service);
+  ///
+  /// This implemenation is based on the waybar implementation
+  Future<DBusMethodResponse> doRegisterStatusNotifierHost(DBusMethodCall methodCall, String service) async {
+    logger.debug("doRegisterStatusNotifierHost $service");
+    String busname = service;
+    // String objectPath = "/StatusNotifierHost";
+    if (service.startsWith("/")) {
+      busname = methodCall.sender ?? "";
+      // objectPath = service;
+    }
+    try {
+      // validate dbusname
+      final _ = DBusBusName(busname);
+    } catch (_) {
+      return DBusMethodErrorResponse.invalidArgs("D-Bus bus name '$busname' is not valid");
+    }
+
+    final val = DBusString(busname);
     if (!hostRegister.contains(val)) {
       final wasEmpty = hostRegister.isEmpty;
       hostRegister.add(val);
@@ -62,23 +101,25 @@ class OrgKdeStatusNotifierWatcherImpl extends DBusObject {
         emitStatusNotifierHostRegistered();
       }
 
-      _registrationWatcher.registerWatch(service, (_, newName) {
+      _registrationWatcher.registerWatch(busname, (_, newName) {
         if (newName == null) {
-          emitStatusNotifierItemUnregistered(service);
+          if (hostRegister.remove(DBusString(busname)) == true && hostRegister.isEmpty) {
+            emitStatusNotifierHostUnregistered();
+          }
         }
-      });
+      }, "Status Notifier Host");
     }
     return DBusMethodSuccessResponse([]);
   }
 
   /// Emits signal org.kde.StatusNotifierWatcher.StatusNotifierItemRegistered
-  Future<void> emitStatusNotifierItemRegistered(String arg_0) async {
-    await emitSignal("org.kde.StatusNotifierWatcher", "StatusNotifierItemRegistered", [DBusString(arg_0)]);
+  Future<void> emitStatusNotifierItemRegistered(DBusString arg_0) async {
+    await emitSignal("org.kde.StatusNotifierWatcher", "StatusNotifierItemRegistered", [arg_0]);
   }
 
   /// Emits signal org.kde.StatusNotifierWatcher.StatusNotifierItemUnregistered
-  Future<void> emitStatusNotifierItemUnregistered(String arg_0) async {
-    await emitSignal("org.kde.StatusNotifierWatcher", "StatusNotifierItemUnregistered", [DBusString(arg_0)]);
+  Future<void> emitStatusNotifierItemUnregistered(DBusString arg_0) async {
+    await emitSignal("org.kde.StatusNotifierWatcher", "StatusNotifierItemUnregistered", [arg_0]);
   }
 
   /// Emits signal org.kde.StatusNotifierWatcher.StatusNotifierHostRegistered
@@ -134,12 +175,12 @@ class OrgKdeStatusNotifierWatcherImpl extends DBusObject {
         if (methodCall.signature != DBusSignature("s")) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return doRegisterStatusNotifierItem(methodCall.values[0].asString());
+        return doRegisterStatusNotifierItem(methodCall, methodCall.values[0].asString());
       } else if (methodCall.name == "RegisterStatusNotifierHost") {
         if (methodCall.signature != DBusSignature("s")) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return doRegisterStatusNotifierHost(methodCall.values[0].asString());
+        return doRegisterStatusNotifierHost(methodCall, methodCall.values[0].asString());
       } else {
         return DBusMethodErrorResponse.unknownMethod();
       }
@@ -203,10 +244,7 @@ class _DBusRegistrationWatcher {
 
   _DBusRegistrationWatcher() : _client = DBusClient.session(), _toWatch = {} {
     _subscription = _client.nameOwnerChanged.listen((event) {
-      final cb = _toWatch[event.name];
-      if (cb != null) {
-        cb(event.oldOwner, event.newOwner);
-      }
+      _toWatch[event.name]?.call(event.oldOwner, event.newOwner);
     });
   }
 
@@ -214,7 +252,9 @@ class _DBusRegistrationWatcher {
     _subscription.cancel().then((_) => _client.close());
   }
 
-  registerWatch(String service, _Callback cb) {
-    _toWatch[service] = cb;
+  void registerWatch(String dbusname, _Callback cb, [String? debugName]) {
+    if (!_toWatch.containsKey(dbusname)) {
+      _toWatch[dbusname] = cb;
+    }
   }
 }

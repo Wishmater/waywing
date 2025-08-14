@@ -83,11 +83,15 @@ class NetworkManagerPopover extends StatefulWidget {
 class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   late WifiDeviceValues wifi;
   Logger get logger => widget.logger;
+  bool isScanning = false;
 
   @override
   void initState() {
     super.initState();
     wifi = widget.service.getWifiDeviceValuesFirst();
+    wifi.lastScan.addListener(() {
+      setState(() => isScanning = false);
+    });
   }
 
   Future<void> connect(NetworkManagerAccessPoint accessPoint) async {
@@ -125,7 +129,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
         maxWidth: 400,
       ),
       child: ListenableBuilder(
-        listenable: Listenable.merge([wifi.accessPoints, wifi.isScanning]),
+        listenable: Listenable.merge([wifi.accessPoints, wifi.lastScan]),
         builder: (context, _) {
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -135,9 +139,10 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                 children: [
                   TextButton(
                     onPressed: () async {
-                      await wifi.requestScan();
+                      setState(() => isScanning = true);
+                      await wifi.device.wireless!.requestScan();
                     },
-                    child: Text("Scan wifi ${wifi.isScanning.value ? 'scanning' : ''}"),
+                    child: Text("Scan wifi ${isScanning ? 'scanning' : ''}"),
                   ),
                   Expanded(
                     child: SingleChildScrollView(
@@ -148,7 +153,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                             for (final ap in wifi.accessPoints.value)
                               _AvailableAccessPoint(
                                 ap,
-                                wifi.wirelessDevice.activeAccessPoint == ap,
+                                wifi.wireless.activeAccessPoint == ap,
                                 connect,
                                 () => widget.service.disconnect(wifi.device),
                               ),

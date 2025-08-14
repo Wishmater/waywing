@@ -1,6 +1,7 @@
 import "dart:async";
 import "dart:convert";
 
+import "package:dartx/dartx_io.dart";
 import "package:dbus/dbus.dart";
 import "package:flutter/material.dart";
 import "package:tronco/tronco.dart";
@@ -277,189 +278,60 @@ class TxRxWatcher {
   }
 }
 
-class WifiDeviceValues {
-  final NetworkManagerDevice device;
-  NetworkManagerDeviceWireless get wirelessDevice => device.wireless!;
+class AccessPointValues {
+  final NetworkManagerAccessPoint accessPoint;
 
-  WifiDeviceValues(this.device) {
-    accessPoints = ValueNotifier(Slice(wirelessDevice.accessPoints));
-    __accessPointsChangeNotifier = _accessPointsChangeNotifier();
-    __accessPointsChangeNotifier.addListener(() => accessPoints.value = Slice(wirelessDevice.accessPoints));
-
-    activeAccessPoint = _ValueNotifier(wirelessDevice.activeAccessPoint);
-    __activeAPChangeNotifier = _activeAccessPointChangeNotifier();
-    __activeAPChangeNotifier.addListener(() {
-      activeAccessPoint.value = wirelessDevice.activeAccessPoint;
-      (activeAccessPoint as _ValueNotifier<NetworkManagerAccessPoint?>)._markAsDirty();
+  AccessPointValues(this.accessPoint) : strength = _ValueNotifier(accessPoint.strength) {
+    accessPoint.propertiesChanged.where((props) => props.contains("Strength")).listen((_) {
+      strength.value = accessPoint.strength;
+      (strength as _ValueNotifier)._markAsDirty();
     });
-
-    isScanning = ValueNotifier(false);
-    __receieveLastScan = _recieveLastScan();
-    __receieveLastScan.addListener(() => isScanning.value = false);
   }
 
+  ValueNotifier<int> strength;
+
   void dispose() {
-    accessPoints.dispose();
-    __accessPointsChangeNotifier.dispose();
+    strength.dispose();
+  }
+}
 
-    activeAccessPoint.dispose();
-    __activeAPChangeNotifier.dispose();
+class WifiDeviceValues {
+  final NetworkManagerDevice device;
+  NetworkManagerDeviceWireless get wireless => device.wireless!;
 
-    isScanning.dispose();
-    __receieveLastScan.dispose();
+  WifiDeviceValues(this.device) {
+    accessPoints = ValueNotifier(Slice(wireless.accessPoints));
+    wireless.propertiesChanged.listen((props) {
+      if (props.containsAny(["AccessPoints"])) {
+        accessPoints.value = Slice(wireless.accessPoints);
+      }
+    });
+
+    activeAccessPoint = _ValueNotifier(wireless.activeAccessPoint);
+    wireless.propertiesChanged.listen((props) {
+      if (props.containsAny(["ActiveAccessPoint"])) {
+        activeAccessPoint.value = wireless.activeAccessPoint;
+      }
+    });
+
+    lastScan = ValueNotifier(wireless.lastScan);
+    wireless.propertiesChanged.listen((props) {
+      if (props.containsAny(["LastScan"])) {
+        lastScan.value = wireless.lastScan;
+      }
+    });
   }
 
   late ValueNotifier<Slice<NetworkManagerAccessPoint>> accessPoints;
-  late NMObjectChangeNotifier __accessPointsChangeNotifier;
-  NMObjectChangeNotifier _accessPointsChangeNotifier() {
-    return NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
-      "AccessPoints": null,
-      "LastScan": null,
-      "ActiveAccessPoint": null,
-    });
-  }
 
   late ValueNotifier<NetworkManagerAccessPoint?> activeAccessPoint;
-  late ChangeNotifier __activeAPChangeNotifier;
-  ChangeNotifier _activeAccessPointChangeNotifier() {
-    return NullableChangeNotifier(
-      // This function will be called whenever the second param notifies
-      () {
-        if (wirelessDevice.activeAccessPoint != null) {
-          return NMObjectChangeNotifier(wirelessDevice.activeAccessPoint!.propertiesChanged, {
-            "Strength": null,
-          });
-        } else {
-          return null;
-        }
-      },
-      NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
-        "ActiveAccessPoint": null,
-      }),
-    );
-  }
 
-  late ValueNotifier<bool> isScanning;
-  late ChangeNotifier __receieveLastScan;
-  ChangeNotifier _recieveLastScan() {
-    return NMObjectChangeNotifier(wirelessDevice.propertiesChanged, {
-      "LastScan": null,
-    });
-  }
+  late ValueNotifier<int> lastScan;
 
-  Future<void> requestScan() async {
-    if (isScanning.value) {
-      return;
-    }
-    isScanning.value = true;
-    await wirelessDevice.requestScan();
-  }
-}
-
-class NMObjectValueNotfier<T> extends ValueNotifier<T> {
-  final ChangeNotifier notifier;
-
-  NMObjectValueNotfier(super.value, this.notifier) {
-    notifier.addListener(notifyListeners);
-  }
-
-  @override
   void dispose() {
-    notifier.dispose();
-    super.dispose();
-  }
-}
-
-/// class Utility to react to NMObject changedProperties stream
-class NMObjectChangeNotifier extends BatchChangeNotifier {
-  Stream<List<String>> stream;
-  final Map<String, VoidCallback?> properties;
-  late final StreamSubscription<List<String>> _subscription;
-  Timer? _automaticNotifierTimer;
-
-  NMObjectChangeNotifier(
-    this.stream,
-    this.properties, {
-    Duration? automaticNotifier,
-  }) {
-    _subscription = stream.listen((propertiesChanged) {
-      for (final changed in propertiesChanged) {
-        if (properties.containsKey(changed)) {
-          // instead of spamming notifyListener calls (which can be some what expensive)
-          // use markAsDirty to allow BatchChangeNotifier to efficiently call notifyListener
-          markAsDirty();
-          final cb = properties[changed];
-          if (cb != null) {
-            cb();
-          }
-        }
-      }
-    });
-    if (automaticNotifier != null) {
-      _automaticNotifierTimer = Timer.periodic(automaticNotifier, (_) => markAsDirty());
-    }
-  }
-
-  @override
-  void dispose() {
-    _automaticNotifierTimer?.cancel();
-    _subscription.cancel().then((_) => super.dispose());
-  }
-}
-
-class NullableChangeNotifier<T extends ChangeNotifier> with ChangeNotifier {
-  T? _changeNotifier;
-
-  final ChangeNotifier _notifyChangeNotifier;
-  final T? Function() _getChangeNotifier;
-
-  void _changeChangeNotifier() {
-    final newChangeNotifier = _getChangeNotifier();
-    if (newChangeNotifier != _changeNotifier) {
-      _changeNotifier?.dispose();
-      _changeNotifier = newChangeNotifier;
-
-      notifyListeners();
-      _changeNotifier?.addListener(notifyListeners);
-    }
-  }
-
-  NullableChangeNotifier(this._getChangeNotifier, this._notifyChangeNotifier) {
-    _changeNotifier = _getChangeNotifier();
-    _changeNotifier?.addListener(notifyListeners);
-    _notifyChangeNotifier.addListener(_changeChangeNotifier);
-  }
-
-  @override
-  void dispose() {
-    _changeNotifier?.dispose();
-    _notifyChangeNotifier.dispose();
-    super.dispose();
-  }
-}
-
-/// Class to manage a nullable listener.
-///
-/// Owns the listener, which means that will dispose the previous listener on a change
-class OwnedNullableListener<T extends ChangeNotifier> with ChangeNotifier {
-  T? _listener;
-  T? get listener => _listener;
-
-  set listener(T? newListener) {
-    if (_listener != newListener) {
-      _listener?.dispose();
-      _listener = newListener;
-      notifyListeners();
-      _listener?.addListener(notifyListeners);
-    }
-  }
-
-  OwnedNullableListener(this._listener);
-
-  @override
-  void dispose() {
-    listener?.dispose();
-    super.dispose();
+    accessPoints.dispose();
+    activeAccessPoint.dispose();
+    lastScan.dispose();
   }
 }
 
@@ -487,7 +359,6 @@ class EthernetDeviceValues {
     isConnected.dispose();
   }
 }
-
 
 class _ValueNotifier<T> extends ValueNotifier<T> {
   _ValueNotifier(super.value);

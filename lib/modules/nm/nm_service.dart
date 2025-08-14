@@ -286,9 +286,12 @@ class WifiDeviceValues {
     __accessPointsChangeNotifier = _accessPointsChangeNotifier();
     __accessPointsChangeNotifier.addListener(() => accessPoints.value = Slice(wirelessDevice.accessPoints));
 
-    activeAccessPoint = ValueNotifier(wirelessDevice.activeAccessPoint);
+    activeAccessPoint = _ValueNotifier(wirelessDevice.activeAccessPoint);
     __activeAPChangeNotifier = _activeAccessPointChangeNotifier();
-    __activeAPChangeNotifier.addListener(() => activeAccessPoint.value = wirelessDevice.activeAccessPoint);
+    __activeAPChangeNotifier.addListener(() {
+      activeAccessPoint.value = wirelessDevice.activeAccessPoint;
+      (activeAccessPoint as _ValueNotifier<NetworkManagerAccessPoint?>)._markAsDirty();
+    });
 
     isScanning = ValueNotifier(false);
     __receieveLastScan = _recieveLastScan();
@@ -480,8 +483,16 @@ class EthernetDeviceValues {
         callback: () => device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier),
       );
 
-
   void dispose() {
     isConnected.dispose();
+  }
+}
+
+
+class _ValueNotifier<T> extends ValueNotifier<T> {
+  _ValueNotifier(super.value);
+
+  void _markAsDirty() {
+    notifyListeners();
   }
 }

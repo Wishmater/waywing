@@ -5,7 +5,7 @@ part "nm_config.g.dart";
 
 @Config()
 mixin NetworkManagerConfigBase on NetworkManagerConfigI {
-  static const _showWiFiNameIndicator = BooleanField(defaultTo: false);
+  static const _showConnectionNameIndicator = BooleanField(defaultTo: false);
   static const _showUploadIndicator = BooleanField(defaultTo: false);
   static const _showDownloadIndicator = BooleanField(defaultTo: false);
   static const _showThroughputIndicator = BooleanField(defaultTo: true);

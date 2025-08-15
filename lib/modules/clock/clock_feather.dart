@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
@@ -9,6 +10,7 @@ import "package:waywing/modules/clock/clock_popover.dart";
 import "package:waywing/modules/clock/clock_tooltip.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/core/feather.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 
 class ClockFeather extends Feather<ClockConfig> {
   late TimeService service;
@@ -35,7 +37,7 @@ class ClockFeather extends Feather<ClockConfig> {
   }
 
   @override
-  late final List<FeatherComponent> components = [clockComponent];
+  late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([clockComponent]);
 
   late final clockComponent = FeatherComponent(
     buildIndicators: (context, popover, tooltip) {

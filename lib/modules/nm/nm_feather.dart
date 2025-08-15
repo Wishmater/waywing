@@ -1,11 +1,14 @@
 import "package:flutter/cupertino.dart";
+import "package:flutter/foundation.dart";
+import "package:nm/nm.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/nm_indicator.dart";
 import "package:waywing/modules/nm/nm_service.dart";
-import "package:waywing/modules/nm/nm_widget.dart";
+import "package:waywing/modules/nm/nm_tooltip.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 
 class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
   late NetworkManagerService service;
@@ -32,16 +35,30 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
   }
 
   @override
-  List<FeatherComponent> get components => [nmComponent];
-
-  late final nmComponent = FeatherComponent(
-    buildIndicators: (context, popover, tooltip) {
-      return [
-        NetworkManagerIndicator(config: config, service: service, popover: popover!),
-      ];
-    },
-    buildPopover: (context) {
-      return NetworkManagerPopover(logger: logger, service: service);
+  late final ValueListenable<List<FeatherComponent>> components = DerivedValueNotifier(
+    dependencies: [service.devices],
+    derive: () {
+      final result = <FeatherComponent>[];
+      for (final device in service.devices.value) {
+        result.add(
+          FeatherComponent(
+            isIndicatorVisible: device.deviceType == NetworkManagerDeviceType.wifi
+                ? DummyValueNotifier(true)
+                : device.isConnected,
+            buildIndicators: (context, popover, tooltip) {
+              return [
+                NetworkManagerIndicator(config: config, device: device, popover: popover),
+              ];
+            },
+            // TODO: 1 hide tooltip if nothing to show (!isConnected ???)
+            buildTooltip: (context) => NetworkManagerTooltip(config: config, device: device),
+            // buildPopover: (context) {
+            //   return NetworkManagerPopover(logger: logger, service: service);
+            // },
+          ),
+        );
+      }
+      return result;
     },
   );
 }

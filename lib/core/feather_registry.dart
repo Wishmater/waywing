@@ -127,6 +127,7 @@ class FeatherRegistry {
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
     assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already in Feathers.all");
+    // ignore: invalid_use_of_protected_member
     feather.logger = mainLogger.clone(properties: [LogType(feather.name)]);
     final registration = _registeredFeathers[feather.name]!;
     if (registration.configBuilder != null) {
@@ -145,6 +146,7 @@ class FeatherRegistry {
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
     featherRegistry._dereferenceFeather(feather.name);
     await feather.dispose();
+    // ignore: invalid_use_of_protected_member
     await feather.logger.destroy();
   }
 

@@ -1,11 +1,14 @@
-import "package:flutter/material.dart";
+import "package:flutter/foundation.dart";
+import "package:flutter/widgets.dart";
 import "package:tronco/tronco.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/winged_popover.dart";
 
 /// Every "component" added to waywing needs to implement this class.
 /// Here, it will define any services init/cleanup it needs
 /// And also define the UI elements it provides
 abstract class Feather<Conf> {
+  @protected
   late Logger logger;
   late Conf config;
 
@@ -28,7 +31,7 @@ abstract class Feather<Conf> {
   /// Context shouldn't be necessary to run cleanup code
   Future<void> dispose() async {}
 
-  List<FeatherComponent> get components;
+  ValueListenable<List<FeatherComponent>> get components;
 
   onConfigUpdated(Conf oldConfig) {}
 }
@@ -36,27 +39,28 @@ abstract class Feather<Conf> {
 @immutable
 class FeatherComponent {
   final IndicatorsBuilder? buildIndicators;
-  final ValueNotifier<bool> isIndicatorsVisible;
-  final ValueNotifier<bool> isIndicatorsEnabled;
+  final ValueListenable<bool> isIndicatorsVisible;
+  final ValueListenable<bool> isIndicatorsEnabled;
 
   final WidgetBuilder? buildPopover;
-  final ValueNotifier<bool> isPopoverEnabled;
+  final ValueListenable<bool> isPopoverEnabled;
 
   final WidgetBuilder? buildTooltip;
-  final ValueNotifier<bool> isTooltipEnabled;
+  final ValueListenable<bool> isTooltipEnabled;
 
   FeatherComponent({
     this.buildIndicators,
-    bool? isIndicatorVisible,
-    bool isIndicatorEnabled = true,
+    ValueListenable<bool>? isIndicatorVisible,
+    ValueListenable<bool>? isIndicatorEnabled,
     this.buildPopover,
-    bool? isPopoverEnabled,
+    ValueListenable<bool>? isPopoverEnabled,
     this.buildTooltip,
-    bool? isTooltipEnabled,
-  }) : isIndicatorsVisible = ValueNotifier(isIndicatorVisible ?? buildIndicators != null),
-       isIndicatorsEnabled = ValueNotifier(isIndicatorEnabled),
-       isPopoverEnabled = ValueNotifier(isPopoverEnabled ?? buildPopover != null),
-       isTooltipEnabled = ValueNotifier(isTooltipEnabled ?? buildTooltip != null);
+    ValueListenable<bool>? isTooltipEnabled,
+  }) : isIndicatorsEnabled = isIndicatorEnabled ?? DummyValueNotifier(true),
+       isIndicatorsVisible = isIndicatorVisible ?? DummyValueNotifier(buildIndicators != null),
+
+       isPopoverEnabled = isPopoverEnabled ?? DummyValueNotifier(buildPopover != null),
+       isTooltipEnabled = isTooltipEnabled ?? DummyValueNotifier(buildTooltip != null);
 }
 
 typedef IndicatorsBuilder =

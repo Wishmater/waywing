@@ -71,6 +71,7 @@ class ServiceRegistry {
     final serviceType = T;
     final registration = _registeredServices[serviceType]!;
     final service = registration.constructor() as T;
+    // ignore: invalid_use_of_protected_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
     await service.init();
     return service;
@@ -124,7 +125,9 @@ class ServiceRegistry {
       "Trying to dereference a Service that hasn't been initialized: $serviceType",
     );
     final service = await _initializedServices.remove(serviceType)!;
-    return service.dispose();
+    await service.dispose();
+    // ignore: invalid_use_of_protected_member
+    await service.logger.destroy();
   }
 
   // TODO: 3 only FeatherRegistry should be able to access this

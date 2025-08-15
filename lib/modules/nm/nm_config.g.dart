@@ -8,7 +8,7 @@ part of 'nm_config.dart';
 // **************************************************************************
 
 mixin NetworkManagerConfigI {
-  bool get showWiFiNameIndicator;
+  bool get showConnectionNameIndicator;
   bool get showUploadIndicator;
   bool get showDownloadIndicator;
   bool get showThroughputIndicator;
@@ -16,24 +16,24 @@ mixin NetworkManagerConfigI {
 
 class NetworkManagerConfig
     with NetworkManagerConfigI, NetworkManagerConfigBase {
-  final bool showWiFiNameIndicator;
+  final bool showConnectionNameIndicator;
   final bool showUploadIndicator;
   final bool showDownloadIndicator;
   final bool showThroughputIndicator;
 
   NetworkManagerConfig({
-    bool? showWiFiNameIndicator,
+    bool? showConnectionNameIndicator,
     bool? showUploadIndicator,
     bool? showDownloadIndicator,
     bool? showThroughputIndicator,
-  }) : showWiFiNameIndicator = showWiFiNameIndicator ?? false,
+  }) : showConnectionNameIndicator = showConnectionNameIndicator ?? false,
        showUploadIndicator = showUploadIndicator ?? false,
        showDownloadIndicator = showDownloadIndicator ?? false,
        showThroughputIndicator = showThroughputIndicator ?? true;
 
   factory NetworkManagerConfig.fromMap(Map<String, dynamic> map) {
     return NetworkManagerConfig(
-      showWiFiNameIndicator: map['showWiFiNameIndicator'],
+      showConnectionNameIndicator: map['showConnectionNameIndicator'],
       showUploadIndicator: map['showUploadIndicator'],
       showDownloadIndicator: map['showDownloadIndicator'],
       showThroughputIndicator: map['showThroughputIndicator'],
@@ -42,7 +42,8 @@ class NetworkManagerConfig
 
   static TableSchema get schema => TableSchema(
     fields: {
-      'showWiFiNameIndicator': NetworkManagerConfigBase._showWiFiNameIndicator,
+      'showConnectionNameIndicator':
+          NetworkManagerConfigBase._showConnectionNameIndicator,
       'showUploadIndicator': NetworkManagerConfigBase._showUploadIndicator,
       'showDownloadIndicator': NetworkManagerConfigBase._showDownloadIndicator,
       'showThroughputIndicator':

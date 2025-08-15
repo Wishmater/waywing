@@ -1,7 +1,7 @@
 import "package:waywing/core/service.dart";
 import "package:upower/upower.dart";
 import "package:waywing/core/service_registry.dart";
-import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/util/dbus_utils.dart";
 
 class BatteryService extends Service {
   BatteryService._();
@@ -74,82 +74,69 @@ class BatteryValues {
 
   BatteryValues(this.device)
     : isPresent = DBusProperyValueNotifier(
-        value: device.isPresent,
         name: "IsPresent",
-        stream: device.propertiesChanged,
         callback: () => device.isPresent,
+        stream: device.propertiesChanged,
       ),
       percentage = DBusProperyValueNotifier(
-        value: device.percentage,
         name: "Percentage",
-        stream: device.propertiesChanged,
         callback: () => device.percentage,
+        stream: device.propertiesChanged,
       ),
       temperature = DBusProperyValueNotifier(
-        value: device.temperature,
         name: "Temperature",
-        stream: device.propertiesChanged,
         callback: () => device.temperature,
+        stream: device.propertiesChanged,
       ),
       timeToEmpty = DBusProperyValueNotifier(
-        value: device.timeToEmpty,
         name: "TimeToEmpty",
-        stream: device.propertiesChanged,
         callback: () => device.timeToEmpty,
+        stream: device.propertiesChanged,
       ),
       timeToFull = DBusProperyValueNotifier(
-        value: device.timeToFull,
         name: "TimeToFull",
-        stream: device.propertiesChanged,
         callback: () => device.timeToFull,
+        stream: device.propertiesChanged,
       ),
       iconName = DBusProperyValueNotifier(
-        value: device.iconName,
         name: "IconName",
-        stream: device.propertiesChanged,
         callback: () => device.iconName,
+        stream: device.propertiesChanged,
       ),
       state = DBusProperyValueNotifier(
-        value: device.state,
         name: "State",
-        stream: device.propertiesChanged,
         callback: () => device.state,
+        stream: device.propertiesChanged,
       ),
       energy = DBusProperyValueNotifier(
-        value: device.energy,
         name: "Energy",
-        stream: device.propertiesChanged,
         callback: () => device.energy,
+        stream: device.propertiesChanged,
       ),
       energyEmpty = DBusProperyValueNotifier(
-        value: device.energyEmpty,
         name: "EnergyEmpty",
-        stream: device.propertiesChanged,
         callback: () => device.energyEmpty,
+        stream: device.propertiesChanged,
       ),
       energyFull = DBusProperyValueNotifier(
-        value: device.energyFull,
         name: "EnergyFull",
-        stream: device.propertiesChanged,
         callback: () => device.energyFull,
+        stream: device.propertiesChanged,
       ),
       energyFullDesign = DBusProperyValueNotifier(
-        value: device.energyFullDesign,
         name: "EnergyFullDesign",
-        stream: device.propertiesChanged,
         callback: () => device.energyFullDesign,
+        stream: device.propertiesChanged,
       ),
       energyRate = DBusProperyValueNotifier(
-        value: device.energyRate,
         name: "EnergyRate",
-        stream: device.propertiesChanged,
         callback: () => device.energyRate,
+        stream: device.propertiesChanged,
       ),
       powerSupply = DBusProperyValueNotifier(
-        value: device.powerSupply,
         name: "PowerSupply",
-        stream: device.propertiesChanged,
         callback: () => device.powerSupply,
+        stream: device.propertiesChanged,
       );
 
   void dispose() {

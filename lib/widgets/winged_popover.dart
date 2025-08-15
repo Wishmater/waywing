@@ -18,6 +18,8 @@ typedef WingedPopoverChildBuilder =
     );
 
 abstract class WingedPopoverController {
+  bool get isPopoverEnabled;
+  bool get isTooltipEnabled;
   bool get isPopoverShown;
   bool get isTooltipShown;
   void showPopover();
@@ -91,6 +93,11 @@ class WingedPopoverState extends State<WingedPopover>
   bool isPopoverShown = false;
   @override
   bool isTooltipShown = false;
+  @override
+  bool get isPopoverEnabled => widget.popoverParams?.enabled ?? false;
+  @override
+  bool get isTooltipEnabled => widget.tooltipParams?.enabled ?? false;
+
   WingedPopoverClientState? clientState;
 
   @override

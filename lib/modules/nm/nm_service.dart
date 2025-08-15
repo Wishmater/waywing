@@ -1,20 +1,18 @@
 import "dart:async";
 import "dart:convert";
 
-import "package:dartx/dartx_io.dart";
 import "package:dbus/dbus.dart";
-import "package:flutter/material.dart";
+import "package:flutter/foundation.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:nm/nm.dart";
+import "package:waywing/util/dbus_utils.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/util/logger.dart";
-import "package:waywing/util/slice.dart";
 
 class NetworkManagerService extends Service {
-  final List<WifiDeviceValues> wifiDevicesValues = [];
-  final NetworkManagerClient client = NetworkManagerClient();
+  late final NetworkManagerClient _client;
+  late final NMServiceDevices devices;
 
   NetworkManagerService._();
 
@@ -28,58 +26,224 @@ class NetworkManagerService extends Service {
 
   @override
   Future<void> init() async {
-    await client.connect();
-
-    // TODO: 1 NetwokManager do we need to listen to device changes? (new devices / device removed)
-    for (final device in client.devices) {
-      // TODO: 1 NetwokManager properly handle other/multiple/no device types, probably by creating several FeatherComponents
-      // this requires a new core feature of making FeatherComponents list listenable somehow
-      // !!! should we use client.primaryConnection.devices so it uses wifi/lan smartly (test this)
-      if (device.deviceType == NetworkManagerDeviceType.wifi) {
-        wifiDevicesValues.add(WifiDeviceValues(device));
-      } else if (device.deviceType == NetworkManagerDeviceType.ethernet) {
-        ethernetDevicesValues.add(EthernetDeviceValues(device));
-      }
-    }
-    if (wifiDevicesValues.isEmpty) {
-      // TODO: 1 NetwokManager remove this when multiple devices are handled properly
-      throw UnimplementedError("TODO: handle when there is no wifi device");
-    }
+    _client = NetworkManagerClient();
+    await _client.connect();
+    devices = NMServiceDevices(_client, logger);
+    await devices.init();
   }
 
   @override
   Future<void> dispose() async {
-    for (final wifi in wifiDevicesValues) {
-      wifi.dispose();
+    await devices.dispose();
+    await _client.close();
+  }
+}
+
+class NMServiceDevices extends ChangeNotifier implements ValueListenable<List<NMServiceDevice>> {
+  @override
+  final List<NMServiceDevice> value = [];
+
+  final NetworkManagerClient _client;
+  final Logger _logger;
+  NMServiceDevices(this._client, this._logger);
+
+  late StreamSubscription _deviceAddedSubscription;
+  late StreamSubscription _deviceRemovedSubscription;
+
+  Future<void> init() async {
+    for (final e in _client.devices) {
+      if (e.activeConnection?.id == "lo") continue; // ignore loopback interface
+      value.add(NMServiceDevice(_client, e, _logger));
     }
-    for (final ethernet in ethernetDevicesValues) {
-      ethernet.dispose();
-    }
-    // TODO: 1 NetwokManager do we need to dispose all the Listenables created ?
-    await client.close();
+    _deviceAddedSubscription = _client.deviceAdded.listen((e) async {
+      _logger.debug("added device: ${e.deviceType} ${e.path}");
+      final device = NMServiceDevice(_client, e, _logger);
+      await device.init();
+      value.add(device);
+      notifyListeners();
+    });
+    _deviceRemovedSubscription = _client.deviceRemoved.listen((e) {
+      _logger.debug("removed device: ${e.deviceType} ${e.path}");
+      value.removeWhere((v) => v._device == e);
+      notifyListeners();
+    });
+    await Future.wait(value.map((e) => e.init()));
   }
 
-  WifiDeviceValues getWifiDeviceValuesFirst() {
-    return wifiDevicesValues[0];
+  @override
+  Future<void> dispose() async {
+    super.dispose();
+    for (final e in value) {
+      e.dispose();
+    }
+    await Future.wait([
+      _deviceAddedSubscription.cancel(),
+      _deviceRemovedSubscription.cancel(),
+    ]);
+  }
+}
+
+class NMServiceDevice {
+  ValueListenable<NetworkManagerActiveConnection?> get activeConnection => _activeConnection;
+  late final ValueListenable<NetworkManagerActiveConnection?> _activeConnection;
+
+  ValueListenable<bool> get isConnected => _isConnected;
+  late final DerivedValueNotifier<bool> _isConnected;
+
+  ValueListenable<int?> get txBytes => _txBytes;
+  late final DBusProperyValueNotifier<int?> _txBytes;
+
+  ValueListenable<int?> get rxBytes => _rxBytes;
+  late final DBusProperyValueNotifier<int?> _rxBytes;
+
+  ValueListenable<double?> get txRate => _txRate;
+  late final DerivedValueNotifier<double?> _txRate;
+
+  ValueListenable<double?> get rxRate => _rxRate;
+  late final DerivedValueNotifier<double?> _rxRate;
+
+  NetworkManagerDeviceType get deviceType => _device.deviceType;
+  String get path => _device.path;
+
+  final NetworkManagerClient _client;
+  final NetworkManagerDevice _device;
+  final Logger _logger;
+  NMServiceDevice(this._client, this._device, this._logger);
+
+  int? _prevTxBytes;
+  int? _prevRxBytes;
+
+  @mustCallSuper
+  Future<void> init() async {
+    if (_device.statistics?.refreshRateMs == 0) {
+      // TODO: 2 NM should we expose statistics refreshRateMs as an option?
+      await _device.statistics!.setRefreshRateMs(1000);
+    }
+
+    _activeConnection = DBusProperyValueNotifier(
+      name: "ActiveConnection",
+      stream: _device.propertiesChanged,
+      callback: () => _device.activeConnection,
+    );
+    _isConnected = DerivedValueNotifier(
+      dependencies: [_activeConnection],
+      derive: () => _activeConnection.value != null,
+    );
+
+    // TODO: 3 can "Statistics" object change, which means we would need to re-init this (or update the stream in the notifier)
+    _txBytes = DBusProperyValueNotifier(
+      name: "TxBytes",
+      stream: _device.statistics?.propertiesChanged,
+      callback: () => _device.statistics?.txBytes,
+    );
+    _rxBytes = DBusProperyValueNotifier(
+      name: "RxBytes",
+      stream: _device.statistics?.propertiesChanged,
+      callback: () => _device.statistics?.rxBytes,
+    );
+
+    _txRate = DerivedValueNotifier(
+      dependencies: [_txBytes],
+      derive: () {
+        final prevTxBytes = _prevTxBytes;
+        _prevTxBytes = _txBytes.value;
+        if (prevTxBytes == null) return null;
+        final txBytes = _txBytes.value;
+        if (txBytes == null) return null;
+        final refreshRateMs = _device.statistics?.refreshRateMs;
+        if (refreshRateMs == null) return null;
+        return (txBytes - prevTxBytes) / refreshRateMs;
+      },
+    );
+    _rxRate = DerivedValueNotifier(
+      dependencies: [_rxBytes],
+      derive: () {
+        final prevRxBytes = _prevRxBytes;
+        _prevRxBytes = _rxBytes.value;
+        if (prevRxBytes == null) return null;
+        final rxBytes = _rxBytes.value;
+        if (rxBytes == null) return null;
+        final refreshRateMs = _device.statistics?.refreshRateMs;
+        if (refreshRateMs == null) return null;
+        return (rxBytes - prevRxBytes) / refreshRateMs;
+      },
+    );
   }
 
-  EthernetDeviceValues getEtherenetDeviceValuesFirst() {
-    return ethernetDevicesValues[0];
+  @mustCallSuper
+  void dispose() {
+    _txBytes.dispose();
+    _rxBytes.dispose();
+    _txRate.dispose();
+    _rxRate.dispose();
+  }
+}
+
+class NMServiceWifiDevice extends NMServiceDevice {
+  ValueListenable<List<NMServiceAccessPoint>> get accessPoints => _accessPoints;
+  late final DBusProperyValueNotifier<List<NMServiceAccessPoint>> _accessPoints;
+
+  ValueListenable<NMServiceAccessPoint?> get activeAccessPoint => _activeAccessPoint;
+  late final DBusProperyValueNotifier<NMServiceAccessPoint?> _activeAccessPoint;
+
+  ValueListenable<int> get lastScan => _lastScan;
+  late final DBusProperyValueNotifier<int> _lastScan;
+
+  NMServiceWifiDevice(super._client, super._device, super._logger);
+
+  @override
+  Future<void> init() async {
+    await super.init();
+    _activeAccessPoint = DBusProperyValueNotifier(
+      name: "ActiveAccessPoint",
+      stream: _device.wireless!.propertiesChanged,
+      callback: () {
+        return _device.wireless!.activeAccessPoint == null
+            ? null
+            : NMServiceAccessPoint(_device.wireless!.activeAccessPoint!);
+      },
+    );
+    _accessPoints = DBusProperyValueNotifier(
+      name: "AccessPoints",
+      stream: _device.wireless!.propertiesChanged,
+      callback: () => _device.wireless!.accessPoints.map(NMServiceAccessPoint.new).toList(),
+    );
+    _lastScan = DBusProperyValueNotifier(
+      name: "LastScan",
+      stream: _device.wireless!.propertiesChanged,
+      callback: () => _device.wireless!.lastScan,
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _activeAccessPoint.dispose();
+    _accessPoints.dispose();
+    _lastScan.dispose();
+  }
+
+  Future<void> requestScan(NetworkManagerDeviceWireless device) async {
+    await device.requestScan();
+  }
+
+  Future<void> disconnect(NetworkManagerDevice device) async {
+    _logger.trace("Disconnecting device: ${device.interface}");
+    await device.disconnect();
   }
 
   Future<ConnectResponse> connect(
-    NetworkManagerDevice device,
-    NetworkManagerAccessPoint ap, {
+    NMServiceAccessPoint ap, {
     bool autoconnect = false,
     String? userPassword,
   }) async {
-    final connAndSettings = await _searchForConnection(device, ap);
+    final connAndSettings = await _searchForConnection(_device, ap._accessPoint);
     if (connAndSettings != null) {
       var (conn, settings) = connAndSettings;
-      logger.debug("Activating connection: ${device.interface} ${utf8.decode(ap.ssid)}");
+      _logger.debug("Activating connection: ${_device.interface} ${utf8.decode(ap._accessPoint.ssid)}");
 
-      if (ap.rsnFlags.isNotEmpty) {
-        final password = userPassword ?? await _getSavedWifiPsk(device, ap, conn, settings);
+      if (ap._accessPoint.rsnFlags.isNotEmpty) {
+        final password = userPassword ?? await _getSavedWifiPsk(_device, ap._accessPoint, conn, settings);
         if (password == null) {
           return ConnectResponse.needsPassword;
         }
@@ -89,18 +253,18 @@ class NetworkManagerService extends Service {
           if (settings[securityField] == null) {
             throw StateError("Settings does not has a security field:\n$settings");
           }
-          logger.trace("Updating connection settings\n$settings");
+          _logger.trace("Updating connection settings\n$settings");
           settings[securityField]!["psk"] = DBusString(password);
-          logger.trace("New connection settings\n$settings");
+          _logger.trace("New connection settings\n$settings");
           await _updateConnectionAndWait(conn, settings);
-          logger.trace("Connection settings after update\n${await conn.getSettings()}");
+          _logger.trace("Connection settings after update\n${await conn.getSettings()}");
         }
       }
       try {
-        await client.activateConnection(device: device, accessPoint: ap, connection: conn);
+        await _client.activateConnection(device: _device, accessPoint: ap._accessPoint, connection: conn);
       } catch (e, st) {
         if (e.toString() == "Null check operator used on a null value") {
-          logger.warning(
+          _logger.warning(
             "It seems there is a bug on the nm "
             "library, it throws a null check operator error and "
             "ignoring the error seems to be safe",
@@ -108,15 +272,15 @@ class NetworkManagerService extends Service {
             stackTrace: st,
           );
         } else {
-          logger.error("client.activateConnection", error: e, stackTrace: st);
+          _logger.error("client.activateConnection", error: e, stackTrace: st);
         }
       }
     } else {
-      logger.trace(
-        "Creating ${ap.rsnFlags.isNotEmpty ? '' : 'and activating '}connection: ${device.interface} ${utf8.decode(ap.ssid)}",
+      _logger.trace(
+        "Creating ${ap._accessPoint.rsnFlags.isNotEmpty ? '' : 'and activating '}connection: ${_device.interface} ${utf8.decode(ap._accessPoint.ssid)}",
       );
-      await client.addAndActivateConnection(device: device, accessPoint: ap);
-      if (ap.rsnFlags.isNotEmpty) {
+      await _client.addAndActivateConnection(device: _device, accessPoint: ap._accessPoint);
+      if (ap._accessPoint.rsnFlags.isNotEmpty) {
         return ConnectResponse.needsPassword;
       }
     }
@@ -150,7 +314,7 @@ class NetworkManagerService extends Service {
     try {
       secrets = await connSettings.getSecrets(securityName);
     } on DBusMethodResponseException catch (e) {
-      logger.debug("connSettings.getSecrets exception throw, assuming no secrets\n$e");
+      _logger.debug("connSettings.getSecrets exception throw, assuming no secrets\n$e");
       return null;
     }
     if (secrets.isNotEmpty) {
@@ -171,7 +335,7 @@ class NetworkManagerService extends Service {
   ) async {
     final interface = DBusString(device.interface);
     final ssid = DBusString(utf8.decode(ap.ssid));
-    for (final conn in client.settings.connections) {
+    for (final conn in _client.settings.connections) {
       final settings = await conn.getSettings();
       final connSettings = settings["connection"];
       if (connSettings == null) {
@@ -183,161 +347,31 @@ class NetworkManagerService extends Service {
     }
     return null;
   }
+}
 
-  Future<void> disconnect(NetworkManagerDevice device) async {
-    logger.trace("Disconnecting device: ${device.interface}");
-    await device.disconnect();
+class NMServiceAccessPoint {
+  ValueListenable<int> get strength => _strength;
+  late final DBusProperyValueNotifier<int> _strength;
+
+  final NetworkManagerAccessPoint _accessPoint;
+  NMServiceAccessPoint(this._accessPoint);
+
+  void init() {
+    _strength = DBusProperyValueNotifier(
+      name: "Strength",
+      stream: _accessPoint.propertiesChanged,
+      callback: () => _accessPoint.strength,
+    );
   }
 
-  Future<void> requestScan(NetworkManagerDeviceWireless device) async {
-    await device.requestScan();
+  void dispose() {
+    _strength.dispose();
   }
 }
 
 enum ConnectResponse {
   needsPassword,
   success,
-}
-
-class TxRxWatcher {
-  final NetworkManagerDeviceStatistics statistics;
-  int _prevTxBytes;
-  final ValueNotifier<int> txBytes;
-  int _prevRxBytes;
-  final ValueNotifier<int> rxBytes;
-  late final DerivedValueNotifier<double> txRate;
-  late final DerivedValueNotifier<double> rxRate;
-
-  // late final DerivedValueNotifier reactToAll;
-
-  final Completer<void> _initRefreshRateMs;
-  late int _refreshRateMs;
-  late StreamSubscription _subscription;
-
-  TxRxWatcher(this.statistics)
-    : txBytes = ValueNotifier(statistics.txBytes),
-      rxBytes = ValueNotifier(statistics.rxBytes),
-      _prevTxBytes = statistics.txBytes,
-      _prevRxBytes = statistics.rxBytes,
-      _initRefreshRateMs = Completer();
-
-  void _dispose() {
-    txBytes.dispose();
-    rxBytes.dispose();
-    txRate.dispose();
-    rxRate.dispose();
-  }
-
-  void dispose() {
-    _subscription.cancel().then(
-      (_) => _dispose(),
-      onError: (e, st) {
-        _dispose();
-        mainLogger.log(
-          // TODO we need to inject logger here instead of relaying on a hardcoded LogType
-          Level.error,
-          "error while canceling subscription to device statistic refreshRateMs",
-          properties: [LogType("$NetworkManagerService")],
-          error: e,
-          stackTrace: st,
-        );
-      },
-    );
-  }
-
-  void init() {
-    txRate = DerivedValueNotifier(
-      dependencies: [txBytes],
-      derive: () => (txBytes.value - _prevTxBytes).toDouble() / _refreshRateMs.toDouble(),
-      defaultsTo: 0,
-    );
-    rxRate = DerivedValueNotifier(
-      dependencies: [rxBytes],
-      derive: () => (rxBytes.value - _prevRxBytes).toDouble() / _refreshRateMs.toDouble(),
-      defaultsTo: 0,
-    );
-
-    if (statistics.refreshRateMs != 0) {
-      _refreshRateMs = statistics.refreshRateMs;
-      _initRefreshRateMs.complete();
-    } else {
-      statistics.setRefreshRateMs(1000).then((_) {
-        _refreshRateMs = 1000;
-        _initRefreshRateMs.complete();
-      });
-    }
-
-    _subscription = statistics.propertiesChanged.listen((properties) {
-      if (!_initRefreshRateMs.isCompleted) {
-        return;
-      }
-      if (properties.contains("TxBytes")) {
-        _prevTxBytes = txBytes.value;
-        txBytes.value = statistics.txBytes;
-      }
-      if (properties.contains("RxBytes")) {
-        _prevRxBytes = rxBytes.value;
-        rxBytes.value = statistics.rxBytes;
-      }
-    });
-  }
-}
-
-class AccessPointValues {
-  final NetworkManagerAccessPoint accessPoint;
-
-  AccessPointValues(this.accessPoint) : strength = _ValueNotifier(accessPoint.strength) {
-    accessPoint.propertiesChanged.where((props) => props.contains("Strength")).listen((_) {
-      strength.value = accessPoint.strength;
-      (strength as _ValueNotifier)._markAsDirty();
-    });
-  }
-
-  ValueNotifier<int> strength;
-
-  void dispose() {
-    strength.dispose();
-  }
-}
-
-class WifiDeviceValues {
-  final NetworkManagerDevice device;
-  NetworkManagerDeviceWireless get wireless => device.wireless!;
-
-  WifiDeviceValues(this.device) {
-    accessPoints = ValueNotifier(Slice(wireless.accessPoints));
-    wireless.propertiesChanged.listen((props) {
-      if (props.containsAny(["AccessPoints"])) {
-        accessPoints.value = Slice(wireless.accessPoints);
-      }
-    });
-
-    activeAccessPoint = _ValueNotifier(wireless.activeAccessPoint);
-    wireless.propertiesChanged.listen((props) {
-      if (props.containsAny(["ActiveAccessPoint"])) {
-        activeAccessPoint.value = wireless.activeAccessPoint;
-      }
-    });
-
-    lastScan = ValueNotifier(wireless.lastScan);
-    wireless.propertiesChanged.listen((props) {
-      if (props.containsAny(["LastScan"])) {
-        lastScan.value = wireless.lastScan;
-      }
-    });
-  }
-
-  late ValueNotifier<Slice<NetworkManagerAccessPoint>> accessPoints;
-
-  late ValueNotifier<NetworkManagerAccessPoint?> activeAccessPoint;
-
-  late ValueNotifier<int> lastScan;
-
-  void dispose() {
-    accessPoints.dispose();
-    activeAccessPoint.dispose();
-    lastScan.dispose();
-  }
 }
 
 class EthernetDeviceValues {
@@ -354,21 +388,12 @@ class EthernetDeviceValues {
   EthernetDeviceValues(this.device)
     : speed = device.wired!.speed,
       isConnected = DBusProperyValueNotifier(
-        value: device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier),
         name: "InterfaceFlags",
-        stream: device.propertiesChanged,
         callback: () => device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier),
+        stream: device.propertiesChanged,
       );
 
   void dispose() {
     isConnected.dispose();
-  }
-}
-
-class _ValueNotifier<T> extends ValueNotifier<T> {
-  _ValueNotifier(super.value);
-
-  void _markAsDirty() {
-    notifyListeners();
   }
 }

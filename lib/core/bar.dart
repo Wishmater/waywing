@@ -212,7 +212,6 @@ class _BarState extends State<Bar> {
   }) {
     final result = <Widget>[];
     for (final feather in feathers) {
-      if (feather.components.isEmpty) continue;
       result.add(
         FutureBuilder(
           future: featherRegistry.awaitInitialization(feather),
@@ -225,59 +224,65 @@ class _BarState extends State<Bar> {
               );
             }
 
-            final result = <Widget>[];
-            // TODO: 3 maybe add some visual indication that widgets belong to the same feather
-            for (final component in feather.components) {
-              if (component.buildIndicators == null) continue;
-              feathersCount[feather.name] ??= 0;
-              final featherIndex = feathersCount[feather.name]!;
-              feathersCount[feather.name] = featherIndex + 1;
-              featherGlobalKeys[feather.name] ??= [GlobalKey()];
-              while (featherGlobalKeys[feather.name]!.length <= featherIndex) {
-                featherGlobalKeys[feather.name]!.add(GlobalKey());
-              }
-              final key = featherGlobalKeys[feather.name]![featherIndex];
-
-              var widget = buildPopover(
-                context: context,
-                component: component,
-                barShape: barShape,
-                builder: (context, popover) {
-                  final indicators = component.buildIndicators!(context, popover, null);
-                  for (int i = 0; i < indicators.length; i++) {
-                    indicators[i] = ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minWidth: !config.isBarVertical ? config.barItemSize : 0,
-                        minHeight: config.isBarVertical ? config.barItemSize : 0,
-                      ),
-                      child: indicators[i],
-                    );
+            return ValueListenableBuilder(
+              valueListenable: feather.components,
+              builder: (context, components, child) {
+                if (components.isEmpty) SizedBox.shrink();
+                final result = <Widget>[];
+                // TODO: 3 maybe add some visual indication that widgets belong to the same feather
+                for (final component in components) {
+                  if (component.buildIndicators == null) continue;
+                  feathersCount[feather.name] ??= 0;
+                  final featherIndex = feathersCount[feather.name]!;
+                  feathersCount[feather.name] = featherIndex + 1;
+                  featherGlobalKeys[feather.name] ??= [GlobalKey()];
+                  while (featherGlobalKeys[feather.name]!.length <= featherIndex) {
+                    featherGlobalKeys[feather.name]!.add(GlobalKey());
                   }
-                  if (config.isBarVertical) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: indicators,
-                    );
-                  } else {
-                    return Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: indicators,
-                    );
-                  }
-                },
-              );
+                  final key = featherGlobalKeys[feather.name]![featherIndex];
 
-              // TODO: 2 listen to component.enabled to have some kind of different decoration?
+                  var widget = buildPopover(
+                    context: context,
+                    component: component,
+                    barShape: barShape,
+                    builder: (context, popover) {
+                      final indicators = component.buildIndicators!(context, popover, null);
+                      for (int i = 0; i < indicators.length; i++) {
+                        indicators[i] = ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: !config.isBarVertical ? config.barItemSize : 0,
+                            minHeight: config.isBarVertical ? config.barItemSize : 0,
+                          ),
+                          child: indicators[i],
+                        );
+                      }
+                      if (config.isBarVertical) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: indicators,
+                        );
+                      } else {
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: indicators,
+                        );
+                      }
+                    },
+                  );
 
-              // TODO: 2 PERFORMANCE maybe pass a builder instead if a Widget to _buildVisibility
-              // so children aren't build unnecessarily for hidden feathers
-              widget = buildVisibility(context, component, widget);
+                  // TODO: 2 listen to component.enabled to have some kind of different decoration?
 
-              result.add(KeyedSubtree(key: key, child: widget));
-            }
-            return buildLayoutWidget(context, result);
+                  // TODO: 2 PERFORMANCE maybe pass a builder instead if a Widget to _buildVisibility
+                  // so children aren't build unnecessarily for hidden feathers
+                  widget = buildVisibility(context, component, widget);
+
+                  result.add(KeyedSubtree(key: key, child: widget));
+                }
+                return buildLayoutWidget(context, result);
+              },
+            );
           },
         ),
       );

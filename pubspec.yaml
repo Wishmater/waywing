@@ -25,6 +25,7 @@ dependencies:
   intl: ^0.20.2
   dartx: ^1.2.0
   args: ^2.7.0
+  human_file_size: ^0.6.0
 
   # Widgets / UI
   sliver_tools: ^0.2.12
@@ -57,3 +58,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+dependency_overrides:
+  intl: ^0.20.2

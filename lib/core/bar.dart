@@ -313,6 +313,12 @@ class _BarState extends State<Bar> {
       ScreenEdge.bottom => Alignment.topCenter,
       ScreenEdge.left => Alignment.centerRight,
     };
+    final overflowAlignment = switch (config.barSide) {
+      ScreenEdge.top => Alignment.topCenter,
+      ScreenEdge.right => Alignment.centerRight,
+      ScreenEdge.bottom => Alignment.bottomCenter,
+      ScreenEdge.left => Alignment.centerLeft,
+    };
     return ValueListenableBuilder(
       valueListenable: component.isPopoverEnabled,
       builder: (context, isPopoverEnabled, _) {
@@ -350,6 +356,7 @@ class _BarState extends State<Bar> {
                       zIndex: -10,
                       popupAlignment: popoverAlignment,
                       anchorAlignment: popoverAlignment,
+                      overflowAlignment: overflowAlignment,
                       screenPadding: EdgeInsets.only(
                         left: config.isBarVertical ? 0 : config.barMarginLeft + config.barRadiusInMain,
                         right: config.isBarVertical ? 0 : config.barMarginRight + config.barRadiusInMain,
@@ -384,6 +391,7 @@ class _BarState extends State<Bar> {
                       zIndex: -5,
                       popupAlignment: popoverAlignment,
                       anchorAlignment: popoverAlignment,
+                      overflowAlignment: overflowAlignment,
                       extraPadding: EdgeInsets.only(
                         top: config.barSide == ScreenEdge.top ? config.barSize / 2 : 0,
                         bottom: config.barSide == ScreenEdge.bottom ? config.barSize / 2 : 0,

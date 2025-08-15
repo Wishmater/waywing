@@ -34,6 +34,7 @@ class PopoverParams {
   final EdgeInsets screenPadding;
   final Alignment anchorAlignment;
   final Alignment popupAlignment;
+  final Alignment overflowAlignment;
   final String? containerId;
   final int zIndex;
   final bool enabled;
@@ -53,6 +54,7 @@ class PopoverParams {
     this.screenPadding = EdgeInsets.zero,
     this.anchorAlignment = Alignment.center,
     this.popupAlignment = Alignment.center,
+    this.overflowAlignment = Alignment.center,
     this.containerId,
     this.closedContainerBuilder,
     this.zIndex = 10,

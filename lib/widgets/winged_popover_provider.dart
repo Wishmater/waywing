@@ -345,7 +345,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
         );
       },
       child: OverflowBox(
-        alignment: popoverParams.popupAlignment,
+        alignment: popoverParams.overflowAlignment,
         fit: OverflowBoxFit.deferToChild,
         minWidth: 0,
         minHeight: 0,

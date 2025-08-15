@@ -25,6 +25,8 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   ValueNotifier<String?> selectedSsid = ValueNotifier(null);
   ValueNotifier<bool> requestingPassword = ValueNotifier(false);
 
+  // TODO: 1 should we request a refresh when opening this ?
+
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(

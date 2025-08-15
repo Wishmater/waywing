@@ -64,10 +64,16 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                       width: 60 * 0.7,
                       height: 40 * 0.7,
                       child: FittedBox(
-                        child: Switch(
-                          // TODO: 1 implement turning wifi on/off
-                          value: true,
-                          onChanged: (value) {},
+                        child: ValueListenableBuilder(
+                          valueListenable: widget.device.wirelessEnabled,
+                          builder: (context, value, child) {
+                            return Switch(
+                              value: value,
+                              onChanged: (value) {
+                                widget.device.setWirelessEnabled(value);
+                              },
+                            );
+                          }
                         ),
                       ),
                     ),

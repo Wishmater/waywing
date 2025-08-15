@@ -196,6 +196,9 @@ class NMServiceWifiDevice extends NMServiceDevice {
   ValueListenable<int> get lastScan => _lastScan;
   late final DBusProperyValueNotifier<int> _lastScan;
 
+  ValueListenable<bool> get wirelessEnabled => _wirelessEnabled;
+  late final DBusProperyValueNotifier<bool> _wirelessEnabled;
+
   NMServiceWifiDevice(super._client, super._device, super._logger);
 
   @override
@@ -220,6 +223,11 @@ class NMServiceWifiDevice extends NMServiceDevice {
       stream: _device.wireless!.propertiesChanged,
       callback: () => _device.wireless!.lastScan,
     );
+    _wirelessEnabled = DBusProperyValueNotifier(
+      name: "WirelessEnabled",
+      stream: _client.propertiesChanged,
+      callback: () => _client.wirelessEnabled,
+    );
   }
 
   @override
@@ -228,6 +236,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
     _activeAccessPoint.dispose();
     _accessPoints.dispose();
     _lastScan.dispose();
+    _wirelessEnabled.dispose();
   }
 
   Future<void> requestScan() async {
@@ -240,6 +249,10 @@ class NMServiceWifiDevice extends NMServiceDevice {
     lastScan.addListener(listener);
     await completer.future;
     lastScan.removeListener(listener);
+  }
+
+  Future<void> setWirelessEnabled(bool enabled) async {
+    await _client.setWirelessEnabled(enabled);
   }
 
   Future<void> disconnect() async {

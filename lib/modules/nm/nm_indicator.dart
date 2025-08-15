@@ -105,12 +105,14 @@ class NetworkIcon extends StatelessWidget {
 }
 
 class ConnectionNameWidget extends StatelessWidget {
-  const ConnectionNameWidget({
-    super.key,
-    required this.device,
-  });
-
   final NMServiceDevice device;
+  final EdgeInsets padding;
+
+  const ConnectionNameWidget({
+    required this.device,
+    this.padding = const EdgeInsets.only(left: 6),
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +121,7 @@ class ConnectionNameWidget extends StatelessWidget {
       builder: (context, activeConnection, _) {
         if (activeConnection == null) return SizedBox.shrink();
         return Padding(
-          padding: const EdgeInsets.only(left: 6),
+          padding: padding,
           child: Text(activeConnection.id),
         );
       },
@@ -128,12 +130,14 @@ class ConnectionNameWidget extends StatelessWidget {
 }
 
 class ThroughputRateWidget extends StatelessWidget {
-  const ThroughputRateWidget({
-    super.key,
-    required this.device,
-  });
-
   final NMServiceDevice device;
+  final EdgeInsets padding;
+
+  const ThroughputRateWidget({
+    required this.device,
+    this.padding = const EdgeInsets.only(left: 8),
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +155,7 @@ class ThroughputRateWidget extends StatelessWidget {
               ),
             );
             return Padding(
-              padding: const EdgeInsets.only(left: 8),
+              padding: padding,
               child: Row(
                 children: [
                   Icon(
@@ -171,12 +175,14 @@ class ThroughputRateWidget extends StatelessWidget {
 }
 
 class TxRateWidget extends StatelessWidget {
-  const TxRateWidget({
-    super.key,
-    required this.device,
-  });
-
   final NMServiceDevice device;
+  final EdgeInsets padding;
+
+  const TxRateWidget({
+    required this.device,
+    this.padding = const EdgeInsets.only(left: 6),
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +197,7 @@ class TxRateWidget extends StatelessWidget {
           ),
         );
         return Padding(
-          padding: const EdgeInsets.only(left: 6),
+          padding: padding,
           child: Row(
             children: [
               Icon(
@@ -209,12 +215,14 @@ class TxRateWidget extends StatelessWidget {
 }
 
 class RxRateWidget extends StatelessWidget {
-  const RxRateWidget({
-    super.key,
-    required this.device,
-  });
-
   final NMServiceDevice device;
+  final EdgeInsets padding;
+
+  const RxRateWidget({
+    required this.device,
+    this.padding = const EdgeInsets.only(left: 6),
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -229,12 +237,12 @@ class RxRateWidget extends StatelessWidget {
           ),
         );
         return Padding(
-          padding: const EdgeInsets.only(left: 6),
+          padding: padding,
           child: Row(
             children: [
               Icon(
                 MaterialCommunityIcons.arrow_down_bold,
-                size: Theme.of(context).textTheme.bodyMedium!.fontSize,
+                size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
               ),
               SizedBox(width: 2),
               Text("$readableBytes/s"),

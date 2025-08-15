@@ -213,10 +213,27 @@ class NMServiceWifiDevice extends NMServiceDevice {
             : NMServiceAccessPoint(_device.wireless!.activeAccessPoint!);
       },
     );
+    // TODO 3: is probably that there is a leak here because the previous NMServiceAccessPoint
+    // did not dispose when changed
     _accessPoints = DBusProperyValueNotifier(
       name: "AccessPoints",
       stream: _device.wireless!.propertiesChanged,
-      callback: () => _device.wireless!.accessPoints.map(NMServiceAccessPoint.new).toList(),
+      callback: () => _device.wireless!.accessPoints
+          .where((e) {
+            if (e.ssid.isEmpty) { // remove empty ssid
+              return false;
+            }
+            try {
+              if (utf8.decode(e.ssid).trim().isEmpty) {
+                return false;
+              }
+            } catch (_) {
+              return false;
+            }
+            return true;
+          })
+          .map(NMServiceAccessPoint.new)
+          .toList(),
     );
     _lastScan = DBusProperyValueNotifier(
       name: "LastScan",

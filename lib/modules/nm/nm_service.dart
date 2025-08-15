@@ -234,6 +234,14 @@ class NMServiceWifiDevice extends NMServiceDevice {
     await _device.wireless!.requestScan();
   }
 
+  Future<void> awaitScan() async {
+    final completer = Completer();
+    listener() => completer.complete();
+    lastScan.addListener(listener);
+    await completer.future;
+    lastScan.removeListener(listener);
+  }
+
   Future<void> disconnect() async {
     _logger.trace("Disconnecting device: ${_device.interface}");
     await _device.disconnect();
@@ -381,28 +389,4 @@ class NMServiceAccessPoint {
 enum ConnectResponse {
   needsPassword,
   success,
-}
-
-class EthernetDeviceValues {
-  NetworkManagerDevice device;
-  NetworkManagerDeviceWired get wiredDevice => device.wired!;
-
-  /// Design speed of the device, in megabits/second (Mb/s).
-  ///
-  /// TODO: this needs testing connecting different cables to see how the update should work
-  final int speed;
-
-  final DBusProperyValueNotifier<bool> isConnected;
-
-  EthernetDeviceValues(this.device)
-    : speed = device.wired!.speed,
-      isConnected = DBusProperyValueNotifier(
-        name: "InterfaceFlags",
-        callback: () => device.interfaceFlags.contains(NetworkManagerDeviceInterfaceFlag.carrier),
-        stream: device.propertiesChanged,
-      );
-
-  void dispose() {
-    isConnected.dispose();
-  }
 }

@@ -55,7 +55,8 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                         );
                       },
                       onTap: () async {
-                        return widget.device.requestScan();
+                        await widget.device.requestScan();
+                        return widget.device.awaitScan();
                       },
                     ),
                     SizedBox(width: 6),
@@ -298,11 +299,11 @@ class RefreshIcon extends StatefulWidget {
 class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin {
   late final animationController = AnimationController(
     vsync: this,
-    duration: config.animationDuration * 2,
+    duration: config.animationDuration * 2.5,
   );
   late final animation = CurvedAnimation(
     parent: animationController,
-    curve: config.animationCurve,
+    curve: Curves.easeInOut,
   );
 
   @override

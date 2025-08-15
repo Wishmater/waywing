@@ -24,7 +24,7 @@ class NetworkManagerPopover extends StatefulWidget {
 class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   ValueNotifier<String?> selectedSsid = ValueNotifier(null);
   ValueNotifier<bool> requestingPassword = ValueNotifier(false);
-  late final initialRefreshFuture;
+  late final Future<void> initialRefreshFuture;
 
   @override
   void initState() {
@@ -127,6 +127,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                           );
                         }
 
+                        // TODO: 2 implement animated list
                         final scrollController = ScrollController();
                         return Scrollbar(
                           controller: scrollController,
@@ -195,6 +196,7 @@ class _APWidgetState extends State<APWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: 2 implement internal size animation (so it animates when changing size for selected, request password, etc.)
     return ValueListenableBuilder(
       valueListenable: widget.selectedSsid,
       builder: (context, selectedSsid, _) {
@@ -325,6 +327,13 @@ class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin
   void initState() {
     super.initState();
     updateAnimation(null);
+  }
+
+  @override
+  void dispose() {
+    animation.dispose();
+    animationController.dispose();
+    super.dispose();
   }
 
   @override

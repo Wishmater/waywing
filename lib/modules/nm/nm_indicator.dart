@@ -79,6 +79,9 @@ class NetworkManagerIndicator extends StatelessWidget {
   }
 }
 
+// TODO: 1 implement locked indicator (maybe not here but on the right in AP list)
+// TODO: 1 implement wifi strength in icon
+// TODO: 1 implement activity download/upload indicator to the bottomRight of icon
 class NetworkIcon extends StatelessWidget {
   final NMServiceDevice device;
   final NetworkManagerDeviceType type;
@@ -93,6 +96,7 @@ class NetworkIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: 2 implement icons for other network types
     return switch (type) {
       NetworkManagerDeviceType.wifi => isConnected ? Icon(Icons.wifi) : Icon(Icons.wifi_off),
       NetworkManagerDeviceType.ethernet => Icon(MaterialCommunityIcons.ethernet),

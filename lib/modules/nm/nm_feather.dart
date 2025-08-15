@@ -6,6 +6,7 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/nm_indicator.dart";
+import "package:waywing/modules/nm/nm_popover.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 import "package:waywing/modules/nm/nm_tooltip.dart";
 import "package:waywing/util/derived_value_notifier.dart";
@@ -51,10 +52,13 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
               ];
             },
             // TODO: 1 hide tooltip if nothing to show (!isConnected ???)
-            buildTooltip: (context) => NetworkManagerTooltip(config: config, device: device),
-            // buildPopover: (context) {
-            //   return NetworkManagerPopover(logger: logger, service: service);
-            // },
+            buildTooltip: (context) {
+              return NetworkManagerTooltip(config: config, device: device);
+            },
+            isPopoverEnabled: DummyValueNotifier(device.deviceType == NetworkManagerDeviceType.wifi),
+            buildPopover: (context) {
+              return NetworkManagerPopover(config: config, device: device as NMServiceWifiDevice);
+            },
           ),
         );
       }

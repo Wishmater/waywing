@@ -53,11 +53,11 @@ class NMServiceDevices extends ChangeNotifier implements ValueListenable<List<NM
   Future<void> init() async {
     for (final e in _client.devices) {
       if (e.activeConnection?.id == "lo") continue; // ignore loopback interface
-      value.add(NMServiceDevice(_client, e, _logger));
+      value.add(NMServiceDevice.build(_client, e, _logger));
     }
     _deviceAddedSubscription = _client.deviceAdded.listen((e) async {
       _logger.debug("added device: ${e.deviceType} ${e.path}");
-      final device = NMServiceDevice(_client, e, _logger);
+      final device = NMServiceDevice.build(_client, e, _logger);
       await device.init();
       value.add(device);
       notifyListeners();
@@ -109,6 +109,13 @@ class NMServiceDevice {
   final NetworkManagerDevice _device;
   final Logger _logger;
   NMServiceDevice(this._client, this._device, this._logger);
+
+  factory NMServiceDevice.build(NetworkManagerClient client, NetworkManagerDevice device, Logger logger) {
+    if (device.deviceType == NetworkManagerDeviceType.wifi) {
+      return NMServiceWifiDevice(client, device, logger);
+    }
+    return NMServiceDevice(client, device, logger);
+  }
 
   int? _prevTxBytes;
   int? _prevRxBytes;
@@ -223,13 +230,13 @@ class NMServiceWifiDevice extends NMServiceDevice {
     _lastScan.dispose();
   }
 
-  Future<void> requestScan(NetworkManagerDeviceWireless device) async {
-    await device.requestScan();
+  Future<void> requestScan() async {
+    await _device.wireless!.requestScan();
   }
 
-  Future<void> disconnect(NetworkManagerDevice device) async {
-    _logger.trace("Disconnecting device: ${device.interface}");
-    await device.disconnect();
+  Future<void> disconnect() async {
+    _logger.trace("Disconnecting device: ${_device.interface}");
+    await _device.disconnect();
   }
 
   Future<ConnectResponse> connect(
@@ -352,6 +359,8 @@ class NMServiceWifiDevice extends NMServiceDevice {
 class NMServiceAccessPoint {
   ValueListenable<int> get strength => _strength;
   late final DBusProperyValueNotifier<int> _strength;
+
+  late final String ssid = utf8.decode(_accessPoint.ssid);
 
   final NetworkManagerAccessPoint _accessPoint;
   NMServiceAccessPoint(this._accessPoint);

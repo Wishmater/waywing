@@ -1,11 +1,19 @@
+import "dart:async";
+
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 
-class WingedButton extends StatelessWidget {
+class WingedButton<T> extends StatefulWidget {
   final Widget child;
 
+  final Widget Function(BuildContext context, AsyncSnapshot<T?> snapshot, Widget child)? builder;
+
+  final EdgeInsets padding;
+
+  final BoxConstraints constraints;
+
   /// Called when the user taps this part of the material.
-  final GestureTapCallback? onTap;
+  final FutureOr<T>? Function()? onTap;
 
   /// Called when the user taps down this part of the material.
   final GestureTapDownCallback? onTapDown;
@@ -113,6 +121,9 @@ class WingedButton extends StatelessWidget {
 
   const WingedButton({
     required this.child,
+    this.builder,
+    this.padding = const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+    this.constraints = const BoxConstraints(minWidth: 38, minHeight: 38),
     this.onTap,
     this.onTapDown,
     this.onTapUp,
@@ -132,29 +143,63 @@ class WingedButton extends StatelessWidget {
   });
 
   @override
+  State<WingedButton> createState() => _WingedButtonState<T>();
+}
+
+class _WingedButtonState<T> extends State<WingedButton<T>> {
+  late Future<T?> taskFuture = Future.value(null);
+
+  @override
   Widget build(BuildContext context) {
-    var borderRadius = this.borderRadius;
-    borderRadius ??= BorderRadius.all(Radius.elliptical(config.buttonRadiusX, config.buttonRadiusY));
-    return InkResponse(
-      highlightShape: BoxShape.rectangle,
-      hoverDuration: config.animationDuration * 0.5,
-      borderRadius: borderRadius,
-      child: child, // ignore: sort_child_properties_last
-      // properties just passed to InkResponse as-is
-      onTap: onTap,
-      onTapDown: onTapDown,
-      onTapUp: onTapUp,
-      onTapCancel: onTapCancel,
-      onDoubleTap: onDoubleTap,
-      onLongPress: onLongPress,
-      onSecondaryTap: onSecondaryTap,
-      onSecondaryTapUp: onSecondaryTapUp,
-      onSecondaryTapDown: onSecondaryTapDown,
-      onSecondaryTapCancel: onSecondaryTapCancel,
-      onHover: onHover,
-      mouseCursor: mouseCursor,
-      containedInkWell: containedInkWell,
-      radius: radius,
+    return FutureBuilder(
+      future: taskFuture,
+      builder: (context, snapshot) {
+        var borderRadius = widget.borderRadius;
+        borderRadius ??= BorderRadius.all(Radius.elliptical(config.buttonRadiusX, config.buttonRadiusY));
+        final Widget child;
+        if (widget.builder == null) {
+          child = widget.child;
+        } else {
+          child = widget.builder!(context, snapshot, widget.child);
+        }
+
+        return InkResponse(
+          highlightShape: BoxShape.rectangle,
+          hoverDuration: config.animationDuration * 0.5,
+          borderRadius: borderRadius,
+          onTap: widget.onTap == null || snapshot.connectionState != ConnectionState.done
+              ? null
+              : () {
+                  final result = widget.onTap!();
+                  if (result is Future<T>) {
+                    setState(() {
+                      taskFuture = result;
+                    });
+                  }
+                },
+          // ignore: sort_child_properties_last
+          child: Container(
+            padding: widget.padding,
+            constraints: widget.constraints,
+            alignment: Alignment.center,
+            child: child,
+          ),
+          // properties just passed to InkResponse as-is
+          onTapDown: widget.onTapDown,
+          onTapUp: widget.onTapUp,
+          onTapCancel: widget.onTapCancel,
+          onDoubleTap: widget.onDoubleTap,
+          onLongPress: widget.onLongPress,
+          onSecondaryTap: widget.onSecondaryTap,
+          onSecondaryTapUp: widget.onSecondaryTapUp,
+          onSecondaryTapDown: widget.onSecondaryTapDown,
+          onSecondaryTapCancel: widget.onSecondaryTapCancel,
+          onHover: widget.onHover,
+          mouseCursor: widget.mouseCursor,
+          containedInkWell: widget.containedInkWell,
+          radius: widget.radius,
+        );
+      },
     );
   }
 }

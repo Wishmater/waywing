@@ -22,19 +22,21 @@ class BatteryFeather extends Feather {
   }
 
   @override
+  String get name => "Battery";
+
+  @override
   Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<BatteryService>(this);
   }
-
-  @override
-  String get name => "Battery";
 
   @override
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([batteryComponent]);
 
   late final batteryComponent = FeatherComponent(
     buildIndicators: (context, popover, tooltip) {
-      return [BatteryWidget(values: BatteryValues(service.displayDevice))];
+      return [
+        BatteryWidget(values: BatteryValues(service.displayDevice)),
+      ];
     },
   );
 }

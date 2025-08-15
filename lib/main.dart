@@ -56,6 +56,9 @@ class App extends StatelessWidget {
                 surface: config.surfaceColor,
               ),
               splashFactory: InkSparkle.splashFactory,
+              dividerTheme: DividerThemeData(
+                color: Colors.grey.shade400.withValues(alpha: 0.66),
+              ),
             ),
             home: Scaffold(
               backgroundColor: Colors.transparent,

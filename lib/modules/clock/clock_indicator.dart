@@ -22,6 +22,7 @@ class ClockIndicator extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: service.time,
       builder: (context, time, _) {
+        // TODO: 3 PERFORMANCE this is apparently being rebuilt every second, even though we only care about minutes
         return LayoutBuilder(
           builder: (context, constraints) {
             final isVertical = constraints.maxHeight > constraints.maxWidth;

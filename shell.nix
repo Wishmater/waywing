@@ -38,11 +38,15 @@ in pkgs.mkShell {
     ninja
     gtk-layer-shell
 
+    pulseaudio
+
   ];
 
   shellHook = ''
     export PKG_CONFIG_PATH="${pkgs.gtk3.dev}/lib/pkgconfig:$PKG_CONFIG_PATH"
     export CMAKE_PREFIX_PATH="${pkgs.gtk3.dev}:${pkgs.libsecret.dev}"
+
+    export LD_LIBRARY_PATH=${pkgs.pulseaudio.out}/lib
   '';
 
 }

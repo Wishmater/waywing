@@ -15,6 +15,8 @@ class WingedButton<T> extends StatefulWidget {
   /// Called when the user taps this part of the material.
   final FutureOr<T>? Function()? onTap;
 
+  final Future<T>? initialFuture;
+
   /// Called when the user taps down this part of the material.
   final GestureTapDownCallback? onTapDown;
 
@@ -125,6 +127,7 @@ class WingedButton<T> extends StatefulWidget {
     this.padding = const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
     this.constraints = const BoxConstraints(minWidth: 38, minHeight: 38),
     this.onTap,
+    this.initialFuture,
     this.onTapDown,
     this.onTapUp,
     this.onTapCancel,
@@ -147,7 +150,7 @@ class WingedButton<T> extends StatefulWidget {
 }
 
 class _WingedButtonState<T> extends State<WingedButton<T>> {
-  late Future<T?> taskFuture = Future.value(null);
+  late Future<T?> taskFuture = widget.initialFuture ?? Future.value(null);
 
   @override
   Widget build(BuildContext context) {

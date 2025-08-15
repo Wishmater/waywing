@@ -24,8 +24,18 @@ class NetworkManagerPopover extends StatefulWidget {
 class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
   ValueNotifier<String?> selectedSsid = ValueNotifier(null);
   ValueNotifier<bool> requestingPassword = ValueNotifier(false);
+  late final initialRefreshFuture;
 
-  // TODO: 1 should we request a refresh when opening this ?
+  @override
+  void initState() {
+    super.initState();
+    initialRefreshFuture = requestScan();
+  }
+
+  Future<void> requestScan() async {
+    await widget.device.requestScan();
+    return widget.device.awaitScan();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,19 +57,16 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                   children: [
                     Text("Wi-Fi", style: Theme.of(context).textTheme.bodyLarge),
                     Expanded(child: SizedBox.shrink()),
-                    // TODO: 1 listening to and show an animation while refreshing
                     WingedButton(
-                      child: Icon(Icons.refresh),
                       builder: (context, snapshot, child) {
                         return RefreshIcon(
                           isRefreshing: snapshot.connectionState != ConnectionState.done,
                           child: child,
                         );
                       },
-                      onTap: () async {
-                        await widget.device.requestScan();
-                        return widget.device.awaitScan();
-                      },
+                      onTap: requestScan,
+                      initialFuture: initialRefreshFuture,
+                      child: Icon(Icons.refresh),
                     ),
                     SizedBox(width: 6),
                     SizedBox(
@@ -75,7 +82,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                                 widget.device.setWirelessEnabled(value);
                               },
                             );
-                          }
+                          },
                         ),
                       ),
                     ),

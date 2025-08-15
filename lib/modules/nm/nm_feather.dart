@@ -51,7 +51,7 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
                 NetworkManagerIndicator(config: config, device: device, popover: popover),
               ];
             },
-            // TODO: 1 hide tooltip if nothing to show (!isConnected ???)
+            isTooltipEnabled: device.isConnected,
             buildTooltip: (context) {
               return NetworkManagerTooltip(config: config, device: device);
             },

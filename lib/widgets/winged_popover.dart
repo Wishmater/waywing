@@ -155,7 +155,7 @@ class WingedPopoverState extends State<WingedPopover>
     // like it is right now the tree will change, so the children will be rebuilt, and there is
     // also a chance the tooltip will be stuck show (because onExit will never be called).
     // I can't think of a situation where you would change the value of .showAsTooltip, so whatever...
-    if (widget.tooltipParams != null) {
+    if (widget.tooltipParams?.enabled ?? false) {
       result = MouseRegion(
         onEnter: (_) => _provider.onMouseEnterHost(this),
         onExit: (_) => _provider.onMouseExitHost(this),

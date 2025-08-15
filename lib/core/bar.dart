@@ -2,13 +2,18 @@ import "package:dartx/dartx_io.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/util/logger.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/docked_rounded_corners_shape.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/widgets/winged_container.dart";
 import "package:waywing/widgets/winged_popover.dart";
+
+// TODO: 2 this logger should come from the wingRegistry once Wings are implemented
+final _logger = mainLogger.clone();
 
 class Bar extends StatefulWidget {
   const Bar({super.key});
@@ -22,25 +27,6 @@ class _BarState extends State<Bar> {
   // won't be lost when reloading config, including popover and tooltip state
   Map<String, List<GlobalKey>> featherGlobalKeys = {};
   final PositioningNotifierController barPositioningController = PositioningNotifierController();
-
-  @override
-  void didUpdateWidget(covariant Bar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // remove global keys for feathers no longer declared
-    final allFeathers = [...config.barStartFeathers, ...config.barCenterFeathers, ...config.barEndFeathers];
-    final toRemove = <String>[];
-    for (final key in featherGlobalKeys.keys) {
-      final count = allFeathers.count((e) => e.name == key);
-      if (count == 0) {
-        toRemove.add(key);
-      } else if (featherGlobalKeys[key]!.length > count) {
-        featherGlobalKeys[key] = featherGlobalKeys[key]!.sublist(0, count);
-      }
-    }
-    for (final key in toRemove) {
-      featherGlobalKeys.remove(key);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +202,25 @@ class _BarState extends State<Bar> {
         FutureBuilder(
           future: featherRegistry.awaitInitialization(feather),
           builder: (context, snapshot) {
-            // TODO: 2 implement proper error management and animation when switching out of loading state
+            // TODO: 1 animation when switching out of loading state,
+            if (snapshot.hasError) {
+              // TODO: 2 should we do this log here??? this means it will be repeated every time bar is rebuilt
+              _logger.log(
+                Level.error,
+                "Error caught in bar when awaiting feather initialization for feather ${feather.name}",
+                error: snapshot.error,
+                stackTrace: snapshot.stackTrace,
+              );
+              return SizedBox(
+                height: config.isBarVertical ? config.barItemSize : null,
+                width: !config.isBarVertical ? config.barItemSize : null,
+                child: Icon(
+                  Icons.error,
+                  color: Theme.of(context).colorScheme.error,
+                ),
+              );
+            }
+
             if (snapshot.connectionState != ConnectionState.done) {
               return SizedBox.square(
                 dimension: config.barItemSize.toDouble(),
@@ -230,16 +234,20 @@ class _BarState extends State<Bar> {
                 if (components.isEmpty) SizedBox.shrink();
                 final result = <Widget>[];
                 // TODO: 3 maybe add some visual indication that widgets belong to the same feather
-                for (final component in components) {
+                feathersCount[feather.name] ??= 0;
+                final featherIndex = feathersCount[feather.name]!;
+                final featherName = "${feather.name}$featherIndex";
+                feathersCount[featherName] = featherIndex + 1;
+                featherGlobalKeys[featherName] ??= [GlobalKey()];
+                final featherKeys = featherGlobalKeys[featherName]!;
+                while (featherKeys.length <= components.length) {
+                  featherKeys.add(GlobalKey());
+                }
+                // TODO: 3 PERFORMANCE remove unused keys from featherKeys ???
+                for (int i = 0; i < components.length; i++) {
+                  final component = components[i];
                   if (component.buildIndicators == null) continue;
-                  feathersCount[feather.name] ??= 0;
-                  final featherIndex = feathersCount[feather.name]!;
-                  feathersCount[feather.name] = featherIndex + 1;
-                  featherGlobalKeys[feather.name] ??= [GlobalKey()];
-                  while (featherGlobalKeys[feather.name]!.length <= featherIndex) {
-                    featherGlobalKeys[feather.name]!.add(GlobalKey());
-                  }
-                  final key = featherGlobalKeys[feather.name]![featherIndex];
+                  final key = featherKeys[i];
 
                   var widget = buildPopover(
                     context: context,

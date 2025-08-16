@@ -193,6 +193,38 @@ class APWidget extends StatefulWidget {
 
 class _APWidgetState extends State<APWidget> {
   late final passwordController = TextEditingController();
+  late final autoConnect = ValueNotifier(true);
+
+  Future? _connectTapFuture;
+
+  Future<void> onConnectTap() async {
+    if (_connectTapFuture != null) return _connectTapFuture;
+    _connectTapFuture = _onConnectTap();
+    await _connectTapFuture;
+    _connectTapFuture = null;
+  }
+
+  Future _onConnectTap() async {
+    if (widget.isConnected) {
+      widget.device.disconnect();
+    } else {
+      if (widget.requestingPassword.value) {
+        return widget.device.connect(
+          widget.ap,
+          userPassword: passwordController.text,
+          autoconnect: autoConnect.value,
+        );
+      } else {
+        final connectResult = await widget.device.connect(
+          widget.ap,
+          autoconnect: autoConnect.value,
+        );
+        if (connectResult == ConnectResponse.needsPassword) {
+          widget.requestingPassword.value = true;
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,57 +236,83 @@ class _APWidgetState extends State<APWidget> {
         List<Widget> extraWidgets = [];
         if (isSelected) {
           extraWidgets.addAll([
-            SizedBox(width: 36),
             Expanded(
               child: ValueListenableBuilder(
                 valueListenable: widget.requestingPassword,
                 builder: (context, requestingPassword, _) {
-                  if (!requestingPassword) return SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8, bottom: 8),
-                    child: SizedBox(
-                      height: 32,
-                      child: TextFormField(
-                        autofocus: true,
-                        controller: passwordController,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          alignLabelWithHint: true,
-                          contentPadding: EdgeInsets.only(left: 6, right: 6),
-                          label: Text("Password"),
-                          labelStyle: TextStyle(fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize),
+                  // TODO: 2 add animated switcher to password/autoConnect
+                  if (widget.isConnected) {
+                    return SizedBox.shrink();
+                  }
+                  if (requestingPassword) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8, bottom: 8, left: 36, right: 8),
+                      child: SizedBox(
+                        height: 32,
+                        child: TextFormField(
+                          autofocus: true,
+                          controller: passwordController,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          onFieldSubmitted: (_) => onConnectTap(),
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            alignLabelWithHint: true,
+                            contentPadding: EdgeInsets.only(left: 6, right: 6),
+                            label: Text("Password"),
+                            labelStyle: TextStyle(fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize),
+                          ),
                         ),
                       ),
-                    ),
-                  );
+                    );
+                  }
+                  if (isSelected) {
+                    return Container(
+                      padding: const EdgeInsets.only(left: 30, right: 6),
+                      alignment: Alignment.centerRight,
+                      child: ValueListenableBuilder(
+                        valueListenable: autoConnect,
+                        builder: (context, value, _) {
+                          return WingedButton(
+                            onTap: () => autoConnect.value = !value,
+                            padding: EdgeInsets.symmetric(horizontal: 4),
+                            alignment: null,
+                            child: IntrinsicWidth(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 24,
+                                    height: 0,
+                                    child: ExcludeFocusTraversal(
+                                      child: Checkbox(
+                                        value: value,
+                                        onChanged: (value) => autoConnect.value = value!,
+                                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    "Auto\nconnect",
+                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(height: 0.8),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  }
+                  return SizedBox.shrink();
                 },
               ),
             ),
-            SizedBox(width: 8),
             WingedButton(
               child: Text(
                 widget.isConnected ? "DISCONNECT" : "CONNECT",
                 style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
-              onTap: () async {
-                if (widget.isConnected) {
-                  widget.device.disconnect();
-                } else {
-                  if (widget.requestingPassword.value) {
-                    // TODO: 1 implement autoConnect
-                    return widget.device.connect(
-                      widget.ap,
-                      userPassword: passwordController.text,
-                    );
-                  } else {
-                    final connectResult = await widget.device.connect(widget.ap);
-                    if (connectResult == ConnectResponse.needsPassword) {
-                      widget.requestingPassword.value = true;
-                    }
-                  }
-                }
-              },
+              onTap: onConnectTap,
             ),
           ]);
         }
@@ -282,7 +340,7 @@ class _APWidgetState extends State<APWidget> {
                       isConnected: true,
                     ),
                     SizedBox(width: 12),
-                    Text(widget.ap.ssid),
+                    Expanded(child: Text(widget.ap.ssid)),
                   ],
                 ),
                 if (extraWidgets.isNotEmpty)

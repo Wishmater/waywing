@@ -12,6 +12,8 @@ class WingedButton<T> extends StatefulWidget {
 
   final BoxConstraints constraints;
 
+  final Alignment? alignment;
+
   /// Called when the user taps this part of the material.
   final FutureOr<T>? Function()? onTap;
 
@@ -126,6 +128,7 @@ class WingedButton<T> extends StatefulWidget {
     this.builder,
     this.padding = const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
     this.constraints = const BoxConstraints(minWidth: 38, minHeight: 38),
+    this.alignment = Alignment.center,
     this.onTap,
     this.initialFuture,
     this.onTapDown,
@@ -184,7 +187,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
           child: Container(
             padding: widget.padding,
             constraints: widget.constraints,
-            alignment: Alignment.center,
+            alignment: widget.alignment,
             child: child,
           ),
           // properties just passed to InkResponse as-is

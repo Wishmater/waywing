@@ -4,7 +4,7 @@ import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/volume/volume_widget.dart";
-import "package:waywing/modules/volume/voulme_service.dart";
+import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/winged_button.dart";
 

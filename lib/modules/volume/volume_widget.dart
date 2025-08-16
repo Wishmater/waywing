@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 import "package:pulseaudio/pulseaudio.dart";
-import "package:waywing/modules/volume/voulme_service.dart";
+import "package:waywing/modules/volume/volume_service.dart";
 
 class VolumeWidget extends StatefulWidget {
   final VolumeService service;

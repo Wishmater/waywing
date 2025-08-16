@@ -6,7 +6,7 @@ import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/modules/nm/nm_service.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
-import "package:waywing/modules/volume/voulme_service.dart";
+import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/util/logger.dart";
 
 final serviceRegistry = ServiceRegistry._();

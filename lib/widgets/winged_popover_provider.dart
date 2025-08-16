@@ -139,21 +139,21 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   // necessary because when mouse goes from host to client, if we check immediately
   // it will be removed because it goes out of the host before going into the client
+  final Set<WingedPopoverState> _checkHideTooltipScheduledled = {};
   void _scheduleCheckHideTooltip(WingedPopoverState host) {
-    if (_isCheckHideTooltipScheduled) return;
-    _isCheckHideTooltipScheduled = true;
+    if (_checkHideTooltipScheduledled.contains(host)) return;
+    _checkHideTooltipScheduledled.add(host);
     // this NEEDS to wait 2 frames for it to be consistent
     WidgetsBinding.instance.scheduleFrame();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WidgetsBinding.instance.scheduleFrame();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _checkHideTooltip(host);
-        _isCheckHideTooltipScheduled = false;
+        _checkHideTooltipScheduledled.remove(host);
       });
     });
   }
 
-  bool _isCheckHideTooltipScheduled = false;
   void _checkHideTooltip(WingedPopoverState host) {
     final status = tooltipHosts[host];
     if (status != null && !status.client && !status.host) {

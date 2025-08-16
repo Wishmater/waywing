@@ -1,6 +1,7 @@
 import "dart:async";
 import "dart:convert";
 
+import "package:dartx/dartx.dart";
 import "package:dbus/dbus.dart";
 import "package:flutter/foundation.dart";
 import "package:tronco/tronco.dart";
@@ -239,6 +240,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
             result.init();
             return result;
           })
+          .sortedByDescending((e) => e._accessPoint.strength)
           .toList(),
     );
     _lastScan = DBusProperyValueNotifier(

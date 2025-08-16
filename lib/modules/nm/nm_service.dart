@@ -159,7 +159,7 @@ class NMServiceDevice {
         if (txBytes == null) return null;
         final refreshRateMs = _device.statistics?.refreshRateMs;
         if (refreshRateMs == null) return null;
-        return (txBytes - prevTxBytes) / refreshRateMs;
+        return (txBytes - prevTxBytes) / (refreshRateMs / 1000);
       },
     );
     _rxRate = DerivedValueNotifier(
@@ -172,7 +172,7 @@ class NMServiceDevice {
         if (rxBytes == null) return null;
         final refreshRateMs = _device.statistics?.refreshRateMs;
         if (refreshRateMs == null) return null;
-        return (rxBytes - prevRxBytes) / refreshRateMs;
+        return (rxBytes - prevRxBytes) / (refreshRateMs / 1000);
       },
     );
   }

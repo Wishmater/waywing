@@ -5,6 +5,7 @@ import "package:intl/intl.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/nm_indicator.dart";
 import "package:waywing/modules/nm/nm_service.dart";
+import "package:waywing/util/human_readable_bytes.dart";
 
 class NetworkManagerTooltip extends StatelessWidget {
   final NetworkManagerConfig config;
@@ -90,6 +91,9 @@ class ThroughputTotalWidget extends StatelessWidget {
             if (txBytes == null && rxBytes == null) return SizedBox.shrink();
             final readableBytes = humanFileSize(
               (txBytes ?? 0) + (rxBytes ?? 0),
+              unitConversion: const UnitConversion.bestFit(
+                numeralSystem: DecimalByteNumeralSystem(),
+              ),
               quantityDisplayMode: IntlQuantityDisplayMode(
                 numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
               ),
@@ -133,6 +137,9 @@ class TxTotalWidget extends StatelessWidget {
         if (txBytes == null) return SizedBox.shrink();
         final readableBytes = humanFileSize(
           txBytes,
+          unitConversion: const UnitConversion.bestFit(
+            numeralSystem: DecimalByteNumeralSystem(),
+          ),
           quantityDisplayMode: IntlQuantityDisplayMode(
             numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
           ),
@@ -174,6 +181,9 @@ class RxTotalWidget extends StatelessWidget {
         if (rxBytes == null) return SizedBox.shrink();
         final readableBytes = humanFileSize(
           rxBytes,
+          unitConversion: const UnitConversion.bestFit(
+            numeralSystem: DecimalByteNumeralSystem(),
+          ),
           quantityDisplayMode: IntlQuantityDisplayMode(
             numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
           ),

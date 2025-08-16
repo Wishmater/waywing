@@ -5,6 +5,7 @@ import "package:intl/intl.dart";
 import "package:nm/nm.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/nm_service.dart";
+import "package:waywing/util/human_readable_bytes.dart";
 import "package:waywing/widgets/winged_button.dart";
 import "package:waywing/widgets/winged_popover.dart";
 
@@ -31,6 +32,8 @@ class NetworkManagerIndicator extends StatelessWidget {
               device: device,
               type: device.deviceType,
               isConnected: isConnected,
+              showTxRxIndicators:
+                  !config.showThroughputIndicator && !config.showDownloadIndicator && !config.showUploadIndicator,
             );
 
             final isVertical = constraints.maxHeight > constraints.maxWidth;
@@ -84,40 +87,51 @@ class NetworkIcon extends StatelessWidget {
   final NMServiceDevice device;
   final NetworkManagerDeviceType type;
   final bool isConnected;
+  final bool showTxRxIndicators;
 
   const NetworkIcon({
     required this.device,
     required this.type,
     required this.isConnected,
+    this.showTxRxIndicators = false,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 3 implement icons for other network types
-    return switch (type) {
-      NetworkManagerDeviceType.wifi => WifiIcon(
+    if (type == NetworkManagerDeviceType.wifi) {
+      return WifiIcon(
         device: device as NMServiceWifiDevice,
         accessPoint: null,
         type: type,
         isConnected: isConnected,
-      ),
+        showTxRxIndicators: showTxRxIndicators,
+      );
+    }
+
+    // TODO: 3 implement icons for other network types
+    Widget result = switch (type) {
       NetworkManagerDeviceType.ethernet => Icon(MaterialCommunityIcons.ethernet),
       NetworkManagerDeviceType.bluetooth => Icon(Icons.bluetooth_connected),
       NetworkManagerDeviceType.vlan => Icon(Icons.lan),
       NetworkManagerDeviceType.bridge => Icon(MaterialCommunityIcons.network_outline),
       _ => Icon(Icons.question_mark),
     };
+
+    if (isConnected && showTxRxIndicators) {
+      result = TxRxIndicatorOverlay(device: device, child: result);
+    }
+
+    return result;
   }
 }
 
-// TODO: 1 implement locked indicator (maybe not here but on the right in AP list)
-// TODO: 1 implement wifi strength in icon
 class WifiIcon extends StatelessWidget {
   final NMServiceWifiDevice device;
   final NMServiceAccessPoint? accessPoint;
   final NetworkManagerDeviceType type;
   final bool isConnected;
+  final bool showTxRxIndicators;
   final Color? color;
 
   const WifiIcon({
@@ -125,32 +139,129 @@ class WifiIcon extends StatelessWidget {
     required this.accessPoint,
     required this.type,
     required this.isConnected,
+    this.showTxRxIndicators = false,
     this.color,
     super.key,
   });
   @override
   Widget build(BuildContext context) {
+    Widget result;
     if (accessPoint != null) {
-      return buildWithAp(accessPoint);
+      result = buildWithAp(accessPoint);
+    } else {
+      result = ValueListenableBuilder(
+        valueListenable: device.activeAccessPoint,
+        builder: (context, ap, _) {
+          return buildWithAp(ap);
+        },
+      );
     }
+
+    if (isConnected && showTxRxIndicators) {
+      result = TxRxIndicatorOverlay(device: device, child: result);
+    }
+
+    return result;
+  }
+
+  Widget buildWithAp(NMServiceAccessPoint? ap) {
+    if (ap != null) {
+      // TODO: 1 implement wifi strength in icon
+      return Icon(Icons.wifi, color: color);
+    }
+    if (isConnected) {
+      return Icon(Icons.wifi, color: color);
+    }
+    return Icon(Icons.wifi_off, color: color);
+  }
+}
+
+class TxRxIndicatorOverlay extends StatelessWidget {
+  final NMServiceDevice device;
+  final Widget child;
+
+  const TxRxIndicatorOverlay({
+    required this.device,
+    required this.child,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: device.activeAccessPoint,
-      builder: (context, ap, _) {
-        return buildWithAp(ap);
+      valueListenable: device.rxRate,
+      child: child,
+      builder: (context, rxRate, child) {
+        return ValueListenableBuilder(
+          valueListenable: device.txRate,
+          child: child,
+          builder: (context, txRate, child) {
+            // TODO: 2 add fast animation here ?
+            Widget? extraIcon;
+            if (txRate != null && txRate > 0 && rxRate != null && rxRate > 0) {
+              final ratio = rxRate / txRate;
+              if (ratio > 100) {
+                extraIcon = buildDownIcon(context);
+              } else if (ratio < 0.01) {
+                extraIcon = buildUpIcon(context);
+              } else {
+                extraIcon = buildUpDownIcon(context);
+              }
+            } else if (rxRate != null && rxRate > 0) {
+              extraIcon = buildDownIcon(context);
+            } else if (txRate != null && txRate > 0) {
+              extraIcon = buildUpIcon(context);
+            }
+            if (extraIcon == null) {
+              return child!;
+            } else {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  child!,
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    height: 0,
+                    width: 0,
+                    child: OverflowBox(
+                      alignment: Alignment.center,
+                      maxHeight: double.infinity,
+                      maxWidth: double.infinity,
+                      child: extraIcon,
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
+        );
       },
     );
   }
 
-  Widget buildWithAp(NMServiceAccessPoint? ap) {
-    return isConnected
-        ? Icon(
-            Icons.wifi,
-            color: color,
-          )
-        : Icon(
-            Icons.wifi_off,
-            color: color,
-          );
+  Icon buildUpDownIcon(BuildContext context) {
+    return Icon(
+      MaterialCommunityIcons.swap_vertical_bold,
+      size: 12,
+      color: Theme.of(context).textTheme.bodyMedium!.color,
+    );
+  }
+
+  Icon buildUpIcon(BuildContext context) {
+    return Icon(
+      MaterialCommunityIcons.arrow_up_bold,
+      size: 10,
+      color: Theme.of(context).textTheme.bodyMedium!.color,
+    );
+  }
+
+  Icon buildDownIcon(BuildContext context) {
+    return Icon(
+      MaterialCommunityIcons.arrow_down_bold,
+      size: 10,
+      color: Theme.of(context).textTheme.bodyMedium!.color,
+    );
   }
 }
 
@@ -200,6 +311,9 @@ class ThroughputRateWidget extends StatelessWidget {
             if (txRate == null && rxRate == null) return SizedBox.shrink();
             final readableBytes = humanFileSize(
               (txRate ?? 0) + (rxRate ?? 0),
+              unitConversion: const UnitConversion.bestFit(
+                numeralSystem: DecimalByteNumeralSystem(),
+              ),
               quantityDisplayMode: IntlQuantityDisplayMode(
                 numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
               ),
@@ -243,6 +357,9 @@ class TxRateWidget extends StatelessWidget {
         if (txRate == null) return SizedBox.shrink();
         final readableBytes = humanFileSize(
           txRate,
+          unitConversion: const UnitConversion.bestFit(
+            numeralSystem: DecimalByteNumeralSystem(),
+          ),
           quantityDisplayMode: IntlQuantityDisplayMode(
             numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
           ),
@@ -284,6 +401,9 @@ class RxRateWidget extends StatelessWidget {
         if (rxRate == null) return SizedBox.shrink();
         final readableBytes = humanFileSize(
           rxRate,
+          unitConversion: const UnitConversion.bestFit(
+            numeralSystem: DecimalByteNumeralSystem(),
+          ),
           quantityDisplayMode: IntlQuantityDisplayMode(
             numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
           ),

@@ -50,43 +50,46 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(
-                padding: EdgeInsets.only(left: 20, right: 16, top: 8, bottom: 4),
-                constraints: BoxConstraints(minHeight: 48),
-                child: Row(
-                  children: [
-                    Text("Wi-Fi", style: Theme.of(context).textTheme.bodyLarge),
-                    Expanded(child: SizedBox.shrink()),
-                    WingedButton(
-                      builder: (context, snapshot, child) {
-                        return RefreshIcon(
-                          isRefreshing: snapshot.connectionState != ConnectionState.done,
-                          child: child,
-                        );
-                      },
-                      onTap: requestScan,
-                      initialFuture: initialRefreshFuture,
-                      child: Icon(Icons.refresh),
-                    ),
-                    SizedBox(width: 6),
-                    SizedBox(
-                      width: 60 * 0.7,
-                      height: 40 * 0.7,
-                      child: FittedBox(
-                        child: ValueListenableBuilder(
-                          valueListenable: widget.device.wirelessEnabled,
-                          builder: (context, value, child) {
-                            return Switch(
-                              value: value,
-                              onChanged: (value) {
-                                widget.device.setWirelessEnabled(value);
-                              },
-                            );
-                          },
+              Material(
+                type: MaterialType.transparency,
+                child: Container(
+                  padding: EdgeInsets.only(left: 20, right: 16, top: 8, bottom: 4),
+                  constraints: BoxConstraints(minHeight: 48),
+                  child: Row(
+                    children: [
+                      Text("Wi-Fi", style: Theme.of(context).textTheme.bodyLarge),
+                      Expanded(child: SizedBox.shrink()),
+                      WingedButton(
+                        builder: (context, snapshot, child) {
+                          return RefreshIcon(
+                            isRefreshing: snapshot.connectionState != ConnectionState.done,
+                            child: child,
+                          );
+                        },
+                        onTap: requestScan,
+                        initialFuture: initialRefreshFuture,
+                        child: Icon(Icons.refresh),
+                      ),
+                      SizedBox(width: 6),
+                      SizedBox(
+                        width: 60 * 0.7,
+                        height: 40 * 0.7,
+                        child: FittedBox(
+                          child: ValueListenableBuilder(
+                            valueListenable: widget.device.wirelessEnabled,
+                            builder: (context, value, child) {
+                              return Switch(
+                                value: value,
+                                onChanged: (value) {
+                                  widget.device.setWirelessEnabled(value);
+                                },
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 
@@ -308,11 +311,11 @@ class _APWidgetState extends State<APWidget> {
               ),
             ),
             WingedButton(
+              onTap: onConnectTap,
               child: Text(
                 widget.isConnected ? "DISCONNECT" : "CONNECT",
                 style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
-              onTap: onConnectTap,
             ),
           ]);
         }
@@ -338,7 +341,8 @@ class _APWidgetState extends State<APWidget> {
                       device: widget.device,
                       accessPoint: widget.ap,
                       type: widget.device.deviceType,
-                      isConnected: true,
+                      isConnected: widget.isConnected,
+                      showTxRxIndicators: true,
                       color: Theme.of(context).textTheme.bodyMedium!.color,
                     ),
                     SizedBox(width: 12),

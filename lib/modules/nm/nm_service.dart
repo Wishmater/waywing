@@ -401,6 +401,12 @@ class NMServiceAccessPoint {
 
   late final String ssid = utf8.decode(_accessPoint.ssid);
 
+  List<NetworkManagerWifiAccessPointSecurityFlag> get rsnFlags => _accessPoint.rsnFlags;
+
+  List<NetworkManagerWifiAccessPointSecurityFlag> get wpaFlags => _accessPoint.wpaFlags;
+
+  late final isSecured = rsnFlags.isNotEmpty || wpaFlags.isNotEmpty;
+
   final NetworkManagerAccessPoint _accessPoint;
   NMServiceAccessPoint(this._accessPoint);
 

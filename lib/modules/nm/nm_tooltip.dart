@@ -101,6 +101,7 @@ class ThroughputTotalWidget extends StatelessWidget {
                   Icon(
                     MaterialCommunityIcons.swap_vertical_circle,
                     size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 6,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
                   ),
                   SizedBox(width: 1),
                   Text(readableBytes),
@@ -143,6 +144,7 @@ class TxTotalWidget extends StatelessWidget {
               Icon(
                 MaterialCommunityIcons.arrow_up_circle,
                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 3,
+                color: Theme.of(context).textTheme.bodyMedium!.color,
               ),
               SizedBox(width: 2),
               Text(readableBytes),
@@ -183,6 +185,7 @@ class RxTotalWidget extends StatelessWidget {
               Icon(
                 MaterialCommunityIcons.arrow_down_circle,
                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 3,
+                color: Theme.of(context).textTheme.bodyMedium!.color,
               ),
               SizedBox(width: 2),
               Text(readableBytes),

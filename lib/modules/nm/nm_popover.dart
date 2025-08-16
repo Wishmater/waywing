@@ -334,13 +334,30 @@ class _APWidgetState extends State<APWidget> {
               children: [
                 Row(
                   children: [
-                    NetworkIcon(
+                    WifiIcon(
                       device: widget.device,
+                      accessPoint: widget.ap,
                       type: widget.device.deviceType,
                       isConnected: true,
+                      color: Theme.of(context).textTheme.bodyMedium!.color,
                     ),
                     SizedBox(width: 12),
-                    Expanded(child: Text(widget.ap.ssid)),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(widget.ap.ssid),
+                          if (widget.ap.isSecured)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Icon(
+                                Icons.lock,
+                                size: Theme.of(context).textTheme.bodyMedium!.fontSize! * 0.75,
+                                color: Theme.of(context).textTheme.bodyMedium!.color,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
                 if (extraWidgets.isNotEmpty)

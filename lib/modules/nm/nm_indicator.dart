@@ -79,8 +79,6 @@ class NetworkManagerIndicator extends StatelessWidget {
   }
 }
 
-// TODO: 1 implement locked indicator (maybe not here but on the right in AP list)
-// TODO: 1 implement wifi strength in icon
 // TODO: 1 implement activity download/upload indicator to the bottomRight of icon
 class NetworkIcon extends StatelessWidget {
   final NMServiceDevice device;
@@ -96,15 +94,63 @@ class NetworkIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 2 implement icons for other network types
+    // TODO: 3 implement icons for other network types
     return switch (type) {
-      NetworkManagerDeviceType.wifi => isConnected ? Icon(Icons.wifi) : Icon(Icons.wifi_off),
+      NetworkManagerDeviceType.wifi => WifiIcon(
+        device: device as NMServiceWifiDevice,
+        accessPoint: null,
+        type: type,
+        isConnected: isConnected,
+      ),
       NetworkManagerDeviceType.ethernet => Icon(MaterialCommunityIcons.ethernet),
       NetworkManagerDeviceType.bluetooth => Icon(Icons.bluetooth_connected),
       NetworkManagerDeviceType.vlan => Icon(Icons.lan),
       NetworkManagerDeviceType.bridge => Icon(MaterialCommunityIcons.network_outline),
       _ => Icon(Icons.question_mark),
     };
+  }
+}
+
+// TODO: 1 implement locked indicator (maybe not here but on the right in AP list)
+// TODO: 1 implement wifi strength in icon
+class WifiIcon extends StatelessWidget {
+  final NMServiceWifiDevice device;
+  final NMServiceAccessPoint? accessPoint;
+  final NetworkManagerDeviceType type;
+  final bool isConnected;
+  final Color? color;
+
+  const WifiIcon({
+    required this.device,
+    required this.accessPoint,
+    required this.type,
+    required this.isConnected,
+    this.color,
+    super.key,
+  });
+  @override
+  Widget build(BuildContext context) {
+    if (accessPoint != null) {
+      return buildWithAp(accessPoint);
+    }
+    return ValueListenableBuilder(
+      valueListenable: device.activeAccessPoint,
+      builder: (context, ap, _) {
+        return buildWithAp(ap);
+      },
+    );
+  }
+
+  Widget buildWithAp(NMServiceAccessPoint? ap) {
+    return isConnected
+        ? Icon(
+            Icons.wifi,
+            color: color,
+          )
+        : Icon(
+            Icons.wifi_off,
+            color: color,
+          );
   }
 }
 
@@ -165,6 +211,7 @@ class ThroughputRateWidget extends StatelessWidget {
                   Icon(
                     MaterialCommunityIcons.swap_vertical_bold,
                     size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 4,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
                   ),
                   SizedBox(width: 1),
                   Text("$readableBytes/s"),
@@ -207,6 +254,7 @@ class TxRateWidget extends StatelessWidget {
               Icon(
                 MaterialCommunityIcons.arrow_up_bold,
                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
+                color: Theme.of(context).textTheme.bodyMedium!.color,
               ),
               SizedBox(width: 2),
               Text("$readableBytes/s"),
@@ -247,6 +295,7 @@ class RxRateWidget extends StatelessWidget {
               Icon(
                 MaterialCommunityIcons.arrow_down_bold,
                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
+                color: Theme.of(context).textTheme.bodyMedium!.color,
               ),
               SizedBox(width: 2),
               Text("$readableBytes/s"),

@@ -82,7 +82,6 @@ class NetworkManagerIndicator extends StatelessWidget {
   }
 }
 
-// TODO: 1 implement activity download/upload indicator to the bottomRight of icon
 class NetworkIcon extends StatelessWidget {
   final NMServiceDevice device;
   final NetworkManagerDeviceType type;
@@ -147,12 +146,12 @@ class WifiIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget result;
     if (accessPoint != null) {
-      result = buildWithAp(accessPoint);
+      result = buildWithAp(context, accessPoint);
     } else {
       result = ValueListenableBuilder(
         valueListenable: device.activeAccessPoint,
         builder: (context, ap, _) {
-          return buildWithAp(ap);
+          return buildWithAp(context, ap);
         },
       );
     }
@@ -164,15 +163,72 @@ class WifiIcon extends StatelessWidget {
     return result;
   }
 
-  Widget buildWithAp(NMServiceAccessPoint? ap) {
+  Widget buildWithAp(BuildContext context, NMServiceAccessPoint? ap) {
     if (ap != null) {
-      // TODO: 1 implement wifi strength in icon
-      return Icon(Icons.wifi, color: color);
+      final color = this.color ?? Theme.of(context).iconTheme.color!;
+      return Stack(
+        children: [
+          Icon(Icons.wifi, color: color.withValues(alpha: 0.25)),
+          Positioned.fill(
+            child: ValueListenableBuilder(
+              valueListenable: ap.strength,
+              builder: (context, strength, child) {
+                // TODO: 2 animate changes in strength
+                return ClipPath(
+                  clipper: WifiStrengthClipper(strength),
+                  child: Icon(Icons.wifi, color: color),
+                );
+              },
+            ),
+          ),
+        ],
+      );
     }
     if (isConnected) {
       return Icon(Icons.wifi, color: color);
     }
     return Icon(Icons.wifi_off, color: color);
+  }
+}
+
+class WifiStrengthClipper extends CustomClipper<Path> {
+  final double strength;
+
+  WifiStrengthClipper(this.strength);
+
+  @override
+  getClip(Size size) {
+    const curveSize = 0.25;
+    const topPaddingPercent = 0.17;
+    const effectiveHeightPercent = 0.65;
+    final effectiveHeight = size.height * effectiveHeightPercent;
+    final topPadding = size.height * topPaddingPercent;
+    final strengthOffset = topPadding + effectiveHeight * (1 - strength);
+    final curveOffset = size.height * curveSize;
+
+    // Calculate control point P1 to draw a bezier curve from a to b that touches c
+    final a = Offset(0, strengthOffset + curveOffset);
+    final b = Offset(size.width, strengthOffset + curveOffset);
+    final c = Offset(size.width * 0.5, strengthOffset);
+    final p1 = Offset(
+      2 * c.dx - 0.5 * a.dx - 0.5 * b.dx,
+      2 * c.dy - 0.5 * a.dy - 0.5 * b.dy,
+    );
+    // Draw the Bezier curve
+    final path = Path();
+    path.moveTo(a.dx, a.dy);
+    path.quadraticBezierTo(p1.dx, p1.dy, b.dx, b.dy);
+
+    // close the shape
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.lineTo(0, strengthOffset + curveOffset);
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant WifiStrengthClipper oldClipper) {
+    return strength != oldClipper.strength;
   }
 }
 

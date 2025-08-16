@@ -208,13 +208,14 @@ class NMServiceWifiDevice extends NMServiceDevice {
       name: "ActiveAccessPoint",
       stream: _device.wireless!.propertiesChanged,
       callback: () {
-        return _device.wireless!.activeAccessPoint == null
-            ? null
-            : NMServiceAccessPoint(_device.wireless!.activeAccessPoint!);
+        if (_device.wireless!.activeAccessPoint == null) return null;
+        final result = NMServiceAccessPoint(_device.wireless!.activeAccessPoint!);
+        result.init();
+        return result;
       },
     );
     // TODO: 3 is probably that there is a leak here because the previous NMServiceAccessPoint
-    // did not dispose when changed
+    // did not dispose when changed (same in _activeAccessPoint)
     _accessPoints = DBusProperyValueNotifier(
       name: "AccessPoints",
       stream: _device.wireless!.propertiesChanged,
@@ -233,7 +234,11 @@ class NMServiceWifiDevice extends NMServiceDevice {
             }
             return true;
           })
-          .map(NMServiceAccessPoint.new)
+          .map((e) {
+            final result = NMServiceAccessPoint(e);
+            result.init();
+            return result;
+          })
           .toList(),
     );
     _lastScan = DBusProperyValueNotifier(
@@ -396,8 +401,8 @@ class NMServiceWifiDevice extends NMServiceDevice {
 }
 
 class NMServiceAccessPoint {
-  ValueListenable<int> get strength => _strength;
-  late final DBusProperyValueNotifier<int> _strength;
+  ValueListenable<double> get strength => _strength;
+  late final DBusProperyValueNotifier<double> _strength;
 
   late final String ssid = utf8.decode(_accessPoint.ssid);
 
@@ -414,7 +419,7 @@ class NMServiceAccessPoint {
     _strength = DBusProperyValueNotifier(
       name: "Strength",
       stream: _accessPoint.propertiesChanged,
-      callback: () => _accessPoint.strength,
+      callback: () => _accessPoint.strength / 100,
     );
   }
 

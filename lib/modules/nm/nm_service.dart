@@ -187,6 +187,90 @@ class NMServiceDevice {
   }
 }
 
+extension AS on Iterable<NetworkManagerAccessPoint> {
+  Iterable<NetworkManagerAccessPoint> removeHidden() sync* {
+    for (final e in this) {
+      if (e.ssid.isNotEmpty) {
+        yield e;
+      }
+    }
+  }
+
+  Iterable<NetworkManagerAccessPoint> removeInvalidUtf8Ssid() sync* {
+    for (final e in this) {
+      try {
+        utf8.decode(e.ssid);
+        yield e;
+      } catch (_) {}
+    }
+  }
+
+  Iterable<NetworkManagerAccessPoint> removeDuplicated(NetworkManagerAccessPoint? currentConnection) sync* {
+    final state = <_RemoveDuplicatedElement>{};
+    int index = -1;
+    final list = toList();
+    for (final e in list) {
+      index++;
+
+      final element = _RemoveDuplicatedElement(e.ssid, index);
+      if (e.hwAddress == currentConnection?.hwAddress) {
+        state.add(element);
+        continue;
+      }
+
+      if (!state.contains(element)) {
+        state.add(element);
+        continue;
+      }
+
+      final prev = list[state.lookup(element)!.index];
+      if (prev.hwAddress == currentConnection?.hwAddress) {
+        continue;
+      }
+
+      final prevRank = _rankAccessPoint(prev);
+      final newRank = _rankAccessPoint(e);
+      if (newRank > prevRank) {
+        state.add(element);
+      }
+    }
+
+    for (final e in state) {
+      yield list[e.index];
+    }
+  }
+}
+
+double _rankAccessPoint(NetworkManagerAccessPoint accessPoint) {
+  /// TODO prioritize previously connected accessPoint (use BSSID to identify)
+  return accessPoint.maxBitrate * (accessPoint.strength / 100);
+}
+
+class _RemoveDuplicatedElement {
+  List<int> ssid;
+  int index;
+  _RemoveDuplicatedElement(this.ssid, this.index);
+
+  @override
+  bool operator ==(covariant _RemoveDuplicatedElement other) {
+    if (identical(ssid, other.ssid)) {
+      return true;
+    }
+    if (ssid.length != other.ssid.length) {
+      return false;
+    }
+    for (int i = 0; i < ssid.length; i++) {
+      if (ssid[i] != other.ssid[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(ssid);
+}
+
 class NMServiceWifiDevice extends NMServiceDevice {
   ValueListenable<List<NMServiceAccessPoint>> get accessPoints => _accessPoints;
   late final DBusProperyValueNotifier<List<NMServiceAccessPoint>> _accessPoints;
@@ -221,20 +305,9 @@ class NMServiceWifiDevice extends NMServiceDevice {
       name: "AccessPoints",
       stream: _device.wireless!.propertiesChanged,
       callback: () => _device.wireless!.accessPoints
-          .where((e) {
-            if (e.ssid.isEmpty) {
-              // remove empty ssid
-              return false;
-            }
-            try {
-              if (utf8.decode(e.ssid).trim().isEmpty) {
-                return false;
-              }
-            } catch (_) {
-              return false;
-            }
-            return true;
-          })
+          .removeHidden()
+          .removeInvalidUtf8Ssid()
+          .removeDuplicated(_device.wireless!.activeAccessPoint)
           .map((e) {
             final result = NMServiceAccessPoint(e);
             result.init();
@@ -333,7 +406,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
   }
 
   Future<ConnectResponse> _createConnection(NMServiceAccessPoint ap, String? userPassword, bool? autoconnect) async {
-    assert (ap._accessPoint.rsnFlags.isEmpty || userPassword != null);
+    assert(ap._accessPoint.rsnFlags.isEmpty || userPassword != null);
     _logger.trace(
       "Creating and activating connection: ${_device.interface} ${utf8.decode(ap._accessPoint.ssid)}",
     );
@@ -424,7 +497,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
       }
       if (connSettings["id"]?.asString().startsWith("waywing-") != true) {
         // reject all connection not created by this project
-        // TODO 3 there are bugs when working with connections with other apps. We need to fix this
+        // TODO 3 there are bugs when working with connections from other apps. We need to fix this
         _logger.trace("Connection rejected because was not created in this application. File: ${conn.filename}");
         continue;
       }

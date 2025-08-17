@@ -242,7 +242,7 @@ extension on Iterable<NetworkManagerAccessPoint> {
 }
 
 double _rankAccessPoint(NetworkManagerAccessPoint accessPoint) {
-  /// TODO prioritize previously connected accessPoint (use BSSID to identify)
+  /// TODO 2 prioritize previously connected accessPoint (use BSSID to identify)
   return accessPoint.maxBitrate * (accessPoint.strength / 100);
 }
 

@@ -1,6 +1,7 @@
 import "dart:async";
 
 import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
+import "package:fl_linux_window_manager/models/keyboard_mode.dart";
 import "package:fl_linux_window_manager/models/layer.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:tronco/tronco.dart";
@@ -30,6 +31,7 @@ Future<void> setupMainWindow() async {
 
   _logger.log(Level.debug, "Setting main window layer...");
   await FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
+  await FlLinuxWindowManager.instance.setKeyboardInteractivity(KeyboardMode.none);
   await Future.delayed(_delayDuration);
 
   _logger.log(Level.debug, "Setting main window anchors...");

@@ -5,6 +5,7 @@ import "package:waywing/core/service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/modules/nm/nm_service.dart";
+import "package:waywing/modules/session/session_service.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/util/logger.dart";
@@ -145,6 +146,7 @@ class ServiceRegistry {
     NetworkManagerService.registerService(registerService);
     BatteryService.registerService(registerService);
     VolumeService.registerService(registerService);
+    SessionService.registerService(registerService);
   }
 }
 

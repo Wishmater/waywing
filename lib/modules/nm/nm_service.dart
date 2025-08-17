@@ -187,7 +187,7 @@ class NMServiceDevice {
   }
 }
 
-extension AS on Iterable<NetworkManagerAccessPoint> {
+extension on Iterable<NetworkManagerAccessPoint> {
   Iterable<NetworkManagerAccessPoint> removeHidden() sync* {
     for (final e in this) {
       if (e.ssid.isNotEmpty) {

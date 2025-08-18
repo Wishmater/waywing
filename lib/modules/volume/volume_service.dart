@@ -210,6 +210,8 @@ abstract class VolumeInterface {
   ValueListenable<String> get name => _name;
   late final ValueNotifier<String> _name;
 
+  ValueListenable<String?>? get subtitle => null;
+
   ValueListenable<double> get volume => _volume;
   late final ValueNotifier<double> _volume;
 
@@ -225,6 +227,7 @@ abstract class VolumeInterface {
   // ignore: unused_element
   void _onValuesUpdated();
 
+  @mustCallSuper
   Future<void> dispose() async {
     _name.dispose();
     _volume.dispose();
@@ -252,33 +255,48 @@ abstract class VolumeInterface {
 }
 
 class VolumeAppInterface extends VolumeInterface {
+  @override
+  ValueListenable<String?>? get subtitle => _subtitle;
+  late final ValueNotifier<String?> _subtitle;
+
   PulseAudioSinkInput _sinkInput;
 
   VolumeAppInterface(super._client, this._sinkInput);
 
   @override
   Future<void> init() async {
-    print(_sinkInput.props);
-    _name = ValueNotifier(_sinkInput.name);
+    if (_sinkInput.props.applicationName != null) {
+      _name = ValueNotifier(_sinkInput.props.applicationName!);
+      _subtitle = ValueNotifier(_sinkInput.name);
+    } else {
+      _name = ValueNotifier(_sinkInput.name);
+      _subtitle = ValueNotifier(null);
+    }
     _volume = ValueNotifier(_sinkInput.volume);
     _isMuted = ValueNotifier(_sinkInput.mute);
   }
 
   @override
   void _onValuesUpdated() {
-    _name.value = _sinkInput.name;
+    if (_sinkInput.props.applicationName != null) {
+      _name.value = _sinkInput.props.applicationName!;
+      _subtitle.value = _sinkInput.name;
+    } else {
+      _name.value = _sinkInput.name;
+      _subtitle.value = null;
+    }
     _volume.value = _sinkInput.volume;
     _isMuted.value = _sinkInput.mute;
   }
 
   @override
   Future<void> setVolume(double value) {
-    return _client.setSourceVolume(_sinkInput.name, value);
+    return _client.setSinkInputVolume(_sinkInput.index, value);
   }
 
   @override
   Future<void> setMuted(bool value) {
-    return _client.setSourceMute(_sinkInput.name, value);
+    return _client.setSinkInputMute(_sinkInput.index, value);
   }
 }
 
@@ -333,12 +351,12 @@ class VolumeInputInterface extends VolumeInterface {
 
   @override
   Future<void> setVolume(double value) async {
-    _client.setSinkInputVolume(_source.index, value);
+    _client.setSourceVolume(_source.name, value);
   }
 
   @override
   Future<void> setMuted(bool value) {
-    return _client.setSinkInputMute(_source.index, value);
+    return _client.setSourceMute(_source.name, value);
   }
 }
 

@@ -50,77 +50,86 @@ class VolumeSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IntrinsicHeight(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 8, left: 18, right: 18),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ValueListenableBuilder(
-                    valueListenable: model.name,
-                    builder: (context, name, child) {
-                      return Text(name);
+      child: IntrinsicWidth(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 18, right: 18),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ValueListenableBuilder(
+                      valueListenable: model.name,
+                      builder: (context, name, child) {
+                        // TODO: 1 properly deal with overflowing text
+                        return Text(
+                          name,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.fade,
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  // WingedButton(
+                  //   padding: EdgeInsets.zero,
+                  //   child: Icon(MaterialCommunityIcons.volume_minus),
+                  //   onTap: () {
+                  //     model.decreaseVolume();
+                  //   },
+                  // ),
+                  // WingedButton(
+                  //   padding: EdgeInsets.zero,
+                  //   child: Icon(MaterialCommunityIcons.volume_plus),
+                  //   onTap: () {
+                  //     model.increaseVolume();
+                  //   },
+                  // ),
+                  ValueListenableBuilder(
+                    valueListenable: model.isMuted,
+                    builder: (context, isMuted, child) {
+                      return WingedButton(
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints(),
+                        child: AnimatedContainer(
+                          duration: config.animationDuration,
+                          curve: config.animationCurve,
+                          color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
+                          padding: const EdgeInsets.all(4),
+                          child: Icon(MaterialCommunityIcons.volume_mute),
+                        ),
+                        onTap: () {
+                          model.setMuted(!isMuted);
+                        },
+                      );
                     },
                   ),
-                ),
-                SizedBox(width: 16),
-                // WingedButton(
-                //   padding: EdgeInsets.zero,
-                //   child: Icon(MaterialCommunityIcons.volume_minus),
-                //   onTap: () {
-                //     model.decreaseVolume();
-                //   },
-                // ),
-                // WingedButton(
-                //   padding: EdgeInsets.zero,
-                //   child: Icon(MaterialCommunityIcons.volume_plus),
-                //   onTap: () {
-                //     model.increaseVolume();
-                //   },
-                // ),
-                ValueListenableBuilder(
-                  valueListenable: model.isMuted,
-                  builder: (context, isMuted, child) {
-                    return WingedButton(
-                      padding: EdgeInsets.zero,
-                      constraints: BoxConstraints(),
-                      child: AnimatedContainer(
-                        duration: config.animationDuration,
-                        curve: config.animationCurve,
-                        color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
-                        padding: const EdgeInsets.all(4),
-                        child: Icon(MaterialCommunityIcons.volume_mute),
-                      ),
-                      onTap: () {
-                        model.setMuted(!isMuted);
-                      },
-                    );
-                  },
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          VolumeScrollWhellListener(
-            model: model,
-            child: ValueListenableBuilder(
-              valueListenable: model.volume,
-              builder: (context, volume, child) {
-                return Slider(
-                  padding: EdgeInsets.only(bottom: 12, left: 18, right: 18),
-                  label: "${(volume * 100).round()}%",
-                  value: (volume * 100).clamp(0, 100),
-                  min: 0,
-                  max: 100, // TODO: 1 implement going over 1
-                  divisions: (100 / (VolumeInterface.volumeStep * 100)).round(),
-                  onChanged: (value) {
-                    model.setVolume(value / 100);
-                  },
-                );
-              },
+            VolumeScrollWhellListener(
+              model: model,
+              child: ValueListenableBuilder(
+                valueListenable: model.volume,
+                builder: (context, volume, child) {
+                  return Slider(
+                    padding: EdgeInsets.only(bottom: 12, left: 18, right: 18),
+                    label: "${(volume * 100).round()}%",
+                    value: (volume * 100).clamp(0, 100),
+                    min: 0,
+                    max: 100, // TODO: 1 implement going over 1
+                    divisions: (100 / (VolumeInterface.volumeStep * 100)).round(),
+                    onChanged: (value) {
+                      model.setVolume(value / 100);
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

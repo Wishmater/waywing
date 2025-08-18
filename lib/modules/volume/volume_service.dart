@@ -48,25 +48,25 @@ class VolumeService extends Service {
     _client = PulseAudio();
     await _client.initialize("waywing");
 
-    final sources = await _client.getSourceList();
-    final apps = sources.map((e) => VolumeAppInterface(_client, e)).toList();
+    final sinkInputs = await _client.getSinkInputList();
+    final apps = sinkInputs.map((e) => VolumeAppInterface(_client, e)).toList();
     await Future.wait(apps.map((e) => e.init()));
     _apps = _ManualValueNotifier(apps);
-    _sourceChangedSubscription = _client.onSourceChanged.listen((source) async {
-      final index = _apps.value.indexWhere((e) => e._source.index == source.index);
+    _sinkInputChangedSubscription = _client.onSinkInputChanged.listen((sinkInput) async {
+      final index = _apps.value.indexWhere((e) => e._sinkInput.index == sinkInput.index);
       if (index == -1) {
-        final app = VolumeAppInterface(_client, source);
+        final app = VolumeAppInterface(_client, sinkInput);
         await app.init();
         _apps.value.add(app);
         _apps._manualNotifyListeners();
       } else {
         final app = _apps.value[index];
-        app._source = source;
+        app._sinkInput = sinkInput;
         app._onValuesUpdated();
       }
     });
-    _sourceRemovedSubscription = _client.onSourceRemoved.listen((index) async {
-      final i = _apps.value.indexWhere((e) => e._source.index == index);
+    _sinkInputRemovedSubscription = _client.onSinkInputRemoved.listen((index) async {
+      final i = _apps.value.indexWhere((e) => e._sinkInput.index == index);
       if (i != -1) {
         final app = _apps.value.removeAt(i);
         _apps._manualNotifyListeners();
@@ -100,25 +100,25 @@ class VolumeService extends Service {
       }
     });
 
-    final sinkInputs = await _client.getSinkInputList();
-    final inputs = sinkInputs.map((e) => VolumeInputInterface(_client, e)).toList();
+    final sources = await _client.getSourceList();
+    final inputs = sources.map((e) => VolumeInputInterface(_client, e)).toList();
     await Future.wait(inputs.map((e) => e.init()));
     _inputs = _ManualValueNotifier(inputs);
-    _sinkInputChangedSubscription = _client.onSinkInputChanged.listen((sinkInput) async {
-      final index = _inputs.value.indexWhere((e) => e._sinkInput.index == sinkInput.index);
+    _sourceChangedSubscription = _client.onSourceChanged.listen((source) async {
+      final index = _inputs.value.indexWhere((e) => e._source.index == source.index);
       if (index == -1) {
-        final input = VolumeInputInterface(_client, sinkInput);
+        final input = VolumeInputInterface(_client, source);
         await input.init();
         _inputs.value.add(input);
         _inputs._manualNotifyListeners();
       } else {
         final input = _inputs.value[index];
-        input._sinkInput = sinkInput;
+        input._source = source;
         input._onValuesUpdated();
       }
     });
-    _sinkInputRemovedSubscription = _client.onSinkInputRemoved.listen((index) async {
-      final i = _inputs.value.indexWhere((e) => e._sinkInput.index == index);
+    _sourceRemovedSubscription = _client.onSourceRemoved.listen((index) async {
+      final i = _inputs.value.indexWhere((e) => e._source.index == index);
       if (i != -1) {
         final input = _inputs.value.removeAt(i);
         _inputs._manualNotifyListeners();
@@ -195,14 +195,14 @@ class VolumeService extends Service {
   }
 
   void _updateDefaultInput(PulseAudioServerInfo serverInfo) {
-    if (serverInfo.defaultSourceName == _defaultInput.value?._sinkInput.name) return;
+    if (serverInfo.defaultSourceName == _defaultInput.value?._source.name) return;
     final result = _getDefaultInput(serverInfo);
     // if (result == null) return; // this should never happen after init() is successful
     _defaultInput.value = result!;
   }
 
   VolumeInputInterface? _getDefaultInput(PulseAudioServerInfo serverInfo) {
-    return inputs.value.firstOrNullWhere((e) => e._sinkInput.name == serverInfo.defaultSourceName);
+    return inputs.value.firstOrNullWhere((e) => e._source.name == serverInfo.defaultSourceName);
   }
 }
 
@@ -252,32 +252,33 @@ abstract class VolumeInterface {
 }
 
 class VolumeAppInterface extends VolumeInterface {
-  PulseAudioSource _source;
+  PulseAudioSinkInput _sinkInput;
 
-  VolumeAppInterface(super._client, this._source);
+  VolumeAppInterface(super._client, this._sinkInput);
 
   @override
   Future<void> init() async {
-    _name = ValueNotifier(_source.description);
-    _volume = ValueNotifier(_source.volume);
-    _isMuted = ValueNotifier(_source.mute);
+    print(_sinkInput.props);
+    _name = ValueNotifier(_sinkInput.name);
+    _volume = ValueNotifier(_sinkInput.volume);
+    _isMuted = ValueNotifier(_sinkInput.mute);
   }
 
   @override
   void _onValuesUpdated() {
-    _name.value = _source.description;
-    _volume.value = _source.volume;
-    _isMuted.value = _source.mute;
+    _name.value = _sinkInput.name;
+    _volume.value = _sinkInput.volume;
+    _isMuted.value = _sinkInput.mute;
   }
 
   @override
   Future<void> setVolume(double value) {
-    return _client.setSourceVolume(_source.name, value);
+    return _client.setSourceVolume(_sinkInput.name, value);
   }
 
   @override
   Future<void> setMuted(bool value) {
-    return _client.setSourceMute(_source.name, value);
+    return _client.setSourceMute(_sinkInput.name, value);
   }
 }
 
@@ -312,32 +313,32 @@ class VolumeOutputInterface extends VolumeInterface {
 }
 
 class VolumeInputInterface extends VolumeInterface {
-  PulseAudioSinkInput _sinkInput;
+  PulseAudioSource _source;
 
-  VolumeInputInterface(super._client, this._sinkInput);
+  VolumeInputInterface(super._client, this._source);
 
   @override
   Future<void> init() async {
-    _name = ValueNotifier(_sinkInput.name);
-    _volume = ValueNotifier(_sinkInput.volume);
-    _isMuted = ValueNotifier(_sinkInput.mute);
+    _name = ValueNotifier(_source.description);
+    _volume = ValueNotifier(_source.volume);
+    _isMuted = ValueNotifier(_source.mute);
   }
 
   @override
   void _onValuesUpdated() {
-    _name.value = _sinkInput.name;
-    _volume.value = _sinkInput.volume;
-    _isMuted.value = _sinkInput.mute;
+    _name.value = _source.description;
+    _volume.value = _source.volume;
+    _isMuted.value = _source.mute;
   }
 
   @override
   Future<void> setVolume(double value) async {
-    _client.setSinkInputVolume(_sinkInput.index, value);
+    _client.setSinkInputVolume(_source.index, value);
   }
 
   @override
   Future<void> setMuted(bool value) {
-    return _client.setSinkInputMute(_sinkInput.index, value);
+    return _client.setSinkInputMute(_source.index, value);
   }
 }
 

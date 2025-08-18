@@ -49,6 +49,8 @@ mixin MainConfigBase on MainConfigI {
   // Layer settings
   //===========================================================================
 
+  static const _requestKeyboardFocus = BooleanField(defaultTo: false);
+
   static const __exclusiveSizeLeft = DoubleNumberField(nullable: true);
   double get exclusiveSizeLeft => _exclusiveSizeLeft ?? (barSide == ScreenEdge.left ? barSize.toDouble() : 0);
   static const __exclusiveSizeRight = DoubleNumberField(nullable: true);

@@ -35,11 +35,11 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardFocusProvider(
-      child: InputRegion.negative(
-        child: ConfigChangeWatcher(
-          builder: (context) {
-            return MaterialApp(
+    return InputRegion.negative(
+      child: ConfigChangeWatcher(
+        builder: (context) {
+          return KeyboardFocusProvider(
+            child: MaterialApp(
               title: "WayWing",
               debugShowCheckedModeBanner: false,
               themeMode: config.themeMode,
@@ -73,9 +73,9 @@ class App extends StatelessWidget {
                   ),
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

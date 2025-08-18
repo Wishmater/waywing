@@ -285,10 +285,18 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
 
   late final provider = context.findAncestorStateOfType<WingedPopoverProviderState>()!;
 
+  late final focusNode = FocusScopeNode();
+
   @override
   void initState() {
     super.initState();
     _buildContentAnimationController(isFirst: true);
+    if (!widget.isTooltip) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        focusNode.requestFocus();
+      });
+    }
   }
 
   @override
@@ -353,9 +361,12 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
         maxHeight: screenSize.height,
         // TODO: 2 add animation transition to the child (for cases with containerId)
         // maybe allow host to decide the transitionBuilder, so the bar can animate up/down
-        child: PositioningNotifierMonitor(
-          controller: childPositioningController,
-          child: popoverParams.builder(context),
+        child: FocusScope(
+          node: focusNode,
+          child: PositioningNotifierMonitor(
+            controller: childPositioningController,
+            child: popoverParams.builder(context),
+          ),
         ),
       ),
     );

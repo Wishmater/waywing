@@ -1,6 +1,7 @@
 import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:fl_linux_window_manager/models/keyboard_mode.dart";
 import "package:flutter/material.dart";
+import "package:waywing/core/config.dart";
 
 class KeyboardFocus extends StatefulWidget {
   final Widget child;
@@ -65,21 +66,33 @@ class _KeyboardFocusProviderState extends State<KeyboardFocusProvider> {
     _update();
   }
 
-  void requestFocus(_KeyboardFocusState state) {
-    activeFocuseRequests.add(state);
+  @override
+  void didUpdateWidget(covariant KeyboardFocusProvider oldWidget) {
+    super.didUpdateWidget(oldWidget);
     _update();
   }
 
+  void requestFocus(_KeyboardFocusState state) {
+    final added = activeFocuseRequests.add(state);
+    if (added) {
+      _update();
+    }
+  }
+
   void removeFocus(_KeyboardFocusState state) {
-    activeFocuseRequests.remove(state);
-    _update();
+    final removed = activeFocuseRequests.remove(state);
+    if (removed) {
+      _update();
+    }
   }
 
   KeyboardMode? currentValue;
   void _update() async {
     // TODO: 3 we should throttle calls so 2 can't happen at once, like we did with update_window calls
     final KeyboardMode newValue;
-    if (activeFocuseRequests.isEmpty) {
+    if (config.requestKeyboardFocus) {
+      newValue = KeyboardMode.onDemand;
+    } else if (activeFocuseRequests.isEmpty) {
       newValue = KeyboardMode.none;
     } else {
       newValue = KeyboardMode.onDemand;

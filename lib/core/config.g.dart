@@ -13,6 +13,7 @@ mixin MainConfigI {
   MyColor? get surfaceColor;
   Duration get animationDuration;
   Curve get animationCurve;
+  bool get requestKeyboardFocus;
   double? get _exclusiveSizeLeft;
   double? get _exclusiveSizeRight;
   double? get _exclusiveSizeTop;
@@ -40,6 +41,7 @@ class MainConfig with MainConfigI, MainConfigBase {
   final MyColor? surfaceColor;
   final Duration animationDuration;
   final Curve animationCurve;
+  final bool requestKeyboardFocus;
   final double? _exclusiveSizeLeft;
   final double? _exclusiveSizeRight;
   final double? _exclusiveSizeTop;
@@ -66,6 +68,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     this.surfaceColor,
     Duration? animationDuration,
     Curve? animationCurve,
+    bool? requestKeyboardFocus,
     double? exclusiveSizeLeft,
     double? exclusiveSizeRight,
     double? exclusiveSizeTop,
@@ -88,6 +91,7 @@ class MainConfig with MainConfigI, MainConfigBase {
   }) : themeMode = themeMode ?? ThemeMode.system,
        animationDuration = animationDuration ?? Duration(milliseconds: 250),
        animationCurve = animationCurve ?? Curves.easeOutCubic,
+       requestKeyboardFocus = requestKeyboardFocus ?? false,
        _exclusiveSizeLeft = exclusiveSizeLeft,
        _exclusiveSizeRight = exclusiveSizeRight,
        _exclusiveSizeTop = exclusiveSizeTop,
@@ -113,6 +117,7 @@ class MainConfig with MainConfigI, MainConfigBase {
       surfaceColor: map['surfaceColor'],
       animationDuration: map['animationDuration'],
       animationCurve: map['animationCurve'],
+      requestKeyboardFocus: map['requestKeyboardFocus'],
       exclusiveSizeLeft: map['exclusiveSizeLeft'],
       exclusiveSizeRight: map['exclusiveSizeRight'],
       exclusiveSizeTop: map['exclusiveSizeTop'],
@@ -143,6 +148,7 @@ class MainConfig with MainConfigI, MainConfigBase {
       'surfaceColor': MainConfigBase._surfaceColor,
       'animationDuration': MainConfigBase._animationDuration,
       'animationCurve': MainConfigBase._animationCurve,
+      'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
       'exclusiveSizeLeft': MainConfigBase.__exclusiveSizeLeft,
       'exclusiveSizeRight': MainConfigBase.__exclusiveSizeRight,
       'exclusiveSizeTop': MainConfigBase.__exclusiveSizeTop,

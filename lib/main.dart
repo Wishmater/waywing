@@ -9,6 +9,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/widgets/config_changes_watcher.dart";
 import "package:waywing/util/window_utils.dart";
+import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/winged_popover_provider.dart";
 
 void main(List<String> args) async {
@@ -34,45 +35,47 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InputRegion.negative(
-      child: ConfigChangeWatcher(
-        builder: (context) {
-          return MaterialApp(
-            title: "WayWing",
-            debugShowCheckedModeBanner: false,
-            themeMode: config.themeMode,
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: config.seedColor,
-                surface: config.surfaceColor,
+    return KeyboardFocusProvider(
+      child: InputRegion.negative(
+        child: ConfigChangeWatcher(
+          builder: (context) {
+            return MaterialApp(
+              title: "WayWing",
+              debugShowCheckedModeBanner: false,
+              themeMode: config.themeMode,
+              theme: ThemeData(
+                colorScheme: ColorScheme.fromSeed(
+                  seedColor: config.seedColor,
+                  surface: config.surfaceColor,
+                ),
+                splashFactory: InkSparkle.splashFactory,
               ),
-              splashFactory: InkSparkle.splashFactory,
-            ),
-            darkTheme: ThemeData(
-              brightness: Brightness.dark,
-              colorScheme: ColorScheme.fromSeed(
+              darkTheme: ThemeData(
                 brightness: Brightness.dark,
-                seedColor: config.seedColor,
-                surface: config.surfaceColor,
-              ),
-              splashFactory: InkSparkle.splashFactory,
-              dividerTheme: DividerThemeData(
-                color: Colors.grey.shade400.withValues(alpha: 0.66),
-              ),
-            ),
-            home: Scaffold(
-              backgroundColor: Colors.transparent,
-              body: WingedPopoverProvider(
-                child: Stack(
-                  children: [
-                    Bar(),
-                    // TODO: 2 implement Wings
-                  ],
+                colorScheme: ColorScheme.fromSeed(
+                  brightness: Brightness.dark,
+                  seedColor: config.seedColor,
+                  surface: config.surfaceColor,
+                ),
+                splashFactory: InkSparkle.splashFactory,
+                dividerTheme: DividerThemeData(
+                  color: Colors.grey.shade400.withValues(alpha: 0.66),
                 ),
               ),
-            ),
-          );
-        },
+              home: Scaffold(
+                backgroundColor: Colors.transparent,
+                body: WingedPopoverProvider(
+                  child: Stack(
+                    children: [
+                      Bar(),
+                      // TODO: 2 implement Wings
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -41,9 +41,11 @@ class VolumeTooltip extends StatelessWidget {
 
 class VolumeSlider extends StatelessWidget {
   final VolumeInterface model;
+  final EdgeInsets padding;
 
   const VolumeSlider({
     required this.model,
+    this.padding = const EdgeInsets.only(top: 8, left: 18, right: 18, bottom: 8),
     super.key,
   });
 
@@ -51,12 +53,12 @@ class VolumeSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     return IntrinsicHeight(
       child: IntrinsicWidth(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8, left: 18, right: 18),
-              child: Row(
+        child: Padding(
+          padding: padding,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
                 children: [
                   Expanded(
                     child: ValueListenableBuilder(
@@ -117,7 +119,10 @@ class VolumeSlider extends StatelessWidget {
                           curve: config.animationCurve,
                           color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
                           padding: const EdgeInsets.all(4),
-                          child: Icon(MaterialCommunityIcons.volume_mute),
+                          child: Icon(
+                            MaterialCommunityIcons.volume_mute,
+                            color: Theme.of(context).textTheme.bodyLarge!.color,
+                          ),
                         ),
                         onTap: () {
                           model.setMuted(!isMuted);
@@ -127,27 +132,28 @@ class VolumeSlider extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            VolumeScrollWhellListener(
-              model: model,
-              child: ValueListenableBuilder(
-                valueListenable: model.volume,
-                builder: (context, volume, child) {
-                  return Slider(
-                    padding: EdgeInsets.only(bottom: 12, left: 18, right: 18),
-                    label: "${(volume * 100).round()}%",
-                    value: (volume * 100).clamp(0, 100),
-                    min: 0,
-                    max: 100, // TODO: 1 implement going over 1
-                    divisions: (100 / (VolumeInterface.volumeStep * 100)).round(),
-                    onChanged: (value) {
-                      model.setVolume(value / 100);
-                    },
-                  );
-                },
+              VolumeScrollWhellListener(
+                model: model,
+                child: ValueListenableBuilder(
+                  valueListenable: model.volume,
+                  builder: (context, volume, child) {
+                    // TODO: 1 implement better slider, with permanent value label, and showing important breakpoints
+                    return Slider(
+                      padding: EdgeInsets.zero,
+                      label: "${(volume * 100).round()}%",
+                      value: (volume * 100).clamp(0, 100),
+                      min: 0,
+                      max: 100, // TODO: 1 implement going over 1
+                      divisions: (100 / (VolumeInterface.volumeStep * 100)).round(),
+                      onChanged: (value) {
+                        model.setVolume(value / 100);
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

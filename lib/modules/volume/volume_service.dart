@@ -183,6 +183,14 @@ class VolumeService extends Service {
     _client.dispose();
   }
 
+  Future<void> setDefaultOutput(VolumeOutputInterface output) {
+    return _client.setDefaultSink(output._sink.name);
+  }
+
+  Future<void> setDefaultInput(VolumeInputInterface output) {
+    return _client.setDefaultSource(output._source.name);
+  }
+
   void _updateDefaultOutput(PulseAudioServerInfo serverInfo) {
     if (serverInfo.defaultSinkName == _defaultOutput.value?._sink.name) return;
     final result = _getDefaultOutput(serverInfo);

@@ -40,11 +40,20 @@ class VolumePopover extends StatelessWidget {
               // VerticalDivider(),
               Expanded(
                 child: ValueListenableBuilder(
-                  valueListenable: service.outputs,
-                  builder: (context, outputs, _) {
-                    return VolumeInterfaceList(
-                      models: outputs,
-                      label: "OUTPUTS",
+                  valueListenable: service.defaultOutput,
+                  builder: (context, defaultOutput, child) {
+                    return ValueListenableBuilder(
+                      valueListenable: service.outputs,
+                      builder: (context, outputs, _) {
+                        return VolumeInterfaceList(
+                          models: outputs,
+                          label: "OUTPUTS",
+                          defaultModel: defaultOutput,
+                          onDefaultSelected: (model) {
+                            service.setDefaultOutput(model);
+                          },
+                        );
+                      },
                     );
                   },
                 ),
@@ -52,11 +61,20 @@ class VolumePopover extends StatelessWidget {
               // VerticalDivider(),
               Expanded(
                 child: ValueListenableBuilder(
-                  valueListenable: service.inputs,
-                  builder: (context, inputs, _) {
-                    return VolumeInterfaceList(
-                      models: inputs,
-                      label: "INPUTS",
+                  valueListenable: service.defaultInput,
+                  builder: (context, defaultInput, child) {
+                    return ValueListenableBuilder(
+                      valueListenable: service.inputs,
+                      builder: (context, inputs, _) {
+                        return VolumeInterfaceList(
+                          models: inputs,
+                          label: "INPUTS",
+                          defaultModel: defaultInput,
+                          onDefaultSelected: (model) {
+                            service.setDefaultInput(model);
+                          },
+                        );
+                      },
                     );
                   },
                 ),
@@ -70,13 +88,17 @@ class VolumePopover extends StatelessWidget {
   }
 }
 
-class VolumeInterfaceList extends StatelessWidget {
-  final List<VolumeInterface> models;
+class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
+  final List<T> models;
+  final T? defaultModel;
+  final void Function(T defaultModel)? onDefaultSelected;
   final String label;
 
   const VolumeInterfaceList({
     required this.models,
     required this.label,
+    this.defaultModel,
+    this.onDefaultSelected,
     super.key,
   });
 
@@ -85,6 +107,7 @@ class VolumeInterfaceList extends StatelessWidget {
     // TODO: 1 implement defaults
     // TODO: 2 add app icon (only for apps)
     final scrollController = ScrollController();
+    // TODO: 2 add animations to list
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -107,12 +130,46 @@ class VolumeInterfaceList extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    for (final e in models) VolumeSlider(model: e),
+                    if (defaultModel != null) buildVolumeSlider(context, defaultModel!),
+                    if (defaultModel != null)
+                      Divider(
+                        indent: 24,
+                        endIndent: 24,
+                        height: 24,
+                      ),
+                    for (final e in models.where((e) => e != defaultModel)) buildVolumeSlider(context, e),
                     SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildVolumeSlider(BuildContext context, T model) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 16,
+        ),
+        if (onDefaultSelected != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Radio(
+              value: model,
+              groupValue: defaultModel,
+              onChanged: (value) {
+                onDefaultSelected!(value!);
+              },
+            ),
+          ),
+        Expanded(
+          child: VolumeSlider(
+            model: model,
+            padding: const EdgeInsets.only(top: 8, left: 2, right: 18, bottom: 8),
           ),
         ),
       ],

@@ -258,14 +258,14 @@ class VolumeAppInterface extends VolumeInterface {
 
   @override
   Future<void> init() async {
-    _name = ValueNotifier(_source.name);
+    _name = ValueNotifier(_source.description);
     _volume = ValueNotifier(_source.volume);
     _isMuted = ValueNotifier(_source.mute);
   }
 
   @override
   void _onValuesUpdated() {
-    _name.value = _source.name;
+    _name.value = _source.description;
     _volume.value = _source.volume;
     _isMuted.value = _source.mute;
   }
@@ -288,14 +288,14 @@ class VolumeOutputInterface extends VolumeInterface {
 
   @override
   Future<void> init() async {
-    _name = ValueNotifier(_sink.name);
+    _name = ValueNotifier(_sink.description);
     _volume = ValueNotifier(_sink.volume);
     _isMuted = ValueNotifier(_sink.mute);
   }
 
   @override
   void _onValuesUpdated() {
-    _name.value = _sink.name;
+    _name.value = _sink.description;
     _volume.value = _sink.volume;
     _isMuted.value = _sink.mute;
   }

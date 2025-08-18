@@ -18,30 +18,21 @@ class VolumeIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WingedButton(
-      onTap: () => popover.togglePopover(),
-      child: ValueListenableBuilder(
-        valueListenable: service.defaultOutput,
-        builder: (context, defaultOutput, child) {
-          if (defaultOutput == null) {
-            return Icon(MaterialCommunityIcons.volume_variant_off);
-          }
-          return ValueListenableBuilder(
+    return ValueListenableBuilder(
+      valueListenable: service.defaultOutput,
+      builder: (context, defaultOutput, child) {
+        Widget result;
+        if (defaultOutput == null) {
+          result = Icon(MaterialCommunityIcons.volume_variant_off);
+        } else {
+          result = ValueListenableBuilder(
             valueListenable: defaultOutput.isMuted,
             builder: (context, isMuted, child) {
               if (isMuted) {
                 return Icon(MaterialCommunityIcons.volume_mute);
               }
-              return Listener(
-                onPointerSignal: (pointerSignal) {
-                  if (pointerSignal is PointerScrollEvent) {
-                    if (pointerSignal.scrollDelta.dy > 0) {
-                      defaultOutput.decreaseVolume();
-                    } else {
-                      defaultOutput.increaseVolume();
-                    }
-                  }
-                },
+              return VolumeScrollWhellListener(
+                model: defaultOutput,
                 child: ValueListenableBuilder(
                   valueListenable: defaultOutput.volume,
                   builder: (context, volume, child) {
@@ -116,8 +107,40 @@ class VolumeIndicator extends StatelessWidget {
               );
             },
           );
-        },
-      ),
+        }
+        return WingedButton(
+          onTap: () => popover.togglePopover(),
+          onSecondaryTap: defaultOutput == null ? null : () => defaultOutput.setMuted(!defaultOutput.isMuted.value),
+          child: result,
+        );
+      },
+    );
+  }
+}
+
+class VolumeScrollWhellListener extends StatelessWidget {
+  final VolumeInterface model;
+  final Widget child;
+
+  const VolumeScrollWhellListener({
+    required this.model,
+    required this.child,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Listener(
+      child: child,
+      onPointerSignal: (pointerSignal) {
+        if (pointerSignal is PointerScrollEvent) {
+          if (pointerSignal.scrollDelta.dy > 0) {
+            model.decreaseVolume();
+          } else {
+            model.increaseVolume();
+          }
+        }
+      },
     );
   }
 }

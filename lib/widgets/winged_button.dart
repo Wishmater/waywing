@@ -188,6 +188,10 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
             padding: widget.padding,
             constraints: widget.constraints,
             alignment: widget.alignment,
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              borderRadius: borderRadius,
+            ),
             child: child,
           ),
           // properties just passed to InkResponse as-is

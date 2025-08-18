@@ -1,5 +1,9 @@
 import "package:flutter/material.dart";
+import "package:flutter_font_icons/flutter_font_icons.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
+import "package:waywing/widgets/winged_button.dart";
 
 class VolumeTooltip extends StatelessWidget {
   final VolumeService service;
@@ -11,6 +15,113 @@ class VolumeTooltip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text("VolumeTooltip");
+    return ConstrainedBox(
+      constraints: BoxConstraints(minWidth: 256, maxWidth: 256 * 1.5),
+      child: IntrinsicWidth(
+        child: IntrinsicHeight(
+          child: ValueListenableBuilder(
+            valueListenable: service.defaultOutput,
+            builder: (context, defaultOutput, child) {
+              // TODO: 1 maybe just also disable tooltip if defaultOutput==null
+              if (defaultOutput == null) {
+                return Center(
+                  child: Text("No audio output detected"),
+                );
+              }
+              return VolumeSlider(
+                model: defaultOutput,
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class VolumeSlider extends StatelessWidget {
+  final VolumeInterface model;
+
+  const VolumeSlider({
+    required this.model,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 18, right: 18),
+            child: Row(
+              children: [
+                Expanded(
+                  child: ValueListenableBuilder(
+                    valueListenable: model.name,
+                    builder: (context, name, child) {
+                      return Text(name);
+                    },
+                  ),
+                ),
+                SizedBox(width: 16),
+                // WingedButton(
+                //   padding: EdgeInsets.zero,
+                //   child: Icon(MaterialCommunityIcons.volume_minus),
+                //   onTap: () {
+                //     model.decreaseVolume();
+                //   },
+                // ),
+                // WingedButton(
+                //   padding: EdgeInsets.zero,
+                //   child: Icon(MaterialCommunityIcons.volume_plus),
+                //   onTap: () {
+                //     model.increaseVolume();
+                //   },
+                // ),
+                ValueListenableBuilder(
+                  valueListenable: model.isMuted,
+                  builder: (context, isMuted, child) {
+                    return WingedButton(
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                      child: AnimatedContainer(
+                        duration: config.animationDuration,
+                        curve: config.animationCurve,
+                        color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(MaterialCommunityIcons.volume_mute),
+                      ),
+                      onTap: () {
+                        model.setMuted(!isMuted);
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          VolumeScrollWhellListener(
+            model: model,
+            child: ValueListenableBuilder(
+              valueListenable: model.volume,
+              builder: (context, volume, child) {
+                return Slider(
+                  padding: EdgeInsets.only(bottom: 12, left: 18, right: 18),
+                  label: "${(volume * 100).round()}%",
+                  value: (volume * 100).clamp(0, 100),
+                  min: 0,
+                  max: 100, // TODO: 1 implement going over 1
+                  divisions: (100 / (VolumeInterface.volumeStep * 100)).round(),
+                  onChanged: (value) {
+                    model.setVolume(value / 100);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

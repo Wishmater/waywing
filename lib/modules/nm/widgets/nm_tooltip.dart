@@ -3,8 +3,8 @@ import "package:flutter_font_icons/flutter_font_icons.dart";
 import "package:human_file_size/human_file_size.dart";
 import "package:intl/intl.dart";
 import "package:waywing/modules/nm/nm_config.dart";
-import "package:waywing/modules/nm/nm_indicator.dart";
-import "package:waywing/modules/nm/nm_service.dart";
+import "package:waywing/modules/nm/widgets/nm_indicator.dart";
+import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/util/human_readable_bytes.dart";
 
 class NetworkManagerTooltip extends StatelessWidget {

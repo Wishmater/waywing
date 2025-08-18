@@ -5,10 +5,10 @@ import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/nm/nm_config.dart";
-import "package:waywing/modules/nm/nm_indicator.dart";
-import "package:waywing/modules/nm/nm_popover.dart";
-import "package:waywing/modules/nm/nm_service.dart";
-import "package:waywing/modules/nm/nm_tooltip.dart";
+import "package:waywing/modules/nm/widgets/nm_indicator.dart";
+import "package:waywing/modules/nm/widgets/nm_popover.dart";
+import "package:waywing/modules/nm/service/nm_service.dart";
+import "package:waywing/modules/nm/widgets/nm_tooltip.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
 class NetworkManagerFeather extends Feather<NetworkManagerConfig> {

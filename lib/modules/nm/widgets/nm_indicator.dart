@@ -4,7 +4,7 @@ import "package:human_file_size/human_file_size.dart";
 import "package:intl/intl.dart";
 import "package:nm/nm.dart";
 import "package:waywing/modules/nm/nm_config.dart";
-import "package:waywing/modules/nm/nm_service.dart";
+import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/util/human_readable_bytes.dart";
 import "package:waywing/widgets/winged_button.dart";
 import "package:waywing/widgets/winged_popover.dart";

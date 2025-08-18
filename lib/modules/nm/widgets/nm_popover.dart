@@ -1,8 +1,9 @@
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/nm/nm_config.dart";
-import "package:waywing/modules/nm/nm_indicator.dart";
-import "package:waywing/modules/nm/nm_service.dart";
+import "package:waywing/modules/nm/widgets/nm_indicator.dart";
+import "package:waywing/modules/nm/service/nm_service.dart";
+import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/simple_shadow.dart";
 import "package:waywing/widgets/winged_button.dart";
@@ -252,17 +253,19 @@ class _APWidgetState extends State<APWidget> {
                       padding: const EdgeInsets.only(top: 8, bottom: 8, left: 36, right: 8),
                       child: SizedBox(
                         height: 32,
-                        child: TextFormField(
-                          autofocus: true,
-                          controller: passwordController,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          onFieldSubmitted: (_) => onConnectTap(),
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            alignLabelWithHint: true,
-                            contentPadding: EdgeInsets.only(left: 6, right: 6),
-                            label: Text("Password"),
-                            labelStyle: TextStyle(fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize),
+                        child: KeyboardFocus(
+                          child: TextFormField(
+                            autofocus: true,
+                            controller: passwordController,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            onFieldSubmitted: (_) => onConnectTap(),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              alignLabelWithHint: true,
+                              contentPadding: EdgeInsets.only(left: 6, right: 6),
+                              label: Text("Password"),
+                              labelStyle: TextStyle(fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize),
+                            ),
                           ),
                         ),
                       ),

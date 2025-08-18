@@ -3,10 +3,11 @@ import "package:flutter/widgets.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
-import "package:waywing/modules/volume/volume_widget.dart";
+import "package:waywing/modules/volume/volume_indicator.dart";
+import "package:waywing/modules/volume/volume_popover.dart";
 import "package:waywing/modules/volume/volume_service.dart";
+import "package:waywing/modules/volume/volume_tooltip.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/winged_button.dart";
 
 class VolumeFeather extends Feather {
   late VolumeService service;
@@ -35,11 +36,12 @@ class VolumeFeather extends Feather {
   late final volumeComponent = FeatherComponent(
     buildIndicators: (context, popover, tooltip) {
       return [
-        WingedButton(
-          onTap: () => popover!.togglePopover(),
-          child: VolumeWidget(service: service),
-        ),
+        // TODO: 1 implement optional separated indicators for volume and microphone
+        VolumeIndicator(service: service, popover: popover!),
       ];
+    },
+    buildTooltip: (context) {
+      return VolumeTooltip(service: service);
     },
     buildPopover: (context) {
       return VolumePopover(service: service);

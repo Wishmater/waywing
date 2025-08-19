@@ -1,8 +1,88 @@
 import "package:dbus/dbus.dart";
 
+int _idGenerator = 0;
+
+class Notification {
+  /// Unique identifier for the notification.
+  /// Clients use this ID to update, close, or reference a specific notification.
+  final int id;
+
+  /// This is the optional name of the application sending the notification.
+  /// This should be the application's formal name, rather than some sort of ID.
+  /// An example would be "FredApp E-Mail Client," rather than "fredapp-email-client." .
+  final String appName;
+
+  /// Icon to render
+  void appIcon;
+
+  /// This is a single line overview of the notification.
+  ///
+  /// For instance, "You have mail" or "A friend has come online".
+  /// It should generally not be longer than 40 characters, though this is not a requirement,
+  /// and server implementations should word wrap if necessary.
+  ///
+  /// The summary must be encoded using UTF-8.
+  final String summary;
+
+  /// This is a multi-line body of text. Each line is a paragraph, server implementations
+  /// are free to word wrap them as they see fit.
+  ///
+  /// The body may contain simple markup as specified in Markup. It must be encoded using UTF-8.
+  ///
+  /// If the body is omitted, just the summary is displayed.
+  final String body;
+
+  /// The actions send a request message back to the notification client when invoked.
+  /// This functionality may not be implemented by the notification server, conforming clients
+  /// should check if it is available before using it (see the GetCapabilities message in Protocol).
+  /// An implementation is free to ignore any requested by the client.
+  /// As an example one possible rendering of actions would be as buttons in the notification popup.
+  ///
+  /// Actions are sent over as a list of pairs. Each even element in the list (starting at index 0)
+  /// represents the identifier for the action. Each odd element in the list is the localized
+  /// string that will be displayed to the user.
+  ///
+  /// The default action (usually invoked by clicking the notification) should have a key named
+  /// "default". The name can be anything, though implementations are free not to display it.
+  final List<String> actions;
+
+  /// Hints are a way to provide extra data to a notification server that the server may
+  /// be able to make use of.
+  ///
+  /// See Hints for a list of available hints.
+  final Map<String, Object> hints;
+
+  /// The timestamp (in milliseconds since epoch) when the notification was created.
+  final int timestampMs;
+
+  /// The timeout time in milliseconds since the display of the notification at which the notification
+  /// should automatically close.
+  ///
+  /// If -1, the notification's expiration time is dependent on the notification server's settings,
+  /// and may vary for the type of notification.
+  ///
+  /// If 0, the notification never expires.
+  final int timeout;
+
+  Notification({
+    required this.appName,
+    required this.appIcon,
+    required this.summary,
+    required this.body,
+    required this.actions,
+    required this.hints,
+    required this.timeout,
+  }) : timestampMs = DateTime.now().millisecondsSinceEpoch,
+       id = _idGenerator++;
+}
+
 class OrgFreedesktopNotifications extends DBusObject {
+  final List<Notification> activeNotifications;
+
   /// Creates a new object to expose on [path].
-  OrgFreedesktopNotifications({DBusObjectPath path = const DBusObjectPath.unchecked("/")}) : super(path);
+  OrgFreedesktopNotifications({DBusObjectPath path = const DBusObjectPath.unchecked("/")})
+    : activeNotifications = [],
+      super(path);
 
   /// Implementation of org.freedesktop.Notifications.GetCapabilities()
   Future<DBusMethodResponse> doGetCapabilities() async {
@@ -14,31 +94,37 @@ class OrgFreedesktopNotifications extends DBusObject {
         ///
         /// TODO: MISSING
         "action-icons",
+
         /// The server will provide the specified actions to the user.
         /// Even if this cap is missing, actions may still be specified by the client,
         /// however the server is free to ignore them.
         ///
         /// TODO: MISSING
         "actions",
+
         /// Supports body text. Some implementations may only show the
         /// summary (for instance, onscreen displays, marquee/scrollers)
         ///
         /// TODO: MISSING
         "body",
+
         /// The server supports hyperlinks in the notifications.
         ///
         /// TODO: MISSING
         "body-hyperlinks",
+
         /// The server supports images in the notifications.
         ///
         /// TODO: MISSING
         "body-images",
+
         /// Supports markup in the body text. If marked up text is sent
         /// to a server that does not give this cap, the markup will show
         /// through as regular text so must be stripped clientside.
         ///
         /// TODO: MISSING
         "body-markup",
+
         /// The server will render an animation of all the frames in a given image array.
         /// The client may still specify multiple frames even if this cap and/or
         /// "icon-static" is missing, however the server is free to ignore them and use
@@ -46,12 +132,14 @@ class OrgFreedesktopNotifications extends DBusObject {
         ///
         /// TODO: MISSING
         "icon-multi",
+
         /// Supports display of exactly 1 frame of any given image array. This value is
         /// mutually exclusive with "icon-multi", it is a protocol
         /// error for the server to specify both.
         ///
         /// TODO: MISSING
         "icon-static",
+
         /// The server supports persistence of notifications. Notifications will be
         /// retained until they are acknowledged or removed by the user or recalled
         /// by the sender. The presence of this capability allows clients to depend
@@ -60,11 +148,13 @@ class OrgFreedesktopNotifications extends DBusObject {
         ///
         /// TODO: MISSING
         "persistence",
+
         /// The server supports sounds on notifications. If returned, the server
         /// must support the "sound-file" and "suppress-sound" hints.
         ///
         /// TODO: MISSING
         "sound",
+
         /// The server supports text input.
         ///
         /// Applications may use this feature to recieve a text response from the user without
@@ -192,7 +282,7 @@ class OrgFreedesktopNotifications extends DBusObject {
   ///
   /// To be used by the non-standard "inline-reply" capability
   Future<void> emitNotificationReplied(int id, String text) async {
-     await emitSignal("org.freedesktop.Notifications", "NotificationReplied", [DBusUint32(id), DBusString(text)]);
+    await emitSignal("org.freedesktop.Notifications", "NotificationReplied", [DBusUint32(id), DBusString(text)]);
   }
 
   @override
@@ -260,7 +350,7 @@ class OrgFreedesktopNotifications extends DBusObject {
             args: [
               DBusIntrospectArgument(DBusSignature("u"), DBusArgumentDirection.out, name: "id"),
               DBusIntrospectArgument(DBusSignature("s"), DBusArgumentDirection.out, name: "text"),
-            ]
+            ],
           ),
         ],
       ),

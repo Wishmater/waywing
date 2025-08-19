@@ -107,6 +107,9 @@ class VolumeService extends Service {
     await Future.wait(inputs.map((e) => e.init()));
     _inputs = _ManualValueNotifier(inputs);
     _sourceChangedSubscription = _client.onSourceChanged.listen((source) async {
+      if (source.monitorOfSink != null) {
+        return;
+      }
       final index = _inputs.value.indexWhere((e) => e._source.index == source.index);
       if (index == -1) {
         final input = VolumeInputInterface(_client, source);

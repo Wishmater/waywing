@@ -14,19 +14,20 @@ let
 in unstablepkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
-  version = "0.0.1-3";
+  version = "0.0.1-4";
 
-  src = pkgs.fetchFromGitHub {
-    # https://github.com/ross96D/waywing
-    owner = "Wishmater";
-    repo = "waywing";
-    # rev = "0.0.1";
-    rev = "b962088a6635352b3c8eb1b10d4a69b26046c21f";
-    sha256 = "sha256-02PRJqeUV7IhDLuKrm3d1eyYQ783/BCc/IAmJ1bX4pw=";
-  };
+  # src = pkgs.fetchFromGitHub {
+  #   # https://github.com/ross96D/waywing
+  #   owner = "Wishmater";
+  #   repo = "waywing";
+  #   # rev = "0.0.1";
+  #   rev = "6b052cfd8c6e";
+  #   sha256 = "sha256-ycQlrSP5a8QYjQJWR1uSMlcNrN5OaYA9wNSeJKT7E0U=";
+  # };
+  src = ../.;
 
   buildInputs = with pkgs; [
-    # unstablepkgs.flutter
+    unstablepkgs.flutter
 
     cmake
     clang

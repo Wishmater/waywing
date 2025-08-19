@@ -182,7 +182,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "1a31a94460fb"
+      ref: "1a31a94460fb290b67af14f43bdf407dd48638c7"
       resolved-ref: "1a31a94460fb290b67af14f43bdf407dd48638c7"
       url: "https://github.com/Wishmater/config_gen"
     source: git

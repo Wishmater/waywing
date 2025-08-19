@@ -172,16 +172,20 @@ packages:
   config:
     dependency: "direct main"
     description:
-      path: "../config.dart"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8"
+      url: "https://github.com/ross96D/config.dart"
+    source: git
     version: "1.0.0"
   config_gen:
     dependency: "direct main"
     description:
-      path: "../config_gen"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: e8a5a78376a2776f83d8d85aec3cfa8385cf35d8
+      url: "https://github.com/Wishmater/config_gen"
+    source: git
     version: "1.0.0"
   convert:
     dependency: transitive
@@ -266,9 +270,11 @@ packages:
   fl_linux_window_manager:
     dependency: "direct main"
     description:
-      path: "../fl-linux-window-manager"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "4f3fca8e3f312f24f8ef0485fd3991e233bc3982"
+      url: "https://github.com/Wishmater/fl-linux-window-manager"
+    source: git
     version: "1.2.0"
   flutter:
     dependency: "direct main"
@@ -547,9 +553,11 @@ packages:
   pulseaudio:
     dependency: "direct main"
     description:
-      path: "../pulseaudio.dart"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "23e0ebcb64266d93fbe3a4caf8d0af2edec3f997"
+      url: "https://github.com/ross96D/pulseaudio.dart"
+    source: git
     version: "0.0.8"
   rational:
     dependency: transitive
@@ -671,9 +679,11 @@ packages:
   tronco:
     dependency: "direct main"
     description:
-      path: "../tronco"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "5ecd6268393c80358abf64c0a2270ba1ef4a1676"
+      url: "https://github.com/ross96D/tronco"
+    source: git
     version: "1.0.0"
   typed_data:
     dependency: transitive

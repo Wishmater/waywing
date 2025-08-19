@@ -13,13 +13,19 @@ dependencies:
 
   # Configuration parser
   config:
-    path: ../config.dart
+    # path: ../config.dart
+    git:
+      url: https://github.com/ross96D/config.dart
   config_gen:
-    path: ../config_gen
+    # path: ../config_gen
+    git:
+      url: https://github.com/Wishmater/config_gen
 
   # Logger
   tronco:
-    path: ../tronco
+    # path: ../tronco
+    git:
+      url: https://github.com/ross96D/tronco
 
   # Language utilities
   intl: ^0.20.2
@@ -34,21 +40,21 @@ dependencies:
   auto_size_text: ^3.0.0
 
   # Native plugins
-  pulseaudio: # for audio mixing
-    path: ../pulseaudio.dart
+  path: ^1.9.1
+  watcher: ^1.1.2 # directory/file watcher library
+  chalkdart: ^3.0.5 # cli colors
   dbus: ^0.7.11 # interprocess comunication library for linux
   nm: ^0.5.0 # network manager
   xdg_icons: ^0.1.2 # render icons from string as defined in xdg icons spec
   upower: ^0.7.0 # battery and other power options
   fl_linux_window_manager: # Linux window / shellLayer manager
-    path: ../fl-linux-window-manager
-
-  # cli colors
-  chalkdart: ^3.0.5
-  # directory/file watcher library
-  watcher: ^1.1.2
-  # libray for path operations
-  path: ^1.9.1
+    # path: ../fl-linux-window-manager
+    git:
+      url: https://github.com/Wishmater/fl-linux-window-manager
+  pulseaudio: # for audio mixing
+    # path: ../pulseaudio.dart
+    git:
+      url: https://github.com/ross96D/pulseaudio.dart
 
 dev_dependencies:
   flutter_test:

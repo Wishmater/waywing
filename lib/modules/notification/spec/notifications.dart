@@ -1,7 +1,3 @@
-// This file was generated using the following command and may be overwritten.
-// dart-dbus generate-object org.freedesktop.notifications.xml
-
-import "dart:io";
 import "package:dbus/dbus.dart";
 
 class OrgFreedesktopNotifications extends DBusObject {
@@ -76,6 +72,19 @@ class OrgFreedesktopNotifications extends DBusObject {
         ///
         /// TODO: MISSING
         "inline-reply",
+
+        /// Notifications with the same (non-empty) stack tag and the same appid will replace
+        /// each-other so only the newest one is visible.
+        ///
+        /// This can be useful for example in volume or brightness notifications where you only
+        /// want one of the same type visible.
+        ///
+        /// The stack tag can be set by the client with the 'synchronous', 'private-synchronous'
+        /// 'x-canonical-private-synchronous' or the 'x-dunst-stack-tag' hints.
+        "synchronous",
+        "private-synchronous",
+        "x-canonical-private-synchronous",
+        "x-dunst-stack-tag",
       ]),
     ]);
   }
@@ -179,6 +188,13 @@ class OrgFreedesktopNotifications extends DBusObject {
     ]);
   }
 
+  /// Emits signal org.freedesktop.Notifications.NotificationReplied
+  ///
+  /// To be used by the non-standard "inline-reply" capability
+  Future<void> emitNotificationReplied(int id, String text) async {
+     await emitSignal("org.freedesktop.Notifications", "NotificationReplied", [DBusUint32(id), DBusString(text)]);
+  }
+
   @override
   List<DBusIntrospectInterface> introspect() {
     return [
@@ -238,6 +254,13 @@ class OrgFreedesktopNotifications extends DBusObject {
               DBusIntrospectArgument(DBusSignature("u"), DBusArgumentDirection.out, name: "id"),
               DBusIntrospectArgument(DBusSignature("s"), DBusArgumentDirection.out, name: "activation_token"),
             ],
+          ),
+          DBusIntrospectSignal(
+            "NotificationReplied",
+            args: [
+              DBusIntrospectArgument(DBusSignature("u"), DBusArgumentDirection.out, name: "id"),
+              DBusIntrospectArgument(DBusSignature("s"), DBusArgumentDirection.out, name: "text"),
+            ]
           ),
         ],
       ),

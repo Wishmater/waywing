@@ -215,6 +215,10 @@ class VolumeService extends Service {
   VolumeInputInterface? _getDefaultInput(PulseAudioServerInfo serverInfo) {
     return inputs.value.firstOrNullWhere((e) => e._source.name == serverInfo.defaultSourceName);
   }
+
+  // bool _isSourceRelevant(PulseAudioSource) {
+  //   return _sour
+  // }
 }
 
 abstract class VolumeInterface {

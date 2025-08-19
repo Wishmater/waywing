@@ -23,6 +23,7 @@ class VolumeTooltip extends StatelessWidget {
             valueListenable: service.defaultOutput,
             builder: (context, defaultOutput, child) {
               // TODO: 1 maybe just also disable tooltip if defaultOutput==null
+              // TODO: 2 maybe add an AnimatedSwitcher here
               if (defaultOutput == null) {
                 return Center(
                   child: Text("No audio output detected"),
@@ -51,108 +52,110 @@ class VolumeSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: IntrinsicWidth(
-        child: Padding(
-          padding: padding,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: ValueListenableBuilder(
-                      valueListenable: model.name,
-                      builder: (context, name, child) {
-                        // TODO: 1 properly deal with overflowing text
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              name,
-                              maxLines: 1,
-                              softWrap: false,
-                              overflow: TextOverflow.fade,
-                            ),
-                            if (model.subtitle != null)
-                              ValueListenableBuilder(
-                                valueListenable: model.subtitle!,
-                                builder: (context, subtitle, child) {
-                                  if (subtitle == null) return SizedBox.shrink();
-                                  return Text(
-                                    subtitle,
-                                    maxLines: 1,
-                                    softWrap: false,
-                                    overflow: TextOverflow.fade,
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  );
-                                },
+    return FocusTraversalGroup(
+      child: IntrinsicHeight(
+        child: IntrinsicWidth(
+          child: Padding(
+            padding: padding,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: ValueListenableBuilder(
+                        valueListenable: model.name,
+                        builder: (context, name, child) {
+                          // TODO: 1 properly deal with overflowing text
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 1,
+                                softWrap: false,
+                                overflow: TextOverflow.fade,
                               ),
-                          ],
+                              if (model.subtitle != null)
+                                ValueListenableBuilder(
+                                  valueListenable: model.subtitle!,
+                                  builder: (context, subtitle, child) {
+                                    if (subtitle == null) return SizedBox.shrink();
+                                    return Text(
+                                      subtitle,
+                                      maxLines: 1,
+                                      softWrap: false,
+                                      overflow: TextOverflow.fade,
+                                      style: Theme.of(context).textTheme.bodySmall,
+                                    );
+                                  },
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    // WingedButton(
+                    //   padding: EdgeInsets.zero,
+                    //   child: Icon(MaterialCommunityIcons.volume_minus),
+                    //   onTap: () {
+                    //     model.decreaseVolume();
+                    //   },
+                    // ),
+                    // WingedButton(
+                    //   padding: EdgeInsets.zero,
+                    //   child: Icon(MaterialCommunityIcons.volume_plus),
+                    //   onTap: () {
+                    //     model.increaseVolume();
+                    //   },
+                    // ),
+                    ValueListenableBuilder(
+                      valueListenable: model.isMuted,
+                      builder: (context, isMuted, child) {
+                        return WingedButton(
+                          padding: EdgeInsets.zero,
+                          constraints: BoxConstraints(),
+                          child: AnimatedContainer(
+                            duration: config.animationDuration,
+                            curve: config.animationCurve,
+                            color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              MaterialCommunityIcons.volume_mute,
+                              color: Theme.of(context).textTheme.bodyLarge!.color,
+                            ),
+                          ),
+                          onTap: () {
+                            model.setMuted(!isMuted);
+                          },
                         );
                       },
                     ),
-                  ),
-                  SizedBox(width: 16),
-                  // WingedButton(
-                  //   padding: EdgeInsets.zero,
-                  //   child: Icon(MaterialCommunityIcons.volume_minus),
-                  //   onTap: () {
-                  //     model.decreaseVolume();
-                  //   },
-                  // ),
-                  // WingedButton(
-                  //   padding: EdgeInsets.zero,
-                  //   child: Icon(MaterialCommunityIcons.volume_plus),
-                  //   onTap: () {
-                  //     model.increaseVolume();
-                  //   },
-                  // ),
-                  ValueListenableBuilder(
-                    valueListenable: model.isMuted,
-                    builder: (context, isMuted, child) {
-                      return WingedButton(
+                  ],
+                ),
+                VolumeScrollWhellListener(
+                  model: model,
+                  child: ValueListenableBuilder(
+                    valueListenable: model.volume,
+                    builder: (context, volume, child) {
+                      // TODO: 1 implement better slider, with permanent value label, and showing important breakpoints
+                      return Slider(
                         padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
-                        child: AnimatedContainer(
-                          duration: config.animationDuration,
-                          curve: config.animationCurve,
-                          color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
-                          padding: const EdgeInsets.all(4),
-                          child: Icon(
-                            MaterialCommunityIcons.volume_mute,
-                            color: Theme.of(context).textTheme.bodyLarge!.color,
-                          ),
-                        ),
-                        onTap: () {
-                          model.setMuted(!isMuted);
+                        label: "${(volume * 100).round()}%",
+                        value: (volume * 100).clamp(0, 100),
+                        min: 0,
+                        max: 100, // TODO: 1 implement going over 1
+                        divisions: (100 / (VolumeInterface.volumeStep * 100)).round(),
+                        onChanged: (value) {
+                          model.setVolume(value / 100);
                         },
                       );
                     },
                   ),
-                ],
-              ),
-              VolumeScrollWhellListener(
-                model: model,
-                child: ValueListenableBuilder(
-                  valueListenable: model.volume,
-                  builder: (context, volume, child) {
-                    // TODO: 1 implement better slider, with permanent value label, and showing important breakpoints
-                    return Slider(
-                      padding: EdgeInsets.zero,
-                      label: "${(volume * 100).round()}%",
-                      value: (volume * 100).clamp(0, 100),
-                      min: 0,
-                      max: 100, // TODO: 1 implement going over 1
-                      divisions: (100 / (VolumeInterface.volumeStep * 100)).round(),
-                      onChanged: (value) {
-                        model.setVolume(value / 100);
-                      },
-                    );
-                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -104,48 +104,48 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 1 implement defaults
     // TODO: 2 add app icon (only for apps)
     final scrollController = ScrollController();
+    final nonDefaultModels = models.where((e) => e != defaultModel);
     // TODO: 2 add animations to list
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(height: 12),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.labelLarge,
-        ),
-        SizedBox(height: 12),
-        Expanded(
-          child: Scrollbar(
-            controller: scrollController,
-            child: ScrollOpacityGradient(
-              scrollController: scrollController,
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (defaultModel != null) buildVolumeSlider(context, defaultModel!),
-                    if (defaultModel != null)
-                      Divider(
-                        indent: 24,
-                        endIndent: 24,
-                        height: 24,
-                      ),
-                    for (final e in models.where((e) => e != defaultModel)) buildVolumeSlider(context, e),
-                    SizedBox(height: 16),
-                  ],
+    return FocusTraversalGroup(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(height: 12),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          SizedBox(height: 12),
+          Expanded(
+            child: Scrollbar(
+              controller: scrollController,
+              child: ScrollOpacityGradient(
+                scrollController: scrollController,
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (defaultModel != null) //
+                        buildVolumeSlider(context, defaultModel!),
+                      if (defaultModel != null && nonDefaultModels.isNotEmpty)
+                        Divider(indent: 24, endIndent: 24, height: 24),
+                      for (final e in nonDefaultModels) //
+                        buildVolumeSlider(context, e),
+                      SizedBox(height: 16),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

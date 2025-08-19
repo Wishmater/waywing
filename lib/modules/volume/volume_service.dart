@@ -270,6 +270,9 @@ class VolumeAppInterface extends VolumeInterface {
   ValueListenable<String?>? get subtitle => _subtitle;
   late final ValueNotifier<String?> _subtitle;
 
+  ValueListenable<String?> get iconName => _iconName;
+  late final ValueNotifier<String?> _iconName;
+
   PulseAudioSinkInput _sinkInput;
 
   VolumeAppInterface(super._client, this._sinkInput);
@@ -285,6 +288,8 @@ class VolumeAppInterface extends VolumeInterface {
     }
     _volume = ValueNotifier(_sinkInput.volume);
     _isMuted = ValueNotifier(_sinkInput.mute);
+
+    _iconName = ValueNotifier(_sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName);
   }
 
   @override

@@ -52,6 +52,7 @@ class VolumeService extends Service {
     final apps = sinkInputs.map((e) => VolumeAppInterface(_client, e)).toList();
     await Future.wait(apps.map((e) => e.init()));
     _apps = _ManualValueNotifier(apps);
+
     _sinkInputChangedSubscription = _client.onSinkInputChanged.listen((sinkInput) async {
       final index = _apps.value.indexWhere((e) => e._sinkInput.index == sinkInput.index);
       if (index == -1) {
@@ -65,6 +66,7 @@ class VolumeService extends Service {
         app._onValuesUpdated();
       }
     });
+
     _sinkInputRemovedSubscription = _client.onSinkInputRemoved.listen((index) async {
       final i = _apps.value.indexWhere((e) => e._sinkInput.index == index);
       if (i != -1) {
@@ -101,7 +103,7 @@ class VolumeService extends Service {
     });
 
     final sources = await _client.getSourceList();
-    final inputs = sources.map((e) => VolumeInputInterface(_client, e)).toList();
+    final inputs = sources.where((e) => e.monitorOfSink == null).map((e) => VolumeInputInterface(_client, e)).toList();
     await Future.wait(inputs.map((e) => e.init()));
     _inputs = _ManualValueNotifier(inputs);
     _sourceChangedSubscription = _client.onSourceChanged.listen((source) async {
@@ -117,6 +119,7 @@ class VolumeService extends Service {
         input._onValuesUpdated();
       }
     });
+
     _sourceRemovedSubscription = _client.onSourceRemoved.listen((index) async {
       final i = _inputs.value.indexWhere((e) => e._source.index == index);
       if (i != -1) {

@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:dbus/dbus.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "dart:ui" as ui;
@@ -143,15 +145,74 @@ class Notification {
   }
 }
 
+/// Main Notification object that expose an org.freedesktop.Notifications dbus interface
+///
+/// Also this object manage all notifications
 class OrgFreedesktopNotifications extends DBusObject {
   final Map<int, Notification> activeNotifications;
   final Map<String, int> synchronousIds;
+  final Map<int, Timer> _timers;
+
+  final StreamController<Notification> _notificationCreated;
+  late Stream<Notification> notificationCreated;
+  final StreamController<int> _notificationChanged;
+  late final Stream<int> notificationChanged;
+  final StreamController<int> _notificationRemoved;
+  late final Stream<int> notificationRemoved;
 
   /// Creates a new object to expose on [path].
   OrgFreedesktopNotifications({DBusObjectPath path = const DBusObjectPath.unchecked("/")})
     : activeNotifications = {},
       synchronousIds = {},
-      super(path);
+      _timers = {},
+      _notificationCreated = StreamController(),
+      _notificationChanged = StreamController(),
+      _notificationRemoved = StreamController(),
+      super(path) {
+    notificationCreated = _notificationCreated.stream.asBroadcastStream();
+    notificationRemoved = _notificationRemoved.stream.asBroadcastStream();
+  }
+
+  void dispose() {
+    _notificationCreated.close();
+    _notificationRemoved.close();
+    _notificationChanged.close();
+    _timers.forEach((k, v) => v.cancel());
+    _timers.clear();
+  }
+
+  void addOrReplaceNotification(Notification notification) {
+    bool contains = activeNotifications.containsKey(notification.id);
+    activeNotifications[notification.id] = notification;
+
+    bool isSynchronous = notification.hints.synchronous?.isNotEmpty == true;
+    if (isSynchronous) {
+      synchronousIds[notification.hints.synchronous!] = notification.id;
+    }
+
+    if (contains) {
+      _notificationChanged.add(notification.id);
+    } else {
+      _notificationCreated.add(notification);
+    }
+
+    _timers[notification.id]?.cancel();
+    if (notification.timeout != 0) {
+      final id = notification.id;
+      _timers[id] = Timer(Duration(milliseconds: notification.timeout), () => removeNotification(id));
+    }
+  }
+
+  void removeNotification(int id) {
+    final removed = activeNotifications.remove(id);
+    if (removed != null) {
+      if (removed.hints.synchronous?.isNotEmpty == true) {
+        synchronousIds.remove(removed.hints.synchronous!);
+      }
+      _notificationRemoved.add(id);
+    }
+    _timers.remove(id)?.cancel();
+  }
 
   /// Implementation of org.freedesktop.Notifications.GetCapabilities()
   Future<DBusMethodResponse> doGetCapabilities() async {
@@ -167,14 +228,10 @@ class OrgFreedesktopNotifications extends DBusObject {
         /// The server will provide the specified actions to the user.
         /// Even if this cap is missing, actions may still be specified by the client,
         /// however the server is free to ignore them.
-        ///
-        /// TODO: MISSING
         "actions",
 
         /// Supports body text. Some implementations may only show the
         /// summary (for instance, onscreen displays, marquee/scrollers)
-        ///
-        /// TODO: MISSING
         "body",
 
         /// The server supports hyperlinks in the notifications.
@@ -183,8 +240,6 @@ class OrgFreedesktopNotifications extends DBusObject {
         "body-hyperlinks",
 
         /// The server supports images in the notifications.
-        ///
-        /// TODO: MISSING
         "body-images",
 
         /// Supports markup in the body text. If marked up text is sent
@@ -200,13 +255,11 @@ class OrgFreedesktopNotifications extends DBusObject {
         /// only the primary frame.
         ///
         /// TODO: MISSING
-        "icon-multi",
+        // "icon-multi",
 
         /// Supports display of exactly 1 frame of any given image array. This value is
         /// mutually exclusive with "icon-multi", it is a protocol
         /// error for the server to specify both.
-        ///
-        /// TODO: MISSING
         "icon-static",
 
         /// The server supports persistence of notifications. Notifications will be
@@ -214,8 +267,6 @@ class OrgFreedesktopNotifications extends DBusObject {
         /// by the sender. The presence of this capability allows clients to depend
         /// on the server to ensure a notification is seen and eliminate the need
         /// for the client to display a reminding function (such as a status icon) of its own.
-        ///
-        /// TODO: MISSING
         "persistence",
 
         /// The server supports sounds on notifications. If returned, the server
@@ -228,8 +279,6 @@ class OrgFreedesktopNotifications extends DBusObject {
         ///
         /// Applications may use this feature to recieve a text response from the user without
         /// the user opening the app
-        ///
-        /// TODO: MISSING
         "inline-reply",
 
         /// Notifications with the same (non-empty) stack tag and the same appid will replace
@@ -277,8 +326,9 @@ class OrgFreedesktopNotifications extends DBusObject {
       image = NotificationImagePath(parsedHints.imagePath!);
     }
 
+    Notification? notification;
     if (replaces_id > 0) {
-      final replacement = activeNotifications[replaces_id]?.copyWith(
+      notification = activeNotifications[replaces_id]?.copyWith(
         timestampMs: DateTime.now().millisecondsSinceEpoch,
         actions: parsedActions,
         appName: app_name,
@@ -289,17 +339,14 @@ class OrgFreedesktopNotifications extends DBusObject {
         hints: parsedHints,
         timeout: expire_timeout,
       );
-      if (replacement != null) {
-        activeNotifications[replaces_id] = replacement;
+      if (notification == null) {
+        return DBusMethodErrorResponse.failed("replaces_id not found");
       }
-
-      /// TODO trigger changeNotification signal
-    }
-    else if (parsedHints.synchronous?.isNotEmpty == true) {
+    } else if (parsedHints.synchronous?.isNotEmpty == true) {
       final id = synchronousIds[parsedHints.synchronous!];
 
       if (id != null) {
-        final replacement = activeNotifications[replaces_id]?.copyWith(
+        notification = activeNotifications[id]!.copyWith(
           timestampMs: DateTime.now().millisecondsSinceEpoch,
           actions: parsedActions,
           appName: app_name,
@@ -310,13 +357,8 @@ class OrgFreedesktopNotifications extends DBusObject {
           hints: parsedHints,
           timeout: expire_timeout,
         );
-        if (replacement != null) {
-          activeNotifications[replaces_id] = replacement;
-        }
-
-        /// TODO trigger changeNotification signal
       } else {
-        final notification = Notification(
+        notification = Notification(
           actions: parsedActions,
           appName: app_name,
           appIcon: app_icon,
@@ -326,28 +368,21 @@ class OrgFreedesktopNotifications extends DBusObject {
           hints: parsedHints,
           timeout: expire_timeout,
         );
-        activeNotifications[notification.id] = notification;
-        synchronousIds[parsedHints.synchronous!] = notification.id;
-
-        /// TODO trigger newNotification signal
       }
-    } else {
-      final notification = Notification(
-        actions: parsedActions,
-        appName: app_name,
-        appIcon: app_icon,
-        image: image,
-        summary: summary,
-        body: body,
-        hints: parsedHints,
-        timeout: expire_timeout,
-      );
-      activeNotifications[notification.id] = notification;
-
-      /// TODO trigger newNotification signal
     }
+    notification ??= Notification(
+      actions: parsedActions,
+      appName: app_name,
+      appIcon: app_icon,
+      image: image,
+      summary: summary,
+      body: body,
+      hints: parsedHints,
+      timeout: expire_timeout,
+    );
+    addOrReplaceNotification(notification);
 
-    return DBusMethodErrorResponse.failed("org.freedesktop.Notifications.Notify() not implemented");
+    return DBusMethodSuccessResponse([DBusUint32(notification.id)]);
   }
 
   /// Implementation of org.freedesktop.Notifications.CloseNotification()
@@ -361,7 +396,8 @@ class OrgFreedesktopNotifications extends DBusObject {
   ///
   /// If the notification no longer exists, an empty D-BUS Error message is sent back.
   Future<DBusMethodResponse> doCloseNotification(int id) async {
-    return DBusMethodErrorResponse.failed("org.freedesktop.Notifications.CloseNotification() not implemented");
+    removeNotification(id);
+    return DBusMethodSuccessResponse([]);
   }
 
   /// Implementation of org.freedesktop.Notifications.GetServerInformation()
@@ -373,7 +409,12 @@ class OrgFreedesktopNotifications extends DBusObject {
   /// - version. The server's version number.
   /// - spec_version. The specification version the server is compliant with.
   Future<DBusMethodResponse> doGetServerInformation() async {
-    return DBusMethodErrorResponse.failed("org.freedesktop.Notifications.GetServerInformation() not implemented");
+    return DBusMethodSuccessResponse([
+      DBusString("waywing"),
+      DBusString("waywing"),
+      DBusString("0.0.1"),
+      DBusString("1.3"),
+    ]);
   }
 
   /// Emits signal org.freedesktop.Notifications.NotificationClosed

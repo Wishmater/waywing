@@ -481,18 +481,18 @@ class Actions {
     Action? inlineReply;
     Action? defaultAction;
     for (int i = 0; i < actions.length; i += 2) {
-      String identifier = actions[i];
-      String name = actions[i + 1];
-      switch (identifier.toLowerCase()) {
+      String key = actions[i];
+      String value = actions[i + 1];
+      switch (key.toLowerCase()) {
         case "default":
-          defaultAction = Action(identifier: identifier, name: name);
+          defaultAction = Action(key: key, value: value);
         case "inline-reply":
-          if (name == "") {
-            name = "Reply"; // TODO 3: this should be localization dependent
+          if (value == "") {
+            value = "Reply"; // TODO 3: this should be localization dependent
           }
-          inlineReply = Action(identifier: identifier, name: name);
+          inlineReply = Action(key: key, value: value);
         default:
-          parsedActions.add(Action(identifier: identifier, name: name));
+          parsedActions.add(Action(key: key, value: value));
       }
     }
     return Actions._(defaultAction, inlineReply, parsedActions);
@@ -500,8 +500,8 @@ class Actions {
 }
 
 class Action {
-  final String identifier;
-  final String name;
+  final String key;
+  final String value;
 
-  const Action({required this.identifier, required this.name});
+  const Action({required this.key, required this.value});
 }

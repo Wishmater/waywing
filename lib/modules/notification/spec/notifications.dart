@@ -1,4 +1,24 @@
 import "package:dbus/dbus.dart";
+import "package:waywing/modules/notification/notification_models.dart";
+import "dart:ui" as ui;
+
+sealed class NotificationImage {
+  const NotificationImage();
+}
+
+class NotificationImageData extends NotificationImage {
+  final NotificationHintImage data;
+
+  Future<ui.Image> get image => data.image;
+
+  const NotificationImageData(this.data);
+}
+
+class NotificationImagePath extends NotificationImage {
+  final String path;
+
+  const NotificationImagePath(this.path);
+}
 
 int _idGenerator = 0;
 
@@ -13,7 +33,10 @@ class Notification {
   final String appName;
 
   /// Icon to render
-  void appIcon;
+  String appIcon;
+
+  /// Image to display
+  NotificationImage? image;
 
   /// This is a single line overview of the notification.
   ///
@@ -44,13 +67,11 @@ class Notification {
   ///
   /// The default action (usually invoked by clicking the notification) should have a key named
   /// "default". The name can be anything, though implementations are free not to display it.
-  final List<String> actions;
+  final Actions actions;
 
   /// Hints are a way to provide extra data to a notification server that the server may
   /// be able to make use of.
-  ///
-  /// See Hints for a list of available hints.
-  final Map<String, Object> hints;
+  final NotificationHints hints;
 
   /// The timestamp (in milliseconds since epoch) when the notification was created.
   final int timestampMs;
@@ -64,9 +85,30 @@ class Notification {
   /// If 0, the notification never expires.
   final int timeout;
 
+  /// For low and normal urgencies, server implementations may display the notifications how they choose.
+  /// They should, however, have a sane expiration timeout dependent on the urgency level.
+  ///
+  /// Critical notifications should not automatically expire, as they are things that the
+  /// user will most likely want to know about.
+  NotificationUrgency get urgency => hints.urgency;
+
+  Notification._({
+    required this.id,
+    required this.timestampMs,
+    required this.appName,
+    required this.appIcon,
+    required this.image,
+    required this.summary,
+    required this.body,
+    required this.actions,
+    required this.hints,
+    required this.timeout,
+  });
+
   Notification({
     required this.appName,
     required this.appIcon,
+    required this.image,
     required this.summary,
     required this.body,
     required this.actions,
@@ -74,14 +116,41 @@ class Notification {
     required this.timeout,
   }) : timestampMs = DateTime.now().millisecondsSinceEpoch,
        id = _idGenerator++;
+
+  Notification copyWith({
+    String? appName,
+    String? appIcon,
+    NotificationImage? image,
+    String? summary,
+    String? body,
+    Actions? actions,
+    NotificationHints? hints,
+    int? timeout,
+    int? timestampMs,
+  }) {
+    return Notification._(
+      id: id,
+      appName: appName ?? this.appName,
+      appIcon: appIcon ?? this.appIcon,
+      summary: summary ?? this.summary,
+      body: body ?? this.body,
+      image: image ?? this.image,
+      actions: actions ?? this.actions,
+      hints: hints ?? this.hints,
+      timeout: timeout ?? this.timeout,
+      timestampMs: timestampMs ?? this.timestampMs,
+    );
+  }
 }
 
 class OrgFreedesktopNotifications extends DBusObject {
-  final List<Notification> activeNotifications;
+  final Map<int, Notification> activeNotifications;
+  final Map<String, int> synchronousIds;
 
   /// Creates a new object to expose on [path].
   OrgFreedesktopNotifications({DBusObjectPath path = const DBusObjectPath.unchecked("/")})
-    : activeNotifications = [],
+    : activeNotifications = {},
+      synchronousIds = {},
       super(path);
 
   /// Implementation of org.freedesktop.Notifications.GetCapabilities()
@@ -199,6 +268,85 @@ class OrgFreedesktopNotifications extends DBusObject {
     Map<String, DBusValue> hints,
     int expire_timeout,
   ) async {
+    final parsedHints = NotificationHints(hints);
+    final parsedActions = Actions(actions);
+    NotificationImage? image;
+    if (parsedHints.imageData != null) {
+      image = NotificationImageData(parsedHints.imageData!);
+    } else if (parsedHints.imagePath != null) {
+      image = NotificationImagePath(parsedHints.imagePath!);
+    }
+
+    if (replaces_id > 0) {
+      final replacement = activeNotifications[replaces_id]?.copyWith(
+        timestampMs: DateTime.now().millisecondsSinceEpoch,
+        actions: parsedActions,
+        appName: app_name,
+        appIcon: app_icon,
+        image: image,
+        summary: summary,
+        body: body,
+        hints: parsedHints,
+        timeout: expire_timeout,
+      );
+      if (replacement != null) {
+        activeNotifications[replaces_id] = replacement;
+      }
+
+      /// TODO trigger changeNotification signal
+    }
+    else if (parsedHints.synchronous?.isNotEmpty == true) {
+      final id = synchronousIds[parsedHints.synchronous!];
+
+      if (id != null) {
+        final replacement = activeNotifications[replaces_id]?.copyWith(
+          timestampMs: DateTime.now().millisecondsSinceEpoch,
+          actions: parsedActions,
+          appName: app_name,
+          appIcon: app_icon,
+          image: image,
+          summary: summary,
+          body: body,
+          hints: parsedHints,
+          timeout: expire_timeout,
+        );
+        if (replacement != null) {
+          activeNotifications[replaces_id] = replacement;
+        }
+
+        /// TODO trigger changeNotification signal
+      } else {
+        final notification = Notification(
+          actions: parsedActions,
+          appName: app_name,
+          appIcon: app_icon,
+          image: image,
+          summary: summary,
+          body: body,
+          hints: parsedHints,
+          timeout: expire_timeout,
+        );
+        activeNotifications[notification.id] = notification;
+        synchronousIds[parsedHints.synchronous!] = notification.id;
+
+        /// TODO trigger newNotification signal
+      }
+    } else {
+      final notification = Notification(
+        actions: parsedActions,
+        appName: app_name,
+        appIcon: app_icon,
+        image: image,
+        summary: summary,
+        body: body,
+        hints: parsedHints,
+        timeout: expire_timeout,
+      );
+      activeNotifications[notification.id] = notification;
+
+      /// TODO trigger newNotification signal
+    }
+
     return DBusMethodErrorResponse.failed("org.freedesktop.Notifications.Notify() not implemented");
   }
 

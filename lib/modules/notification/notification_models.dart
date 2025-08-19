@@ -1,6 +1,9 @@
 import "dart:async";
+import "dart:typed_data";
 import "dart:ui" as ui;
 
+import "package:dartx/dartx.dart";
+import "package:dbus/dbus.dart";
 import "package:flutter/services.dart";
 
 /// Notifications can optionally have a type indicator.
@@ -9,6 +12,39 @@ import "package:flutter/services.dart";
 /// notification in a certain way, or group notifications of similar types.
 sealed class NotificationCategories {
   const NotificationCategories();
+
+  static NotificationCategories? fromString(String? value) {
+    if (value == null) {
+      return null;
+    }
+    return switch (value) {
+      "call" => CallGeneric(),
+      "call.ended" => CallEnded(),
+      "call.incoming" => CallIcoming(),
+      "call.unanswered" => CallUnanswered(),
+      "device" => DeviceGeneric(),
+      "device.added" => DeviceAdded(),
+      "device.error" => DeviceError(),
+      "device.removed" => DeviceRemoved(),
+      "email" => EmailGeneric(),
+      "email.arrived" => EmailArrived(),
+      "email.bounced" => EmailBounced(),
+      "im" => ImGeneric(),
+      "im.error" => ImError(),
+      "im.received" => ImReceived(),
+      "network" => NetworkGeneric(),
+      "network.connected" => NetworkConnected(),
+      "network.disconnected" => NetworkDisconnected(),
+      "network.error" => NetworkError(),
+      "presence" => PresenceGeneric(),
+      "presence.offline" => PresenceOffline(),
+      "presence.online" => PresenceOnline(),
+      "transfer" => TransferGeneric(),
+      "transfer.complete" => TransferComplete(),
+      "transfer.error" => TransferError(),
+      String() => null,
+    };
+  }
 }
 
 sealed class Call extends NotificationCategories {
@@ -150,32 +186,39 @@ sealed class Transfer extends NotificationCategories {
 }
 
 /// A generic file transfer or download notification that doesn't fit into any other category.
-class TransferGeneric extends NotificationCategories {
+class TransferGeneric extends Transfer {
   const TransferGeneric();
 }
 
 /// A file transfer or download complete notification.
-class TransferComplete extends NotificationCategories {
+class TransferComplete extends Transfer {
   const TransferComplete();
 }
 
 /// A file transfer or download error.
-class TransferError extends NotificationCategories {
+class TransferError extends Transfer {
   const TransferError();
 }
 
-enum NotificationUrgencyLevel {
-  low,
-  normal,
-  critical;
+/// For low and normal urgencies, server implementations may display the notifications how they choose.
+/// They should, however, have a sane expiration timeout dependent on the urgency level.
+///
+/// Critical notifications should not automatically expire, as they are things that the
+/// user will most likely want to know about.
+enum NotificationUrgency {
+  low(0),
+  normal(1),
+  critical(2);
 
-  NotificationUrgencyLevel fromInt(int level) {
-    return switch (level) {
-      0 => low,
-      1 => normal,
-      _ => critical,
-    };
-  }
+  final int value;
+  const NotificationUrgency(this.value);
+
+  static NotificationUrgency from(int v) => switch (v) {
+    0 => low,
+    1 => normal,
+    2 => critical,
+    int() => normal,
+  };
 }
 
 class NotificationHintImage {
@@ -220,10 +263,10 @@ class NotificationHintImage {
         for (int x = 0; x < width; x++) {
           int srcIndex = srcRowStart + x * 3;
 
-          rgbaData[destIndex++] = imageData[srcIndex];     // R
+          rgbaData[destIndex++] = imageData[srcIndex]; // R
           rgbaData[destIndex++] = imageData[srcIndex + 1]; // G
           rgbaData[destIndex++] = imageData[srcIndex + 2]; // B
-          rgbaData[destIndex++] = 255;                     // A (opaque)
+          rgbaData[destIndex++] = 255; // A (opaque)
         }
       }
     } else {
@@ -236,7 +279,7 @@ class NotificationHintImage {
         for (int x = 0; x < width; x++) {
           int srcIndex = srcRowStart + x * 4;
 
-          rgbaData[destIndex++] = imageData[srcIndex];     // R
+          rgbaData[destIndex++] = imageData[srcIndex]; // R
           rgbaData[destIndex++] = imageData[srcIndex + 1]; // G
           rgbaData[destIndex++] = imageData[srcIndex + 2]; // B
           rgbaData[destIndex++] = imageData[srcIndex + 3]; // A
@@ -248,6 +291,35 @@ class NotificationHintImage {
       completer.complete(image);
     });
   }
+
+  static final _signature = DBusSignature.struct([
+    DBusSignature.int32,
+    DBusSignature.int32,
+    DBusSignature.int32,
+    DBusSignature.boolean,
+    DBusSignature.int32,
+    DBusSignature.int32,
+    DBusSignature.array(DBusSignature.byte),
+  ]);
+
+  static NotificationHintImage? fromDBusValue(DBusValue? value) {
+    if (value == null) {
+      return null;
+    }
+    if (value.signature != _signature) {
+      return null;
+    }
+    final fields = value.asStruct();
+    return NotificationHintImage(
+      width: fields[0].asInt32(),
+      height: fields[1].asInt32(),
+      rowstride: fields[2].asInt32(),
+      hasAlpha: fields[3].asBoolean(),
+      bitsPerSample: fields[4].asInt32(),
+      channels: fields[5].asInt32(),
+      imageData: fields[6].asByteArray().toList(),
+    );
+  }
 }
 
 class NotificationHints {
@@ -256,7 +328,7 @@ class NotificationHints {
   /// annotate the icon for accessibility purposes.
   ///
   /// The icon name should be compliant with the Freedesktop.org Icon Naming Specification.
-  final bool? actionIcons;
+  final bool actionIcons;
 
   /// The type of notification this is.
   final NotificationCategories? category;
@@ -283,7 +355,7 @@ class NotificationHints {
   /// removed by the user or by the sender.
   ///
   /// This hint is likely only useful when the server has the "persistence" capability.
-  final bool? resident;
+  final bool resident;
 
   /// The path to a sound file to play when the notification pops up.
   final String? soundFile;
@@ -303,19 +375,133 @@ class NotificationHints {
   final bool? transient;
 
   /// The urgency level.
-  final NotificationUrgencyLevel? urgencyLevel;
+  final NotificationUrgency urgency;
 
-  const NotificationHints({
-    this.actionIcons,
+  final String? synchronous;
+
+  final String? inlineReplyPlaceholderText;
+
+  const NotificationHints._({
+    required this.urgency,
+    required this.actionIcons,
+    required this.resident,
     this.category,
     this.desktopEntry,
     this.imageData,
     this.imagePath,
-    this.resident,
     this.soundFile,
     this.soundName,
     this.supressSound,
     this.transient,
-    this.urgencyLevel,
+    this.synchronous,
+    this.inlineReplyPlaceholderText,
   });
+
+  factory NotificationHints(Map<String, DBusValue> hints) {
+    return NotificationHints._(
+      actionIcons: _parseValue<bool>(hints["action-icons"]) ?? false,
+      soundFile: _parseValue<String>(hints["sound-file"]),
+      soundName: _parseValue<String>(hints["sound-name"]),
+      supressSound: _parseValue<bool>(hints["supress-sound"]),
+      transient: _parseValue<bool>(hints["transient"]),
+      urgency: NotificationUrgency.from(_parseValue<int>(hints["transient"]) ?? 1),
+      resident: _parseValue<bool>(hints["resident"]) ?? false,
+      desktopEntry: _parseDesktopEntry(_parseValue<String>(hints["desktop-entry"])),
+      category: NotificationCategories.fromString(_parseValue<String>(hints["category"])),
+      imageData: NotificationHintImage.fromDBusValue(hints["image-data"] ?? hints["image_data"] ?? hints["icon_data"]),
+      imagePath: _parseValue<String>(hints["image-path"] ?? hints["image_path"]),
+      synchronous: _parseValue<String>(
+        hints["synchronous"] ??
+            hints["private-synchronous"] ??
+            hints["x-canonical-private-synchronous"] ??
+            hints["x-dunst-stack-tag"],
+      ),
+      inlineReplyPlaceholderText: _parseValue<String>(hints["x-kde-reply-placeholder-text"]),
+    );
+  }
+
+  static T? _parseValue<T>(DBusValue? hint) {
+    if (hint == null) {
+      return null;
+    }
+    final signature = switch (T) {
+      const (String) => [DBusSignature.string],
+      const (bool) => [DBusSignature.boolean],
+      const (int) => [
+        DBusSignature.int16,
+        DBusSignature.int32,
+        DBusSignature.int64,
+        DBusSignature.uint16,
+        DBusSignature.uint32,
+        DBusSignature.uint64,
+      ],
+      Type() => throw StateError("no dbus signature for type $T"),
+    };
+    if (!signature.contains(hint.signature)) {
+      return null;
+    }
+    return switch (T) {
+      const (String) => hint.asString() as T,
+      const (bool) => hint.asBoolean() as T,
+      const (int) =>
+        switch (hint.signature) {
+              DBusSignature.int16 => hint.asInt16(),
+              DBusSignature.int32 => hint.asInt32(),
+              DBusSignature.int64 => hint.asInt64(),
+              DBusSignature.uint16 => hint.asUint16(),
+              DBusSignature.uint32 => hint.asUint32(),
+              DBusSignature.uint64 => hint.asUint64(),
+              DBusSignature() => throw StateError("unreachable"),
+            }
+            as T,
+      Type() => throw StateError("unreachable"),
+    };
+  }
+
+  static String? _parseDesktopEntry(String? desktopEntry) {
+    if (desktopEntry == null) {
+      return null;
+    }
+    return desktopEntry.removeSuffix(".desktop");
+  }
+}
+
+class Actions {
+  final Action? defaultAction;
+  final Action? inlineReply;
+  final List<Action> actions;
+
+  Actions._(this.defaultAction, this.inlineReply, this.actions);
+
+  factory Actions(List<String> actions) {
+    if (actions.length < 2 || actions.length % 2 != 0) {
+      return Actions._(null, null, []);
+    }
+    final parsedActions = <Action>[];
+    Action? inlineReply;
+    Action? defaultAction;
+    for (int i = 0; i < actions.length; i += 2) {
+      String identifier = actions[i];
+      String name = actions[i + 1];
+      switch (identifier.toLowerCase()) {
+        case "default":
+          defaultAction = Action(identifier: identifier, name: name);
+        case "inline-reply":
+          if (name == "") {
+            name = "Reply"; // TODO 3: this should be localization dependent
+          }
+          inlineReply = Action(identifier: identifier, name: name);
+        default:
+          parsedActions.add(Action(identifier: identifier, name: name));
+      }
+    }
+    return Actions._(defaultAction, inlineReply, parsedActions);
+  }
+}
+
+class Action {
+  final String identifier;
+  final String name;
+
+  const Action({required this.identifier, required this.name});
 }

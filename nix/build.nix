@@ -14,15 +14,15 @@ let
 in unstablepkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
-  version = "0.0.1";
+  version = "0.0.1-3";
 
   src = pkgs.fetchFromGitHub {
-    # https://github.com/ross96D/wayxec
-    owner = "Wishmaster";
+    # https://github.com/ross96D/waywing
+    owner = "Wishmater";
     repo = "waywing";
     # rev = "0.0.1";
-    rev = "90e9ea62c7e5cd771be172601e5e2daa8b6c8399";
-    sha256 = "sha256-c5hjOi1F0fsNgGqE+bsQy7fsY0ZYXUz3buDc/U9GPSo=";
+    rev = "b962088a6635352b3c8eb1b10d4a69b26046c21f";
+    sha256 = "sha256-02PRJqeUV7IhDLuKrm3d1eyYQ783/BCc/IAmJ1bX4pw=";
   };
 
   buildInputs = with pkgs; [

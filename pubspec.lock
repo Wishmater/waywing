@@ -173,7 +173,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
+      ref: "5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8"
       resolved-ref: "5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8"
       url: "https://github.com/ross96D/config.dart"
     source: git
@@ -182,8 +182,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: e8a5a78376a2776f83d8d85aec3cfa8385cf35d8
+      ref: "1a31a94460fb"
+      resolved-ref: "1a31a94460fb290b67af14f43bdf407dd48638c7"
       url: "https://github.com/Wishmater/config_gen"
     source: git
     version: "1.0.0"
@@ -271,7 +271,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
+      ref: "4f3fca8e3f312f24f8ef0485fd3991e233bc3982"
       resolved-ref: "4f3fca8e3f312f24f8ef0485fd3991e233bc3982"
       url: "https://github.com/Wishmater/fl-linux-window-manager"
     source: git
@@ -554,7 +554,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
+      ref: "23e0ebcb64266d93fbe3a4caf8d0af2edec3f997"
       resolved-ref: "23e0ebcb64266d93fbe3a4caf8d0af2edec3f997"
       url: "https://github.com/ross96D/pulseaudio.dart"
     source: git
@@ -680,7 +680,7 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
+      ref: "5ecd6268393c80358abf64c0a2270ba1ef4a1676"
       resolved-ref: "5ecd6268393c80358abf64c0a2270ba1ef4a1676"
       url: "https://github.com/ross96D/tronco"
     source: git

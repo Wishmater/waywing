@@ -16,16 +16,19 @@ dependencies:
     # path: ../config.dart
     git:
       url: https://github.com/ross96D/config.dart
+      ref: 5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8
   config_gen:
     # path: ../config_gen
     git:
       url: https://github.com/Wishmater/config_gen
+      ref: 1a31a94460fb
 
   # Logger
   tronco:
     # path: ../tronco
     git:
       url: https://github.com/ross96D/tronco
+      ref: 5ecd6268393c80358abf64c0a2270ba1ef4a1676
 
   # Language utilities
   intl: ^0.20.2
@@ -51,10 +54,12 @@ dependencies:
     # path: ../fl-linux-window-manager
     git:
       url: https://github.com/Wishmater/fl-linux-window-manager
+      ref: 4f3fca8e3f312f24f8ef0485fd3991e233bc3982
   pulseaudio: # for audio mixing
     # path: ../pulseaudio.dart
     git:
       url: https://github.com/ross96D/pulseaudio.dart
+      ref: 23e0ebcb64266d93fbe3a4caf8d0af2edec3f997
 
 dev_dependencies:
   flutter_test:

@@ -60,6 +60,7 @@ dependencies:
     git:
       url: https://github.com/ross96D/pulseaudio.dart
       ref: 23e0ebcb64266d93fbe3a4caf8d0af2edec3f997
+  mutex: ^3.1.0
 
 dev_dependencies:
   flutter_test:

@@ -8,6 +8,23 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Install Nix
+      uses: cachix/install-nix-action@v24
+      with:
+        nix_path: nixpkgs=channel:nixos-25.05
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+      
+    - name: Install nix-prefetch-url
+      run: |
+        # Add nixos-25.05 channel
+        nix-channel --add https://nixos.org/channels/nixos-25.05 nixos-25.05
+        nix-channel --update
+        # Install nix-prefetch-url from the 25.05 channel
+        nix-env -iA nixos-25.05.nix-prefetch-url
+        # Verify installation
+        nix-prefetch-url --version
+
     - name: Checkout repository
       uses: actions/checkout@v4
       with:

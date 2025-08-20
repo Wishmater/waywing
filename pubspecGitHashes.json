@@ -1,0 +1,7 @@
+{
+  "config": "sha256-ecUb96Y00p6yDMDGylmGZAC0bKyBgYLGqUcTjDnWSgk=",
+  "config_gen": "sha256-C1Lsr5D+kTP+UxG1izJus6xE+P4HdckHOaFFTY2zHLg=",
+  "fl_linux_window_manager": "sha256-xbVtCVZYdtKqoST3S0TuCNTMpmMDe8H28L3tXn7NQKo=",
+  "pulseaudio": "sha256-Pz00vHlajXtmQUoYovXvauWaMrCwQf90LAZK2MgFSI4=",
+  "tronco": "sha256-PNN4mhrLF8p7Y6q+ch2GYlLyHXjbm110+BP0C1s4gaY="
+}

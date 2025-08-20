@@ -32,8 +32,6 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
-pubspec.lock.json
-pubspecGitHashes.json
 
 # Symbolication related
 app.*.symbols

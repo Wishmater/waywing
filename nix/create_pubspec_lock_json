@@ -26,7 +26,6 @@ TEMP_JSON="temp.json"
 # Convert pubspec.lock to JSON without modifying the original
 yq . "$PUBSPEC_LOCK" >"$OUTPUT_JSON"
 
-cat "$PUBSPEC_LOCK"
 cat "$OUTPUT_JSON"
 
 # Function to compute sha256 for a git repo at a specific commit using nix-prefetch-url

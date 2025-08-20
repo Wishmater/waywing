@@ -2,7 +2,7 @@ name: waywing
 description: "A wayland desktop shell made with flutter"
 publish_to: "none"
 
-version: 0.0.1+1
+version: 0.0.2
 
 environment:
   sdk: ^3.8.0
@@ -54,7 +54,7 @@ dependencies:
     # path: ../fl-linux-window-manager
     git:
       url: https://github.com/Wishmater/fl-linux-window-manager
-      ref: 4f3fca8e3f312f24f8ef0485fd3991e233bc3982
+      ref: 05285a48eb0f
   pulseaudio: # for audio mixing
     # path: ../pulseaudio.dart
     git:
@@ -73,3 +73,8 @@ flutter:
 
 dependency_overrides:
   intl: ^0.20.2
+
+hooks:
+  post_get:
+    - nix/update_version
+    - nix/create_pubspec_lock_json

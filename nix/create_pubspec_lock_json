@@ -24,7 +24,7 @@ HASHES_JSON="pubspecGitHashes.json"
 TEMP_JSON="temp.json"
 
 # Convert pubspec.lock to JSON without modifying the original
-yq . "$PUBSPEC_LOCK" >"$OUTPUT_JSON"
+yq . "$PUBSPEC_LOCK" -o json >"$OUTPUT_JSON"
 
 cat "$OUTPUT_JSON"
 

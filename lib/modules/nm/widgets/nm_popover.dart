@@ -254,6 +254,7 @@ class _APWidgetState extends State<APWidget> {
                       child: SizedBox(
                         height: 32,
                         child: KeyboardFocus(
+                          mode: KeyboardFocusMode.onDemand,
                           child: TextFormField(
                             autofocus: true,
                             controller: passwordController,

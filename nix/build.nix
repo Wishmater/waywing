@@ -14,7 +14,7 @@ let
 in unstablepkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
-  version = "0.0.1-4";
+  version = "0.0.1-5";
 
   # src = pkgs.fetchFromGitHub {
   #   # https://github.com/ross96D/waywing
@@ -53,7 +53,9 @@ in unstablepkgs.flutter.buildFlutterApplication rec {
     pulseaudio
   ];
 
-  autoPubspecLock = src + "/pubspec.lock";
+  # autoPubspecLock = src + "/pubspec.lock";
+  pubspecLock = pkgs.lib.importJSON (src + "/pubspec.lock.json");
+  gitHashes = pkgs.lib.importJSON (src + "/pubspecGitHashes.json");
 
   # Skip CMake configuration
   configurePhase = "true";

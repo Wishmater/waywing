@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+# Exit on error
+set -e
+
+# Check for required tools
+command -v yq >/dev/null 2>&1 || {
+  echo "Error: yq is required but not installed."
+  exit 1
+}
+command -v jq >/dev/null 2>&1 || {
+  echo "Error: jq is required but not installed."
+  exit 1
+}
+command -v nix-prefetch-url >/dev/null 2>&1 || {
+  echo "Error: nix-prefetch-url is required but not installed."
+  exit 1
+}
+
+# Input and output files
+PUBSPEC_LOCK="pubspec.lock"
+OUTPUT_JSON="pubspec.lock.json"
+HASHES_JSON="pubspecGitHashes.json"
+TEMP_JSON="temp.json"
+
+# Convert pubspec.lock to JSON without modifying the original
+yq . "$PUBSPEC_LOCK" >"$OUTPUT_JSON"
+
+# Function to compute sha256 for a git repo at a specific commit using nix-prefetch-url
+compute_sha256() {
+  local url=$1
+  local ref=$2
+
+  # Construct archive URL (assumes GitHub-like URL structure; adjust for other hosts if needed)
+  # Example: https://github.com/example/my_package/archive/<ref>.tar.gz
+  archive_url="${url}/archive/${ref}.tar.gz"
+  # Fetch and compute sha256 using nix-prefetch-url
+  sha256=$(nix-prefetch-url --unpack "$archive_url" 2>/dev/null)
+  sri=$(nix hash to-sri --type sha256 "$sha256" 2>/dev/null)
+
+  echo "$sri"
+}
+
+# Initialize pubspecGitHashes.json with empty JSON object
+echo "{}" >"$HASHES_JSON"
+
+# Find packages missing sha256 using jq
+packages=$(jq -r '.packages | keys[]' "$OUTPUT_JSON")
+for pkg in $packages; do
+  source=$(jq -r ".packages.\"$pkg\".source" "$OUTPUT_JSON")
+  if [ "$source" = "git" ]; then
+    sha256=$(jq -r ".packages.\"$pkg\".description.sha256" "$OUTPUT_JSON")
+    if [ "$sha256" = "null" ]; then
+      echo "Computing sha256 for package: $pkg"
+      url=$(jq -r ".packages.\"$pkg\".description.url" "$OUTPUT_JSON")
+      ref=$(jq -r ".packages.\"$pkg\".description.\"resolved-ref\"" "$OUTPUT_JSON")
+
+      # Compute sha256
+      sha256_value=$(compute_sha256 "$url" "$ref")
+
+      # Update pubspec.lock.json with sha256
+      jq ".packages.\"$pkg\".description.sha256 = \"$sha256_value\"" "$OUTPUT_JSON" >"$TEMP_JSON"
+      mv "$TEMP_JSON" "$OUTPUT_JSON"
+    else
+      echo "Package $pkg already has sha256: $sha256"
+      sha256_value="$sha256"
+    fi
+
+    # Add package and sha256 to pubspecGitHashes.json
+    jq ". + {\"$pkg\": \"$sha256_value\"}" "$HASHES_JSON" >"$TEMP_JSON"
+    mv "$TEMP_JSON" "$HASHES_JSON"
+  fi
+done
+
+echo "Generated and updated $OUTPUT_JSON with missing sha256 hashes"
+echo "Created $HASHES_JSON with git package hashes"

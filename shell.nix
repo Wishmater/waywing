@@ -15,6 +15,8 @@ in pkgs.mkShell {
 
   buildInputs = with pkgs; [
 
+    yq
+
     unstablepkgs.flutter
 
     cmake

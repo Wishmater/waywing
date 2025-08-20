@@ -180,7 +180,7 @@ class KeyboardFocusService {
           assert(_modes.isEmpty, "modes is not empty but searchMaxPriorityMode return -1");
           assert(
             prevMode.isPriorityGreater(KeyboardMode.none),
-            "all KeyboardServiceMode KeyboardMode must be greater than KeyboardMode.none",
+            "all KeyboardFocusMode KeyboardMode must be greater than KeyboardMode.none",
           );
           _currentId = null;
           await FlLinuxWindowManager.instance.setKeyboardInteractivity(KeyboardMode.none);

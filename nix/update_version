@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Parse version from pubspec.yaml
-pubspec_file="../pubspec.yaml"
-build_nix_file="./build.nix"
+pubspec_file="./pubspec.yaml"
+build_nix_file="nix/build.nix"
 
 # Check if files exist
 if [ ! -f "$pubspec_file" ]; then

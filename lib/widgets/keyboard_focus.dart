@@ -5,7 +5,7 @@ import "package:mutex/mutex.dart" as mut;
 
 class KeyboardFocus extends StatefulWidget {
   final Widget child;
-  final KeyboardServiceMode mode;
+  final KeyboardFocusMode mode;
 
   const KeyboardFocus({
     required this.child,
@@ -52,7 +52,7 @@ class _KeyboardFocusState extends State<KeyboardFocus> {
 
 class KeyboardFocusProvider extends StatefulWidget {
   final Widget child;
-  final KeyboardService keyboardService;
+  final KeyboardFocusService keyboardService;
 
   const KeyboardFocusProvider({
     super.key,
@@ -65,7 +65,7 @@ class KeyboardFocusProvider extends StatefulWidget {
 }
 
 class _KeyboardFocusProviderState extends State<KeyboardFocusProvider> {
-  Future<int> requestFocus(KeyboardServiceMode mode) {
+  Future<int> requestFocus(KeyboardFocusMode mode) {
     return widget.keyboardService.setMode(mode);
   }
 
@@ -111,14 +111,14 @@ extension on KeyboardMode {
   }
 }
 
-enum KeyboardServiceMode {
+enum KeyboardFocusMode {
   onDemand,
   exclusive;
 
   KeyboardMode kMode() {
     return switch (this) {
-      KeyboardServiceMode.onDemand => KeyboardMode.onDemand,
-      KeyboardServiceMode.exclusive => KeyboardMode.exclusive,
+      KeyboardFocusMode.onDemand => KeyboardMode.onDemand,
+      KeyboardFocusMode.exclusive => KeyboardMode.exclusive,
     };
   }
 }
@@ -130,18 +130,18 @@ class _GenerateId {
 
 /// Service to manage keyboard input mode. This class is intended
 /// to be used on initState/dispose on widgets that needs keyboard input
-class KeyboardService {
-  final Map<int, KeyboardServiceMode> _modes;
+class KeyboardFocusService {
+  final Map<int, KeyboardFocusMode> _modes;
   int? _currentId;
   mut.Mutex mutex;
 
   KeyboardMode get _currentMode => _currentId != null ? _modes[_currentId]!.kMode() : KeyboardMode.none;
 
-  KeyboardService._() : _modes = {}, _currentId = null, mutex = mut.Mutex();
+  KeyboardFocusService._() : _modes = {}, _currentId = null, mutex = mut.Mutex();
 
-  static KeyboardService? _instance;
-  factory KeyboardService() {
-    _instance ??= KeyboardService._();
+  static KeyboardFocusService? _instance;
+  factory KeyboardFocusService() {
+    _instance ??= KeyboardFocusService._();
     return _instance!;
   }
 
@@ -152,7 +152,7 @@ class KeyboardService {
   /// Exclusive mode has a greater priority than onDemand mode. This means that if a
   /// widget request onDemand and the current mode is exclusive, the request will be ignored until
   /// the request expires (removeMode is called with the request id).
-  Future<int> setMode(KeyboardServiceMode mode) async {
+  Future<int> setMode(KeyboardFocusMode mode) async {
     return await mutex.protect(() async {
       final id = _GenerateId.generate;
       _modes[id] = mode;

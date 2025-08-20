@@ -39,7 +39,7 @@ class App extends StatelessWidget {
       child: ConfigChangeWatcher(
         builder: (context) {
           return KeyboardFocusProvider(
-            keyboardService: KeyboardService(),
+            keyboardService: KeyboardFocusService(),
             child: MaterialApp(
               title: "WayWing",
               debugShowCheckedModeBanner: false,

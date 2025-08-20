@@ -18,10 +18,10 @@ jobs:
     - name: Install nix-prefetch-url
       run: |
         # Add nixos-25.05 channel
-        nix-channel --add https://nixos.org/channels/nixos-25.05 nixos-25.05
+        nix-channel --add https://nixos.org/channels/nixos-25.05 nixpkgs
         nix-channel --update
-        # Install nix-prefetch-url from the 25.05 channel
-        nix-env -iA nixos-25.05.nix-prefetch-url
+        # Install nix-prefetch-url - it's available directly from the channel
+        nix-env -iA nixpkgs.nix-prefetch-url
         # Verify installation
         nix-prefetch-url --version
 

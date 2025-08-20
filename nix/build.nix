@@ -14,7 +14,7 @@ let
 in unstablepkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
-  version = "<version>";
+  version = "0.0.2-6";
 
   src = ./..;
 

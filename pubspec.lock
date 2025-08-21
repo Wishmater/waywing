@@ -270,11 +270,9 @@ packages:
   fl_linux_window_manager:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "4f3fca8e3f312f24f8ef0485fd3991e233bc3982"
-      resolved-ref: "4f3fca8e3f312f24f8ef0485fd3991e233bc3982"
-      url: "https://github.com/Wishmater/fl-linux-window-manager"
-    source: git
+      path: "../fl-linux-window-manager"
+      relative: true
+    source: path
     version: "1.2.0"
   flutter:
     dependency: "direct main"

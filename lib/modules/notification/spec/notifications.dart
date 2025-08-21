@@ -1,8 +1,19 @@
 import "dart:async";
 
 import "package:dbus/dbus.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "dart:ui" as ui;
+
+enum NotificationsCloseReason {
+  expired(1),
+  user(2),
+  dbus(3),
+  undefined(4);
+
+  final int value;
+  const NotificationsCloseReason(this.value);
+}
 
 sealed class NotificationImage {
   const NotificationImage();
@@ -143,12 +154,42 @@ class Notification {
       timestampMs: timestampMs ?? this.timestampMs,
     );
   }
+
+  @override
+  bool operator ==(covariant Notification other) {
+    if (identical(this, other)) return true;
+
+    return appName == other.appName &&
+        appIcon == other.appIcon &&
+        summary == other.summary &&
+        body == other.body &&
+        image == other.image &&
+        actions == other.actions &&
+        hints == other.hints &&
+        timeout == other.timeout &&
+        timestampMs == other.timestampMs;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    appName,
+    appIcon,
+    summary,
+    body,
+    image,
+    actions,
+    hints,
+    timeout,
+    timestampMs,
+  ]);
 }
 
 /// Main Notification object that expose an org.freedesktop.Notifications dbus interface
 ///
 /// Also this object manage all notifications
 class OrgFreedesktopNotifications extends DBusObject {
+  final Logger logger;
+
   final Map<int, Notification> activeNotifications;
   final Map<String, int> synchronousIds;
   final Map<int, Timer> _timers;
@@ -161,15 +202,18 @@ class OrgFreedesktopNotifications extends DBusObject {
   late final Stream<int> notificationRemoved;
 
   /// Creates a new object to expose on [path].
-  OrgFreedesktopNotifications({DBusObjectPath path = const DBusObjectPath.unchecked("/")})
-    : activeNotifications = {},
-      synchronousIds = {},
-      _timers = {},
-      _notificationCreated = StreamController(),
-      _notificationChanged = StreamController(),
-      _notificationRemoved = StreamController(),
-      super(path) {
+  OrgFreedesktopNotifications({
+    required this.logger,
+    DBusObjectPath path = const DBusObjectPath.unchecked("/"),
+  }) : activeNotifications = {},
+       synchronousIds = {},
+       _timers = {},
+       _notificationCreated = StreamController(),
+       _notificationChanged = StreamController(),
+       _notificationRemoved = StreamController(),
+       super(path) {
     notificationCreated = _notificationCreated.stream.asBroadcastStream();
+    notificationChanged = _notificationChanged.stream.asBroadcastStream();
     notificationRemoved = _notificationRemoved.stream.asBroadcastStream();
   }
 
@@ -197,19 +241,23 @@ class OrgFreedesktopNotifications extends DBusObject {
     }
 
     _timers[notification.id]?.cancel();
-    if (notification.timeout != 0) {
+    if (notification.timeout > 0) {
       final id = notification.id;
-      _timers[id] = Timer(Duration(milliseconds: notification.timeout), () => removeNotification(id));
+      _timers[id] = Timer(
+        Duration(milliseconds: notification.timeout),
+        () => removeNotification(id, NotificationsCloseReason.expired),
+      );
     }
   }
 
-  void removeNotification(int id) {
+  void removeNotification(int id, NotificationsCloseReason reason) {
     final removed = activeNotifications.remove(id);
     if (removed != null) {
       if (removed.hints.synchronous?.isNotEmpty == true) {
         synchronousIds.remove(removed.hints.synchronous!);
       }
       _notificationRemoved.add(id);
+      emitNotificationClosed(id, reason.value);
     }
     _timers.remove(id)?.cancel();
   }
@@ -317,6 +365,7 @@ class OrgFreedesktopNotifications extends DBusObject {
     Map<String, DBusValue> hints,
     int expire_timeout,
   ) async {
+    logger.debug("notify $replaces_id $app_name $app_icon");
     final parsedHints = NotificationHints(hints);
     final parsedActions = Actions(actions);
     NotificationImage? image;
@@ -324,6 +373,14 @@ class OrgFreedesktopNotifications extends DBusObject {
       image = NotificationImageData(parsedHints.imageData!);
     } else if (parsedHints.imagePath != null) {
       image = NotificationImagePath(parsedHints.imagePath!);
+    }
+
+    if (expire_timeout <= 0) {
+      expire_timeout = switch (parsedHints.urgency) {
+        NotificationUrgency.low => 3 * 1000, // TODO get default time from configuration
+        NotificationUrgency.normal => 5 * 1000, // TODO get default time from configuration
+        NotificationUrgency.critical => 0,
+      };
     }
 
     Notification? notification;
@@ -396,7 +453,7 @@ class OrgFreedesktopNotifications extends DBusObject {
   ///
   /// If the notification no longer exists, an empty D-BUS Error message is sent back.
   Future<DBusMethodResponse> doCloseNotification(int id) async {
-    removeNotification(id);
+    removeNotification(id, NotificationsCloseReason.dbus);
     return DBusMethodSuccessResponse([]);
   }
 

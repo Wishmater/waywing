@@ -34,3 +34,11 @@ class DummyValueNotifier<T> extends ChangeNotifier implements ValueListenable<T>
   final T value;
   DummyValueNotifier(this.value);
 }
+
+class ManualValueNotifier<T> extends DummyValueNotifier<T> {
+  ManualValueNotifier(super.value);
+
+  void manualNotifyListeners() {
+    notifyListeners();
+  }
+}

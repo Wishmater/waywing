@@ -51,10 +51,10 @@ dependencies:
   xdg_icons: ^0.1.2 # render icons from string as defined in xdg icons spec
   upower: ^0.7.0 # battery and other power options
   fl_linux_window_manager: # Linux window / shellLayer manager
-    # path: ../fl-linux-window-manager
-    git:
-      url: https://github.com/Wishmater/fl-linux-window-manager
-      ref: 4f3fca8e3f312f24f8ef0485fd3991e233bc3982
+    path: ../fl-linux-window-manager
+    # git:
+    #   url: https://github.com/Wishmater/fl-linux-window-manager
+    #   ref: 4f3fca8e3f312f24f8ef0485fd3991e233bc3982
   pulseaudio: # for audio mixing
     # path: ../pulseaudio.dart
     git:

@@ -464,6 +464,43 @@ class NotificationHints {
     }
     return desktopEntry.removeSuffix(".desktop");
   }
+
+  @override
+  bool operator ==(covariant NotificationHints other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return actionIcons == other.actionIcons &&
+        urgency == other.urgency &&
+        resident == other.resident &&
+        category == other.category &&
+        desktopEntry == other.desktopEntry &&
+        imageData == other.imageData &&
+        imagePath == other.imagePath &&
+        soundFile == other.soundFile &&
+        soundName == other.soundName &&
+        supressSound == other.supressSound &&
+        transient == other.transient &&
+        synchronous == other.synchronous &&
+        inlineReplyPlaceholderText == other.inlineReplyPlaceholderText;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    urgency,
+    actionIcons,
+    resident,
+    category,
+    desktopEntry,
+    imageData,
+    imagePath,
+    soundFile,
+    soundName,
+    supressSound,
+    transient,
+    synchronous,
+    inlineReplyPlaceholderText,
+  ]);
 }
 
 class Actions {
@@ -497,6 +534,34 @@ class Actions {
     }
     return Actions._(defaultAction, inlineReply, parsedActions);
   }
+
+  @override
+  bool operator ==(covariant Actions other) {
+    if (defaultAction != other.defaultAction || inlineReply != other.inlineReply) {
+      return false;
+    }
+    if (identical(actions, other.actions)) {
+      return true;
+    }
+    if (actions.length != other.actions.length) {
+      return false;
+    }
+    for (int i = 0; i < actions.length; i++) {
+      if (actions[i] != other.actions[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(
+    (() sync* {
+      yield defaultAction;
+      yield inlineReply;
+      yield* actions;
+    })(),
+  );
 }
 
 class Action {
@@ -504,4 +569,12 @@ class Action {
   final String value;
 
   const Action({required this.key, required this.value});
+
+  @override
+  bool operator ==(covariant Action other) {
+    return key == other.key && value == other.value;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([key, value]);
 }

@@ -6,11 +6,15 @@ import "package:flutter/material.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/bar.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/modules/notification/notification_service.dart";
+import "package:waywing/modules/notification/notification_widget.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/widgets/config_changes_watcher.dart";
 import "package:waywing/util/window_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/winged_popover_provider.dart";
+
+final notificationService = NotificationService();
 
 void main(List<String> args) async {
   final cliparser = ArgParser()
@@ -25,6 +29,10 @@ void main(List<String> args) async {
   await reloadConfig(await getConfigurationString());
   WidgetsFlutterBinding.ensureInitialized();
   await setupMainWindow();
+
+  // TODO 1: remove when notification is correctly setted as a feather
+  notificationService.logger = mainLogger.clone(properties: [LogType("Notifications")]);
+  await notificationService.init();
 
   mainLogger.log(Level.debug, "Done setting initial window config, running app...");
   runApp(const App());
@@ -68,6 +76,12 @@ class App extends StatelessWidget {
                   child: Stack(
                     children: [
                       Bar(),
+                      Positioned(
+                        width: 300,
+                        left: 10,
+                        top: 30,
+                        child: NotificationsWidget(service: notificationService),
+                      ),
                       // TODO: 2 implement Wings
                     ],
                   ),

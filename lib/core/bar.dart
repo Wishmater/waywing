@@ -387,6 +387,7 @@ class _BarState extends State<Bar> {
                                   minWidth: !mainConfig.isBarVertical ? hostSize?.height ?? 0 : 0,
                                   minHeight: mainConfig.isBarVertical ? hostSize?.width ?? 0 : 0,
                                 ),
+                                child: child,
                               );
                             },
                           ),
@@ -425,6 +426,7 @@ class _BarState extends State<Bar> {
                                 minWidth: !mainConfig.isBarVertical ? hostSize?.height ?? 0 : 0,
                                 minHeight: mainConfig.isBarVertical ? hostSize?.width ?? 0 : 0,
                               ),
+                              child: child,
                             );
                           },
                         );

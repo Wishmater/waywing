@@ -320,9 +320,10 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     if (!isFirst) {
       contentAnimationController.dispose();
     }
+    final popoverParams = (widget.isTooltip ? widget.host.widget.tooltipParams : widget.host.widget.popoverParams)!;
     contentAnimationController = AnimationController(
       vsync: this,
-      duration: mainConfig.animationDuration,
+      duration: popoverParams.animationDuration ?? mainConfig.animationDuration,
       value: 1,
     );
   }
@@ -365,7 +366,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
           node: focusNode,
           child: PositioningNotifierMonitor(
             controller: childPositioningController,
-            child: popoverParams.builder(context, widget.host),
+            child: popoverParams.builder(context, widget.host, childPositioningController),
           ),
         ),
       ),
@@ -422,7 +423,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               passedMeaningfulPaint = true;
             }
             container = AnimatedPadding(
-              duration: mainConfig.animationDuration,
+              duration: popoverParams.animationDuration ?? mainConfig.animationDuration,
               curve: mainConfig.animationCurve,
               padding: passedMeaningfulPaint ? popoverParams.extraPadding : EdgeInsets.zero,
               child: container,
@@ -442,7 +443,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
             // print("childSize: $childSize");
             // print("childPosition: $childPosition");
             Widget result = AnimatedPositioned(
-              duration: mainConfig.animationDuration,
+              duration: popoverParams.animationDuration ?? mainConfig.animationDuration,
               curve: mainConfig.animationCurve,
               left: childPosition.dx,
               top: childPosition.dy,

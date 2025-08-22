@@ -375,7 +375,7 @@ class _BarState extends State<Bar> {
                         top: !mainConfig.isBarVertical ? 0 : mainConfig.barMarginTop + mainConfig.barRadiusInMain,
                         bottom: !mainConfig.isBarVertical ? 0 : mainConfig.barMarginBottom + mainConfig.barRadiusInMain,
                       ),
-                      builder: (context, controller) {
+                      builder: (context, controller, _) {
                         return Padding(
                           padding: popoverShape.dimensions,
                           child: ValueListenableBuilder(
@@ -416,7 +416,7 @@ class _BarState extends State<Bar> {
                         left: mainConfig.barSide == ScreenEdge.left ? mainConfig.barSize / 2 : 0,
                         right: mainConfig.barSide == ScreenEdge.right ? mainConfig.barSize / 2 : 0,
                       ),
-                      builder: (context, controller) {
+                      builder: (context, controller, _) {
                         return ValueListenableBuilder(
                           valueListenable: controller.hostState.sizeNotifier,
                           child: component.buildTooltip!(context),

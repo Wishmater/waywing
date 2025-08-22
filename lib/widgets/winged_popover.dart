@@ -8,6 +8,7 @@ typedef WingedPopoverBuilder =
     Widget Function(
       BuildContext context,
       WingedPopoverController popover,
+      PositioningNotifierController childPositioningController,
     );
 
 typedef WingedPopoverChildBuilder =
@@ -48,6 +49,7 @@ class PopoverParams {
   final bool enabled;
   final Offset extraOffset;
   final EdgeInsets extraPadding;
+  final Duration? animationDuration;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -69,6 +71,7 @@ class PopoverParams {
     this.enabled = true,
     this.extraOffset = Offset.zero,
     this.extraPadding = EdgeInsets.zero,
+    this.animationDuration,
   });
 }
 

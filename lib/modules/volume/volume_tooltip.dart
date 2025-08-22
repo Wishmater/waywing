@@ -1,11 +1,10 @@
-import "dart:ui";
-
 import "package:flutter/material.dart";
 import "package:flutter_font_icons/flutter_font_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
+import "package:waywing/widgets/text_tooltip_on_overflow.dart";
 import "package:waywing/widgets/winged_button.dart";
 
 class VolumeTooltip extends StatelessWidget {
@@ -77,12 +76,16 @@ class VolumeSlider extends StatelessWidget {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                name,
-                                maxLines: 1,
-                                softWrap: false,
-                                overflow: TextOverflow.fade,
+                              TextTooltipOnOverflow(
+                                textSpan: TextSpan(text: name),
+                                child: Text(
+                                  name,
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  overflow: TextOverflow.fade,
+                                ),
                               ),
+
                               if (model.subtitle != null)
                                 ValueListenableBuilder(
                                   valueListenable: model.subtitle!,

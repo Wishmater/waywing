@@ -47,6 +47,7 @@ class NetworkManagerIndicator extends StatelessWidget {
                     if (config.showThroughputIndicator)
                       ThroughputRateWidget(
                         device: device,
+                        isVertical: true,
                         showIcon: false,
                         padding: EdgeInsets.only(top: 4),
                       ),
@@ -369,16 +370,29 @@ class ThroughputRateWidget extends StatelessWidget {
   final NMServiceDevice device;
   final EdgeInsets padding;
   final bool showIcon;
+  final bool isVertical;
 
   const ThroughputRateWidget({
     required this.device,
     this.showIcon = true,
     this.padding = const EdgeInsets.only(left: 8),
+    this.isVertical = false,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget? icon;
+    if (showIcon) {
+      icon = Padding(
+        padding: const EdgeInsets.only(right: 1),
+        child: Icon(
+          MaterialCommunityIcons.swap_vertical_bold,
+          size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 4,
+          color: Theme.of(context).textTheme.bodyMedium!.color,
+        ),
+      );
+    }
     return ValueListenableBuilder(
       valueListenable: device.rxRate,
       builder: (context, rxRate, _) {
@@ -395,30 +409,29 @@ class ThroughputRateWidget extends StatelessWidget {
                 numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
               ),
             );
-            return Padding(
-              padding: padding,
-              child: IntrinsicWidth(
+            Widget result;
+            if (isVertical) {
+              result = Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) icon,
+                  SizedBox(height: 2),
+                  Text("$readableBytes/s", maxLines: 2, textAlign: TextAlign.center, style: TextStyle(height: 1)),
+                ],
+              );
+            } else {
+              result = IntrinsicWidth(
                 child: Row(
                   children: [
-                    if (showIcon)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 1),
-                        child: Icon(
-                          MaterialCommunityIcons.swap_vertical_bold,
-                          size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 4,
-                          color: Theme.of(context).textTheme.bodyMedium!.color,
-                        ),
-                      ),
-                    Expanded(
-                      child: Text(
-                        "$readableBytes/s",
-                        maxLines: 1,
-                        softWrap: false,
-                      ),
-                    ),
+                    if (icon != null) icon,
+                    Expanded(child: Text("$readableBytes/s", maxLines: 1, softWrap: false)),
                   ],
                 ),
-              ),
+              );
+            }
+            return Padding(
+              padding: padding,
+              child: result,
             );
           },
         );

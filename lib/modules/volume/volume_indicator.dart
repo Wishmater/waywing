@@ -39,6 +39,7 @@ class VolumeIndicator extends StatelessWidget {
                   }
                   return VolumeScrollWhellListener(
                     model: defaultOutput,
+                    config: config,
                     child: ValueListenableBuilder(
                       valueListenable: defaultOutput.volume,
                       builder: (context, volume, child) {
@@ -64,15 +65,12 @@ class VolumeIndicator extends StatelessWidget {
                           volValueColor = Theme.of(context).colorScheme.secondary;
                         }
 
-                        // TODO: 1 add option to show percentage in indicator
-
                         final volBarSize = (Theme.of(context).iconTheme.size ?? kDefaultFontSize) * 0.25;
                         Widget result = IntrinsicHeight(
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              // TODO: 1 support values over 1 in this indicator (maybe with a different color)
                               FractionallySizedBox(
                                 heightFactor: 0.9,
                                 child: Container(
@@ -82,24 +80,50 @@ class VolumeIndicator extends StatelessWidget {
                                     borderRadius: BorderRadius.all(Radius.circular(volBarSize / 2)),
                                   ),
                                   child: Stack(
+                                    alignment: Alignment.bottomCenter,
                                     children: [
-                                      AnimatedContainer(
-                                        duration: mainConfig.animationDuration,
-                                        curve: mainConfig.animationCurve,
-                                        width: volBarSize,
-                                        color: volTrackColor,
-                                      ),
                                       Positioned.fill(
                                         child: AnimatedFractionallySizedBox(
                                           duration: mainConfig.animationDuration,
                                           curve: mainConfig.animationCurve,
-                                          heightFactor: volume,
-                                          alignment: Alignment.bottomCenter,
+                                          heightFactor: volume <= 1 ? 0 : (volume - 1) / volume,
+                                          alignment: Alignment.topCenter,
                                           child: AnimatedContainer(
                                             duration: mainConfig.animationDuration,
                                             curve: mainConfig.animationCurve,
-                                            color: volValueColor,
+                                            width: volBarSize,
+                                            color: Theme.of(context).colorScheme.error,
                                           ),
+                                        ),
+                                      ),
+                                      AnimatedFractionallySizedBox(
+                                        duration: mainConfig.animationDuration,
+                                        curve: mainConfig.animationCurve,
+                                        heightFactor: volume <= 1 ? 1 : 1 / volume,
+                                        alignment: Alignment.bottomCenter,
+                                        child: Stack(
+                                          alignment: Alignment.bottomCenter,
+                                          children: [
+                                            AnimatedContainer(
+                                              duration: mainConfig.animationDuration,
+                                              curve: mainConfig.animationCurve,
+                                              width: volBarSize,
+                                              color: volTrackColor,
+                                            ),
+                                            Positioned.fill(
+                                              child: AnimatedFractionallySizedBox(
+                                                duration: mainConfig.animationDuration,
+                                                curve: mainConfig.animationCurve,
+                                                heightFactor: volume.clamp(0, 1),
+                                                alignment: Alignment.bottomCenter,
+                                                child: AnimatedContainer(
+                                                  duration: mainConfig.animationDuration,
+                                                  curve: mainConfig.animationCurve,
+                                                  color: volValueColor,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
@@ -157,10 +181,12 @@ class VolumeIndicator extends StatelessWidget {
 
 class VolumeScrollWhellListener extends StatelessWidget {
   final VolumeInterface model;
+  final VolumeConfig config;
   final Widget child;
 
   const VolumeScrollWhellListener({
     required this.model,
+    required this.config,
     required this.child,
     super.key,
   });
@@ -172,9 +198,9 @@ class VolumeScrollWhellListener extends StatelessWidget {
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
           if (pointerSignal.scrollDelta.dy > 0) {
-            model.decreaseVolume();
+            model.decreaseVolume(config.volumeStep / 100);
           } else {
-            model.increaseVolume();
+            model.increaseVolume(config.volumeStep / 100, max: config.maxVolume / 100);
           }
         }
       },

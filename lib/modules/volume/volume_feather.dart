@@ -44,10 +44,13 @@ class VolumeFeather extends Feather<VolumeConfig> {
       ];
     },
     buildTooltip: (context) {
-      return VolumeTooltip(service: service);
+      return VolumeTooltip(service: service, config: config);
     },
     buildPopover: (context) {
-      return VolumePopover(service: service);
+      return VolumePopover(
+        service: service,
+        config: config,
+      );
     },
   );
 }

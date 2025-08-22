@@ -252,17 +252,14 @@ abstract class VolumeInterface {
     _isMuted.dispose();
   }
 
-  static const volumeStep = 0.05; // TODO: 3 maybe expose this as an option
-  Future<void> increaseVolume({
-    bool clampAtMax = false,
-  }) {
-    var newValue = volume.value + volumeStep;
-    if (clampAtMax && newValue > 1) newValue = 1;
+  Future<void> increaseVolume(double step, {double? max}) {
+    var newValue = volume.value + step;
+    if (max != null && newValue > max) newValue = max;
     return setVolume(newValue);
   }
 
-  Future<void> decreaseVolume() {
-    var newValue = volume.value - volumeStep;
+  Future<void> decreaseVolume(double step) {
+    var newValue = volume.value - step;
     if (newValue < 0) newValue = 0;
     return setVolume(newValue);
   }

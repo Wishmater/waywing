@@ -1,12 +1,15 @@
 import "package:flutter/material.dart";
+import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/modules/volume/volume_tooltip.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 
 class VolumePopover extends StatelessWidget {
+  final VolumeConfig config;
   final VolumeService service;
 
   const VolumePopover({
+    required this.config,
     required this.service,
     super.key,
   });
@@ -21,6 +24,7 @@ class VolumePopover extends StatelessWidget {
       ),
       child: IntrinsicWidth(
         child: IntrinsicHeight(
+          // TODO: 1 swap apps and inputs when on right side bar
           child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,6 +36,7 @@ class VolumePopover extends StatelessWidget {
                   builder: (context, apps, _) {
                     return VolumeInterfaceList(
                       models: apps,
+                      config: config,
                       label: "APPS",
                     );
                   },
@@ -46,6 +51,7 @@ class VolumePopover extends StatelessWidget {
                       valueListenable: service.outputs,
                       builder: (context, outputs, _) {
                         return VolumeInterfaceList(
+                          config: config,
                           models: outputs,
                           label: "OUTPUTS",
                           defaultModel: defaultOutput,
@@ -67,6 +73,7 @@ class VolumePopover extends StatelessWidget {
                       valueListenable: service.inputs,
                       builder: (context, inputs, _) {
                         return VolumeInterfaceList(
+                          config: config,
                           models: inputs,
                           label: "INPUTS",
                           defaultModel: defaultInput,
@@ -89,12 +96,14 @@ class VolumePopover extends StatelessWidget {
 }
 
 class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
+  final VolumeConfig config;
   final List<T> models;
   final T? defaultModel;
   final void Function(T defaultModel)? onDefaultSelected;
   final String label;
 
   const VolumeInterfaceList({
+    required this.config,
     required this.models,
     required this.label,
     this.defaultModel,
@@ -169,6 +178,7 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
         Expanded(
           child: VolumeSlider(
             model: model,
+            config: config,
             padding: const EdgeInsets.only(top: 8, left: 2, right: 18, bottom: 8),
           ),
         ),

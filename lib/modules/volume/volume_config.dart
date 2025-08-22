@@ -8,4 +8,5 @@ mixin VolumeConfigBase on VolumeConfigI {
   static const _showPercentageIndicator = BooleanField(defaultTo: true);
   static const _showSeparateMicIndicator = BooleanField(defaultTo: false);
   static const _maxVolume = IntegerNumberField(defaultTo: 100);
+  static const _volumeStep = IntegerNumberField(defaultTo: 5);
 }

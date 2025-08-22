@@ -14,12 +14,22 @@ import "package:waywing/widgets/winged_popover_provider.dart";
 
 void main(List<String> args) async {
   final cliparser = ArgParser()
-    ..addFlag("dummy-layer", help: "Used internally only. Extra layer created just to add exclusive side size.");
+    ..addFlag(
+      "dummy-layer",
+      hide: true,
+      help: "Used internally only. Extra layer created just to add exclusive side size.",
+    )
+    ..addOption(
+      "config",
+      abbr: "c",
+      help: "Optional custom path to config file",
+    );
   final results = cliparser.parse(args);
   final dummyLayer = results["dummy-layer"] as bool?;
   if (dummyLayer ?? false) {
     return;
   }
+  customConfigPath = results["config"];
 
   initializeLogger();
   await reloadConfig(await getConfigurationString());

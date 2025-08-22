@@ -152,12 +152,22 @@ Future<MainConfig> reloadConfig(String content) async {
   }
 }
 
+late final String? customConfigPath;
 String getConfigurationFilePath() {
-  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
-  return path.joinAll([configDir, "waywing", "config"]);
+  if (customConfigPath != null) {
+    return customConfigPath!;
+  } else {
+    final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
+    return path.joinAll([configDir, "waywing", "config"]);
+  }
 }
 
 String getConfigurationDirectoryPath() {
+  if (customConfigPath != null) {
+    try {
+      return File(customConfigPath!).parent.path;
+    } catch (_) {}
+  }
   final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
   return path.joinAll([configDir, "waywing"]);
 }
@@ -182,6 +192,8 @@ const String defaultConfig = '''
   barRadiusInMain = barSize * 0.5 * 0.67
   barRadiusOutCross = barSize * 0.5
   barRadiusOutMain = barSize * 0.5 * 1.5
+  barStartFeathers = [  ]
+  barEndFeathers = [ "Volume", "NetworkManager", "SystemTray", "Clock" ]
 ''';
 
 // Only if the dollar sign does not have a backslash before it.

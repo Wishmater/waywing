@@ -252,16 +252,29 @@ abstract class VolumeInterface {
     _isMuted.dispose();
   }
 
-  Future<void> increaseVolume(double step, {double? max}) {
+  Future<void> increaseVolume(
+    double step, {
+    double? max,
+    bool coerceToStepScale = true,
+  }) {
     var newValue = volume.value + step;
+    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, step);
     if (max != null && newValue > max) newValue = max;
     return setVolume(newValue);
   }
 
-  Future<void> decreaseVolume(double step) {
+  Future<void> decreaseVolume(
+    double step, {
+    bool coerceToStepScale = true,
+  }) {
     var newValue = volume.value - step;
+    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, step);
     if (newValue < 0) newValue = 0;
     return setVolume(newValue);
+  }
+
+  double _roundToNearestMultiple(double value, double scale) {
+    return (value / scale).round() * scale;
   }
 
   Future<void> setVolume(double value);

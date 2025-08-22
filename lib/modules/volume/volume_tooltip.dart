@@ -72,7 +72,6 @@ class VolumeSlider extends StatelessWidget {
                       child: ValueListenableBuilder(
                         valueListenable: model.name,
                         builder: (context, name, child) {
-                          // TODO: 1 properly deal with overflowing text
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -189,7 +188,7 @@ class VolumeSlider extends StatelessWidget {
                           // label: label,
                           value: (volume * 100).clamp(0, config.maxVolume).toDouble(),
                           min: 0,
-                          max: config.maxVolume.toDouble(), // TODO: 1 implement going over 1
+                          max: config.maxVolume.toDouble(),
                           divisions: (config.maxVolume / config.volumeStep).round(),
                           onChanged: (value) {
                             model.setVolume(value / 100);

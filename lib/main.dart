@@ -59,6 +59,9 @@ class App extends StatelessWidget {
                   seedColor: mainConfig.seedColor,
                   surface: mainConfig.surfaceColor,
                 ),
+                buttonTheme: ButtonThemeData(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                ),
                 splashFactory: InkSparkle.splashFactory,
               ),
               darkTheme: ThemeData(
@@ -67,6 +70,9 @@ class App extends StatelessWidget {
                   brightness: Brightness.dark,
                   seedColor: mainConfig.seedColor,
                   surface: mainConfig.surfaceColor,
+                ),
+                buttonTheme: ButtonThemeData(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 ),
                 splashFactory: InkSparkle.splashFactory,
                 dividerTheme: DividerThemeData(

@@ -91,7 +91,7 @@ class ThroughputTotalWidget extends StatelessWidget {
             if (txBytes == null && rxBytes == null) return SizedBox.shrink();
             final readableBytes = humanFileSize(
               (txBytes ?? 0) + (rxBytes ?? 0),
-              unitConversion: const UnitConversion.bestFit(
+              unitConversion: const BestFitDecUnitConversion(
                 numeralSystem: DecimalByteNumeralSystem(),
               ),
               quantityDisplayMode: IntlQuantityDisplayMode(
@@ -137,7 +137,7 @@ class TxTotalWidget extends StatelessWidget {
         if (txBytes == null) return SizedBox.shrink();
         final readableBytes = humanFileSize(
           txBytes,
-          unitConversion: const UnitConversion.bestFit(
+          unitConversion: const BestFitDecUnitConversion(
             numeralSystem: DecimalByteNumeralSystem(),
           ),
           quantityDisplayMode: IntlQuantityDisplayMode(
@@ -181,7 +181,7 @@ class RxTotalWidget extends StatelessWidget {
         if (rxBytes == null) return SizedBox.shrink();
         final readableBytes = humanFileSize(
           rxBytes,
-          unitConversion: const UnitConversion.bestFit(
+          unitConversion: const BestFitDecUnitConversion(
             numeralSystem: DecimalByteNumeralSystem(),
           ),
           quantityDisplayMode: IntlQuantityDisplayMode(

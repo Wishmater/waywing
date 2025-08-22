@@ -114,57 +114,67 @@ class _BarState extends State<Bar> {
               // to horizontal bar (or viceversa) because we switched Row / Column
               child: Padding(
                 padding: shape.dimensions,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  fit: StackFit.expand,
-                  children: [
-                    Container(
-                      alignment: endAlignment,
-                      padding: EdgeInsets.only(
-                        right: !mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
-                        bottom: mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
-                      ),
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(
-                          context: context,
-                          feathers: mainConfig.barEndFeathers,
-                          feathersCount: feathersCount,
-                          barShape: shape,
-                        ),
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    buttonTheme: Theme.of(context).buttonTheme.copyWith(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: !mainConfig.isBarVertical ? mainConfig.barIndicatorPadding : 0,
+                        vertical: mainConfig.isBarVertical ? mainConfig.barIndicatorPadding : 0,
                       ),
                     ),
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    fit: StackFit.expand,
+                    children: [
+                      Container(
+                        alignment: endAlignment,
+                        padding: EdgeInsets.only(
+                          right: !mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
+                          bottom: mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
+                        ),
+                        child: buildLayoutWidget(
+                          context,
+                          buildFeatherWidgets(
+                            context: context,
+                            feathers: mainConfig.barEndFeathers,
+                            feathersCount: feathersCount,
+                            barShape: shape,
+                          ),
+                        ),
+                      ),
 
-                    Align(
-                      alignment: Alignment.center,
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(
-                          context: context,
-                          feathers: mainConfig.barCenterFeathers,
-                          feathersCount: feathersCount,
-                          barShape: shape,
+                      Align(
+                        alignment: Alignment.center,
+                        child: buildLayoutWidget(
+                          context,
+                          buildFeatherWidgets(
+                            context: context,
+                            feathers: mainConfig.barCenterFeathers,
+                            feathersCount: feathersCount,
+                            barShape: shape,
+                          ),
                         ),
                       ),
-                    ),
 
-                    Container(
-                      alignment: startAlignment,
-                      padding: EdgeInsets.only(
-                        left: !mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
-                        top: mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
-                      ),
-                      child: buildLayoutWidget(
-                        context,
-                        buildFeatherWidgets(
-                          context: context,
-                          feathers: mainConfig.barStartFeathers,
-                          feathersCount: feathersCount,
-                          barShape: shape,
+                      Container(
+                        alignment: startAlignment,
+                        padding: EdgeInsets.only(
+                          left: !mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
+                          top: mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
+                        ),
+                        child: buildLayoutWidget(
+                          context,
+                          buildFeatherWidgets(
+                            context: context,
+                            feathers: mainConfig.barStartFeathers,
+                            feathersCount: feathersCount,
+                            barShape: shape,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -212,8 +222,8 @@ class _BarState extends State<Bar> {
                 stackTrace: snapshot.stackTrace,
               );
               return SizedBox(
-                height: mainConfig.isBarVertical ? mainConfig.barItemSize : null,
-                width: !mainConfig.isBarVertical ? mainConfig.barItemSize : null,
+                height: mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : null,
+                width: !mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : null,
                 child: Icon(
                   Icons.error,
                   color: Theme.of(context).colorScheme.error,
@@ -222,9 +232,11 @@ class _BarState extends State<Bar> {
             }
 
             if (snapshot.connectionState != ConnectionState.done) {
-              return SizedBox.square(
-                dimension: mainConfig.barItemSize.toDouble(),
-                child: Center(child: CircularProgressIndicator()),
+              return Container(
+                height: mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : null,
+                width: !mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : null,
+                alignment: Alignment.center,
+                child: AspectRatio(aspectRatio: 1, child: CircularProgressIndicator()),
               );
             }
 
@@ -258,8 +270,8 @@ class _BarState extends State<Bar> {
                       for (int i = 0; i < indicators.length; i++) {
                         indicators[i] = ConstrainedBox(
                           constraints: BoxConstraints(
-                            minWidth: !mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
-                            minHeight: mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
+                            minWidth: !mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : 0,
+                            minHeight: mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : 0,
                           ),
                           child: indicators[i],
                         );
@@ -363,22 +375,27 @@ class _BarState extends State<Bar> {
                         top: !mainConfig.isBarVertical ? 0 : mainConfig.barMarginTop + mainConfig.barRadiusInMain,
                         bottom: !mainConfig.isBarVertical ? 0 : mainConfig.barMarginBottom + mainConfig.barRadiusInMain,
                       ),
-                      builder: (context) {
+                      builder: (context, controller) {
                         return Padding(
                           padding: popoverShape.dimensions,
-                          child: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minWidth: !mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
-                              minHeight: mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
-                            ),
+                          child: ValueListenableBuilder(
+                            valueListenable: controller.hostState.sizeNotifier,
                             child: component.buildPopover!(context),
+                            builder: (context, hostSize, child) {
+                              return ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: !mainConfig.isBarVertical ? hostSize?.height ?? 0 : 0,
+                                  minHeight: mainConfig.isBarVertical ? hostSize?.width ?? 0 : 0,
+                                ),
+                              );
+                            },
                           ),
                         );
                       },
-                      containerBuilder: (context, child) {
+                      containerBuilder: (context, controller, child) {
                         return buildPopoverContainer(context, child, popoverShape);
                       },
-                      closedContainerBuilder: (context, child) {
+                      closedContainerBuilder: (context, controller, child) {
                         return buildPopoverContainer(context, child, buttonShape);
                       },
                     ),
@@ -398,16 +415,21 @@ class _BarState extends State<Bar> {
                         left: mainConfig.barSide == ScreenEdge.left ? mainConfig.barSize / 2 : 0,
                         right: mainConfig.barSide == ScreenEdge.right ? mainConfig.barSize / 2 : 0,
                       ),
-                      builder: (context) {
-                        return ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minWidth: !mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
-                            minHeight: mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
-                          ),
+                      builder: (context, controller) {
+                        return ValueListenableBuilder(
+                          valueListenable: controller.hostState.sizeNotifier,
                           child: component.buildTooltip!(context),
+                          builder: (context, hostSize, child) {
+                            return ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: !mainConfig.isBarVertical ? hostSize?.height ?? 0 : 0,
+                                minHeight: mainConfig.isBarVertical ? hostSize?.width ?? 0 : 0,
+                              ),
+                            );
+                          },
                         );
                       },
-                      containerBuilder: (context, child) {
+                      containerBuilder: (context, controller, child) {
                         return AnimatedOpacity(
                           opacity: 1,
                           duration: mainConfig.animationDuration,
@@ -415,7 +437,7 @@ class _BarState extends State<Bar> {
                           child: buildPopoverContainer(context, child, tooltipShape),
                         );
                       },
-                      closedContainerBuilder: (context, child) {
+                      closedContainerBuilder: (context, controller, child) {
                         return AnimatedOpacity(
                           opacity: 0,
                           duration: mainConfig.animationDuration,

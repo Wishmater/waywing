@@ -83,8 +83,10 @@ mixin MainConfigBase on MainConfigI {
   static const _barMarginRight = DoubleNumberField(defaultTo: 0);
   static const _barMarginTop = DoubleNumberField(defaultTo: 0);
   static const _barMarginBottom = DoubleNumberField(defaultTo: 0);
-  static const __barItemSize = DoubleNumberField(nullable: true); // defaults to barSize
-  double get barItemSize => _barItemSize ?? barSize.toDouble();
+  static const __barIndicatorMinSize = DoubleNumberField(nullable: true); // defaults to barSize
+  double get barIndicatorMinSize => _barIndicatorMinSize ?? barSize.toDouble();
+  static const __barIndicatorPadding = DoubleNumberField(nullable: true); // defaults to a fraction of barSize
+  double get barIndicatorPadding => _barIndicatorPadding ?? barSize.toDouble();
 
   // Derived
   late final bool isBarVertical = mainConfig.barSide == ScreenEdge.left || mainConfig.barSide == ScreenEdge.right;

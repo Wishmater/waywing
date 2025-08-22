@@ -4,13 +4,20 @@ import "package:flutter/material.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/winged_popover_provider.dart";
 
-typedef WidgetBuilderWithChild =
+typedef WingedPopoverBuilder =
     Widget Function(
       BuildContext context,
-      Widget child,
+      WingedPopoverController popover,
     );
 
 typedef WingedPopoverChildBuilder =
+    Widget Function(
+      BuildContext context,
+      WingedPopoverController popover,
+      Widget child,
+    );
+
+typedef WingedPopoverChildNullableBuilder =
     Widget Function(
       BuildContext context,
       WingedPopoverController popover,
@@ -26,11 +33,12 @@ abstract class WingedPopoverController {
   void hidePopover();
   void togglePopover();
   void hideTooltip();
+  StatePositioningNotifierMixin get hostState;
 }
 
 @immutable
 class PopoverParams {
-  final WidgetBuilder builder;
+  final WingedPopoverBuilder builder;
   final EdgeInsets screenPadding;
   final Alignment anchorAlignment;
   final Alignment popupAlignment;
@@ -43,10 +51,10 @@ class PopoverParams {
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
-  final WidgetBuilderWithChild containerBuilder;
+  final WingedPopoverChildBuilder containerBuilder;
 
   /// Useful to trigger implicit animations in container (borders, etc.)
-  final WidgetBuilderWithChild? closedContainerBuilder;
+  final WingedPopoverChildBuilder? closedContainerBuilder;
 
   const PopoverParams({
     required this.builder,
@@ -65,7 +73,7 @@ class PopoverParams {
 }
 
 class WingedPopover extends StatefulWidget {
-  final WingedPopoverChildBuilder builder;
+  final WingedPopoverChildNullableBuilder builder;
   final Widget? child;
   final PopoverParams? popoverParams;
   final PopoverParams? tooltipParams;
@@ -99,6 +107,8 @@ class WingedPopoverState extends State<WingedPopover>
   bool get isPopoverEnabled => widget.popoverParams?.enabled ?? false;
   @override
   bool get isTooltipEnabled => widget.tooltipParams?.enabled ?? false;
+  @override
+  WingedPopoverState get hostState => this;
 
   WingedPopoverClientState? clientState;
 

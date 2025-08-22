@@ -365,12 +365,12 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
           node: focusNode,
           child: PositioningNotifierMonitor(
             controller: childPositioningController,
-            child: popoverParams.builder(context),
+            child: popoverParams.builder(context, widget.host),
           ),
         ),
       ),
     );
-    final container = popoverParams.containerBuilder(context, content);
+    final container = popoverParams.containerBuilder(context, widget.host, content);
 
     return ValueListenableBuilder(
       valueListenable: widget.host.positioningNotifier,
@@ -396,7 +396,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               childSize = hostSize;
               childPosition = hostPosition;
               if (popoverParams.closedContainerBuilder != null) {
-                container = popoverParams.closedContainerBuilder!(context, content);
+                container = popoverParams.closedContainerBuilder!(context, widget.host, content);
               }
             } else if (childSize == null) {
               // assuming this happens the first time the widget builds
@@ -405,7 +405,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               childSize = hostSize;
               childPosition = hostPosition;
               if (popoverParams.closedContainerBuilder != null) {
-                container = popoverParams.closedContainerBuilder!(context, content);
+                container = popoverParams.closedContainerBuilder!(context, widget.host, content);
               }
             } else {
               childSize += Offset(popoverParams.extraPadding.horizontal, popoverParams.extraPadding.vertical);

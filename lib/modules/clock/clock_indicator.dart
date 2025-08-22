@@ -36,14 +36,7 @@ class ClockIndicator extends StatelessWidget {
               onTap: () {
                 popover.togglePopover();
               },
-              child: Container(
-                alignment: Alignment.center,
-                padding: EdgeInsets.symmetric(
-                  horizontal: !isVertical ? 8 : 2,
-                  vertical: isVertical ? 8 : 2,
-                ),
-                child: Text(value),
-              ),
+              child: Text(value),
             );
           },
         );

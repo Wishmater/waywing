@@ -54,7 +54,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
 
   Future<void> onConfigUpdated() async {
     final context = this.context; // declare local reference to please the linter
-    final oldConfig = config;
+    final oldConfig = mainConfig;
     String content = defaultConfig;
     final file = File(getConfigurationFilePath());
     if (file.existsSync()) {
@@ -64,7 +64,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     }
     await reloadConfig(content);
     if (!context.mounted) return; // something weird happened, probably the app was just closed
-    final newConfig = config;
+    final newConfig = mainConfig;
 
     featherRegistry.onConfigUpdated(context);
     serviceRegistry.onConfigUpdated();

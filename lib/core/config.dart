@@ -18,7 +18,7 @@ part "config.g.dart";
 
 final _logger = mainLogger.clone(properties: [LogType("Config")]);
 
-MainConfig get config => _config;
+MainConfig get mainConfig => _config;
 late MainConfig _config;
 
 Map<String, dynamic> get rawMainConfig => _rawMainConfig;
@@ -87,7 +87,7 @@ mixin MainConfigBase on MainConfigI {
   double get barItemSize => _barItemSize ?? barSize.toDouble();
 
   // Derived
-  late final bool isBarVertical = config.barSide == ScreenEdge.left || config.barSide == ScreenEdge.right;
+  late final bool isBarVertical = mainConfig.barSide == ScreenEdge.left || mainConfig.barSide == ScreenEdge.right;
   // TODO: 3 validate that mainSize is not <=0 after deducting margins
   // TODO: 3 validate that you can't add margin on sides that conflict with barSide selected
 

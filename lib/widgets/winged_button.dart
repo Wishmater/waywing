@@ -161,7 +161,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
       future: taskFuture,
       builder: (context, snapshot) {
         var borderRadius = widget.borderRadius;
-        borderRadius ??= BorderRadius.all(Radius.elliptical(config.buttonRadiusX, config.buttonRadiusY));
+        borderRadius ??= BorderRadius.all(Radius.elliptical(mainConfig.buttonRadiusX, mainConfig.buttonRadiusY));
         final Widget child;
         if (widget.builder == null) {
           child = widget.child;
@@ -171,7 +171,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
 
         return InkResponse(
           highlightShape: BoxShape.rectangle,
-          hoverDuration: config.animationDuration * 0.5,
+          hoverDuration: mainConfig.animationDuration * 0.5,
           borderRadius: borderRadius,
           onTap: widget.onTap == null || snapshot.connectionState != ConnectionState.done
               ? null

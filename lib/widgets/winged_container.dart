@@ -25,8 +25,8 @@ class WingedContainer extends StatelessWidget {
     return _WingedContainer(
       shape: shape,
       elevation: elevation,
-      curve: animationCurve ?? config.animationCurve,
-      duration: animationDuration ?? config.animationDuration * 0.8,
+      curve: animationCurve ?? mainConfig.animationCurve,
+      duration: animationDuration ?? mainConfig.animationDuration * 0.8,
       clipBehavior: clipBehavior,
       child: child,
     );

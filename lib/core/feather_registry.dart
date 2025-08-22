@@ -65,7 +65,11 @@ class FeatherRegistry {
   /// Dispose and remove those no longer in config; add and initialize new ones.
   void onConfigUpdated(BuildContext context) {
     // TODO: 2 this should crawl around config and get all feathers (somehow)
-    final configFeathers = <Feather>{...config.barStartFeathers, ...config.barCenterFeathers, ...config.barEndFeathers};
+    final configFeathers = <Feather>{
+      ...mainConfig.barStartFeathers,
+      ...mainConfig.barCenterFeathers,
+      ...mainConfig.barEndFeathers,
+    };
     _updateFeathers(context, configFeathers);
   }
 

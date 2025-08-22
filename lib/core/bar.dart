@@ -43,18 +43,18 @@ class _BarState extends State<Bar> {
     // Get actual devicePixelRatio (scale) by comparing the original monitor size to the current one.
     // The devicePixelRatio reported by flutter is different for some reason.
     final devicePixelRatio = originalMonitorSize.width / monitorSize.width;
-    final barCrossSize = config.barSize.toDouble();
-    final outerRoundedEdgeMainSize = config.barRadiusOutMain;
+    final barCrossSize = mainConfig.barSize.toDouble();
+    final outerRoundedEdgeMainSize = mainConfig.barRadiusOutMain;
     double? width, height, top, bottom, left, right;
     Alignment barAlignment, startAlignment, endAlignment;
-    if (config.isBarVertical) {
+    if (mainConfig.isBarVertical) {
       startAlignment = Alignment.topCenter;
       endAlignment = Alignment.bottomCenter;
       width = barCrossSize;
-      top = config.barMarginTop / devicePixelRatio - outerRoundedEdgeMainSize;
-      bottom = config.barMarginBottom / devicePixelRatio - outerRoundedEdgeMainSize;
+      top = mainConfig.barMarginTop / devicePixelRatio - outerRoundedEdgeMainSize;
+      bottom = mainConfig.barMarginBottom / devicePixelRatio - outerRoundedEdgeMainSize;
       // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
-      if (config.barSide == ScreenEdge.left) {
+      if (mainConfig.barSide == ScreenEdge.left) {
         barAlignment = Alignment.centerLeft;
         left = 0; // config.barMarginLeft;
       } else {
@@ -65,10 +65,10 @@ class _BarState extends State<Bar> {
       startAlignment = Alignment.centerLeft;
       endAlignment = Alignment.centerRight;
       height = barCrossSize;
-      left = config.barMarginLeft / devicePixelRatio - outerRoundedEdgeMainSize;
-      right = config.barMarginRight / devicePixelRatio - outerRoundedEdgeMainSize;
+      left = mainConfig.barMarginLeft / devicePixelRatio - outerRoundedEdgeMainSize;
+      right = mainConfig.barMarginRight / devicePixelRatio - outerRoundedEdgeMainSize;
       // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
-      if (config.barSide == ScreenEdge.top) {
+      if (mainConfig.barSide == ScreenEdge.top) {
         barAlignment = Alignment.topCenter;
         top = 0; // config.barMarginTop;
       } else {
@@ -78,22 +78,22 @@ class _BarState extends State<Bar> {
     }
 
     final shape = DockedRoundedCornersBorder(
-      dockedSide: config.barSide,
-      radiusInCross: config.barRadiusInCross,
-      radiusInMain: config.barRadiusInMain,
-      radiusOutCross: config.barRadiusOutCross,
-      radiusOutMain: config.barRadiusOutMain,
-      isVertical: config.isBarVertical,
+      dockedSide: mainConfig.barSide,
+      radiusInCross: mainConfig.barRadiusInCross,
+      radiusInMain: mainConfig.barRadiusInMain,
+      radiusOutCross: mainConfig.barRadiusOutCross,
+      radiusOutMain: mainConfig.barRadiusOutMain,
+      isVertical: mainConfig.isBarVertical,
     );
     Map<String, int> feathersCount = {};
     return Positioned.fill(
       child: AnimatedAlign(
-        duration: config.animationDuration,
-        curve: config.animationCurve,
+        duration: mainConfig.animationDuration,
+        curve: mainConfig.animationCurve,
         alignment: barAlignment,
         child: AnimatedContainer(
-          duration: config.animationDuration,
-          curve: config.animationCurve,
+          duration: mainConfig.animationDuration,
+          curve: mainConfig.animationCurve,
           width: width ?? monitorSize.width,
           height: height ?? monitorSize.height,
           padding: EdgeInsets.only(
@@ -121,14 +121,14 @@ class _BarState extends State<Bar> {
                     Container(
                       alignment: endAlignment,
                       padding: EdgeInsets.only(
-                        right: !config.isBarVertical ? config.barSize * 0.2 : 0,
-                        bottom: config.isBarVertical ? config.barSize * 0.2 : 0,
+                        right: !mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
+                        bottom: mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
                       ),
                       child: buildLayoutWidget(
                         context,
                         buildFeatherWidgets(
                           context: context,
-                          feathers: config.barEndFeathers,
+                          feathers: mainConfig.barEndFeathers,
                           feathersCount: feathersCount,
                           barShape: shape,
                         ),
@@ -141,7 +141,7 @@ class _BarState extends State<Bar> {
                         context,
                         buildFeatherWidgets(
                           context: context,
-                          feathers: config.barCenterFeathers,
+                          feathers: mainConfig.barCenterFeathers,
                           feathersCount: feathersCount,
                           barShape: shape,
                         ),
@@ -151,14 +151,14 @@ class _BarState extends State<Bar> {
                     Container(
                       alignment: startAlignment,
                       padding: EdgeInsets.only(
-                        left: !config.isBarVertical ? config.barSize * 0.2 : 0,
-                        top: config.isBarVertical ? config.barSize * 0.2 : 0,
+                        left: !mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
+                        top: mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
                       ),
                       child: buildLayoutWidget(
                         context,
                         buildFeatherWidgets(
                           context: context,
-                          feathers: config.barStartFeathers,
+                          feathers: mainConfig.barStartFeathers,
                           feathersCount: feathersCount,
                           barShape: shape,
                         ),
@@ -175,7 +175,7 @@ class _BarState extends State<Bar> {
   }
 
   Widget buildLayoutWidget(BuildContext context, List<Widget> children) {
-    if (config.isBarVertical) {
+    if (mainConfig.isBarVertical) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -202,7 +202,7 @@ class _BarState extends State<Bar> {
         FutureBuilder(
           future: featherRegistry.awaitInitialization(feather),
           builder: (context, snapshot) {
-            // TODO: 1 animation when switching out of loading state,
+            // TODO: 2 animation when switching out of loading state,
             if (snapshot.hasError) {
               // TODO: 2 should we do this log here??? this means it will be repeated every time bar is rebuilt
               _logger.log(
@@ -212,8 +212,8 @@ class _BarState extends State<Bar> {
                 stackTrace: snapshot.stackTrace,
               );
               return SizedBox(
-                height: config.isBarVertical ? config.barItemSize : null,
-                width: !config.isBarVertical ? config.barItemSize : null,
+                height: mainConfig.isBarVertical ? mainConfig.barItemSize : null,
+                width: !mainConfig.isBarVertical ? mainConfig.barItemSize : null,
                 child: Icon(
                   Icons.error,
                   color: Theme.of(context).colorScheme.error,
@@ -223,7 +223,7 @@ class _BarState extends State<Bar> {
 
             if (snapshot.connectionState != ConnectionState.done) {
               return SizedBox.square(
-                dimension: config.barItemSize.toDouble(),
+                dimension: mainConfig.barItemSize.toDouble(),
                 child: Center(child: CircularProgressIndicator()),
               );
             }
@@ -258,13 +258,13 @@ class _BarState extends State<Bar> {
                       for (int i = 0; i < indicators.length; i++) {
                         indicators[i] = ConstrainedBox(
                           constraints: BoxConstraints(
-                            minWidth: !config.isBarVertical ? config.barItemSize : 0,
-                            minHeight: config.isBarVertical ? config.barItemSize : 0,
+                            minWidth: !mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
+                            minHeight: mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
                           ),
                           child: indicators[i],
                         );
                       }
-                      if (config.isBarVertical) {
+                      if (mainConfig.isBarVertical) {
                         return Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -307,13 +307,13 @@ class _BarState extends State<Bar> {
     if (component.buildPopover == null && component.buildTooltip == null) {
       return builder(context, null);
     }
-    final popoverAlignment = switch (config.barSide) {
+    final popoverAlignment = switch (mainConfig.barSide) {
       ScreenEdge.top => Alignment.bottomCenter,
       ScreenEdge.right => Alignment.centerLeft,
       ScreenEdge.bottom => Alignment.topCenter,
       ScreenEdge.left => Alignment.centerRight,
     };
-    final overflowAlignment = switch (config.barSide) {
+    final overflowAlignment = switch (mainConfig.barSide) {
       ScreenEdge.top => Alignment.topCenter,
       ScreenEdge.right => Alignment.centerRight,
       ScreenEdge.bottom => Alignment.bottomCenter,
@@ -326,22 +326,22 @@ class _BarState extends State<Bar> {
           valueListenable: component.isTooltipEnabled,
           builder: (context, isTooltipEnabled, _) {
             final popoverShape = DockedRoundedCornersBorder(
-              dockedSide: config.barSide,
-              isVertical: config.isBarVertical,
+              dockedSide: mainConfig.barSide,
+              isVertical: mainConfig.isBarVertical,
               // TODO: 3 radius should probably vary with popover size, so there is more flare and animations
-              radiusInCross: config.barRadiusInCross,
-              radiusInMain: config.barRadiusInMain,
-              radiusOutCross: config.barRadiusOutCross,
-              radiusOutMain: config.barRadiusOutMain,
+              radiusInCross: mainConfig.barRadiusInCross,
+              radiusInMain: mainConfig.barRadiusInMain,
+              radiusOutCross: mainConfig.barRadiusOutCross,
+              radiusOutMain: mainConfig.barRadiusOutMain,
             );
             final tooltipShape = RoundedRectangleBorder(
-              borderRadius: config.isBarVertical
-                  ? BorderRadius.all(Radius.elliptical(config.barRadiusInCross, config.barRadiusInMain))
-                  : BorderRadius.all(Radius.elliptical(config.barRadiusInMain, config.barRadiusInCross)),
+              borderRadius: mainConfig.isBarVertical
+                  ? BorderRadius.all(Radius.elliptical(mainConfig.barRadiusInCross, mainConfig.barRadiusInMain))
+                  : BorderRadius.all(Radius.elliptical(mainConfig.barRadiusInMain, mainConfig.barRadiusInCross)),
             );
             final buttonShape = RoundedRectangleBorder(
               borderRadius: BorderRadius.all(
-                Radius.elliptical(config.buttonRadiusX, config.buttonRadiusY),
+                Radius.elliptical(mainConfig.buttonRadiusX, mainConfig.buttonRadiusY),
               ),
             );
             return WingedPopover(
@@ -358,18 +358,18 @@ class _BarState extends State<Bar> {
                       anchorAlignment: popoverAlignment,
                       overflowAlignment: overflowAlignment,
                       screenPadding: EdgeInsets.only(
-                        left: config.isBarVertical ? 0 : config.barMarginLeft + config.barRadiusInMain,
-                        right: config.isBarVertical ? 0 : config.barMarginRight + config.barRadiusInMain,
-                        top: !config.isBarVertical ? 0 : config.barMarginTop + config.barRadiusInMain,
-                        bottom: !config.isBarVertical ? 0 : config.barMarginBottom + config.barRadiusInMain,
+                        left: mainConfig.isBarVertical ? 0 : mainConfig.barMarginLeft + mainConfig.barRadiusInMain,
+                        right: mainConfig.isBarVertical ? 0 : mainConfig.barMarginRight + mainConfig.barRadiusInMain,
+                        top: !mainConfig.isBarVertical ? 0 : mainConfig.barMarginTop + mainConfig.barRadiusInMain,
+                        bottom: !mainConfig.isBarVertical ? 0 : mainConfig.barMarginBottom + mainConfig.barRadiusInMain,
                       ),
                       builder: (context) {
                         return Padding(
                           padding: popoverShape.dimensions,
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
-                              minWidth: !config.isBarVertical ? config.barItemSize : 0,
-                              minHeight: config.isBarVertical ? config.barItemSize : 0,
+                              minWidth: !mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
+                              minHeight: mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
                             ),
                             child: component.buildPopover!(context),
                           ),
@@ -393,16 +393,16 @@ class _BarState extends State<Bar> {
                       anchorAlignment: popoverAlignment,
                       overflowAlignment: overflowAlignment,
                       extraPadding: EdgeInsets.only(
-                        top: config.barSide == ScreenEdge.top ? config.barSize / 2 : 0,
-                        bottom: config.barSide == ScreenEdge.bottom ? config.barSize / 2 : 0,
-                        left: config.barSide == ScreenEdge.left ? config.barSize / 2 : 0,
-                        right: config.barSide == ScreenEdge.right ? config.barSize / 2 : 0,
+                        top: mainConfig.barSide == ScreenEdge.top ? mainConfig.barSize / 2 : 0,
+                        bottom: mainConfig.barSide == ScreenEdge.bottom ? mainConfig.barSize / 2 : 0,
+                        left: mainConfig.barSide == ScreenEdge.left ? mainConfig.barSize / 2 : 0,
+                        right: mainConfig.barSide == ScreenEdge.right ? mainConfig.barSize / 2 : 0,
                       ),
                       builder: (context) {
                         return ConstrainedBox(
                           constraints: BoxConstraints(
-                            minWidth: !config.isBarVertical ? config.barItemSize : 0,
-                            minHeight: config.isBarVertical ? config.barItemSize : 0,
+                            minWidth: !mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
+                            minHeight: mainConfig.isBarVertical ? mainConfig.barItemSize : 0,
                           ),
                           child: component.buildTooltip!(context),
                         );
@@ -410,16 +410,16 @@ class _BarState extends State<Bar> {
                       containerBuilder: (context, child) {
                         return AnimatedOpacity(
                           opacity: 1,
-                          duration: config.animationDuration,
-                          curve: config.animationCurve,
+                          duration: mainConfig.animationDuration,
+                          curve: mainConfig.animationCurve,
                           child: buildPopoverContainer(context, child, tooltipShape),
                         );
                       },
                       closedContainerBuilder: (context, child) {
                         return AnimatedOpacity(
                           opacity: 0,
-                          duration: config.animationDuration,
-                          curve: config.animationCurve,
+                          duration: mainConfig.animationDuration,
+                          curve: mainConfig.animationCurve,
                           child: buildPopoverContainer(context, child, buttonShape),
                         );
                       },

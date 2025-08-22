@@ -117,8 +117,8 @@ class VolumeSlider extends StatelessWidget {
                           padding: EdgeInsets.zero,
                           constraints: BoxConstraints(),
                           child: AnimatedContainer(
-                            duration: config.animationDuration,
-                            curve: config.animationCurve,
+                            duration: mainConfig.animationDuration,
+                            curve: mainConfig.animationCurve,
                             color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
                             padding: const EdgeInsets.all(4),
                             child: Icon(

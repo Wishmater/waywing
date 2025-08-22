@@ -38,18 +38,18 @@ class _SystemTrayWidgetState extends State<SystemTrayWidget> {
       builder: (context, _) {
         if (values.items.value.isEmpty) {
           return SizedBox(
-            width: !config.isBarVertical ? config.barItemSize : null,
-            height: config.isBarVertical ? config.barItemSize : null,
+            width: !mainConfig.isBarVertical ? mainConfig.barItemSize : null,
+            height: mainConfig.isBarVertical ? mainConfig.barItemSize : null,
             child: Text("emtpyz"),
           );
         }
-        if (config.isBarVertical) {
+        if (mainConfig.isBarVertical) {
           return Column(
             children: [
               for (final item in values.items.value)
                 SizedBox(
-                  width: !config.isBarVertical ? config.barItemSize : null,
-                  height: config.isBarVertical ? config.barItemSize : null,
+                  width: !mainConfig.isBarVertical ? mainConfig.barItemSize : null,
+                  height: mainConfig.isBarVertical ? mainConfig.barItemSize : null,
                   child: Text("${item.title.value} "),
                 ),
             ],
@@ -82,8 +82,8 @@ class _SystemTrayElementState extends State<_SystemTrayElementWidget> {
   Widget build(BuildContext context) {
     // TODO: We are missing overlayIcon.. and when to show it
     return SizedBox(
-      width: !config.isBarVertical ? config.barItemSize : null,
-      height: config.isBarVertical ? config.barItemSize : null,
+      width: !mainConfig.isBarVertical ? mainConfig.barItemSize : null,
+      height: mainConfig.isBarVertical ? mainConfig.barItemSize : null,
       child: switch (item.status.value) {
         // TODO: What icon should passive show or should passive be shown?
         "Passive" => _IconUtils(item.iconName.value, item.iconPixmap.value),
@@ -119,7 +119,7 @@ class _IconUtils extends StatelessWidget {
         ),
       );
     } else {
-      return XdgIcon(name: path, size: config.barItemSize.floor());
+      return XdgIcon(name: path, size: mainConfig.barItemSize.floor());
     }
   }
 }

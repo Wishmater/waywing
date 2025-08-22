@@ -53,11 +53,11 @@ class App extends StatelessWidget {
             child: MaterialApp(
               title: "WayWing",
               debugShowCheckedModeBanner: false,
-              themeMode: config.themeMode,
+              themeMode: mainConfig.themeMode,
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(
-                  seedColor: config.seedColor,
-                  surface: config.surfaceColor,
+                  seedColor: mainConfig.seedColor,
+                  surface: mainConfig.surfaceColor,
                 ),
                 splashFactory: InkSparkle.splashFactory,
               ),
@@ -65,8 +65,8 @@ class App extends StatelessWidget {
                 brightness: Brightness.dark,
                 colorScheme: ColorScheme.fromSeed(
                   brightness: Brightness.dark,
-                  seedColor: config.seedColor,
-                  surface: config.surfaceColor,
+                  seedColor: mainConfig.seedColor,
+                  surface: mainConfig.surfaceColor,
                 ),
                 splashFactory: InkSparkle.splashFactory,
                 dividerTheme: DividerThemeData(
@@ -76,6 +76,7 @@ class App extends StatelessWidget {
               home: Scaffold(
                 backgroundColor: Colors.transparent,
                 body: WingedPopoverProvider(
+                  // TODO: 3 add animation when showing / hiding Bar and maybe other wings as well. Should this be global or should each Wing handle it?
                   child: Stack(
                     children: [
                       Bar(),

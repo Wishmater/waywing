@@ -4,3 +4,6 @@ tasks:
   run:
     cmds:
       - flutter run --dart-entrypoint-args "--config=./config"
+  gen:
+    cmds:
+      - flutter pub run build_runner build

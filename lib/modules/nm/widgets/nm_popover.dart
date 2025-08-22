@@ -332,8 +332,8 @@ class _APWidgetState extends State<APWidget> {
                   widget.requestingPassword.value = false;
                 },
           child: AnimatedContainer(
-            duration: config.animationDuration * 2,
-            curve: config.animationCurve,
+            duration: mainConfig.animationDuration * 2,
+            curve: mainConfig.animationCurve,
             color: !isSelected ? Colors.transparent : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             constraints: BoxConstraints(minHeight: 38),
@@ -399,7 +399,7 @@ class RefreshIcon extends StatefulWidget {
 class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin {
   late final animationController = AnimationController(
     vsync: this,
-    duration: config.animationDuration * 2.5,
+    duration: mainConfig.animationDuration * 2.5,
   );
   late final animation = CurvedAnimation(
     parent: animationController,

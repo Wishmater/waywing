@@ -702,10 +702,10 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "23e0ebcb64266d93fbe3a4caf8d0af2edec3f997",
-        "resolved-ref": "23e0ebcb64266d93fbe3a4caf8d0af2edec3f997",
+        "ref": "ed2dcce81c8e2031192f23c5925209ab7e0da6dc",
+        "resolved-ref": "ed2dcce81c8e2031192f23c5925209ab7e0da6dc",
         "url": "https://github.com/ross96D/pulseaudio.dart",
-        "sha256": "sha256-Pz00vHlajXtmQUoYovXvauWaMrCwQf90LAZK2MgFSI4="
+        "sha256": "sha256-nzYZHP3SFZ6CGyy9jfs42bYFlnbgOVhWIvjH66aISpU="
       },
       "source": "git",
       "version": "0.0.8"

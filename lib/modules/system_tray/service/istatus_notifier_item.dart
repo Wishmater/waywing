@@ -549,7 +549,9 @@ class OrgKdeStatusNotifierItemValues {
 
   final Logger _logger;
 
-  OrgKdeStatusNotifierItemValues(this.statusNotifierItem, this._logger) {
+  final String originalPath;
+
+  OrgKdeStatusNotifierItemValues(this.statusNotifierItem, this._logger, this.originalPath) {
     _logger.debug("create OrgKdeStatusNotifierItemValues");
 
     title = DBusValueSignalNotifier("", statusNotifierItem.getTitle, statusNotifierItem.newTitle, _logger);

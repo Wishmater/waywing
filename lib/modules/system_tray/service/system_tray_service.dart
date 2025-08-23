@@ -1,11 +1,10 @@
 import "package:dbus/dbus.dart";
-import "package:flutter/material.dart";
+import "package:flutter/foundation.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/system_tray/service/istatus_notifier_item.dart";
 import "package:waywing/modules/system_tray/service/status_notifier_host.dart";
 import "package:waywing/modules/system_tray/service/status_notifier_watcher.dart";
-import "package:waywing/util/slice.dart";
 
 class SystemTrayItem {
   String id;
@@ -92,5 +91,5 @@ class StatusNotifierItemsValues {
 
   StatusNotifierItemsValues(this.host);
 
-  ValueNotifier<Slice<OrgKdeStatusNotifierItemValues>> get items => host.items;
+  ValueListenable<List<OrgKdeStatusNotifierItemValues>> get items => host.items;
 }

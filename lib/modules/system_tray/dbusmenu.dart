@@ -1,6 +1,6 @@
 
 import "package:flutter/material.dart";
-import "package:waywing/modules/system_tray/service/idbus_menu.dart";
+import "package:waywing/modules/system_tray/service/menu.dart";
 
 class DBusMenuWidget extends StatefulWidget {
   final DBusMenuValues menu;

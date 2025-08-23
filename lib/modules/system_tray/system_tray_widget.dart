@@ -4,7 +4,7 @@ import "dart:typed_data";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:waywing/core/config.dart";
-import "package:waywing/modules/system_tray/service/istatus_notifier_item.dart";
+import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "dart:ui" as ui;
 

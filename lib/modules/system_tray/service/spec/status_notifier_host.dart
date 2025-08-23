@@ -3,9 +3,10 @@ import "dart:async";
 import "package:dbus/dbus.dart";
 import "package:flutter/foundation.dart" hide StringProperty;
 import "package:tronco/tronco.dart";
-import "package:waywing/modules/system_tray/service/istatus_notifier_item.dart";
-import "package:waywing/modules/system_tray/service/istatus_notifier_watcher.dart";
-import "package:waywing/modules/system_tray/service/status_notifier_watcher.dart";
+import "package:waywing/modules/system_tray/service/spec/istatus_notifier_item.dart";
+import "package:waywing/modules/system_tray/service/spec/istatus_notifier_watcher.dart";
+import "package:waywing/modules/system_tray/service/spec/status_notifier_watcher.dart";
+import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
 class OrgKdeStatusNotifierHostImpl extends DBusObject {

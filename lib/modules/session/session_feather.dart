@@ -3,12 +3,14 @@ import "package:flutter/material.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/session/os_info_service.dart";
 import "package:waywing/modules/session/session_service.dart";
+import "package:waywing/widgets/text_icon.dart";
 import "package:waywing/widgets/winged_button.dart";
-import "package:xdg_icons/xdg_icons.dart";
 
 class SessionFeather extends Feather {
   late SessionService service;
+  late OsInfoService osInfoService;
 
   SessionFeather._();
 
@@ -25,6 +27,7 @@ class SessionFeather extends Feather {
   @override
   Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<SessionService>(this);
+    osInfoService = await serviceRegistry.requestService<OsInfoService>(this);
   }
 
   @override
@@ -35,7 +38,9 @@ class SessionFeather extends Feather {
       return [
         WingedButton(
           onTap: () => popover!.togglePopover(),
-          child: XdgIcon(name: "distributor-logo"),
+          child: osInfoService.osIcon != null
+              ? TextIcon(text: osInfoService.osIcon!) //
+              : Icon(Icons.power_settings_new),
         ),
       ];
     },

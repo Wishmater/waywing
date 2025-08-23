@@ -209,10 +209,8 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       isRemoved: true,
       isTooltip: (host) => removedHosts[host]!,
     );
-    final widgetsBelow = widgetsBelowMap.keys.toList();
-    widgetsBelow.sortedBy((e) => widgetsBelowMap[e]!);
-    final widgetsAbove = widgetsAboveMap.keys.toList();
-    widgetsAbove.sortedBy((e) => widgetsAboveMap[e]!);
+    final widgetsBelow = widgetsBelowMap.keys.sortedBy((e) => widgetsBelowMap[e]!);
+    final widgetsAbove = widgetsAboveMap.keys.sortedBy((e) => widgetsAboveMap[e]!);
     return Stack(
       children: [
         ...widgetsBelow,

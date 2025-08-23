@@ -14,68 +14,44 @@ let
 in unstablepkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
-  version = "0.0.1-4";
+  version = "0.0.4";
 
-  # src = pkgs.fetchFromGitHub {
-  #   # https://github.com/ross96D/waywing
-  #   owner = "Wishmater";
-  #   repo = "waywing";
-  #   # rev = "0.0.1";
-  #   rev = "6b052cfd8c6e";
-  #   sha256 = "sha256-ycQlrSP5a8QYjQJWR1uSMlcNrN5OaYA9wNSeJKT7E0U=";
-  # };
-  src = ../.;
+  src = ./..;
 
-  buildInputs = with pkgs; [
-    unstablepkgs.flutter
+  # autoPubspecLock = src + "/pubspec.lock";
+  pubspecLock = pkgs.lib.importJSON (src + "/pubspec.lock.json");
+  gitHashes = pkgs.lib.importJSON (src + "/pubspecGitHashes.json");
 
-    cmake
-    clang
+  nativeBuildInputs = with pkgs;
+    [
+      gtk-layer-shell # fl_linux_window_manager dependency
+      # pulseaudio # pulseaudio.dart dependency
+    ];
 
-    pkg-config
-    gtk3
-    libsysprof-capture
-    pcre2
-    util-linux
-    libselinux
-    libsepol
-    libthai
-    libdatrie
-    xorg.libXdmcp
-    lerc
-    libxkbcommon
-    libepoxy
-    xorg.libXtst
-
-    ninja
-    gtk-layer-shell
-
-    pulseaudio
-  ];
-
-  autoPubspecLock = src + "/pubspec.lock";
-
-  # Skip CMake configuration
-  configurePhase = "true";
-
-  buildPhase = ''
-    export HOME=$(mktemp -d)
-
-    export PKG_CONFIG_PATH="${pkgs.gtk3.dev}/lib/pkgconfig:$PKG_CONFIG_PATH"
-    export CMAKE_PREFIX_PATH="${pkgs.gtk3.dev}:${pkgs.libsecret.dev}"
-
-    export LD_LIBRARY_PATH=${pkgs.pulseaudio.out}/lib
-
-    runHook preBuild
-    # mkdir -p build/flutter_assets/fonts
-    flutter --disable-analytics
-    flutter pub get --offline
-    flutter build linux --release --offline
-    runHook postBuild
-  '';
-
-  installPhase = ''
-    mkdir -p $out/bin
-    mv build/linux/x64/release/bundle/* $out/bin/
+  # env variables accessible to the built app at runtime
+  # runtimeEnvironment = { LD_LIBRARY_PATH = "${pkgs.pulseaudio.out}/lib"; };
+  postInstall = ''
+    wrapProgram "$out/bin/waywing" \
+      --set LD_LIBRARY_PATH ${pkgs.pulseaudio.out}/lib
   '';
 }
+
+# # USAGE
+#
+# { pkgs, ... }:
+#
+# let
+#   waywingSrc = pkgs.fetchFromGitHub {
+#     owner = "Wishmater";
+#     repo = "waywing";
+#     rev = <version>;
+#     sha256 = "";
+#   };
+#   waywingBuild = import "${waywingSrc}/nix/build.nix";
+#   waywing = pkgs.callPackage waywingBuild { };
+#
+# in {
+#
+#   environment.systemPackages = [ waywing ];
+#
+# }

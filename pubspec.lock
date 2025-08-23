@@ -484,6 +484,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  mutex:
+    dependency: "direct main"
+    description:
+      name: mutex
+      sha256: "8827da25de792088eb33e572115a5eb0d61d61a3c01acbc8bcbe76ed78f1a1f2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0"
   nm:
     dependency: "direct main"
     description:
@@ -552,8 +560,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "23e0ebcb64266d93fbe3a4caf8d0af2edec3f997"
-      resolved-ref: "23e0ebcb64266d93fbe3a4caf8d0af2edec3f997"
+      ref: ed2dcce81c8e2031192f23c5925209ab7e0da6dc
+      resolved-ref: ed2dcce81c8e2031192f23c5925209ab7e0da6dc
       url: "https://github.com/ross96D/pulseaudio.dart"
     source: git
     version: "0.0.8"

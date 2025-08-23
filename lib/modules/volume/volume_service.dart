@@ -252,19 +252,29 @@ abstract class VolumeInterface {
     _isMuted.dispose();
   }
 
-  static const volumeStep = 0.05; // TODO: 3 maybe expose this as an option
-  Future<void> increaseVolume({
-    bool clampAtMax = false,
+  Future<void> increaseVolume(
+    double step, {
+    double? max,
+    bool coerceToStepScale = true,
   }) {
-    var newValue = volume.value + volumeStep;
-    if (clampAtMax && newValue > 1) newValue = 1;
+    var newValue = volume.value + step;
+    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, step);
+    if (max != null && newValue > max) newValue = max;
     return setVolume(newValue);
   }
 
-  Future<void> decreaseVolume() {
-    var newValue = volume.value - volumeStep;
+  Future<void> decreaseVolume(
+    double step, {
+    bool coerceToStepScale = true,
+  }) {
+    var newValue = volume.value - step;
+    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, step);
     if (newValue < 0) newValue = 0;
     return setVolume(newValue);
+  }
+
+  double _roundToNearestMultiple(double value, double scale) {
+    return (value / scale).round() * scale;
   }
 
   Future<void> setVolume(double value);

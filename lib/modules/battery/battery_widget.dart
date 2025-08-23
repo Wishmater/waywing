@@ -25,7 +25,7 @@ class BatteryWidgetState extends State<BatteryWidget> {
       builder: (context, _) {
         return Padding(
           padding: const EdgeInsets.only(top: 8, bottom: 8),
-          child: XdgIcon(name: values.iconName.value, size: (config.barSize)),
+          child: XdgIcon(name: values.iconName.value, size: (mainConfig.barSize)),
         );
       },
     );

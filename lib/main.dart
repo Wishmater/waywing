@@ -13,17 +13,28 @@ import "package:waywing/widgets/config_changes_watcher.dart";
 import "package:waywing/util/window_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/winged_popover_provider.dart";
+import "package:xdg_icons/xdg_icons.dart";
 
 final notificationService = NotificationService();
 
 void main(List<String> args) async {
   final cliparser = ArgParser()
-    ..addFlag("dummy-layer", help: "Used internally only. Extra layer created just to add exclusive side size.");
+    ..addFlag(
+      "dummy-layer",
+      hide: true,
+      help: "Used internally only. Extra layer created just to add exclusive side size.",
+    )
+    ..addOption(
+      "config",
+      abbr: "c",
+      help: "Optional custom path to config file",
+    );
   final results = cliparser.parse(args);
   final dummyLayer = results["dummy-layer"] as bool?;
   if (dummyLayer ?? false) {
     return;
   }
+  customConfigPath = results["config"];
 
   initializeLogger();
   await reloadConfig(await getConfigurationString());
@@ -47,14 +58,18 @@ class App extends StatelessWidget {
       child: ConfigChangeWatcher(
         builder: (context) {
           return KeyboardFocusProvider(
+            keyboardService: KeyboardFocusService(),
             child: MaterialApp(
               title: "WayWing",
               debugShowCheckedModeBanner: false,
-              themeMode: config.themeMode,
+              themeMode: mainConfig.themeMode,
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(
-                  seedColor: config.seedColor,
-                  surface: config.surfaceColor,
+                  seedColor: mainConfig.seedColor,
+                  surface: mainConfig.surfaceColor,
+                ),
+                buttonTheme: ButtonThemeData(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 ),
                 splashFactory: InkSparkle.splashFactory,
               ),
@@ -62,30 +77,43 @@ class App extends StatelessWidget {
                 brightness: Brightness.dark,
                 colorScheme: ColorScheme.fromSeed(
                   brightness: Brightness.dark,
-                  seedColor: config.seedColor,
-                  surface: config.surfaceColor,
+                  seedColor: mainConfig.seedColor,
+                  surface: mainConfig.surfaceColor,
+                ),
+                buttonTheme: ButtonThemeData(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 ),
                 splashFactory: InkSparkle.splashFactory,
                 dividerTheme: DividerThemeData(
                   color: Colors.grey.shade400.withValues(alpha: 0.66),
                 ),
               ),
-              home: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: WingedPopoverProvider(
-                  child: Stack(
-                    children: [
-                      Bar(),
-                      Positioned(
-                        width: 300,
-                        left: 10,
-                        top: 30,
-                        child: NotificationsWidget(service: notificationService),
+              home: Builder(
+                builder: (context) {
+                  return XdgIconTheme(
+                    data: XdgIconThemeData(
+                      size: (Theme.of(context).iconTheme.size ?? kDefaultFontSize).round(),
+                    ),
+                    child: Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: WingedPopoverProvider(
+                        // TODO: 3 add animation when showing / hiding Bar and maybe other wings as well. Should this be global or should each Wing handle it?
+                        child: Stack(
+                          children: [
+                            Bar(),
+                            Positioned(
+                              width: 300,
+                              left: 10,
+                              top: 30,
+                              child: NotificationsWidget(service: notificationService),
+                            ),
+                            // TODO: 2 implement Wings
+                          ],
+                        ),
                       ),
-                      // TODO: 2 implement Wings
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           );

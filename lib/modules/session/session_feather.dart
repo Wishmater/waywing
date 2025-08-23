@@ -5,6 +5,7 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/session/session_service.dart";
 import "package:waywing/widgets/winged_button.dart";
+import "package:xdg_icons/xdg_icons.dart";
 
 class SessionFeather extends Feather {
   late SessionService service;
@@ -34,7 +35,7 @@ class SessionFeather extends Feather {
       return [
         WingedButton(
           onTap: () => popover!.togglePopover(),
-          child: Icon(Icons.supervised_user_circle),
+          child: XdgIcon(name: "distributor-logo"),
         ),
       ];
     },
@@ -52,7 +53,7 @@ class SessionFeather extends Feather {
         children.add(
           IconButton(
             icon: Icon(Icons.do_not_disturb_on_total_silence_sharp),
-            onPressed: () => {} // service.sleep(),
+            onPressed: () => {}, // service.sleep(),
           ),
         );
       }
@@ -60,7 +61,7 @@ class SessionFeather extends Feather {
         children.add(
           IconButton(
             icon: Icon(Icons.low_priority),
-            onPressed: () => {} // service.suspend(),
+            onPressed: () => {}, // service.suspend(),
           ),
         );
       }
@@ -68,7 +69,7 @@ class SessionFeather extends Feather {
         children.add(
           IconButton(
             icon: Icon(Icons.power_off),
-            onPressed: () => {} // service.powerOff(),
+            onPressed: () => {}, // service.powerOff(),
           ),
         );
       }

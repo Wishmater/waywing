@@ -8,7 +8,7 @@ class WingedButton<T> extends StatefulWidget {
 
   final Widget Function(BuildContext context, AsyncSnapshot<T?> snapshot, Widget child)? builder;
 
-  final EdgeInsets padding;
+  final EdgeInsets? padding;
 
   final BoxConstraints constraints;
 
@@ -126,7 +126,7 @@ class WingedButton<T> extends StatefulWidget {
   const WingedButton({
     required this.child,
     this.builder,
-    this.padding = const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+    this.padding,
     this.constraints = const BoxConstraints(minWidth: 38, minHeight: 38),
     this.alignment = Alignment.center,
     this.onTap,
@@ -161,7 +161,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
       future: taskFuture,
       builder: (context, snapshot) {
         var borderRadius = widget.borderRadius;
-        borderRadius ??= BorderRadius.all(Radius.elliptical(config.buttonRadiusX, config.buttonRadiusY));
+        borderRadius ??= BorderRadius.all(Radius.elliptical(mainConfig.buttonRadiusX, mainConfig.buttonRadiusY));
         final Widget child;
         if (widget.builder == null) {
           child = widget.child;
@@ -171,7 +171,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
 
         return InkResponse(
           highlightShape: BoxShape.rectangle,
-          hoverDuration: config.animationDuration * 0.5,
+          hoverDuration: mainConfig.animationDuration * 0.5,
           borderRadius: borderRadius,
           onTap: widget.onTap == null || snapshot.connectionState != ConnectionState.done
               ? null
@@ -185,7 +185,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
                 },
           // ignore: sort_child_properties_last
           child: Container(
-            padding: widget.padding,
+            padding: widget.padding ?? Theme.of(context).buttonTheme.padding,
             constraints: widget.constraints,
             alignment: widget.alignment,
             clipBehavior: Clip.hardEdge,

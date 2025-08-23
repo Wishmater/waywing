@@ -25,7 +25,8 @@ mixin MainConfigI {
   double get barMarginRight;
   double get barMarginTop;
   double get barMarginBottom;
-  double? get _barItemSize;
+  double? get _barIndicatorMinSize;
+  double? get _barIndicatorPadding;
   double get barRadiusInCross;
   double get barRadiusInMain;
   double get barRadiusOutCross;
@@ -53,7 +54,8 @@ class MainConfig with MainConfigI, MainConfigBase {
   final double barMarginRight;
   final double barMarginTop;
   final double barMarginBottom;
-  final double? _barItemSize;
+  final double? _barIndicatorMinSize;
+  final double? _barIndicatorPadding;
   final double barRadiusInCross;
   final double barRadiusInMain;
   final double barRadiusOutCross;
@@ -80,7 +82,8 @@ class MainConfig with MainConfigI, MainConfigBase {
     double? barMarginRight,
     double? barMarginTop,
     double? barMarginBottom,
-    double? barItemSize,
+    double? barIndicatorMinSize,
+    double? barIndicatorPadding,
     double? barRadiusInCross,
     double? barRadiusInMain,
     double? barRadiusOutCross,
@@ -101,7 +104,8 @@ class MainConfig with MainConfigI, MainConfigBase {
        barMarginRight = barMarginRight ?? 0,
        barMarginTop = barMarginTop ?? 0,
        barMarginBottom = barMarginBottom ?? 0,
-       _barItemSize = barItemSize,
+       _barIndicatorMinSize = barIndicatorMinSize,
+       _barIndicatorPadding = barIndicatorPadding,
        barRadiusInCross = barRadiusInCross ?? 0,
        barRadiusInMain = barRadiusInMain ?? 0,
        barRadiusOutCross = barRadiusOutCross ?? 0,
@@ -129,7 +133,8 @@ class MainConfig with MainConfigI, MainConfigBase {
       barMarginRight: map['barMarginRight'],
       barMarginTop: map['barMarginTop'],
       barMarginBottom: map['barMarginBottom'],
-      barItemSize: map['barItemSize'],
+      barIndicatorMinSize: map['barIndicatorMinSize'],
+      barIndicatorPadding: map['barIndicatorPadding'],
       barRadiusInCross: map['barRadiusInCross'],
       barRadiusInMain: map['barRadiusInMain'],
       barRadiusOutCross: map['barRadiusOutCross'],
@@ -160,7 +165,8 @@ class MainConfig with MainConfigI, MainConfigBase {
       'barMarginRight': MainConfigBase._barMarginRight,
       'barMarginTop': MainConfigBase._barMarginTop,
       'barMarginBottom': MainConfigBase._barMarginBottom,
-      'barItemSize': MainConfigBase.__barItemSize,
+      'barIndicatorMinSize': MainConfigBase.__barIndicatorMinSize,
+      'barIndicatorPadding': MainConfigBase.__barIndicatorPadding,
       'barRadiusInCross': MainConfigBase._barRadiusInCross,
       'barRadiusInMain': MainConfigBase._barRadiusInMain,
       'barRadiusOutCross': MainConfigBase._barRadiusOutCross,

@@ -1,5 +1,21 @@
 import "package:human_file_size/human_file_size.dart";
 
+class BestFitDecUnitConversion extends BestFitUnitConversion {
+  const BestFitDecUnitConversion({required super.numeralSystem});
+
+  @override
+  Unit bitsToUnit({required BigInt bits}) {
+    bits = bits.abs() * BigInt.from(10);
+    for (final unit in numeralSystem.units.reversed) {
+      if (bits >= unit.bits) {
+        return unit;
+      }
+    }
+
+    return Unit.bit;
+  }
+}
+
 class DecimalByteNumeralSystem extends NumeralSystem {
   static final List<Unit> _units = List.unmodifiable([
     Unit.byte,

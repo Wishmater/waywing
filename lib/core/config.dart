@@ -18,7 +18,7 @@ part "config.g.dart";
 
 final _logger = mainLogger.clone(properties: [LogType("Config")]);
 
-MainConfig get config => _config;
+MainConfig get mainConfig => _config;
 late MainConfig _config;
 
 Map<String, dynamic> get rawMainConfig => _rawMainConfig;
@@ -83,11 +83,13 @@ mixin MainConfigBase on MainConfigI {
   static const _barMarginRight = DoubleNumberField(defaultTo: 0);
   static const _barMarginTop = DoubleNumberField(defaultTo: 0);
   static const _barMarginBottom = DoubleNumberField(defaultTo: 0);
-  static const __barItemSize = DoubleNumberField(nullable: true); // defaults to barSize
-  double get barItemSize => _barItemSize ?? barSize.toDouble();
+  static const __barIndicatorMinSize = DoubleNumberField(nullable: true); // defaults to barSize
+  double get barIndicatorMinSize => _barIndicatorMinSize ?? barSize.toDouble();
+  static const __barIndicatorPadding = DoubleNumberField(nullable: true); // defaults to a fraction of barSize
+  double get barIndicatorPadding => _barIndicatorPadding ?? barSize.toDouble();
 
   // Derived
-  late final bool isBarVertical = config.barSide == ScreenEdge.left || config.barSide == ScreenEdge.right;
+  late final bool isBarVertical = mainConfig.barSide == ScreenEdge.left || mainConfig.barSide == ScreenEdge.right;
   // TODO: 3 validate that mainSize is not <=0 after deducting margins
   // TODO: 3 validate that you can't add margin on sides that conflict with barSide selected
 
@@ -152,12 +154,22 @@ Future<MainConfig> reloadConfig(String content) async {
   }
 }
 
+late final String? customConfigPath;
 String getConfigurationFilePath() {
-  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
-  return path.joinAll([configDir, "waywing", "config"]);
+  if (customConfigPath != null) {
+    return customConfigPath!;
+  } else {
+    final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
+    return path.joinAll([configDir, "waywing", "config"]);
+  }
 }
 
 String getConfigurationDirectoryPath() {
+  if (customConfigPath != null) {
+    try {
+      return File(customConfigPath!).parent.path;
+    } catch (_) {}
+  }
   final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
   return path.joinAll([configDir, "waywing"]);
 }
@@ -182,6 +194,8 @@ const String defaultConfig = '''
   barRadiusInMain = barSize * 0.5 * 0.67
   barRadiusOutCross = barSize * 0.5
   barRadiusOutMain = barSize * 0.5 * 1.5
+  barStartFeathers = [  ]
+  barEndFeathers = [ "Volume", "NetworkManager", "SystemTray", "Clock" ]
 ''';
 
 // Only if the dollar sign does not have a backslash before it.

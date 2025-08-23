@@ -9,6 +9,7 @@ class WingedContainer extends StatelessWidget {
   final Curve? animationCurve;
   final Duration? animationDuration;
   final Clip clipBehavior;
+  final Color? color;
 
   const WingedContainer({
     this.shape,
@@ -17,6 +18,7 @@ class WingedContainer extends StatelessWidget {
     this.animationCurve,
     this.animationDuration,
     this.clipBehavior = Clip.none,
+    this.color,
     super.key,
   });
 
@@ -25,9 +27,10 @@ class WingedContainer extends StatelessWidget {
     return _WingedContainer(
       shape: shape,
       elevation: elevation,
-      curve: animationCurve ?? config.animationCurve,
-      duration: animationDuration ?? config.animationDuration * 0.8,
+      curve: animationCurve ?? mainConfig.animationCurve,
+      duration: animationDuration ?? mainConfig.animationDuration * 0.8,
       clipBehavior: clipBehavior,
+      color: color,
       child: child,
     );
   }
@@ -38,12 +41,14 @@ class _WingedContainer extends ImplicitlyAnimatedWidget {
   final ShapeBorder? shape;
   final double elevation;
   final Clip clipBehavior;
+  final Color? color;
 
   const _WingedContainer({
     required this.shape,
     required this.elevation,
     required this.child,
     required this.clipBehavior,
+    required this.color,
     required super.curve,
     required super.duration,
   });
@@ -70,10 +75,11 @@ class _WingedContainerState extends AnimatedWidgetBaseState<_WingedContainer> {
   Widget build(BuildContext context) {
     return InputRegion(
       child: Material(
-        shape: _shape!.evaluate(animation)!,
+        shape: widget.shape == null ? null : _shape!.evaluate(animation)!,
         elevation: widget.elevation,
         clipBehavior: widget.clipBehavior,
         animationDuration: Duration.zero,
+        color: widget.color,
         child: widget.child,
       ),
     );

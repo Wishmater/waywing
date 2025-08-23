@@ -1,25 +1,25 @@
 import "dart:async";
 
 import "package:dbus/dbus.dart";
-import "package:flutter/material.dart";
+import "package:flutter/foundation.dart" hide StringProperty;
 import "package:tronco/tronco.dart";
-import "package:waywing/modules/system_tray/service/istatus_notifier_item.dart";
-import "package:waywing/modules/system_tray/service/istatus_notifier_watcher.dart";
-import "package:waywing/modules/system_tray/service/status_notifier_watcher.dart";
-import "package:waywing/util/slice.dart";
+import "package:waywing/modules/system_tray/service/spec/istatus_notifier_item.dart";
+import "package:waywing/modules/system_tray/service/spec/istatus_notifier_watcher.dart";
+import "package:waywing/modules/system_tray/service/spec/status_notifier_watcher.dart";
+import "package:waywing/modules/system_tray/service/status_item.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 
 class OrgKdeStatusNotifierHostImpl extends DBusObject {
   late final OrgKdeStatusNotifierWatcher _watcher;
 
-  final Map<String, OrgKdeStatusNotifierItemValues> _items;
-  ValueNotifier<Slice<OrgKdeStatusNotifierItemValues>> items;
+  // final Map<String, OrgKdeStatusNotifierItemValues> _items;
+  ValueListenable<List<OrgKdeStatusNotifierItemValues>> items;
   final Logger logger;
 
   final List<StreamSubscription> _subscriptions;
 
   OrgKdeStatusNotifierHostImpl(this.logger, super.path)
-    : _items = {},
-      items = ValueNotifier(Slice([])),
+    : items = _ManualValueNotifier([]),
       _subscriptions = [];
 
   /// Init all resources needed to work normally
@@ -43,11 +43,10 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
     for (var e in _subscriptions) {
       e.cancel();
     }
-    items.dispose();
-    for (final value in _items.values) {
-      value.dispose();
+    for (final item in items.value) {
+      item.dispose();
     }
-    _items.clear();
+    // _items.clear();
   }
 
   Future<void> _addItem(String itemPath) async {
@@ -72,24 +71,28 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
             StringProperty("OrgKdeStatusNotifierItemValues $itemPath")
           ],
         ),
+        itemPath,
       );
     } catch (e, st) {
       logger.error("failed to initialize OrgKdeStatusNotifierItem", error: e, stackTrace: st);
       return;
     }
-    _items[itemPath] = itemValues;
     try {
-      await _items[itemPath]?.initFields();
+      itemValues.initFields();
     } catch(e, st) {
       logger.error("initFields failed", error: e, stackTrace: st);
     }
-    items.value = Slice(_items.values);
+    items.value.add(itemValues);
+    (items as _ManualValueNotifier)._manualNotifyListeners();
   }
 
   void _removeItem(String itemPath) {
-    final itemValues = _items.remove(itemPath);
-    itemValues?.dispose();
-    items.value = Slice(_items.values);
+    final index = items.value.indexWhere((e) => e.originalPath == itemPath);
+    if (index == -1) {
+      return;
+    }
+    items.value.removeAt(index).dispose();
+    (items as _ManualValueNotifier)._manualNotifyListeners();
   }
 
   Future<void> _fillStatusNotifierItems() async {
@@ -98,21 +101,26 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
     for (final itemPath in itemsPath) {
       await _addItem(itemPath);
     }
-    items.value = Slice(_items.values);
 
     // listen to signal of new registered item
     _subscriptions.add(
       _watcher.statusNotifierItemRegistered.listen((v) async {
         await _addItem(v.arg_0);
-        items.value = Slice(_items.values);
       }),
     );
     // listen to signal of unregistered item
     _subscriptions.add(
       _watcher.statusNotifierItemUnregistered.listen((v) {
         _removeItem(v.arg_0);
-        items.value = Slice(_items.values);
       }),
     );
+  }
+}
+
+class _ManualValueNotifier<T> extends DummyValueNotifier<T> {
+  _ManualValueNotifier(super.value);
+
+  void _manualNotifyListeners() {
+    notifyListeners();
   }
 }

@@ -2,7 +2,7 @@ name: waywing
 description: "A wayland desktop shell made with flutter"
 publish_to: "none"
 
-version: 0.0.1+1
+version: 0.0.4
 
 environment:
   sdk: ^3.8.0
@@ -51,15 +51,16 @@ dependencies:
   xdg_icons: ^0.1.2 # render icons from string as defined in xdg icons spec
   upower: ^0.7.0 # battery and other power options
   fl_linux_window_manager: # Linux window / shellLayer manager
-    path: ../fl-linux-window-manager
-    # git:
-    #   url: https://github.com/Wishmater/fl-linux-window-manager
-    #   ref: 4f3fca8e3f312f24f8ef0485fd3991e233bc3982
+    # path: ../fl-linux-window-manager
+    git:
+      url: https://github.com/Wishmater/fl-linux-window-manager
+      ref: 05285a48eb0f
   pulseaudio: # for audio mixing
     # path: ../pulseaudio.dart
     git:
       url: https://github.com/ross96D/pulseaudio.dart
-      ref: 23e0ebcb64266d93fbe3a4caf8d0af2edec3f997
+      ref: ed2dcce81c8e2031192f23c5925209ab7e0da6dc
+  mutex: ^3.1.0
 
 dev_dependencies:
   flutter_test:

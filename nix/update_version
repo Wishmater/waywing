@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+# Parse version from pubspec.yaml
+pubspec_file="./pubspec.yaml"
+build_nix_file="nix/build.nix"
+
+# Check if files exist
+if [ ! -f "$pubspec_file" ]; then
+  echo "Error: $pubspec_file not found!"
+  exit 1
+fi
+
+if [ ! -f "$build_nix_file" ]; then
+  echo "Error: $build_nix_file not found!"
+  exit 1
+fi
+
+# Extract version from pubspec.yaml
+version=$(grep -E '^version: ' "$pubspec_file" | sed 's/version: //' | tr -d ' ')
+
+if [ -z "$version" ]; then
+  echo "Error: Could not find version in $pubspec_file"
+  exit 1
+fi
+
+echo "Found version: $version"
+
+# Create a temporary file for the modified build.nix
+temp_file=$(mktemp)
+
+# Process build.nix and replace the version line
+while IFS= read -r line; do
+  if [[ "$line" == *"version ="* ]]; then
+    echo "  version = \"$version\";"
+  else
+    echo "$line"
+  fi
+done <"$build_nix_file" >"$temp_file"
+
+# Replace the original file with the modified one
+if mv "$temp_file" "$build_nix_file"; then
+  echo "Successfully updated $build_nix_file with version: $version"
+else
+  echo "Error: Failed to update $build_nix_file"
+  rm -f "$temp_file"
+  exit 1
+fi

@@ -28,46 +28,66 @@ class NetworkManagerIndicator extends StatelessWidget {
       builder: (context, isConnected, _) {
         return LayoutBuilder(
           builder: (context, constraints) {
+            final isVertical = constraints.maxHeight > constraints.maxWidth;
             Widget result = NetworkIcon(
               device: device,
               type: device.deviceType,
               isConnected: isConnected,
               showTxRxIndicators:
-                  !config.showThroughputIndicator && !config.showDownloadIndicator && !config.showUploadIndicator,
+                  isVertical ||
+                  (!config.showThroughputIndicator && !config.showDownloadIndicator && !config.showUploadIndicator),
             );
 
-            final isVertical = constraints.maxHeight > constraints.maxWidth;
-            if (!isVertical && isConnected) {
-              if (constraints.maxHeight >= 56) {
-                result = Row(
-                  children: [
-                    result,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (config.showConnectionNameIndicator) ConnectionNameWidget(device: device),
-                        Row(
-                          children: [
-                            if (config.showDownloadIndicator) RxRateWidget(device: device),
-                            if (config.showUploadIndicator) TxRateWidget(device: device),
-                            if (config.showThroughputIndicator) ThroughputRateWidget(device: device),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              } else {
-                result = Row(
+            if (isConnected) {
+              if (isVertical) {
+                result = Column(
                   children: [
                     result,
                     if (config.showConnectionNameIndicator) ConnectionNameWidget(device: device),
-                    if (config.showDownloadIndicator) RxRateWidget(device: device),
-                    if (config.showUploadIndicator) TxRateWidget(device: device),
-                    if (config.showThroughputIndicator) ThroughputRateWidget(device: device),
+                    if (config.showThroughputIndicator)
+                      ThroughputRateWidget(
+                        device: device,
+                        isVertical: true,
+                        showIcon: false,
+                        padding: EdgeInsets.only(top: 4),
+                      ),
+                    // // individual upload and download not supported in vertical mode
+                    // if (config.showDownloadIndicator) RxRateWidget(device: device),
+                    // if (config.showUploadIndicator) TxRateWidget(device: device),
                   ],
                 );
+              } else {
+                if (constraints.maxHeight >= 56) {
+                  result = Row(
+                    children: [
+                      result,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (config.showConnectionNameIndicator) ConnectionNameWidget(device: device),
+                          Row(
+                            children: [
+                              if (config.showDownloadIndicator) RxRateWidget(device: device),
+                              if (config.showUploadIndicator) TxRateWidget(device: device),
+                              if (config.showThroughputIndicator) ThroughputRateWidget(device: device),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                } else {
+                  result = Row(
+                    children: [
+                      result,
+                      if (config.showConnectionNameIndicator) ConnectionNameWidget(device: device),
+                      if (config.showDownloadIndicator) RxRateWidget(device: device),
+                      if (config.showUploadIndicator) TxRateWidget(device: device),
+                      if (config.showThroughputIndicator) ThroughputRateWidget(device: device),
+                    ],
+                  );
+                }
               }
             }
 
@@ -349,15 +369,30 @@ class ConnectionNameWidget extends StatelessWidget {
 class ThroughputRateWidget extends StatelessWidget {
   final NMServiceDevice device;
   final EdgeInsets padding;
+  final bool showIcon;
+  final bool isVertical;
 
   const ThroughputRateWidget({
     required this.device,
+    this.showIcon = true,
     this.padding = const EdgeInsets.only(left: 8),
+    this.isVertical = false,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget? icon;
+    if (showIcon) {
+      icon = Padding(
+        padding: const EdgeInsets.only(right: 1),
+        child: Icon(
+          MaterialCommunityIcons.swap_vertical_bold,
+          size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 4,
+          color: Theme.of(context).textTheme.bodyMedium!.color,
+        ),
+      );
+    }
     return ValueListenableBuilder(
       valueListenable: device.rxRate,
       builder: (context, rxRate, _) {
@@ -367,26 +402,36 @@ class ThroughputRateWidget extends StatelessWidget {
             if (txRate == null && rxRate == null) return SizedBox.shrink();
             final readableBytes = humanFileSize(
               (txRate ?? 0) + (rxRate ?? 0),
-              unitConversion: const UnitConversion.bestFit(
+              unitConversion: const BestFitDecUnitConversion(
                 numeralSystem: DecimalByteNumeralSystem(),
               ),
               quantityDisplayMode: IntlQuantityDisplayMode(
                 numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
               ),
             );
+            Widget result;
+            if (isVertical) {
+              result = Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) icon,
+                  SizedBox(height: 2),
+                  Text("$readableBytes/s", maxLines: 2, textAlign: TextAlign.center, style: TextStyle(height: 1)),
+                ],
+              );
+            } else {
+              result = IntrinsicWidth(
+                child: Row(
+                  children: [
+                    if (icon != null) icon,
+                    Expanded(child: Text("$readableBytes/s", maxLines: 1, softWrap: false)),
+                  ],
+                ),
+              );
+            }
             return Padding(
               padding: padding,
-              child: Row(
-                children: [
-                  Icon(
-                    MaterialCommunityIcons.swap_vertical_bold,
-                    size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 4,
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  ),
-                  SizedBox(width: 1),
-                  Text("$readableBytes/s"),
-                ],
-              ),
+              child: result,
             );
           },
         );
@@ -413,7 +458,7 @@ class TxRateWidget extends StatelessWidget {
         if (txRate == null) return SizedBox.shrink();
         final readableBytes = humanFileSize(
           txRate,
-          unitConversion: const UnitConversion.bestFit(
+          unitConversion: const BestFitDecUnitConversion(
             numeralSystem: DecimalByteNumeralSystem(),
           ),
           quantityDisplayMode: IntlQuantityDisplayMode(
@@ -457,7 +502,7 @@ class RxRateWidget extends StatelessWidget {
         if (rxRate == null) return SizedBox.shrink();
         final readableBytes = humanFileSize(
           rxRate,
-          unitConversion: const UnitConversion.bestFit(
+          unitConversion: const BestFitDecUnitConversion(
             numeralSystem: DecimalByteNumeralSystem(),
           ),
           quantityDisplayMode: IntlQuantityDisplayMode(

@@ -18,7 +18,7 @@ Future<void> setupMainWindow() async {
   _logger.log(Level.debug, "Setting main window title...");
   // we need to set monitor here as well, otherwise it flashes on the wrong monitor on startup
   await Future.wait([
-    FlLinuxWindowManager.instance.setMonitor(config.barMonitor),
+    FlLinuxWindowManager.instance.setMonitor(mainConfig.barMonitor),
     FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),
     FlLinuxWindowManager.instance.setTitle(title: "WayWings"),
   ]);
@@ -74,7 +74,7 @@ Future<void> _updateMainWindow() async {
   // final monitors = await FlLinuxWindowManager.instance.listMonitors();
   // monitors.first.connector;
   await Future.wait([
-    FlLinuxWindowManager.instance.setMonitor(config.barMonitor),
+    FlLinuxWindowManager.instance.setMonitor(mainConfig.barMonitor),
     FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),
   ]);
 
@@ -86,7 +86,7 @@ Future<void> _updateMainWindow() async {
 Future<void> _updateEdgeWindows() async {
   final futures = <Future>[];
   for (final side in ScreenEdge.values) {
-    futures.add(_updateEdgeWindow(side, config));
+    futures.add(_updateEdgeWindow(side, mainConfig));
   }
   await Future.wait(futures);
 }

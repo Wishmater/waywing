@@ -213,19 +213,25 @@
     "config": {
       "dependency": "direct main",
       "description": {
-        "path": "../config.dart",
-        "relative": true
+        "path": ".",
+        "ref": "5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8",
+        "resolved-ref": "5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8",
+        "url": "https://github.com/ross96D/config.dart",
+        "sha256": "sha256-ecUb96Y00p6yDMDGylmGZAC0bKyBgYLGqUcTjDnWSgk="
       },
-      "source": "path",
+      "source": "git",
       "version": "1.0.0"
     },
     "config_gen": {
       "dependency": "direct main",
       "description": {
-        "path": "../config_gen",
-        "relative": true
+        "path": ".",
+        "ref": "1a31a94460fb290b67af14f43bdf407dd48638c7",
+        "resolved-ref": "1a31a94460fb290b67af14f43bdf407dd48638c7",
+        "url": "https://github.com/Wishmater/config_gen",
+        "sha256": "sha256-C1Lsr5D+kTP+UxG1izJus6xE+P4HdckHOaFFTY2zHLg="
       },
-      "source": "path",
+      "source": "git",
       "version": "1.0.0"
     },
     "convert": {
@@ -331,10 +337,13 @@
     "fl_linux_window_manager": {
       "dependency": "direct main",
       "description": {
-        "path": "../fl-linux-window-manager",
-        "relative": true
+        "path": ".",
+        "ref": "05285a48eb0f",
+        "resolved-ref": "05285a48eb0f197de1b1b0646faa5c93a95bca87",
+        "url": "https://github.com/Wishmater/fl-linux-window-manager",
+        "sha256": "sha256-xbVtCVZYdtKqoST3S0TuCNTMpmMDe8H28L3tXn7NQKo="
       },
-      "source": "path",
+      "source": "git",
       "version": "1.2.0"
     },
     "flutter": {
@@ -599,6 +608,16 @@
       "source": "hosted",
       "version": "1.0.4"
     },
+    "mutex": {
+      "dependency": "direct main",
+      "description": {
+        "name": "mutex",
+        "sha256": "8827da25de792088eb33e572115a5eb0d61d61a3c01acbc8bcbe76ed78f1a1f2",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "3.1.0"
+    },
     "nm": {
       "dependency": "direct main",
       "description": {
@@ -682,10 +701,13 @@
     "pulseaudio": {
       "dependency": "direct main",
       "description": {
-        "path": "../pulseaudio.dart",
-        "relative": true
+        "path": ".",
+        "ref": "ed2dcce81c8e2031192f23c5925209ab7e0da6dc",
+        "resolved-ref": "ed2dcce81c8e2031192f23c5925209ab7e0da6dc",
+        "url": "https://github.com/ross96D/pulseaudio.dart",
+        "sha256": "sha256-nzYZHP3SFZ6CGyy9jfs42bYFlnbgOVhWIvjH66aISpU="
       },
-      "source": "path",
+      "source": "git",
       "version": "0.0.8"
     },
     "rational": {
@@ -837,10 +859,13 @@
     "tronco": {
       "dependency": "direct main",
       "description": {
-        "path": "../tronco",
-        "relative": true
+        "path": ".",
+        "ref": "5ecd6268393c80358abf64c0a2270ba1ef4a1676",
+        "resolved-ref": "5ecd6268393c80358abf64c0a2270ba1ef4a1676",
+        "url": "https://github.com/ross96D/tronco",
+        "sha256": "sha256-PNN4mhrLF8p7Y6q+ch2GYlLyHXjbm110+BP0C1s4gaY="
       },
-      "source": "path",
+      "source": "git",
       "version": "1.0.0"
     },
     "typed_data": {

@@ -1,5 +1,6 @@
 import "dart:collection";
 
+// TODO: 1 remove this, so far it's always better to use change notifiers in services
 class Slice<E> extends UnmodifiableListView<E> {
   @override
   final int length;
@@ -8,7 +9,6 @@ class Slice<E> extends UnmodifiableListView<E> {
   Iterable<E> get source => _source;
 
   Slice(this._source) : length = _source.length, super(_source);
-
 
   @override
   bool operator ==(covariant Slice<E> other) {

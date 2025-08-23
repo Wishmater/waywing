@@ -29,11 +29,10 @@ class ColorField extends StringFieldBase<MyColor> {
     // Remove whitespace and convert to lowercase
     colorString = colorString.replaceAll(" ", "").toLowerCase();
     // Handle hex format
-    if (colorString.startsWith("#") || RegExp(r"^[0-9a-fA-F]{6,8}$").hasMatch(colorString)) {
+    if (colorString.startsWith("#") || RegExp(r"^[0-9a-f]{6,8}$").hasMatch(colorString)) {
       String hex = colorString.replaceFirst("#", "");
-      if (hex.length == 6) hex += "ff"; // Add opaque alpha if not provided
-      // ignore: prefer_interpolation_to_compose_strings
-      if (hex.length == 3) hex = hex.split("").map((c) => c + c).join() + "ff";
+      if (hex.length == 3) hex = hex.split("").map((c) => c + c).join(); // ???
+      if (hex.length == 6) hex = "ff$hex"; // Add opaque alpha if not provided
       return MyColor(int.parse("0xff$hex"));
     }
     // Handle rgb/rgba format

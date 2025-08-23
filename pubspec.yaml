@@ -59,7 +59,7 @@ dependencies:
     # path: ../pulseaudio.dart
     git:
       url: https://github.com/ross96D/pulseaudio.dart
-      ref: 23e0ebcb64266d93fbe3a4caf8d0af2edec3f997
+      ref: ed2dcce81c8e2031192f23c5925209ab7e0da6dc
   mutex: ^3.1.0
 
 dev_dependencies:

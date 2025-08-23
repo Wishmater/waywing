@@ -24,7 +24,7 @@ class SystemTrayIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return WingedButton(
-      child: SystemTrayIcon(item: item),
+      child: SystemTrayItemIcon(item: item),
       onTap: () {
         // TODO: 1 implement activating app
       },
@@ -35,10 +35,10 @@ class SystemTrayIndicator extends StatelessWidget {
   }
 }
 
-class SystemTrayIcon extends StatelessWidget {
+class SystemTrayItemIcon extends StatelessWidget {
   final OrgKdeStatusNotifierItemValues item;
 
-  const SystemTrayIcon({
+  const SystemTrayItemIcon({
     required this.item,
     super.key,
   });
@@ -47,19 +47,19 @@ class SystemTrayIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return switch (item.status.value) {
       // TODO: 2 what icon should passive show or should passive be shown?
-      "Passive" => _SystemTrayIcon(
+      "Passive" => SystemTrayIcon(
         iconName: item.iconName,
         iconPixmap: item.iconPixmap,
       ),
-      "Active" => _SystemTrayIcon(
+      "Active" => SystemTrayIcon(
         iconName: item.iconName,
         iconPixmap: item.iconPixmap,
       ),
-      "NeedsAttention" => _SystemTrayIcon(
+      "NeedsAttention" => SystemTrayIcon(
         iconName: item.attentionIconName,
         iconPixmap: item.attentionIconPixmap,
       ),
-      _ => _SystemTrayIcon(
+      _ => SystemTrayIcon(
         iconName: item.iconName,
         iconPixmap: item.iconPixmap,
       ),
@@ -67,47 +67,64 @@ class SystemTrayIcon extends StatelessWidget {
   }
 }
 
-class _SystemTrayIcon extends StatelessWidget {
+class SystemTrayIcon extends StatelessWidget {
   final DBusValueSignalNotifier<String> iconName;
   final DBusValueSignalNotifier<PixmapIcons> iconPixmap;
 
-  const _SystemTrayIcon({
+  const SystemTrayIcon({
     required this.iconName,
     required this.iconPixmap,
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    final size = TextIcon.getIconEffectiveSize(context);
     return ValueListenableBuilder(
       valueListenable: iconName,
       builder: (context, path, _) {
         return ValueListenableBuilder(
           valueListenable: iconPixmap,
           builder: (context, data, _) {
-            if (data != PixmapIcons.empty()) {
-              Pixmap icon = data.icons[0];
-              // TODO: 3 choose the optimal size needed, instead of just getting largest
-              for (int i = 1; i < data.icons.length; i++) {
-                if ((data.icons[i].width + data.icons[i].height) > (icon.width + icon.height)) {
-                  icon = data.icons[i];
-                }
-              }
-              return SizedBox(
-                width: size,
-                height: size,
-                child: ARGB32ImageRenderer(
-                  argb32Data: Uint8List.fromList(icon.data.toList()),
-                  height: icon.height,
-                  width: icon.width,
-                ),
-              );
-            } else {
-              return XdgIcon(name: path, size: size.round());
-            }
+            return RawSystemTrayIcon(path: path, data: data);
           },
         );
       },
     );
+  }
+}
+
+class RawSystemTrayIcon extends StatelessWidget {
+  final String path;
+  final PixmapIcons data;
+
+  const RawSystemTrayIcon({
+    required this.path,
+    required this.data,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final size = TextIcon.getIconEffectiveSize(context);
+    if (data != PixmapIcons.empty() && data.icons.isNotEmpty) {
+      Pixmap icon = data.icons[0];
+      // TODO: 3 choose the optimal size needed, instead of just getting largest
+      for (int i = 1; i < data.icons.length; i++) {
+        if ((data.icons[i].width + data.icons[i].height) > (icon.width + icon.height)) {
+          icon = data.icons[i];
+        }
+      }
+      return SizedBox(
+        width: size,
+        height: size,
+        child: ARGB32ImageRenderer(
+          argb32Data: Uint8List.fromList(icon.data.toList()),
+          height: icon.height,
+          width: icon.width,
+        ),
+      );
+    } else {
+      return XdgIcon(name: path, size: size.round());
+    }
   }
 }

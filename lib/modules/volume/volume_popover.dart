@@ -1,91 +1,105 @@
 import "package:flutter/material.dart";
 import "package:waywing/modules/volume/volume_config.dart";
+import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/modules/volume/volume_tooltip.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
+import "package:xdg_icons/xdg_icons.dart";
 
 class VolumePopover extends StatelessWidget {
   final VolumeConfig config;
   final VolumeService service;
+  final VolumeIndicatorType type;
 
   const VolumePopover({
     required this.config,
     required this.service,
+    required this.type,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    const minWidthPerItem = (256 * 0.75);
+    final itemCount = switch (type) {
+      VolumeIndicatorType.single => 3,
+      VolumeIndicatorType.output => 2,
+      VolumeIndicatorType.input => 1,
+    };
+    final minWidth = minWidthPerItem * itemCount;
+    final maxWidth = minWidth * 1.5;
     return ConstrainedBox(
       constraints: BoxConstraints(
-        minWidth: 512,
-        maxWidth: 512 * 1.5,
+        minWidth: minWidth,
+        maxWidth: maxWidth,
         maxHeight: 512,
       ),
       child: IntrinsicWidth(
         child: IntrinsicHeight(
-          // TODO: 1 swap apps and inputs when on right side bar
           child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(width: 6),
-              Expanded(
-                child: ValueListenableBuilder(
-                  valueListenable: service.apps,
-                  builder: (context, apps, _) {
-                    return VolumeInterfaceList(
-                      models: apps,
-                      config: config,
-                      label: "APPS",
-                    );
-                  },
+              if (type == VolumeIndicatorType.output || type == VolumeIndicatorType.single)
+                Expanded(
+                  child: ValueListenableBuilder(
+                    valueListenable: service.apps,
+                    builder: (context, apps, _) {
+                      return VolumeInterfaceList(
+                        models: apps,
+                        config: config,
+                        label: "APPS",
+                      );
+                    },
+                  ),
                 ),
-              ),
               // VerticalDivider(),
-              Expanded(
-                child: ValueListenableBuilder(
-                  valueListenable: service.defaultOutput,
-                  builder: (context, defaultOutput, child) {
-                    return ValueListenableBuilder(
-                      valueListenable: service.outputs,
-                      builder: (context, outputs, _) {
-                        return VolumeInterfaceList(
-                          config: config,
-                          models: outputs,
-                          label: "OUTPUTS",
-                          defaultModel: defaultOutput,
-                          onDefaultSelected: (model) {
-                            service.setDefaultOutput(model);
-                          },
-                        );
-                      },
-                    );
-                  },
+              if (type == VolumeIndicatorType.output || type == VolumeIndicatorType.single)
+                Expanded(
+                  child: ValueListenableBuilder(
+                    valueListenable: service.defaultOutput,
+                    builder: (context, defaultOutput, child) {
+                      return ValueListenableBuilder(
+                        valueListenable: service.outputs,
+                        builder: (context, outputs, _) {
+                          return VolumeInterfaceList(
+                            config: config,
+                            models: outputs,
+                            label: "OUTPUTS",
+                            defaultModel: defaultOutput,
+                            onDefaultSelected: (model) {
+                              service.setDefaultOutput(model);
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
               // VerticalDivider(),
-              Expanded(
-                child: ValueListenableBuilder(
-                  valueListenable: service.defaultInput,
-                  builder: (context, defaultInput, child) {
-                    return ValueListenableBuilder(
-                      valueListenable: service.inputs,
-                      builder: (context, inputs, _) {
-                        return VolumeInterfaceList(
-                          config: config,
-                          models: inputs,
-                          label: "INPUTS",
-                          defaultModel: defaultInput,
-                          onDefaultSelected: (model) {
-                            service.setDefaultInput(model);
-                          },
-                        );
-                      },
-                    );
-                  },
+              if (type == VolumeIndicatorType.input || type == VolumeIndicatorType.single)
+                Expanded(
+                  child: ValueListenableBuilder(
+                    valueListenable: service.defaultInput,
+                    builder: (context, defaultInput, child) {
+                      return ValueListenableBuilder(
+                        valueListenable: service.inputs,
+                        builder: (context, inputs, _) {
+                          return VolumeInterfaceList(
+                            config: config,
+                            models: inputs,
+                            label: "INPUTS",
+                            defaultModel: defaultInput,
+                            onDefaultSelected: (model) {
+                              service.setDefaultInput(model);
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
               SizedBox(width: 6),
             ],
           ),
@@ -159,6 +173,7 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
   }
 
   Widget buildVolumeSlider(BuildContext context, T model) {
+    const appIconSize = 24;
     return Row(
       children: [
         SizedBox(
@@ -173,6 +188,24 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
               onChanged: (value) {
                 onDefaultSelected!(value!);
               },
+            ),
+          ),
+        if (model is VolumeAppInterface)
+          Padding(
+            padding: EdgeInsets.only(right: 6),
+            child: SizedBox(
+              height: appIconSize.toDouble(),
+              width: appIconSize.toDouble(),
+              child: ValueListenableBuilder(
+                valueListenable: ((model as VolumeAppInterface).iconName),
+                builder: (context, iconName, child) {
+                  if (iconName == null) return SizedBox.shrink();
+                  return XdgIcon(
+                    name: iconName,
+                    size: appIconSize,
+                  );
+                },
+              ),
             ),
           ),
         Expanded(

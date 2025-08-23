@@ -11,6 +11,7 @@ import "package:waywing/widgets/config_changes_watcher.dart";
 import "package:waywing/util/window_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/winged_popover_provider.dart";
+import "package:xdg_icons/xdg_icons.dart";
 
 void main(List<String> args) async {
   final cliparser = ArgParser()
@@ -79,17 +80,26 @@ class App extends StatelessWidget {
                   color: Colors.grey.shade400.withValues(alpha: 0.66),
                 ),
               ),
-              home: Scaffold(
-                backgroundColor: Colors.transparent,
-                body: WingedPopoverProvider(
-                  // TODO: 3 add animation when showing / hiding Bar and maybe other wings as well. Should this be global or should each Wing handle it?
-                  child: Stack(
-                    children: [
-                      Bar(),
-                      // TODO: 2 implement Wings
-                    ],
-                  ),
-                ),
+              home: Builder(
+                builder: (context) {
+                  return XdgIconTheme(
+                    data: XdgIconThemeData(
+                      size: (Theme.of(context).iconTheme.size ?? kDefaultFontSize).round(),
+                    ),
+                    child: Scaffold(
+                      backgroundColor: Colors.transparent,
+                      body: WingedPopoverProvider(
+                        // TODO: 3 add animation when showing / hiding Bar and maybe other wings as well. Should this be global or should each Wing handle it?
+                        child: Stack(
+                          children: [
+                            Bar(),
+                            // TODO: 2 implement Wings
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           );

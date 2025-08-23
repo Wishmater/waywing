@@ -7,15 +7,23 @@ import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/widgets/winged_button.dart";
 import "package:waywing/widgets/winged_popover.dart";
 
+enum VolumeIndicatorType {
+  single,
+  output,
+  input,
+}
+
 class VolumeIndicator extends StatelessWidget {
   final VolumeConfig config;
   final VolumeService service;
   final WingedPopoverController popover;
+  final VolumeIndicatorType type;
 
   const VolumeIndicator({
     required this.config,
     required this.service,
     required this.popover,
+    required this.type,
     super.key,
   });
 
@@ -25,17 +33,21 @@ class VolumeIndicator extends StatelessWidget {
       builder: (context, constraints) {
         final isVertical = constraints.maxHeight > constraints.maxWidth;
         return ValueListenableBuilder(
-          valueListenable: service.defaultOutput,
+          valueListenable: type == VolumeIndicatorType.input ? service.defaultInput : service.defaultOutput,
           builder: (context, defaultOutput, child) {
             Widget result;
             if (defaultOutput == null) {
-              result = Icon(MaterialCommunityIcons.volume_variant_off);
+              result = type == VolumeIndicatorType.input
+                  ? Icon(MaterialCommunityIcons.microphone_off)
+                  : Icon(MaterialCommunityIcons.volume_variant_off);
             } else {
               result = ValueListenableBuilder(
                 valueListenable: defaultOutput.isMuted,
                 builder: (context, isMuted, child) {
                   if (isMuted) {
-                    return Icon(MaterialCommunityIcons.volume_mute);
+                    return type == VolumeIndicatorType.input
+                        ? Icon(MaterialCommunityIcons.microphone_outline) // TODO: 2 find a better icon for muted mic
+                        : Icon(MaterialCommunityIcons.volume_mute);
                   }
                   return VolumeScrollWhellListener(
                     model: defaultOutput,
@@ -46,23 +58,29 @@ class VolumeIndicator extends StatelessWidget {
                         Widget icon;
                         Color volTrackColor = Theme.of(context).dividerTheme.color!;
                         Color volValueColor = Theme.of(context).colorScheme.primary;
-                        // TODO: 2 add animation to icon change
                         if (volume == 0) {
-                          icon = FractionalTranslation(
-                            translation: Offset(-0.08, 0),
-                            child: Icon(MaterialCommunityIcons.volume_low),
-                          );
                           volTrackColor = Color.alphaBlend(Colors.black26, Theme.of(context).dividerTheme.color!);
-                        } else if (volume <= 0.5) {
-                          icon = Icon(MaterialCommunityIcons.volume_medium);
-                        } else {
-                          icon = FractionalTranslation(
-                            translation: Offset(0.08, 0),
-                            child: Icon(MaterialCommunityIcons.volume_high),
-                          );
-                        }
-                        if (volume == 1) {
+                        } else if (volume == 1) {
                           volValueColor = Theme.of(context).colorScheme.secondary;
+                        }
+                        // TODO: 2 add animation to icon change
+                        if (type == VolumeIndicatorType.input) {
+                          // TODO: 2 find better icons for mic low/med/high volume (or implement a better continuous clipper (similar to wifi) that works for both)
+                          icon = Icon(MaterialCommunityIcons.microphone);
+                        } else {
+                          if (volume == 0) {
+                            icon = FractionalTranslation(
+                              translation: Offset(-0.08, 0),
+                              child: Icon(MaterialCommunityIcons.volume_low),
+                            );
+                          } else if (volume <= 0.5) {
+                            icon = Icon(MaterialCommunityIcons.volume_medium);
+                          } else {
+                            icon = FractionalTranslation(
+                              translation: Offset(0.08, 0),
+                              child: Icon(MaterialCommunityIcons.volume_high),
+                            );
+                          }
                         }
 
                         final volBarSize = (Theme.of(context).iconTheme.size ?? kDefaultFontSize) * 0.25;

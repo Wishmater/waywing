@@ -10,10 +10,12 @@ import "package:waywing/widgets/winged_button.dart";
 class VolumeTooltip extends StatelessWidget {
   final VolumeConfig config;
   final VolumeService service;
+  final VolumeIndicatorType type;
 
   const VolumeTooltip({
     required this.config,
     required this.service,
+    required this.type,
     super.key,
   });
 
@@ -24,7 +26,7 @@ class VolumeTooltip extends StatelessWidget {
       child: IntrinsicWidth(
         child: IntrinsicHeight(
           child: ValueListenableBuilder(
-            valueListenable: service.defaultOutput,
+            valueListenable: type == VolumeIndicatorType.input ? service.defaultInput : service.defaultOutput,
             builder: (context, defaultOutput, child) {
               // TODO: 2 maybe add an AnimatedSwitcher here
               if (defaultOutput == null) {

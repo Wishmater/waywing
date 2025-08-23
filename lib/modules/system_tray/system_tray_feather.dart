@@ -33,7 +33,6 @@ class SystemTrayFeather extends Feather {
     service = await serviceRegistry.requestService<SystemTrayService>(this);
   }
 
-  // TODO: 1 maybe make each system tray item a component ? (see NMFeather implementation)
   @override
   late final ValueListenable<List<FeatherComponent>> components = DerivedValueNotifier(
     dependencies: [service.values.items],
@@ -41,6 +40,8 @@ class SystemTrayFeather extends Feather {
       final result = <FeatherComponent>[];
       for (final item in service.values.items.value) {
         result.add(
+          // TODO: 2 implement reordering system tray icons
+          // TODO: 2 implement overflow menu for hidden tray icons
           FeatherComponent(
             buildIndicators: (context, popover, tooltip) {
               return [
@@ -54,7 +55,6 @@ class SystemTrayFeather extends Feather {
             buildTooltip: (context) {
               return SystemTrayTooltip(service: service, item: item);
             },
-            // TODO: 1 do we need to listen to changes in item.dbusmenu ?
             isPopoverEnabled: DummyValueNotifier(item.dbusmenu != null),
             buildPopover: (context) {
               return SystemTrayPopover(service: service, item: item);

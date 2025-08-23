@@ -63,7 +63,7 @@ class OrgKdeStatusNotifierItemToolTip {
     required this.iconData,
   });
 
-  const OrgKdeStatusNotifierItemToolTip.emtpy()
+  const OrgKdeStatusNotifierItemToolTip.empty()
     : title = "",
       description = "",
       iconName = "",
@@ -259,7 +259,7 @@ class OrgKdeStatusNotifierItemValues {
     );
 
     tooltip = DBusValueSignalNotifier(
-      OrgKdeStatusNotifierItemToolTip.emtpy(),
+      OrgKdeStatusNotifierItemToolTip.empty(),
       () async {
         final data = await statusNotifierItem.getToolTip();
         return OrgKdeStatusNotifierItemToolTip.fromDBusData(data);
@@ -340,7 +340,11 @@ class DBusValueSignalNotifier<T> extends ChangeNotifier implements ValueListenab
       } on DBusInvalidArgsException catch (e) {
         logger.debug("[$debugLabel] Error calling method: ", error: e);
       } catch (e, st) {
-        logger.error("[$debugLabel] Error calling method. Canceling subscrption, value will recieve no more updates", error: e, stackTrace: st);
+        logger.error(
+          "[$debugLabel] Error calling method. Canceling subscrption, value will recieve no more updates",
+          error: e,
+          stackTrace: st,
+        );
         subscription.cancel();
       }
     });

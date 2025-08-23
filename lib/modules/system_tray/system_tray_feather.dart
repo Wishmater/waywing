@@ -5,7 +5,7 @@ import "package:flutter/material.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
-import "package:waywing/modules/system_tray/system_tray_widget.dart";
+import "package:waywing/modules/system_tray/system_tray_indicator.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
@@ -33,13 +33,32 @@ class SystemTrayFeather extends Feather {
 
   // TODO: 1 maybe make each system tray item a component ? (see NMFeather implementation)
   @override
-  late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([systemTrayComponent]);
-
-  late final systemTrayComponent = FeatherComponent(
-    buildIndicators: (context, popover, tooltip) {
-      return [
-        SystemTrayWidget(service: service),
-      ];
+  late final ValueListenable<List<FeatherComponent>> components = DerivedValueNotifier(
+    dependencies: [service.values.items],
+    derive: () {
+      final result = <FeatherComponent>[];
+      for (final item in service.values.items.value) {
+        result.add(
+          FeatherComponent(
+            buildIndicators: (context, popover, tooltip) {
+              return [
+                SystemTrayIndicator(
+                  service: service,
+                  item: item,
+                  popover: popover!,
+                ),
+              ];
+            },
+            buildTooltip: (context) {
+              return Text('Tooltip');
+            },
+            buildPopover: (context) {
+              return Text('Popover');
+            },
+          ),
+        );
+      }
+      return result;
     },
   );
 }

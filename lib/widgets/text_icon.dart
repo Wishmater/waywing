@@ -15,7 +15,7 @@ class TextIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iconTheme = Theme.of(context).iconTheme;
-    final adjustedSize = (size ?? iconTheme.size ?? kDefaultFontSize) * (24 / 14);
+    final adjustedSize = getIconEffectiveSize(context, size: size);
     return SizedBox(
       width: adjustedSize,
       height: adjustedSize,
@@ -28,5 +28,11 @@ class TextIcon extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static double getIconEffectiveSize(BuildContext context, {double? size}) {
+    final iconTheme = Theme.of(context).iconTheme;
+    final adjustedSize = (size ?? iconTheme.size ?? kDefaultFontSize) * (24 / 14);
+    return adjustedSize;
   }
 }

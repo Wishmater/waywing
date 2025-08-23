@@ -7,6 +7,7 @@ import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "package:waywing/modules/system_tray/system_tray_indicator.dart";
 import "package:waywing/core/feather.dart";
+import "package:waywing/modules/system_tray/system_tray_tooltip.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
 class SystemTrayFeather extends Feather {
@@ -50,7 +51,7 @@ class SystemTrayFeather extends Feather {
               ];
             },
             buildTooltip: (context) {
-              return Text('Tooltip');
+              return SystemTrayTooltip(service: service, item: item);
             },
             buildPopover: (context) {
               return Text('Popover');

@@ -24,7 +24,6 @@ class OsInfoService extends Service {
   @override
   Future<void> init() async {
     List<String> lines;
-    print('pass');
     try {
       lines = await File("/etc/os-release").readAsLines();
     } catch (e, st) {

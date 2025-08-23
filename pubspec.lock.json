@@ -337,13 +337,10 @@
     "fl_linux_window_manager": {
       "dependency": "direct main",
       "description": {
-        "path": ".",
-        "ref": "05285a48eb0f",
-        "resolved-ref": "05285a48eb0f197de1b1b0646faa5c93a95bca87",
-        "url": "https://github.com/Wishmater/fl-linux-window-manager",
-        "sha256": "sha256-xbVtCVZYdtKqoST3S0TuCNTMpmMDe8H28L3tXn7NQKo="
+        "path": "../fl-linux-window-manager",
+        "relative": true
       },
-      "source": "git",
+      "source": "path",
       "version": "1.2.0"
     },
     "flutter": {

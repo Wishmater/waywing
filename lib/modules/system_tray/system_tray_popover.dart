@@ -80,6 +80,7 @@ class SystemTrayMenu extends StatelessWidget {
                     SizedBox(height: 8),
                     for (final item in layout.submenu) //
                       SystemTrayMenuItem(
+                        parent: layout,
                         item: item,
                         depth: depth,
                         forceIconSpace: forceIconSpace,
@@ -97,12 +98,14 @@ class SystemTrayMenu extends StatelessWidget {
 }
 
 class SystemTrayMenuItem extends StatelessWidget {
+  final DBusMenuItem parent;
   final DBusMenuItem item;
   final int depth;
   final bool forceIconSpace;
 
   const SystemTrayMenuItem({
     super.key,
+    required this.parent,
     required this.item,
     required this.depth,
     required this.forceIconSpace,
@@ -129,7 +132,12 @@ class SystemTrayMenuItem extends StatelessWidget {
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               alignment: Alignment.centerLeft,
-              onTap: !item.properties.enabled || item.submenu.isEmpty ? null : () => popover.togglePopover(),
+              containedInkWell: true,
+              onTap: !item.properties.enabled
+                  ? null
+                  : item.submenu.isNotEmpty
+                  ? () => popover.togglePopover()
+                  : () {}, // TODO: 1 handle click on this item
               child: Row(
                 children: [
                   SystemTrayMenuIcon(
@@ -177,10 +185,19 @@ class SystemTrayMenuItem extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (item.submenu.isNotEmpty)
+                    Transform.translate(
+                      offset: Offset(4, 0),
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: Theme.of(context).textTheme.bodyLarge!.fontSize! * 1.33,
+                      ),
+                    ),
                 ],
               ),
             );
           },
+          // TODO: 1 handle menu overflowing when too close to the right
           popoverParams: PopoverParams(
             enabled: item.submenu.isNotEmpty,
             anchorAlignment: Alignment.topRight,
@@ -188,7 +205,7 @@ class SystemTrayMenuItem extends StatelessWidget {
             overflowAlignment: Alignment.topLeft,
             // -10 is the zIndex of Bar popups, it's not ideal to have it hardcoded here, but whatever
             zIndex: -10 - 1 - depth,
-            containerId: "SystemTrayMenu-$hashCode",
+            containerId: "SystemTrayMenu-${parent.id}",
             builder: (context, _, _) {
               return SystemTrayMenu(
                 layout: item,

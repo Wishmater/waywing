@@ -23,14 +23,19 @@ class SystemTrayIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WingedButton(
-      child: SystemTrayItemIcon(item: item),
-      onTap: () {
-        // TODO: 1 implement activating app
+    return GestureDetector(
+      onTertiaryTapDown: (_) {
+        item.secondaryActivate();
       },
-      onSecondaryTap: () {
-        popover.togglePopover();
-      },
+      child: WingedButton(
+        onTap: () {
+          item.primaryActivate();
+        },
+        onSecondaryTap: () {
+          popover.togglePopover();
+        },
+        child: SystemTrayItemIcon(item: item),
+      ),
     );
   }
 }

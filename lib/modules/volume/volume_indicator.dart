@@ -56,7 +56,7 @@ class VolumeIndicator extends StatelessWidget {
                       valueListenable: defaultOutput.volume,
                       builder: (context, volume, child) {
                         Widget icon;
-                        Color volTrackColor = Theme.of(context).dividerTheme.color!;
+                        Color volTrackColor = Theme.of(context).dividerTheme.color ?? Theme.of(context).dividerColor;
                         Color volValueColor = Theme.of(context).colorScheme.primary;
                         if (volume == 0) {
                           volTrackColor = Color.alphaBlend(Colors.black26, Theme.of(context).dividerTheme.color!);

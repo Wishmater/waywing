@@ -59,12 +59,14 @@ class SystemTrayService extends Service {
       _host = OrgKdeStatusNotifierHostImpl(logger, DBusObjectPath("/"));
     } catch (e, st) {
       logger.fatal('DBusObjectPath("shell.waywing.StatusNotifierHost") failed', error: e, stackTrace: st);
+      rethrow;
     }
     await _client.registerObject(_host);
     try {
       await _host.init();
     } catch (e, st) {
       logger.fatal("Host initialization failed", error: e, stackTrace: st);
+      rethrow;
     }
 
     values = StatusNotifierItemsValues(_host);

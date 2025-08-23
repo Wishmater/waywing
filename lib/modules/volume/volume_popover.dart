@@ -176,9 +176,7 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
     const appIconSize = 24;
     return Row(
       children: [
-        SizedBox(
-          width: 16,
-        ),
+        SizedBox(width: 16),
         if (onDefaultSelected != null)
           Padding(
             padding: const EdgeInsets.only(top: 4),

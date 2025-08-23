@@ -6,6 +6,7 @@ import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "package:xdg_icons/xdg_icons.dart";
+import "package:flutter_html/flutter_html.dart";
 
 class NotificationsWidget extends StatefulWidget {
   final NotificationService service;
@@ -158,7 +159,10 @@ class _RenderBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(notification.body),
+        Html(
+          data: notification.body.replaceAll("\n", "\n<br/>\n"),
+          onlyRenderTheseTags: {"html", "body", "br", "a", "b", "img", "u", "i"},
+        ),
         // only use the image as part of the body when the notification appIcon is not empty
         if (notification.appIcon.isNotEmpty && notification.image != null) ...[
           switch (notification.image!) {

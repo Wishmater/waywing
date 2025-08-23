@@ -377,8 +377,11 @@ class NotificationHints {
   /// The urgency level.
   final NotificationUrgency urgency;
 
+  /// If this notification is suppose to use the synchronous logic.
+  /// Replace a previous notification with this same synchronous value.
   final String? synchronous;
 
+  /// A placeholder for the text input when inline reply is requested
   final String? inlineReplyPlaceholderText;
 
   const NotificationHints._({

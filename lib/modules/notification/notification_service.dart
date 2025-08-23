@@ -1,5 +1,6 @@
 import "package:dbus/dbus.dart";
 import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
+import "package:flutter/material.dart" hide Notification;
 import "package:flutter/foundation.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
@@ -87,5 +88,20 @@ class NotificationsList {
       notifications.value.removeAt(index);
       (notifications as ManualValueNotifier).manualNotifyListeners();
     });
+  }
+}
+
+class NotificationServiceInheritedWidget extends InheritedWidget {
+  final NotificationService service;
+
+  const NotificationServiceInheritedWidget({super.key, required super.child, required this.service});
+
+  static NotificationService of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<NotificationServiceInheritedWidget>()!.service;
+  }
+
+  @override
+  bool updateShouldNotify(covariant NotificationServiceInheritedWidget oldWidget) {
+    return oldWidget.service != service;
   }
 }

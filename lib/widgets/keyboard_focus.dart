@@ -2,6 +2,7 @@ import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:fl_linux_window_manager/models/keyboard_mode.dart";
 import "package:flutter/material.dart";
 import "package:mutex/mutex.dart" as mut;
+import "package:waywing/core/config.dart";
 
 class KeyboardFocus extends StatefulWidget {
   final Widget child;
@@ -65,6 +66,14 @@ class KeyboardFocusProvider extends StatefulWidget {
 }
 
 class _KeyboardFocusProviderState extends State<KeyboardFocusProvider> {
+  @override
+  void initState() {
+    super.initState();
+    widget.keyboardService.mutex.protect(() {
+      return FlLinuxWindowManager.instance.setKeyboardInteractivity(widget.keyboardService._currentMode);
+    });
+  }
+
   Future<int> requestFocus(KeyboardFocusMode mode) {
     return widget.keyboardService.setMode(mode);
   }
@@ -135,7 +144,15 @@ class KeyboardFocusService {
   int? _currentId;
   mut.Mutex mutex;
 
-  KeyboardMode get _currentMode => _currentId != null ? _modes[_currentId]!.kMode() : KeyboardMode.none;
+  KeyboardMode get _currentMode {
+    if (_currentId != null) {
+      return _modes[_currentId]!.kMode();
+    }
+    if (mainConfig.requestKeyboardFocus) {
+      return KeyboardMode.onDemand;
+    }
+    return KeyboardMode.none;
+  }
 
   KeyboardFocusService._() : _modes = {}, _currentId = null, mutex = mut.Mutex();
 
@@ -175,7 +192,7 @@ class KeyboardFocusService {
         return;
       }
       if (id == _currentId) {
-        final id = _searchMaxPriorityMode();
+        final id = _searchMaxPriorityMode().$1;
         if (id == -1) {
           assert(_modes.isEmpty, "modes is not empty but searchMaxPriorityMode return -1");
           assert(
@@ -194,9 +211,9 @@ class KeyboardFocusService {
     });
   }
 
-  int _searchMaxPriorityMode() {
+  (int, KeyboardMode) _searchMaxPriorityMode() {
     int id = -1;
-    KeyboardMode mode = KeyboardMode.none;
+    KeyboardMode mode = mainConfig.requestKeyboardFocus ? KeyboardMode.onDemand : KeyboardMode.none;
     for (final entry in _modes.entries) {
       final key = entry.key;
       final value = entry.value;
@@ -205,6 +222,6 @@ class KeyboardFocusService {
         mode = value.kMode();
       }
     }
-    return id;
+    return (id, mode);
   }
 }

@@ -2,6 +2,7 @@ import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
+import "package:flutter/services.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
@@ -438,9 +439,26 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                 ),
               );
             }
+
+            Widget result = CallbackShortcuts(
+              bindings: {
+                SingleActivator(LogicalKeyboardKey.escape): () {
+                  if (widget.isTooltip) {
+                    if (widget.host.isTooltipShown) {
+                      widget.host.hideTooltip();
+                    }
+                  } else {
+                    if (widget.host.isPopoverShown) {
+                      widget.host.hidePopover();
+                    }
+                  }
+                },
+              },
+              child: container,
+            );
             // print("childSize: $childSize");
             // print("childPosition: $childPosition");
-            Widget result = AnimatedPositioned(
+            result = AnimatedPositioned(
               duration: popoverParams.animationDuration ?? mainConfig.animationDuration,
               curve: mainConfig.animationCurve,
               left: childPosition.dx,
@@ -448,7 +466,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               width: childSize.width,
               height: childSize.height,
               onEnd: !widget.isRemoved ? null : onRemoveAnimationEnd,
-              child: container,
+              child: result,
             );
 
             // add extra client clippers

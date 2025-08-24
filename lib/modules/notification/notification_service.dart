@@ -56,9 +56,12 @@ class NotificationService extends Service {
     await server.emitActivationToken(notification, token);
   }
 
-Future<void> emitNotificationReplied(Notification notification, String text) async {
-  await server.emitSignal("org.freedesktop.Notifications", "NotificationReplied", [DBusUint32(notification.id), DBusString(text)]);
-}
+  Future<void> emitNotificationReplied(Notification notification, String text) async {
+    await server.emitSignal("org.freedesktop.Notifications", "NotificationReplied", [
+      DBusUint32(notification.id),
+      DBusString(text),
+    ]);
+  }
 }
 
 class NotificationsList {

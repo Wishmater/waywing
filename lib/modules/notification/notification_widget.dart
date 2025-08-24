@@ -66,29 +66,41 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
     return ValueListenableBuilder(
       valueListenable: widget.notification,
       builder: (context, notification, _) {
-        return NotificationInheritedWidget(
-          notification,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withAlpha(80),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: InputRegion(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: InkResponse(
-                  onTap: () {
-                    service.emitActivationToken(notification);
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _RenderTitle(notification),
-                      // render summary
-                      Text(notification.summary, style: theme.textTheme.titleLarge),
-                      // render body
-                      _RenderBody(notification),
-                    ],
+        final timer = service.server.getTimer(widget.notification.value);
+        return KeyboardFocus(
+          mode: KeyboardFocusMode.onDemand,
+          child: MouseRegion(
+            onEnter: (_) {
+                timer.stop();
+            },
+            onExit: (_) {
+                timer.start();
+            },
+            child: NotificationInheritedWidget(
+              notification,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withAlpha(80),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: InputRegion(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: InkResponse(
+                      onTap: () {
+                        service.emitActivationToken(notification);
+                      },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _RenderTitle(notification),
+                          // render summary
+                          Text(notification.summary, style: theme.textTheme.titleLarge),
+                          // render body
+                          _RenderBody(notification),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -214,14 +226,11 @@ class _RenderInlineReply extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service = NotificationServiceInheritedWidget.of(context);
-    return KeyboardFocus(
-      mode: KeyboardFocusMode.onDemand,
-      child: SizedBox(
-        width: 100,
-        child: TextField(
-          onSubmitted: (value) => service.emitNotificationReplied(notification, value),
-          decoration: InputDecoration(hintText: notification.hints.inlineReplyPlaceholderText)
-        ),
+    return SizedBox(
+      width: 100,
+      child: TextField(
+        onSubmitted: (value) => service.emitNotificationReplied(notification, value),
+        decoration: InputDecoration(hintText: notification.hints.inlineReplyPlaceholderText)
       ),
     );
   }

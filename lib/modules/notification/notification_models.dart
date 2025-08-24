@@ -1,10 +1,10 @@
 import "dart:async";
-import "dart:typed_data";
 import "dart:ui" as ui;
 
 import "package:dartx/dartx.dart";
 import "package:dbus/dbus.dart";
-import "package:flutter/services.dart";
+import "package:flutter/foundation.dart";
+import "package:flutter/scheduler.dart";
 import "package:waywing/modules/notification/spec/application.dart";
 
 /// Notifications can optionally have a type indicator.
@@ -625,5 +625,87 @@ class Action {
   @override
   String toString() {
     return "Action(key: $key, value: $value)";
+  }
+}
+
+class NotificationTimer implements Listenable {
+  Duration currentTimeout;
+  final Duration startTimeout;
+  Duration? _prevDur;
+
+  double get percentageCompleted {
+    final passed = (startTimeout - currentTimeout).inMicroseconds.toDouble();
+    final total = startTimeout.inMicroseconds.toDouble();
+    return passed / total;
+  }
+
+  late int _callbackId;
+  final void Function() _callback;
+
+  bool _running;
+  bool get running => _running;
+
+  bool _called;
+
+  final List<ui.VoidCallback> _listeners;
+
+  NotificationTimer(this._callback, Duration timeout)
+    : _running = true,
+      _called = false,
+      _listeners = [],
+      startTimeout = timeout,
+      currentTimeout = timeout {
+    _callbackId = SchedulerBinding.instance.scheduleFrameCallback(_updateTime);
+  }
+
+  void stop() => _running = false;
+  void start() => _running = true;
+
+  void _updateTime(Duration dur) {
+    if (_disposed) {
+      return;
+    }
+    _prevDur ??= dur;
+    final delta = dur - _prevDur!;
+    _prevDur = dur;
+
+    if (running) {
+      currentTimeout -= delta;
+    }
+    if (currentTimeout < Duration.zero && !_called) {
+      _callback();
+      _called = true;
+    } else {
+      _callbackId = SchedulerBinding.instance.scheduleFrameCallback(_updateTime, rescheduling: true);
+    }
+    if (running) {
+      _notifyListener();
+    }
+  }
+
+  bool _disposed = false;
+  void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    SchedulerBinding.instance.cancelFrameCallbackWithId(_callbackId);
+    _listeners.clear();
+  }
+
+  @override
+  void addListener(ui.VoidCallback listener) {
+    _listeners.add(listener);
+  }
+
+  @override
+  void removeListener(ui.VoidCallback listener) {
+    _listeners.remove(listener);
+  }
+
+  void _notifyListener() {
+    for (var e in _listeners) {
+      e.call();
+    }
   }
 }

@@ -194,7 +194,7 @@ class OrgFreedesktopNotifications extends DBusObject {
 
   final Map<int, Notification> activeNotifications;
   final Map<String, int> synchronousIds;
-  final Map<int, Timer> _timers;
+  final Map<int, NotificationTimer> _timers;
 
   final StreamController<Notification> _notificationCreated;
   late Stream<Notification> notificationCreated;
@@ -223,7 +223,7 @@ class OrgFreedesktopNotifications extends DBusObject {
     _notificationCreated.close();
     _notificationRemoved.close();
     _notificationChanged.close();
-    _timers.forEach((k, v) => v.cancel());
+    _timers.forEach((k, v) => v.dispose());
     _timers.clear();
   }
 
@@ -236,20 +236,24 @@ class OrgFreedesktopNotifications extends DBusObject {
       synchronousIds[notification.hints.synchronous!] = notification.id;
     }
 
+    _timers[notification.id]?.dispose();
+    if (notification.timeout > 0) {
+      final id = notification.id;
+      _timers[id] = NotificationTimer(
+        () => removeNotification(id, NotificationsCloseReason.expired),
+        Duration(milliseconds: notification.timeout),
+      );
+    }
+
     if (contains) {
       _notificationChanged.add(notification.id);
     } else {
       _notificationCreated.add(notification);
     }
+  }
 
-    _timers[notification.id]?.cancel();
-    if (notification.timeout > 0) {
-      final id = notification.id;
-      _timers[id] = Timer(
-        Duration(milliseconds: notification.timeout),
-        () => removeNotification(id, NotificationsCloseReason.expired),
-      );
-    }
+  NotificationTimer getTimer(Notification notification) {
+    return _timers[notification.id]!;
   }
 
   void removeNotification(int id, NotificationsCloseReason reason) {
@@ -261,7 +265,7 @@ class OrgFreedesktopNotifications extends DBusObject {
       _notificationRemoved.add(id);
       emitNotificationClosed(id, reason.value);
     }
-    _timers.remove(id)?.cancel();
+    _timers.remove(id)?.dispose();
   }
 
   /// Implementation of org.freedesktop.Notifications.GetCapabilities()

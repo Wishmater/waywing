@@ -374,7 +374,7 @@ class NotificationHints {
 
   /// Causes the server to suppress playing any sounds, if it has that ability.
   /// This is usually set when the client itself is going to play its own sound.
-  final bool? supressSound;
+  final bool? suppressSound;
 
   /// When set the server will treat the notification as transient and by-pass the
   /// server's persistence capability, if it should exist.
@@ -401,7 +401,7 @@ class NotificationHints {
     this.imagePath,
     this.soundFile,
     this.soundName,
-    this.supressSound,
+    this.suppressSound,
     this.transient,
     this.synchronous,
     this.inlineReplyPlaceholderText,
@@ -424,7 +424,7 @@ class NotificationHints {
       actionIcons: _parseValue<bool>(hints["action-icons"]) ?? false,
       soundFile: _parseValue<String>(hints["sound-file"]),
       soundName: _parseValue<String>(hints["sound-name"]),
-      supressSound: _parseValue<bool>(hints["supress-sound"]),
+      suppressSound: _parseValue<bool>(hints["suppress-sound"]),
       transient: _parseValue<bool>(hints["transient"]),
       urgency: NotificationUrgency.from(_parseValue<int>(hints["transient"]) ?? 1),
       resident: _parseValue<bool>(hints["resident"]) ?? false,
@@ -501,7 +501,7 @@ class NotificationHints {
         imagePath == other.imagePath &&
         soundFile == other.soundFile &&
         soundName == other.soundName &&
-        supressSound == other.supressSound &&
+        suppressSound == other.suppressSound &&
         transient == other.transient &&
         synchronous == other.synchronous &&
         inlineReplyPlaceholderText == other.inlineReplyPlaceholderText;
@@ -518,7 +518,7 @@ class NotificationHints {
     imagePath,
     soundFile,
     soundName,
-    supressSound,
+    suppressSound,
     transient,
     synchronous,
     inlineReplyPlaceholderText,
@@ -535,7 +535,7 @@ class NotificationHints {
         "imageData: ${imageData != null} "
         "soundFile: $soundFile "
         "soundName: $soundName "
-        "supressSound: $supressSound "
+        "supressSound: $suppressSound "
         "synchronous: $synchronous "
         "transient: $transient "
         "inlineReplyPlaceholderText: $inlineReplyPlaceholderText";

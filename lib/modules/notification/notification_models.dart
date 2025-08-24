@@ -531,7 +531,7 @@ class NotificationHints {
         "resident: $resident "
         "category: $category "
         "desktopEntry: $desktopEntry "
-        "imagePath: $imagePath {"
+        "imagePath: $imagePath "
         "imageData: ${imageData != null} "
         "soundFile: $soundFile "
         "soundName: $soundName "

@@ -312,6 +312,14 @@ class OrgKdeStatusNotifierItemValues {
     status.dispose();
     dbusmenu?.dispose();
   }
+
+  Future<void> primaryActivate() {
+    return statusNotifierItem.callActivate(0, 0);
+  }
+
+  Future<void> secondaryActivate() {
+    return statusNotifierItem.callSecondaryActivate(0, 0);
+  }
 }
 
 class DBusValueSignalNotifier<T> extends ChangeNotifier implements ValueListenable<T> {

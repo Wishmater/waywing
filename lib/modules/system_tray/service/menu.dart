@@ -95,7 +95,7 @@ class DBusMenuItemProperties {
   /// @defautl "normal"
   String disposition;
 
-  static List<String> propertyNames = [
+  static const List<String> propertyNames = [
     "type",
     "label",
     "enabled",
@@ -349,7 +349,34 @@ class DBusMenuValues {
     _streamSubsItemsPropertiesUpdated.cancel();
     layout.dispose();
   }
+
+  /// This is called by the applet to notify the application that it is about
+  /// to show the menu under the specified item.
+  ///
+  /// **[id]** Which menu item represents the parent of the item about to be shown.
+  ///
+  /// **@returns** Whether this AboutToShow event should result in the menu being updated.
+  Future<bool> aboutToShow(DBusMenuItem item) {
+    return canonicalDbusmenu.callAboutToShow(item.id);
+  }
+
+  /// Notify the application an event happened on a menu item.
+  Future<void> sendEvent(DBusMenuItem item, DBusMenuEventType type) {
+    return canonicalDbusmenu.callEvent(
+      item.id,
+      switch (type) {
+        DBusMenuEventType.clicked => "clicked",
+        DBusMenuEventType.hovered => "hovered",
+        DBusMenuEventType.opened => "opened",
+        DBusMenuEventType.closed => "closed",
+      },
+      DBusUint32(0),
+      (DateTime.now().millisecondsSinceEpoch / 1000).floor(),
+    );
+  }
 }
+
+enum DBusMenuEventType { clicked, hovered, opened, closed }
 
 class _UpdatedProps {
   final int id;

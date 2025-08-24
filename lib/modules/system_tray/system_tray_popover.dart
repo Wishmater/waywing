@@ -137,7 +137,7 @@ class SystemTrayMenuItem extends StatelessWidget {
                   ? null
                   : item.submenu.isNotEmpty
                   ? () => popover.togglePopover()
-                  : () {}, // TODO: 1 handle click on this item
+                  : () => {}, // dbusmenu.sendEvent(item, DBusMenuEventType.clicked), // TODO: 1 handle click on this item
               child: Row(
                 children: [
                   SystemTrayMenuIcon(

@@ -39,6 +39,11 @@ class LogType extends LogEventProperty {
 
   @override
   int get hashCode => value.hashCode;
+
+  @override
+  String toString() {
+    return "LogType($value)";
+  }
 }
 
 class Filter extends LogFilter {
@@ -147,4 +152,104 @@ class Printer extends LogPrinter {
       yield* Printer._withIdentation(_identation, childIdentation).log(child);
     }
   }
+}
+
+extension XAggregateLogger on Logger {
+  AggregateLogger? create(
+    Level level,
+    String message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+    List<LogEventProperty> properties = const [],
+  }) {
+    final event = LogEvent(
+      level,
+      message,
+      time: time,
+      error: error,
+      stackTrace: stackTrace,
+      properties: List.from(defaultProperties)..addAll(properties),
+    );
+    for (final hook in eventHooks) {
+      hook(event);
+    }
+    if (!filter.value.shouldLog(event)) {
+      return null;
+    }
+    return AggregateLogger(this, event);
+  }
+}
+
+class AggregateLogger extends Logger {
+  AggregateLogger(Logger parent, this.parentEvent)
+    : childEvents = [],
+      super.raw(
+        filter: parent.filter,
+        printer: parent.printer,
+        output: parent.output,
+        eventHooks: parent.eventHooks,
+        outputHooks: parent.outputHooks,
+        defaultProperties: parent.defaultProperties,
+      );
+
+  final LogEvent parentEvent;
+  final List<LogEvent> childEvents;
+
+  void add(
+    String message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+    List<LogEventProperty> properties = const [],
+  }) => log(
+    parentEvent.level,
+    message,
+    time: time,
+    error: error,
+    stackTrace: stackTrace,
+    properties: properties,
+  );
+
+  @override
+  void log(
+    Level level,
+    String message, {
+    DateTime? time,
+    Object? error,
+    StackTrace? stackTrace,
+    List<LogEvent> childEvents = const [],
+    List<LogEventProperty> properties = const [],
+  }) {
+    final event = LogEvent(
+      parentEvent.level,
+      message,
+      time: time,
+      error: error,
+      stackTrace: stackTrace,
+      properties: List.from(defaultProperties)..addAll(properties),
+    );
+    for (final hook in eventHooks) {
+      hook(event);
+    }
+    if (!filter.value.shouldLog(event)) {
+      return;
+    }
+    this.childEvents.add(event);
+  }
+
+  void end() {
+    super.log(
+      parentEvent.level,
+      parentEvent.message,
+      error: parentEvent.error,
+      stackTrace: parentEvent.stackTrace,
+      properties: parentEvent.properties,
+      time: parentEvent.time,
+      childEvents: childEvents,
+    );
+  }
+
+  @override
+  Future<void> destroy() async {}
 }

@@ -15,13 +15,13 @@ class VolumeService extends Service {
   late final ValueNotifier<VolumeInputInterface?> _defaultInput;
 
   ValueListenable<List<VolumeAppInterface>> get apps => _apps;
-  late final _ManualValueNotifier<List<VolumeAppInterface>> _apps;
+  late final ManualValueNotifier<List<VolumeAppInterface>> _apps;
 
   ValueListenable<List<VolumeOutputInterface>> get outputs => _outputs;
-  late final _ManualValueNotifier<List<VolumeOutputInterface>> _outputs;
+  late final ManualValueNotifier<List<VolumeOutputInterface>> _outputs;
 
   ValueListenable<List<VolumeInputInterface>> get inputs => _inputs;
-  late final _ManualValueNotifier<List<VolumeInputInterface>> _inputs;
+  late final ManualValueNotifier<List<VolumeInputInterface>> _inputs;
 
   late final PulseAudio _client;
 
@@ -51,7 +51,7 @@ class VolumeService extends Service {
     final sinkInputs = await _client.getSinkInputList();
     final apps = sinkInputs.map((e) => VolumeAppInterface(_client, e)).toList();
     await Future.wait(apps.map((e) => e.init()));
-    _apps = _ManualValueNotifier(apps);
+    _apps = ManualValueNotifier(apps);
 
     _sinkInputChangedSubscription = _client.onSinkInputChanged.listen((sinkInput) async {
       final index = _apps.value.indexWhere((e) => e._sinkInput.index == sinkInput.index);
@@ -59,7 +59,7 @@ class VolumeService extends Service {
         final app = VolumeAppInterface(_client, sinkInput);
         await app.init();
         _apps.value.add(app);
-        _apps._manualNotifyListeners();
+        _apps.manualNotifyListeners();
       } else {
         final app = _apps.value[index];
         app._sinkInput = sinkInput;
@@ -71,7 +71,7 @@ class VolumeService extends Service {
       final i = _apps.value.indexWhere((e) => e._sinkInput.index == index);
       if (i != -1) {
         final app = _apps.value.removeAt(i);
-        _apps._manualNotifyListeners();
+        _apps.manualNotifyListeners();
         app.dispose();
       }
     });
@@ -79,14 +79,14 @@ class VolumeService extends Service {
     final sinks = await _client.getSinkList();
     final outputs = sinks.map((e) => VolumeOutputInterface(_client, e)).toList();
     await Future.wait(outputs.map((e) => e.init()));
-    _outputs = _ManualValueNotifier(outputs);
+    _outputs = ManualValueNotifier(outputs);
     _sinkChangedSubscription = _client.onSinkChanged.listen((sink) async {
       final index = _outputs.value.indexWhere((e) => e._sink.index == sink.index);
       if (index == -1) {
         final output = VolumeOutputInterface(_client, sink);
         await output.init();
         _outputs.value.add(output);
-        _outputs._manualNotifyListeners();
+        _outputs.manualNotifyListeners();
       } else {
         final output = _outputs.value[index];
         output._sink = sink;
@@ -97,7 +97,7 @@ class VolumeService extends Service {
       final i = _outputs.value.indexWhere((e) => e._sink.index == index);
       if (i != -1) {
         final output = _outputs.value.removeAt(i);
-        _outputs._manualNotifyListeners();
+        _outputs.manualNotifyListeners();
         output.dispose();
       }
     });
@@ -105,7 +105,7 @@ class VolumeService extends Service {
     final sources = await _client.getSourceList();
     final inputs = sources.where((e) => e.monitorOfSink == null).map((e) => VolumeInputInterface(_client, e)).toList();
     await Future.wait(inputs.map((e) => e.init()));
-    _inputs = _ManualValueNotifier(inputs);
+    _inputs = ManualValueNotifier(inputs);
     _sourceChangedSubscription = _client.onSourceChanged.listen((source) async {
       if (source.monitorOfSink != null) {
         return;
@@ -115,7 +115,7 @@ class VolumeService extends Service {
         final input = VolumeInputInterface(_client, source);
         await input.init();
         _inputs.value.add(input);
-        _inputs._manualNotifyListeners();
+        _inputs.manualNotifyListeners();
       } else {
         final input = _inputs.value[index];
         input._source = source;
@@ -127,7 +127,7 @@ class VolumeService extends Service {
       final i = _inputs.value.indexWhere((e) => e._source.index == index);
       if (i != -1) {
         final input = _inputs.value.removeAt(i);
-        _inputs._manualNotifyListeners();
+        _inputs.manualNotifyListeners();
         input.dispose();
       }
     });
@@ -390,13 +390,5 @@ class VolumeInputInterface extends VolumeInterface {
   @override
   Future<void> setMuted(bool value) {
     return _client.setSourceMute(_source.name, value);
-  }
-}
-
-class _ManualValueNotifier<T> extends DummyValueNotifier<T> {
-  _ManualValueNotifier(super.value);
-
-  void _manualNotifyListeners() {
-    notifyListeners();
   }
 }

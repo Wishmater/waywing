@@ -1,10 +1,11 @@
 import "dart:async";
-import "dart:typed_data";
 import "dart:ui" as ui;
 
 import "package:dartx/dartx.dart";
 import "package:dbus/dbus.dart";
-import "package:flutter/services.dart";
+import "package:flutter/foundation.dart";
+import "package:flutter/scheduler.dart";
+import "package:waywing/modules/notification/spec/application.dart";
 
 /// Notifications can optionally have a type indicator.
 /// Although neither client or nor server must support this, some may choose to.
@@ -342,6 +343,11 @@ class NotificationHints {
   /// for logging purposes, etc.
   final String? desktopEntry;
 
+  /// Some apps may implement this with the exact name of the desktopEntry removing .desktop
+  ///
+  /// This interface allows for activation
+  late final OrgFreedesktopApplication? application;
+
   /// Notification image
   final NotificationHintImage? imageData;
 
@@ -377,11 +383,15 @@ class NotificationHints {
   /// The urgency level.
   final NotificationUrgency urgency;
 
+  /// If this notification is suppose to use the synchronous logic.
+  /// Replace a previous notification with this same synchronous value.
   final String? synchronous;
 
+  /// A placeholder for the text input when inline reply is requested
   final String? inlineReplyPlaceholderText;
 
-  const NotificationHints._({
+  NotificationHints._({
+    required DBusClient dbusClient,
     required this.urgency,
     required this.actionIcons,
     required this.resident,
@@ -395,10 +405,22 @@ class NotificationHints {
     this.transient,
     this.synchronous,
     this.inlineReplyPlaceholderText,
-  });
+  }) {
+    OrgFreedesktopApplication? application;
+    if (desktopEntry != null) {
+      try {
+        final name = desktopEntry!.removeSuffix(".desktop");
+        application = OrgFreedesktopApplication(dbusClient, name, DBusObjectPath("/${name.replaceAll('.', '/')}"));
+      } catch (_) {
+        application = null;
+      }
+    }
+    this.application = application;
+  }
 
-  factory NotificationHints(Map<String, DBusValue> hints) {
+  factory NotificationHints(DBusClient client, Map<String, DBusValue> hints) {
     return NotificationHints._(
+      dbusClient: client,
       actionIcons: _parseValue<bool>(hints["action-icons"]) ?? false,
       soundFile: _parseValue<String>(hints["sound-file"]),
       soundName: _parseValue<String>(hints["sound-name"]),
@@ -464,6 +486,60 @@ class NotificationHints {
     }
     return desktopEntry.removeSuffix(".desktop");
   }
+
+  @override
+  bool operator ==(covariant NotificationHints other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return actionIcons == other.actionIcons &&
+        urgency == other.urgency &&
+        resident == other.resident &&
+        category == other.category &&
+        desktopEntry == other.desktopEntry &&
+        imageData == other.imageData &&
+        imagePath == other.imagePath &&
+        soundFile == other.soundFile &&
+        soundName == other.soundName &&
+        supressSound == other.supressSound &&
+        transient == other.transient &&
+        synchronous == other.synchronous &&
+        inlineReplyPlaceholderText == other.inlineReplyPlaceholderText;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    urgency,
+    actionIcons,
+    resident,
+    category,
+    desktopEntry,
+    imageData,
+    imagePath,
+    soundFile,
+    soundName,
+    supressSound,
+    transient,
+    synchronous,
+    inlineReplyPlaceholderText,
+  ]);
+
+  @override
+  String toString() {
+    return "actionIcons: $actionIcons "
+        "urgency: $urgency "
+        "resident: $resident "
+        "category: $category "
+        "desktopEntry: $desktopEntry "
+        "imagePath: $imagePath {"
+        "imageData: ${imageData != null} "
+        "soundFile: $soundFile "
+        "soundName: $soundName "
+        "supressSound: $supressSound "
+        "synchronous: $synchronous "
+        "transient: $transient "
+        "inlineReplyPlaceholderText: $inlineReplyPlaceholderText";
+  }
 }
 
 class Actions {
@@ -497,6 +573,39 @@ class Actions {
     }
     return Actions._(defaultAction, inlineReply, parsedActions);
   }
+
+  @override
+  bool operator ==(covariant Actions other) {
+    if (defaultAction != other.defaultAction || inlineReply != other.inlineReply) {
+      return false;
+    }
+    if (identical(actions, other.actions)) {
+      return true;
+    }
+    if (actions.length != other.actions.length) {
+      return false;
+    }
+    for (int i = 0; i < actions.length; i++) {
+      if (actions[i] != other.actions[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hashAll(
+    (() sync* {
+      yield defaultAction;
+      yield inlineReply;
+      yield* actions;
+    })(),
+  );
+
+  @override
+  String toString() {
+    return "defaultAction: $defaultAction inlineReply: $inlineReply actions: [${actions.join(", ")}]";
+  }
 }
 
 class Action {
@@ -504,4 +613,99 @@ class Action {
   final String value;
 
   const Action({required this.key, required this.value});
+
+  @override
+  bool operator ==(covariant Action other) {
+    return key == other.key && value == other.value;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([key, value]);
+
+  @override
+  String toString() {
+    return "Action(key: $key, value: $value)";
+  }
+}
+
+class NotificationTimer implements Listenable {
+  Duration currentTimeout;
+  final Duration startTimeout;
+  Duration? _prevDur;
+
+  double get percentageCompleted {
+    final passed = (startTimeout - currentTimeout).inMicroseconds.toDouble();
+    final total = startTimeout.inMicroseconds.toDouble();
+    return passed / total;
+  }
+
+  late int _callbackId;
+  final void Function() _callback;
+
+  bool _running;
+  bool get running => _running;
+
+  bool _called;
+
+  final List<ui.VoidCallback> _listeners;
+
+  NotificationTimer(this._callback, Duration timeout)
+    : _running = true,
+      _called = false,
+      _listeners = [],
+      startTimeout = timeout,
+      currentTimeout = timeout {
+    _callbackId = SchedulerBinding.instance.scheduleFrameCallback(_updateTime);
+  }
+
+  void stop() => _running = false;
+  void start() => _running = true;
+
+  void _updateTime(Duration dur) {
+    if (_disposed) {
+      return;
+    }
+    _prevDur ??= dur;
+    final delta = dur - _prevDur!;
+    _prevDur = dur;
+
+    if (running) {
+      currentTimeout -= delta;
+    }
+    if (currentTimeout < Duration.zero && !_called) {
+      _callback();
+      _called = true;
+    } else {
+      _callbackId = SchedulerBinding.instance.scheduleFrameCallback(_updateTime, rescheduling: true);
+    }
+    if (running) {
+      _notifyListener();
+    }
+  }
+
+  bool _disposed = false;
+  void dispose() {
+    if (_disposed) {
+      return;
+    }
+    _disposed = true;
+    SchedulerBinding.instance.cancelFrameCallbackWithId(_callbackId);
+    _listeners.clear();
+  }
+
+  @override
+  void addListener(ui.VoidCallback listener) {
+    _listeners.add(listener);
+  }
+
+  @override
+  void removeListener(ui.VoidCallback listener) {
+    _listeners.remove(listener);
+  }
+
+  void _notifyListener() {
+    for (var e in _listeners) {
+      e.call();
+    }
+  }
 }

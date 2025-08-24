@@ -1,5 +1,6 @@
 import "dart:typed_data";
 
+import "package:dbus/dbus.dart";
 import "package:flutter/material.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
@@ -28,8 +29,18 @@ class SystemTrayIndicator extends StatelessWidget {
         item.secondaryActivate();
       },
       child: WingedButton(
-        onTap: () {
-          item.primaryActivate();
+        onTap: () async {
+          if (!item.itemIsMenu) {
+            try {
+              await item.primaryActivate();
+            } on DBusUnknownMethodException catch (_) {
+              // if activate is not available then assume itemIsMenu is wrong
+              // and this is an only menu item
+              popover.togglePopover();
+            }
+          } else {
+            popover.togglePopover();
+          }
         },
         onSecondaryTap: () {
           popover.togglePopover();

@@ -313,12 +313,12 @@ class OrgKdeStatusNotifierItemValues {
     dbusmenu?.dispose();
   }
 
-  void primaryActivate() {
-    statusNotifierItem.callActivate(0, 0);
+  Future<void> primaryActivate() {
+    return statusNotifierItem.callActivate(0, 0);
   }
 
-  void secondaryActivate() {
-    statusNotifierItem.callSecondaryActivate(0, 0);
+  Future<void> secondaryActivate() {
+    return statusNotifierItem.callSecondaryActivate(0, 0);
   }
 }
 

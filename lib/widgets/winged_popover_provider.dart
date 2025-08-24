@@ -107,7 +107,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    // TODO: 2 add delay to showing tooltip after entering host (param passed to the host)
+    // TODO: 1 add delay to showing tooltip after entering host (param passed to the host)
     if (host.widget.tooltipParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }

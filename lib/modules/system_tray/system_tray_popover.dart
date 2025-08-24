@@ -198,6 +198,7 @@ class SystemTrayMenuItem extends StatelessWidget {
             );
           },
           // TODO: 1 handle menu overflowing when too close to the right
+          // TODO: 1 this should be a tooltip (opening on hover), not a popover
           popoverParams: PopoverParams(
             enabled: item.submenu.isNotEmpty,
             anchorAlignment: Alignment.topRight,

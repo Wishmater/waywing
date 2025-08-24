@@ -5,6 +5,7 @@ import "dart:ui" as ui;
 import "package:dartx/dartx.dart";
 import "package:dbus/dbus.dart";
 import "package:flutter/services.dart";
+import "package:waywing/modules/notification/spec/application.dart";
 
 /// Notifications can optionally have a type indicator.
 /// Although neither client or nor server must support this, some may choose to.
@@ -342,6 +343,11 @@ class NotificationHints {
   /// for logging purposes, etc.
   final String? desktopEntry;
 
+  /// Some apps may implement this with the exact name of the desktopEntry removing .desktop
+  ///
+  /// This interface allows for activation
+  late final OrgFreedesktopApplication? application;
+
   /// Notification image
   final NotificationHintImage? imageData;
 
@@ -384,7 +390,8 @@ class NotificationHints {
   /// A placeholder for the text input when inline reply is requested
   final String? inlineReplyPlaceholderText;
 
-  const NotificationHints._({
+  NotificationHints._({
+    required DBusClient dbusClient,
     required this.urgency,
     required this.actionIcons,
     required this.resident,
@@ -398,10 +405,22 @@ class NotificationHints {
     this.transient,
     this.synchronous,
     this.inlineReplyPlaceholderText,
-  });
+  }) {
+    OrgFreedesktopApplication? application;
+    if (desktopEntry != null) {
+      try {
+        final name = desktopEntry!.removeSuffix(".desktop");
+        application = OrgFreedesktopApplication(dbusClient, name, DBusObjectPath("/${name.replaceAll('.', '/')}"));
+      } catch (_) {
+        application = null;
+      }
+    }
+    this.application = application;
+  }
 
-  factory NotificationHints(Map<String, DBusValue> hints) {
+  factory NotificationHints(DBusClient client, Map<String, DBusValue> hints) {
     return NotificationHints._(
+      dbusClient: client,
       actionIcons: _parseValue<bool>(hints["action-icons"]) ?? false,
       soundFile: _parseValue<String>(hints["sound-file"]),
       soundName: _parseValue<String>(hints["sound-name"]),
@@ -504,6 +523,23 @@ class NotificationHints {
     synchronous,
     inlineReplyPlaceholderText,
   ]);
+
+  @override
+  String toString() {
+    return "actionIcons: $actionIcons "
+        "urgency: $urgency "
+        "resident: $resident "
+        "category: $category "
+        "desktopEntry: $desktopEntry "
+        "imagePath: $imagePath {"
+        "imageData: ${imageData != null} "
+        "soundFile: $soundFile "
+        "soundName: $soundName "
+        "supressSound: $supressSound "
+        "synchronous: $synchronous "
+        "transient: $transient "
+        "inlineReplyPlaceholderText: $inlineReplyPlaceholderText";
+  }
 }
 
 class Actions {
@@ -565,6 +601,11 @@ class Actions {
       yield* actions;
     })(),
   );
+
+  @override
+  String toString() {
+    return "defaultAction: $defaultAction inlineReply: $inlineReply actions: [${actions.join(", ")}]";
+  }
 }
 
 class Action {
@@ -580,4 +621,9 @@ class Action {
 
   @override
   int get hashCode => Object.hashAll([key, value]);
+
+  @override
+  String toString() {
+    return "Action(key: $key, value: $value)";
+  }
 }

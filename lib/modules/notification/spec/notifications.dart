@@ -5,6 +5,8 @@ import "package:tronco/tronco.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "dart:ui" as ui;
 
+import "package:waywing/util/logger.dart";
+
 enum NotificationsCloseReason {
   expired(1),
   user(2),
@@ -269,8 +271,6 @@ class OrgFreedesktopNotifications extends DBusObject {
         /// Supports using icons instead of text for displaying actions.
         /// Using icons for actions must be enabled on a per-notification
         /// basis using the "action-icons" hint.
-        ///
-        /// TODO: MISSING
         "action-icons",
 
         /// The server will provide the specified actions to the user.
@@ -283,8 +283,6 @@ class OrgFreedesktopNotifications extends DBusObject {
         "body",
 
         /// The server supports hyperlinks in the notifications.
-        ///
-        /// TODO: MISSING
         "body-hyperlinks",
 
         /// The server supports images in the notifications.
@@ -293,16 +291,12 @@ class OrgFreedesktopNotifications extends DBusObject {
         /// Supports markup in the body text. If marked up text is sent
         /// to a server that does not give this cap, the markup will show
         /// through as regular text so must be stripped clientside.
-        ///
-        /// TODO: MISSING
         "body-markup",
 
         /// The server will render an animation of all the frames in a given image array.
         /// The client may still specify multiple frames even if this cap and/or
         /// "icon-static" is missing, however the server is free to ignore them and use
         /// only the primary frame.
-        ///
-        /// TODO: MISSING
         // "icon-multi",
 
         /// Supports display of exactly 1 frame of any given image array. This value is
@@ -365,9 +359,19 @@ class OrgFreedesktopNotifications extends DBusObject {
     Map<String, DBusValue> hints,
     int expire_timeout,
   ) async {
-    logger.debug("notify $replaces_id $app_name $app_icon");
-    final parsedHints = NotificationHints(hints);
+    final sublogger = logger.create(
+      Level.trace,
+      "notify replace_id: $replaces_id app_name: $app_name app_icon: $app_icon",
+    );
+    final parsedHints = NotificationHints(client!, hints);
     final parsedActions = Actions(actions);
+    sublogger?.add("hints: $parsedHints");
+    sublogger?.add("actions: $parsedActions");
+    sublogger?.add(
+      "unparsed hints: ${hints.map((k, v) => MapEntry(k, !v.signature.value.contains("a") ? v : DBusString("AAA")))}",
+    );
+    sublogger?.end();
+
     NotificationImage? image;
     if (parsedHints.imageData != null) {
       image = NotificationImageData(parsedHints.imageData!);
@@ -517,9 +521,13 @@ class OrgFreedesktopNotifications extends DBusObject {
   /// - id: The ID of the notification emitting the ActionInvoked signal.
   /// - activation_token: An activation token. This can be either an X11-style startup ID
   ///   (see Startup notification protocol) or a Wayland xdg-activation token.
-  Future<void> emitActivationToken(int id, String activation_token) async {
+  Future<void> emitActivationToken(Notification notification, String activation_token) async {
+    notification.hints.application
+        ?.callActivate({"activation-token": DBusString(activation_token)})
+        .catchError((e, st) {});
+
     await emitSignal("org.freedesktop.Notifications", "ActivationToken", [
-      DBusUint32(id),
+      DBusUint32(notification.id),
       DBusString(activation_token),
     ]);
   }

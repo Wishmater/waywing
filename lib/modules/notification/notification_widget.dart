@@ -5,6 +5,7 @@ import "package:flutter/material.dart" hide Notification, Action, Actions;
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
+import "package:waywing/widgets/keyboard_focus.dart";
 import "package:xdg_icons/xdg_icons.dart";
 import "package:flutter_html/flutter_html.dart";
 
@@ -77,7 +78,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
                 padding: const EdgeInsets.all(8.0),
                 child: InkResponse(
                   onTap: () {
-                    service.emitActivationToken(notification.id);
+                    service.emitActivationToken(notification);
                   },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,38 +182,70 @@ class _RenderBody extends StatelessWidget {
             NotificationImagePath imagePath => Image.file(File(imagePath.path)),
           },
         ],
-        _RenderActions(notification.actions),
+        _RenderActions(notification.actions, notification),
       ],
     );
   }
 }
 
 class _RenderActions extends StatelessWidget {
+  final Notification notification;
   final Actions actions;
-  const _RenderActions(this.actions);
+  bool get identifierAreIcons => notification.hints.actionIcons;
+  const _RenderActions(this.actions, this.notification);
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if (actions.defaultAction != null) _RenderAction(actions.defaultAction!),
-        ...[for (final action in actions.actions) _RenderAction(action)],
+        if (actions.inlineReply != null) _RenderInlineReply(actions.inlineReply!, notification),
+        if (actions.defaultAction != null) _RenderAction(actions.defaultAction!, identifierAreIcons),
+        ...[for (final action in actions.actions) _RenderAction(action, identifierAreIcons)],
       ],
+    );
+  }
+}
+
+class _RenderInlineReply extends StatelessWidget {
+  final Action action;
+  final Notification notification;
+  const _RenderInlineReply(this.action, this.notification);
+
+  @override
+  Widget build(BuildContext context) {
+    final service = NotificationServiceInheritedWidget.of(context);
+    return KeyboardFocus(
+      mode: KeyboardFocusMode.onDemand,
+      child: SizedBox(
+        width: 100,
+        child: TextField(
+          onSubmitted: (value) => service.emitNotificationReplied(notification, value),
+          decoration: InputDecoration(hintText: notification.hints.inlineReplyPlaceholderText)
+        ),
+      ),
     );
   }
 }
 
 class _RenderAction extends StatelessWidget {
   final Action action;
-  const _RenderAction(this.action);
+  final bool identifierAreIcons;
+  const _RenderAction(this.action, this.identifierAreIcons);
 
   @override
   Widget build(BuildContext context) {
     final service = NotificationServiceInheritedWidget.of(context);
     final notification = NotificationInheritedWidget.of(context);
-    return TextButton(
-      onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
-      child: Text(action.value),
-    );
+    if (identifierAreIcons) {
+      return MaterialButton(
+        onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
+        child: XdgIcon(name: action.value),
+      );
+    } else {
+      return TextButton(
+        onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
+        child: Text(action.value),
+      );
+    }
   }
 }

@@ -18,7 +18,7 @@ class NotificationService extends Service {
   Future<void> init() async {
     client = DBusClient.session();
     server = OrgFreedesktopNotifications(
-      logger: logger.clone(properties: [tronco.StringProperty("Server")]),
+      logger: logger.clone(properties: [...logger.defaultProperties, tronco.StringProperty("Server")]),
       path: DBusObjectPath("/org/freedesktop/Notifications"),
     );
     await client.registerObject(server);
@@ -44,12 +44,21 @@ class NotificationService extends Service {
     await client.close();
   }
 
-  Future<void> emitActivationToken(int id) async {
+  Future<void> emitActivationToken(Notification notification) async {
     final token = await FlLinuxWindowManager.instance.getXdgToken();
-    if (token != null) {
-      await server.emitActivationToken(id, token);
+    if (token == null) {
+      logger.error(
+        "on emitActivationToken xdg token should never be null",
+        error: "getXdgToken() returned null",
+      );
+      return;
     }
+    await server.emitActivationToken(notification, token);
   }
+
+Future<void> emitNotificationReplied(Notification notification, String text) async {
+  await server.emitSignal("org.freedesktop.Notifications", "NotificationReplied", [DBusUint32(notification.id), DBusString(text)]);
+}
 }
 
 class NotificationsList {

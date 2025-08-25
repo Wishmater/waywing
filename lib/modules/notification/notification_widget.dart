@@ -80,7 +80,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
               notification,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withAlpha(80),
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: InputRegion(

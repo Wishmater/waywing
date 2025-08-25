@@ -86,7 +86,7 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
       return;
     }
     try {
-      itemValues.initFields();
+      await itemValues.initFields();
     } catch(e, st) {
       logger.error("initFields failed", error: e, stackTrace: st);
     }

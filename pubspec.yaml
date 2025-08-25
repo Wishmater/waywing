@@ -41,6 +41,7 @@ dependencies:
   flutter_font_icons: ^2.2.7
   animations: ^2.0.11
   auto_size_text: ^3.0.0
+  implicitly_animated_list: ^2.3.0
 
   # Native plugins
   path: ^1.9.1

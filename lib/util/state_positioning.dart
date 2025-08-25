@@ -44,6 +44,7 @@ mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositionin
 }
 
 typedef PositioningGetter = (Offset, Size) Function();
+typedef PositioningNullableGetter = (Offset, Size)? Function();
 
 class PositioningController {
   late PositioningGetter getPositioning;
@@ -63,24 +64,38 @@ class PositioningMonitor extends StatefulWidget {
   State<PositioningMonitor> createState() => _PositioningMonitorState();
 }
 
-class _PositioningMonitorState extends State<PositioningMonitor> with StatePositioningMixin {
+class _PositioningMonitorState extends State<PositioningMonitor>
+    with StatePositioningMixin, StatePositioningControllerMixin {
   @override
-  void initState() {
-    super.initState();
-    widget.controller.getPositioning = getPositioning;
-  }
-
-  @override
-  void didUpdateWidget(covariant PositioningMonitor oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller) {
-      widget.controller.getPositioning = getPositioning;
-    }
-  }
+  PositioningController getController(PositioningMonitor widget) => widget.controller;
 
   @override
   Widget build(BuildContext context) {
     return widget.child;
+  }
+}
+
+mixin StatePositioningControllerMixin<T extends StatefulWidget> on StatePositioningMixin<T> {
+  PositioningController? getController(T widget);
+
+  @override
+  void initState() {
+    super.initState();
+    _updateControllerReferences();
+  }
+
+  @override
+  void didUpdateWidget(covariant T oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (getController(widget) != getController(oldWidget)) {
+      _updateControllerReferences();
+    }
+  }
+
+  void _updateControllerReferences() {
+    final controller = getController(widget);
+    if (controller == null) return;
+    controller.getPositioning = getPositioning;
   }
 }
 
@@ -105,7 +120,19 @@ class PositioningNotifierMonitor extends StatefulWidget {
 }
 
 class _PositioningNotidierMonitorState extends State<PositioningNotifierMonitor>
-    with StatePositioningMixin, StatePositioningNotifierMixin {
+    with StatePositioningMixin, StatePositioningNotifierMixin, StatePositioningNotifierControllerMixin {
+  @override
+  PositioningNotifierController getController(PositioningNotifierMonitor widget) => widget.controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.child;
+  }
+}
+
+mixin StatePositioningNotifierControllerMixin<T extends StatefulWidget> on StatePositioningNotifierMixin<T> {
+  PositioningNotifierController? getController(T widget);
+
   @override
   void initState() {
     super.initState();
@@ -113,22 +140,19 @@ class _PositioningNotidierMonitorState extends State<PositioningNotifierMonitor>
   }
 
   @override
-  void didUpdateWidget(covariant PositioningNotifierMonitor oldWidget) {
+  void didUpdateWidget(covariant T oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.controller != oldWidget.controller) {
+    if (getController(widget) != getController(oldWidget)) {
       _updateControllerReferences();
     }
   }
 
   void _updateControllerReferences() {
-    widget.controller.getPositioning = getPositioning;
-    positioningNotifier = widget.controller.positioningNotifier;
-    offsetNotifier = widget.controller.offsetNotifier;
-    sizeNotifier = widget.controller.sizeNotifier;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
+    final controller = getController(widget);
+    if (controller == null) return;
+    controller.getPositioning = getPositioning;
+    positioningNotifier = controller.positioningNotifier;
+    offsetNotifier = controller.offsetNotifier;
+    sizeNotifier = controller.sizeNotifier;
   }
 }

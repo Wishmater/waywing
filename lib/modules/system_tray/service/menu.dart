@@ -1,8 +1,11 @@
+// ignore_for_file: unintended_html_in_doc_comment
+
 import "dart:async";
 
 import "package:dbus/dbus.dart";
 import "package:flutter/cupertino.dart";
 import "package:waywing/modules/system_tray/service/spec/idbus_menu.dart";
+import "package:waywing/widgets/disposable_builder.dart";
 
 class DBusMenuItemProperties {
   /// Can be one of:
@@ -197,7 +200,7 @@ class DBusMenuItemProperties {
 }
 
 /// Represent an item in the tree of items that represent a layout
-class DBusMenuItem extends ChangeNotifier {
+class DBusMenuItem extends ChangeNotifier implements DisposableListener {
   /// item menu identifier
   int id;
 
@@ -241,11 +244,16 @@ class DBusMenuItem extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     for (final child in submenu) {
       child.dispose();
     }
     super.dispose();
   }
+
+  bool _isDisposed = false;
+  @override
+  bool get isDisposed => _isDisposed;
 }
 
 class DBusMenuValues {

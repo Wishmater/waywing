@@ -57,7 +57,7 @@ class SystemTrayFeather extends Feather {
             },
             isPopoverEnabled: DummyValueNotifier(item.dbusmenu != null),
             buildPopover: (context) {
-              return SystemTrayPopover(service: service, item: item);
+              return SystemTrayPopover(service: service, trayItem: item);
             },
           ),
         );

@@ -137,10 +137,18 @@ class WingedPopoverState extends State<WingedPopover>
   void didUpdateWidget(covariant WingedPopover oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (isPopoverShown && (widget.popoverParams == null || !widget.popoverParams!.enabled)) {
-      hidePopover();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (isPopoverShown && (clientState?.mounted ?? false)) {
+          hidePopover();
+        }
+      });
     }
     if (isTooltipShown && (widget.tooltipParams == null || !widget.tooltipParams!.enabled)) {
-      hideTooltip();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (isTooltipShown && (clientState?.mounted ?? false)) {
+          hideTooltip();
+        }
+      });
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (clientState?.mounted ?? false) {

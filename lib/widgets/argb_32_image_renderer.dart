@@ -5,7 +5,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "dart:ui" as ui;
 
-class ARGB32ImageRenderer extends StatelessWidget {
+class ARGB32ImageRenderer extends StatefulWidget {
   final Uint8List argb32Data; // ARGB32 byte data
   final int width;
   final int height;
@@ -18,23 +18,28 @@ class ARGB32ImageRenderer extends StatelessWidget {
   });
 
   @override
+  State<ARGB32ImageRenderer> createState() => _ARGB32ImageRendererState();
+}
+
+class _ARGB32ImageRendererState extends State<ARGB32ImageRenderer> {
+  // TODO: 3 maybe we should implement a proper ImageProvider so it benefits from flutter caching, etc.
+  late final imageFuture = _convertARGB32ToImage(widget.argb32Data, widget.width, widget.height);
+
+  @override
   Widget build(BuildContext context) {
-    // return Image.memory(
-    //   argb32Data,width:
-    // );
     return SizedBox(
-      width: width.toDouble(),
-      height: height.toDouble(),
+      width: widget.width.toDouble(),
+      height: widget.height.toDouble(),
       child: FutureBuilder<ui.Image>(
-        // TODO: 1 ARGB32 image runs conversion every frame. Investigate how to properly do this so it's cached
-        future: _convertARGB32ToImage(argb32Data, width, height),
+        future: imageFuture,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return RawImage(image: snapshot.data, fit: BoxFit.contain);
           } else if (snapshot.hasError) {
-            return Text("Error: ${snapshot.error}");
+            // log error ??
+            return SizedBox.shrink();
           } else {
-            return const CircularProgressIndicator();
+            return SizedBox.shrink();
           }
         },
       ),

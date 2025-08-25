@@ -119,9 +119,7 @@ class RawSystemTrayIcon extends StatelessWidget {
     super.key,
   });
 
-  @override
-  Widget build(BuildContext context) {
-    final size = TextIcon.getIconEffectiveSize(context);
+  Widget renderPixmap(BuildContext context, double size) {
     if (data != PixmapIcons.empty() && data.icons.isNotEmpty) {
       Pixmap icon = data.icons[0];
       // TODO: 3 choose the optimal size needed, instead of just getting largest
@@ -140,7 +138,19 @@ class RawSystemTrayIcon extends StatelessWidget {
         ),
       );
     } else {
-      return XdgIcon(name: path, size: size.round());
+      return SizedBox(width: size, height: size);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = TextIcon.getIconEffectiveSize(context);
+    if (path.isNotEmpty) {
+      return XdgIcon(name: path, size: size.round(), iconNotFoundBuilder: () {
+        return renderPixmap(context, size);
+      });
+    } else {
+      return renderPixmap(context, size);
     }
   }
 }

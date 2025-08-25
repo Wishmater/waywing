@@ -22,6 +22,13 @@ class SystemTrayIndicator extends StatelessWidget {
     super.key,
   });
 
+  void tooglePopover() {
+    popover.togglePopover();
+    if (item.dbusmenu != null && popover.isPopoverShown) {
+      item.dbusmenu!.aboutToShow(item.dbusmenu!.layout);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -36,14 +43,14 @@ class SystemTrayIndicator extends StatelessWidget {
             } on DBusUnknownMethodException catch (_) {
               // if activate is not available then assume itemIsMenu is wrong
               // and this is an only menu item
-              popover.togglePopover();
+              tooglePopover();
             }
           } else {
-            popover.togglePopover();
+            tooglePopover();
           }
         },
         onSecondaryTap: () {
-          popover.togglePopover();
+          tooglePopover();
         },
         child: SystemTrayItemIcon(item: item),
       ),

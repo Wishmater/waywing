@@ -199,7 +199,12 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                     onTap: !widget.item.properties.enabled || widget.item.isDisposed
                         ? null
                         : widget.item.submenu.isNotEmpty
-                        ? () => popover.togglePopover()
+                        ? () {
+                          popover.togglePopover();
+                          if (popover.isPopoverShown) {
+                            widget.trayItem.dbusmenu!.aboutToShow(widget.item);
+                          }
+                        }
                         : () => widget.trayItem.dbusmenu!.sendEvent(widget.item, DBusMenuEventType.clicked),
                     child: Row(
                       children: [

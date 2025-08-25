@@ -78,18 +78,19 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
             },
             child: NotificationInheritedWidget(
               notification,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
+              child: InputRegion(
+                child: InkWell(
+                  onTap: () {
+                    service.emitActivationToken(notification);
+                  },
                   borderRadius: BorderRadius.circular(12),
-                ),
-                child: InputRegion(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: InkResponse(
-                      onTap: () {
-                        service.emitActivationToken(notification);
-                      },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

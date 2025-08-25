@@ -11,6 +11,7 @@ import "package:waywing/util/derived_value_notifier.dart";
 
 class OrgKdeStatusNotifierHostImpl extends DBusObject {
   late final OrgKdeStatusNotifierWatcher _watcher;
+  late final _DBusUnRegistrationWatcher _dBusWatcher;
 
   // final Map<String, OrgKdeStatusNotifierItemValues> _items;
   ValueListenable<List<OrgKdeStatusNotifierItemValues>> items;
@@ -32,6 +33,7 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
       OrgKdeStatusNotifierWatcherImpl.interfaceName,
       OrgKdeStatusNotifierWatcherImpl.objectPath,
     );
+    _dBusWatcher = _DBusUnRegistrationWatcher(client!);
     await _fillStatusNotifierItems();
   }
 
@@ -46,12 +48,18 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
     for (final item in items.value) {
       item.dispose();
     }
+    _dBusWatcher.dispose();
     // _items.clear();
   }
 
   Future<void> _addItem(String itemPath) async {
     logger.debug("Host addItem $itemPath");
     final (destination, path) = OrgKdeStatusNotifierItem.splitItemStr(itemPath);
+
+    if (items.value.indexWhere((e) => e.originalPath == itemPath) != -1) {
+      logger.debug("item already in list");
+      return;
+    }
 
     // check name owner exists
     if ((await client!.getNameOwner(destination)) == null) {
@@ -83,6 +91,12 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
       logger.error("initFields failed", error: e, stackTrace: st);
     }
     items.value.add(itemValues);
+    _dBusWatcher.registerWatch(destination, (_, newOwner) {
+      if (newOwner == null) {
+        logger.debug("item got out of dbus ${itemValues.originalPath}");
+        _removeItem(itemValues.originalPath);
+      }
+    });
     (items as _ManualValueNotifier)._manualNotifyListeners();
   }
 
@@ -122,5 +136,29 @@ class _ManualValueNotifier<T> extends DummyValueNotifier<T> {
 
   void _manualNotifyListeners() {
     notifyListeners();
+  }
+}
+
+typedef _Callback = void Function(String? oldName, String? newName);
+class _DBusUnRegistrationWatcher {
+  final DBusClient _client;
+  final Map<String, _Callback> _toWatch;
+  late final StreamSubscription _subscription;
+
+  _DBusUnRegistrationWatcher(this._client) : _toWatch = {} {
+    _subscription = _client.nameOwnerChanged.listen((event) {
+      _toWatch[event.name]?.call(event.oldOwner, event.newOwner);
+      _toWatch.remove(event.name);
+    });
+  }
+
+  void dispose() {
+    _subscription.cancel().then((_) => _client.close());
+  }
+
+  void registerWatch(String dbusname, _Callback cb, [String? debugName]) {
+    if (!_toWatch.containsKey(dbusname)) {
+      _toWatch[dbusname] = cb;
+    }
   }
 }

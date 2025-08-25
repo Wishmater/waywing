@@ -394,10 +394,10 @@ class _BarState extends State<Bar> {
                         );
                       },
                       containerBuilder: (context, controller, child) {
-                        return buildPopoverContainer(context, child, popoverShape);
+                        return buildPopoverContainer(context, child, popoverShape, isTooltip: false);
                       },
                       closedContainerBuilder: (context, controller, child) {
-                        return buildPopoverContainer(context, child, buttonShape);
+                        return buildPopoverContainer(context, child, buttonShape, isTooltip: false);
                       },
                     ),
               tooltipParams: component.buildTooltip == null
@@ -436,7 +436,7 @@ class _BarState extends State<Bar> {
                           opacity: 1,
                           duration: mainConfig.animationDuration,
                           curve: mainConfig.animationCurve,
-                          child: buildPopoverContainer(context, child, tooltipShape),
+                          child: buildPopoverContainer(context, child, tooltipShape, isTooltip: true),
                         );
                       },
                       closedContainerBuilder: (context, controller, child) {
@@ -444,7 +444,7 @@ class _BarState extends State<Bar> {
                           opacity: 0,
                           duration: mainConfig.animationDuration,
                           curve: mainConfig.animationCurve,
-                          child: buildPopoverContainer(context, child, buttonShape),
+                          child: buildPopoverContainer(context, child, buttonShape, isTooltip: true),
                         );
                       },
                     ),
@@ -455,12 +455,17 @@ class _BarState extends State<Bar> {
     );
   }
 
-  Widget buildPopoverContainer(BuildContext context, Widget child, ShapeBorder shape) {
+  Widget buildPopoverContainer(
+    BuildContext context,
+    Widget child,
+    ShapeBorder shape, {
+    required isTooltip,
+  }) {
     return WingedContainer(
-      // animationDuration: config.animationDuration * 1.5,
       elevation: 4, // TODO: 2 expose popover elevation theme option to user
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shape: shape,
+      color: isTooltip ? Theme.of(context).colorScheme.surfaceContainerHigh : null,
       child: child,
     );
   }

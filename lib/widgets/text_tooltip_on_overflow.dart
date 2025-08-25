@@ -79,7 +79,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                   return WingedContainer(
                     clipBehavior: Clip.hardEdge,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(12))),
-                    color: Theme.of(context).cardColor,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: Stack(
                       children: [
                         AnimatedPositioned(

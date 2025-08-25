@@ -1,8 +1,10 @@
 import "package:flutter/material.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/modules/volume/volume_tooltip.dart";
+import "package:waywing/widgets/animated_layout.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
@@ -127,10 +129,8 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 2 add app icon (only for apps)
     final scrollController = ScrollController();
     final nonDefaultModels = models.where((e) => e != defaultModel);
-    // TODO: 2 add animations to list
     return FocusTraversalGroup(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -150,18 +150,31 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
                 scrollController: scrollController,
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      if (defaultModel != null) //
-                        buildVolumeSlider(context, defaultModel!),
-                      if (defaultModel != null && nonDefaultModels.isNotEmpty)
-                        Divider(indent: 24, endIndent: 24, height: 24),
-                      for (final e in nonDefaultModels) //
-                        buildVolumeSlider(context, e),
-                      SizedBox(height: 16),
-                    ],
+                  // TODO: 2 add animations to list
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: AnimatedColumn(
+                      duration: mainConfig.animationDuration,
+                      curve: mainConfig.animationCurve,
+                      addGlobalKeys: true,
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      data: [
+                        if (defaultModel != null) //
+                          defaultModel,
+                        if (defaultModel != null && nonDefaultModels.isNotEmpty) //
+                          null, // divider
+                        for (final e in nonDefaultModels) //
+                          e,
+                      ],
+                      itemBuilder: (context, e) {
+                        if (e == null) {
+                          return Divider(indent: 24, endIndent: 24, height: 24);
+                        } else {
+                          return buildVolumeSlider(context, e);
+                        }
+                      },
+                    ),
                   ),
                 ),
               ),

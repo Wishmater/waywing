@@ -280,6 +280,15 @@ abstract class VolumeInterface {
   Future<void> setVolume(double value);
 
   Future<void> setMuted(bool value);
+
+  @override
+  int get hashCode => name.value.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is VolumeInterface) return name.value == other.name.value;
+    return super == other;
+  }
 }
 
 class VolumeAppInterface extends VolumeInterface {
@@ -331,6 +340,17 @@ class VolumeAppInterface extends VolumeInterface {
   Future<void> setMuted(bool value) {
     return _client.setSinkInputMute(_sinkInput.index, value);
   }
+
+  @override
+  int get hashCode => Object.hash(name.value, _sinkInput.index);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is VolumeAppInterface) {
+      return name.value == other.name.value && _sinkInput.index == other._sinkInput.index;
+    }
+    return super == other;
+  }
 }
 
 class VolumeOutputInterface extends VolumeInterface {
@@ -361,6 +381,17 @@ class VolumeOutputInterface extends VolumeInterface {
   Future<void> setMuted(bool value) {
     return _client.setSinkMute(_sink.name, value);
   }
+
+  @override
+  int get hashCode => Object.hash(name.value, _sink.index);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is VolumeOutputInterface) {
+      return name.value == other.name.value && _sink.index == other._sink.index;
+    }
+    return super == other;
+  }
 }
 
 class VolumeInputInterface extends VolumeInterface {
@@ -390,5 +421,16 @@ class VolumeInputInterface extends VolumeInterface {
   @override
   Future<void> setMuted(bool value) {
     return _client.setSourceMute(_source.name, value);
+  }
+
+  @override
+  int get hashCode => Object.hash(name.value, _source.index);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is VolumeInputInterface) {
+      return name.value == other.name.value && _source.index == other._source.index;
+    }
+    return super == other;
   }
 }

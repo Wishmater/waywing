@@ -1,15 +1,10 @@
+import "dart:ui";
+
 import "package:flutter/widgets.dart";
-import "package:waywing/util/state_positioning.dart";
 
 typedef ItemBuilder<T> = Widget Function(BuildContext context, T data);
 typedef ItemTransitionBuilder<T> =
-    Widget Function(
-      BuildContext context,
-      T data,
-      Widget child,
-      Animation<double> animation,
-      PositioningNullableGetter getPositioning,
-    );
+    Widget Function(BuildContext context, T data, Widget child, Animation<double> animation);
 typedef LayoutBuilder<T> = Widget Function(BuildContext context, List<Widget> items);
 
 class AnimatedLayout<T> extends StatefulWidget {
@@ -44,6 +39,7 @@ class AnimatedLayout<T> extends StatefulWidget {
 class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProviderStateMixin {
   late final Map<T, AnimationValues> incomingItems = {};
   late final Map<T, AnimationValues> outgoingItems = {};
+  late final Map<T, MovingAnimationValues> movingItems = {};
   late final Map<T, GlobalKey> itemKeys = {};
 
   @override
@@ -60,24 +56,38 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   @override
   void didUpdateWidget(covariant AnimatedLayout<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // TODO: 1 handle items that change index (how to animate this?)
     for (int i = 0; i < oldWidget.data.length; i++) {
       final e = oldWidget.data[i];
       if (!widget.data.contains(e)) {
         addOutgoingItem(e, i);
       }
     }
+    int addedItemsCount = 0;
     for (int i = 0; i < widget.data.length; i++) {
       final e = widget.data[i];
-      if (!oldWidget.data.contains(e)) {
+      final oldIndex = oldWidget.data.indexOf(e);
+      if (oldIndex < 0) {
         addIncomingItem(e, i);
+        addedItemsCount++;
+      } else if (widget.addGlobalKeys) {
+        // not supported without global keys
+        final oldIndexAdjusted = oldIndex + addedItemsCount;
+        if (oldIndexAdjusted != i) {
+          // item moved (changed index)
+          if (!outgoingItems.containsKey(e)) {
+            addOutgoingItem(e, oldIndexAdjusted);
+          }
+          // TODO: 1 what happens if the item is already moving? (incoming or outcoming should be fine) -- also what happens if the item is removed while its being moved
+          addMovingItem(e, i, oldIndexAdjusted);
+        }
       }
     }
   }
 
   void addIncomingItem(T e, int index) {
-    final anim = outgoingItems.remove(e) ?? initAnimationValues(true, index);
+    final anim = outgoingItems.remove(e) ?? initAnimationValues(AnimationValues(), true, index);
     anim.animationController.forward().whenComplete(() {
+      if (!mounted) return;
       setState(() {
         anim.animationController.dispose();
         incomingItems.remove(e);
@@ -87,18 +97,33 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   }
 
   void addOutgoingItem(T e, int index) {
-    final anim = incomingItems.remove(e) ?? initAnimationValues(false, index);
+    final anim = incomingItems.remove(e) ?? initAnimationValues(AnimationValues(), false, index);
     anim.animationController.reverse().whenComplete(() {
+      if (!mounted) return;
       setState(() {
         anim.animationController.dispose();
         outgoingItems.remove(e);
+        itemKeys.remove(e);
       });
     });
     outgoingItems[e] = anim;
   }
 
-  AnimationValues initAnimationValues(bool isIncoming, int index) {
-    final anim = AnimationValues();
+  void addMovingItem(T e, int index, int originalIndex) {
+    final anim = initAnimationValues(MovingAnimationValues(), true, index);
+    anim.originalIndex = originalIndex;
+    anim.originalPositioning = getPositioningForItem(e)!;
+    anim.animationController.forward().whenComplete(() {
+      if (!mounted) return;
+      setState(() {
+        anim.animationController.dispose();
+        movingItems.remove(e);
+      });
+    });
+    movingItems[e] = anim;
+  }
+
+  A initAnimationValues<A extends AnimationValues>(A anim, bool isIncoming, int index) {
     anim.index = index;
     anim.animationController = AnimationController(
       vsync: this,
@@ -120,12 +145,26 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   @override
   Widget build(BuildContext context) {
     final List<Widget> items = [];
+    final List<Widget> overlays = [];
+
     for (final e in widget.data) {
       Widget item = widget.itemBuilder(context, e);
-      item = addGlobalKey(context, e, item);
       final incomingAnim = incomingItems[e];
       if (incomingAnim != null) {
-        item = widget.transitionBuilder(context, e, item, incomingAnim.animation, () => getPositioningForItem(e));
+        item = addGlobalKey(context, e, item);
+        item = widget.transitionBuilder(context, e, item, incomingAnim.animation);
+      } else {
+        final movingAnim = movingItems[e];
+        if (movingAnim != null) {
+          // original item is added to overlay and a sized proxy is added to main list instead
+          overlays.add(buildMovingTransition(movingAnim, e, item));
+          final positioning = getPositioningForItem(e);
+          item = buildProxiedSizedBox(e, positioning?.$2 ?? movingAnim.originalPositioning.$2);
+          item = addGlobalKey(context, e, item);
+          item = widget.transitionBuilder(context, e, item, movingAnim.animation);
+        } else {
+          item = addGlobalKey(context, e, item);
+        }
       }
       items.add(item);
     }
@@ -135,13 +174,66 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
       final entry = outgoingEntries[i];
       final e = entry.key;
       final outgoingAnim = entry.value;
-      Widget item = widget.itemBuilder(context, e);
-      item = addGlobalKey(context, e, item);
-      item = widget.transitionBuilder(context, e, item, outgoingAnim.animation, () => getPositioningForItem(e));
+      Widget item;
+      final movingAnim = movingItems[e];
+      if (movingAnim != null) {
+        item = buildProxiedSizedBox(e, movingAnim.originalPositioning.$2);
+      } else {
+        item = widget.itemBuilder(context, e);
+        item = addGlobalKey(context, e, item);
+      }
+      item = widget.transitionBuilder(context, e, item, outgoingAnim.animation);
       items.insert(outgoingAnim.index.clamp(0, items.length), item);
     }
 
-    return widget.layoutBuilder(context, items);
+    return Stack(
+      children: [
+        widget.layoutBuilder(context, items),
+        ...overlays,
+      ],
+    );
+  }
+
+  AnimatedBuilder buildMovingTransition(MovingAnimationValues movingAnim, T e, Widget item) {
+    return AnimatedBuilder(
+      animation: movingAnim.animation,
+      child: item,
+      builder: (context, child) {
+        final positioning = getPositioningForItem(e);
+        final left = positioning == null
+            ? movingAnim.originalPositioning.$1.dx
+            : lerpDouble(
+                movingAnim.originalPositioning.$1.dx,
+                positioning.$1.dx,
+                movingAnim.animation.value,
+              );
+        final top = positioning == null
+            ? movingAnim.originalPositioning.$1.dy
+            : lerpDouble(
+                movingAnim.originalPositioning.$1.dy,
+                positioning.$1.dy,
+                movingAnim.animation.value,
+              );
+        var opacityValue = movingAnim.animation.value;
+        if (opacityValue < 0.5) {
+          opacityValue = 1 - opacityValue * 2;
+        } else {
+          opacityValue = 0.5 + (opacityValue - 0.5) * 2;
+        }
+        opacityValue = opacityValue.clamp(0.66, 1);
+        return Positioned(
+          left: left,
+          top: top,
+          child: Opacity(
+            opacity: opacityValue,
+            child: SizedBox.fromSize(
+              size: movingAnim.originalPositioning.$2,
+              child: child!,
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Widget addGlobalKey(BuildContext context, T e, Widget item) {
@@ -171,12 +263,26 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
     } catch (_) {}
     return null;
   }
+
+  Widget buildProxiedSizedBox(T e, [Size? size]) {
+    final size = getPositioningForItem(e)?.$2;
+    if (size != null) {
+      return SizedBox.fromSize(size: size);
+    } else {
+      return SizedBox.shrink();
+    }
+  }
 }
 
 class AnimationValues {
   late final AnimationController animationController;
   late final Animation<double> animation;
   late final int index; // only used for ougoing items
+}
+
+class MovingAnimationValues extends AnimationValues {
+  late final int originalIndex;
+  late final (Offset, Size) originalPositioning;
 }
 
 class AnimatedFlex<T> extends StatelessWidget {
@@ -243,13 +349,7 @@ class AnimatedFlex<T> extends StatelessWidget {
     );
   }
 
-  Widget defaultTransitionBuilder(
-    BuildContext context,
-    T data,
-    Widget child,
-    Animation<double> animation,
-    PositioningNullableGetter getPositioning,
-  ) {
+  Widget defaultTransitionBuilder(BuildContext context, T data, Widget child, Animation<double> animation) {
     return FadeTransition(
       opacity: animation,
       child: SizeTransition(

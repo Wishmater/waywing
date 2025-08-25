@@ -63,6 +63,8 @@ dependencies:
       ref: ed2dcce81c8e2031192f23c5925209ab7e0da6dc
   mutex: ^3.1.0
   flutter_html: ^3.0.0
+  audioplayers: ^6.5.0
+  ini: ^2.1.0
 
 dev_dependencies:
   flutter_test:

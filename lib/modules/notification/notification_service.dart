@@ -1,3 +1,4 @@
+import "package:audioplayers/audioplayers.dart";
 import "package:dbus/dbus.dart";
 import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:flutter/material.dart" hide Notification;
@@ -6,6 +7,7 @@ import "package:waywing/core/service.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:tronco/tronco.dart" as tronco;
+import "package:waywing/util/search_sound.dart";
 
 class NotificationService extends Service {
   late final OrgFreedesktopNotifications server;
@@ -83,6 +85,10 @@ class NotificationsList {
     server.notificationCreated.listen((notification) {
       notifications.value.add(ValueNotifier(notification));
       (notifications as ManualValueNotifier).manualNotifyListeners();
+
+      if (!(notification.hints.suppressSound ?? false)) {
+        _playSound(notification);
+      }
     });
 
     server.notificationRemoved.listen((id) {
@@ -100,6 +106,30 @@ class NotificationsList {
       notifications.value.removeAt(index);
       (notifications as ManualValueNotifier).manualNotifyListeners();
     });
+  }
+
+  Future<void> _playSound(Notification notification) async {
+    final file = notification.hints.soundFile;
+    final name = notification.hints.soundName;
+    if (file == null && name == null) {
+      return;
+    }
+    Source? source;
+    if (file != null) {
+      source = DeviceFileSource(file);
+    } else if (name != null) {
+      // TODO 2: get sound theme from gsetting?
+      final path = await SearchSound.lookup(name);
+      if (path != null) {
+        source = DeviceFileSource(path);
+      }
+    }
+    if (source == null) {
+      return;
+    }
+    final player = AudioPlayer();
+    player.play(source);
+    Future.delayed(Duration(seconds: 5), player.dispose);
   }
 }
 

@@ -374,6 +374,7 @@ class OrgFreedesktopNotifications extends DBusObject {
     sublogger?.add(
       "unparsed hints: ${hints.map((k, v) => MapEntry(k, !v.signature.value.contains("a") ? v : DBusString("AAA")))}",
     );
+    sublogger?.add("unparsed actions $actions");
     sublogger?.end();
 
     NotificationImage? image;

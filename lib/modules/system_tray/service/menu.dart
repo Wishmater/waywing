@@ -344,10 +344,16 @@ class DBusMenuValues {
       final updated = v.updatedProps.map((e) => _UpdatedProps.fromDBus(e)).toList();
 
       for (final remove in removed) {
-        layout.find(remove.id)?.properties.remove(remove.props);
+        final item = layout.find(remove.id);
+        item?.properties.remove(remove.props);
+        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+        item?.notifyListeners();
       }
       for (final update in updated) {
-        layout.find(update.id)?.properties.merge(update.properties);
+        final item = layout.find(update.id);
+        item?.properties.merge(update.properties);
+        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+        item?.notifyListeners();
       }
     });
   }

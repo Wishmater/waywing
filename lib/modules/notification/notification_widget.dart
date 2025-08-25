@@ -95,7 +95,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
                         children: [
                           _RenderTitle(notification),
                           // render summary
-                          Text(notification.summary, style: theme.textTheme.titleLarge),
+                          Text(notification.summary, style: theme.textTheme.titleSmall),
                           // render body
                           _RenderBody(notification),
                         ],
@@ -119,24 +119,25 @@ class _RenderTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final fontStyle = theme.textTheme.titleLarge;
+    final fontSize = fontStyle?.fontSize;
     return Row(
       children: [
         if (notification.appIcon.isNotEmpty) ...[
           XdgIcon(
             name: notification.appIcon,
-            size: theme.textTheme.headlineSmall?.fontSize?.floor(),
+            size: fontSize?.floor(),
             iconNotFoundBuilder: () => XdgIcon(
               name: notification.appIcon,
-              theme: "breeze-dark",
-              size: theme.textTheme.headlineSmall?.fontSize?.floor(),
+              size: fontSize?.floor(),
             ),
           ),
           SizedBox(width: 10),
         ],
         if (notification.appIcon.isEmpty && notification.image != null) ...[
           SizedBox(
-            height: theme.textTheme.headlineSmall?.fontSize,
-            width: theme.textTheme.headlineSmall?.fontSize,
+            height: fontSize,
+            width: fontSize,
             child: Padding(
               padding: const EdgeInsets.only(right: 5),
               child: switch (notification.image!) {
@@ -157,7 +158,7 @@ class _RenderTitle extends StatelessWidget {
             ),
           ),
         ],
-        Text(notification.appName, style: theme.textTheme.headlineSmall),
+        Text(notification.appName, style: fontStyle),
       ],
     );
   }

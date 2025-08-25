@@ -63,7 +63,7 @@ class VolumeService extends Service {
       } else {
         final app = _apps.value[index];
         app._sinkInput = sinkInput;
-        app._onValuesUpdated();
+        app._update();
       }
     });
 
@@ -90,7 +90,7 @@ class VolumeService extends Service {
       } else {
         final output = _outputs.value[index];
         output._sink = sink;
-        output._onValuesUpdated();
+        output._update();
       }
     });
     _sinkRemovedSubscription = _client.onSinkRemoved.listen((index) async {
@@ -112,6 +112,13 @@ class VolumeService extends Service {
       }
       final index = _inputs.value.indexWhere((e) => e._source.index == source.index);
       if (index == -1) {
+        // TODO 3: remove this assert after fixing the bug of repeated sources
+        assert(
+          _inputs.value.any((e) => e._source.name != source.name),
+          "Repeated sources with differnet indexes? "
+          "old: ${_inputs.value.firstWhere((e) => e._source.name == source.name)._source} "
+          "new: $source",
+        );
         final input = VolumeInputInterface(_client, source);
         await input.init();
         _inputs.value.add(input);
@@ -119,7 +126,7 @@ class VolumeService extends Service {
       } else {
         final input = _inputs.value[index];
         input._source = source;
-        input._onValuesUpdated();
+        input._update();
       }
     });
 
@@ -243,7 +250,7 @@ abstract class VolumeInterface {
   Future<void> init();
 
   // ignore: unused_element
-  void _onValuesUpdated();
+  void _update();
 
   @mustCallSuper
   Future<void> dispose() async {
@@ -319,7 +326,7 @@ class VolumeAppInterface extends VolumeInterface {
   }
 
   @override
-  void _onValuesUpdated() {
+  void _update() {
     if (_sinkInput.props.applicationName != null) {
       _name.value = _sinkInput.props.applicationName!;
       _subtitle.value = _sinkInput.name;
@@ -366,7 +373,7 @@ class VolumeOutputInterface extends VolumeInterface {
   }
 
   @override
-  void _onValuesUpdated() {
+  void _update() {
     _name.value = _sink.description;
     _volume.value = _sink.volume;
     _isMuted.value = _sink.mute;
@@ -407,7 +414,7 @@ class VolumeInputInterface extends VolumeInterface {
   }
 
   @override
-  void _onValuesUpdated() {
+  void _update() {
     _name.value = _source.description;
     _volume.value = _source.volume;
     _isMuted.value = _source.mute;

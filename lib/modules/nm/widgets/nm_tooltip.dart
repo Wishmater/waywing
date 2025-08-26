@@ -20,9 +20,9 @@ class NetworkManagerTooltip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: device.activeConnection,
-      builder: (context, activeConnection, _) {
-        if (activeConnection == null) return SizedBox.shrink();
+      valueListenable: device.isConnected,
+      builder: (context, isConnected, _) {
+        if (!isConnected) return SizedBox.shrink(); // tooltip should be disabled if !isConnected
         return IntrinsicHeight(
           child: IntrinsicWidth(
             child: Container(

@@ -354,12 +354,13 @@ class ConnectionNameWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: device.activeConnection,
-      builder: (context, activeConnection, _) {
-        if (activeConnection == null) return SizedBox.shrink();
+      valueListenable: device.activeConnectionName,
+      builder: (context, activeConnectionName, _) {
+        if (activeConnectionName == null) return SizedBox.shrink();
+        // TODO: 2 use activeConnection.status (or cues from statistics) to implement more detailed status (like connected with on internet)
         return Padding(
           padding: padding,
-          child: Text(activeConnection.id),
+          child: Text(activeConnectionName),
         );
       },
     );

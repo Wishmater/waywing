@@ -38,10 +38,19 @@ in pkgs.mkShell {
     libepoxy
     xorg.libXtst
 
+    # required by gtk-layer-shell
     ninja
     gtk-layer-shell
 
+    # required by pulseaudio
     pulseaudio
+
+    # required by audioplayers
+    gst_all_1.gstreamer
+    gst_all_1.gst-plugins-base
+    libunwind
+    elfutils
+    orc
 
   ];
 

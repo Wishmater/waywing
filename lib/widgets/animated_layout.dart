@@ -56,9 +56,11 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   @override
   void didUpdateWidget(covariant AnimatedLayout<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final List<int> removedOriginalIndices = [];
     for (int i = 0; i < oldWidget.data.length; i++) {
       final e = oldWidget.data[i];
       if (!widget.data.contains(e)) {
+        removedOriginalIndices.add(i);
         addOutgoingItem(e, i);
       }
     }
@@ -71,7 +73,8 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
         addedItemsCount++;
       } else if (widget.addGlobalKeys) {
         // not supported without global keys
-        final oldIndexAdjusted = oldIndex + addedItemsCount;
+        final removedOriginalItemsCount = _getRemovedItemsCountUpToIndex(removedOriginalIndices, oldIndex);
+        final oldIndexAdjusted = oldIndex + addedItemsCount - removedOriginalItemsCount;
         if (oldIndexAdjusted != i) {
           // item moved (changed index)
           if (!outgoingItems.containsKey(e)) {
@@ -82,6 +85,15 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
         }
       }
     }
+  }
+
+  int _getRemovedItemsCountUpToIndex(List<int> removedOriginalIndices, int oldIndex) {
+    for (int i = 0; i < removedOriginalIndices.length; i++) {
+      if (removedOriginalIndices[i] >= oldIndex) {
+        return i;
+      }
+    }
+    return removedOriginalIndices.length;
   }
 
   void addIncomingItem(T e, int index) {

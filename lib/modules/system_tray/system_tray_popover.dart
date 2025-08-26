@@ -191,9 +191,12 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
             child: WingedPopover(
               builder: (context, popover, _) {
                 return DefaultTextStyle(
-                  style: TextStyle(color: widget.item.properties.enabled ? null : Theme.of(context).disabledColor),
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    color: widget.item.properties.enabled ? null : Theme.of(context).disabledColor,
+                    height: 1.33,
+                  ),
                   child: WingedButton(
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 30),
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     alignment: Alignment.centerLeft,
                     containedInkWell: true,
@@ -285,6 +288,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                 // -10 is the zIndex of Bar popups, it's not ideal to have it hardcoded here, but whatever
                 zIndex: -10 - 1 - widget.depth,
                 containerId: widget.uniqueID,
+                extraOffset: Offset(0, -8),
                 builder: (context, _, _) {
                   return SystemTrayMenu(
                     // make sure the state is dispose when switching to another popover

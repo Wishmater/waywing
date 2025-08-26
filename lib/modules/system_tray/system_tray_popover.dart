@@ -173,6 +173,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
           return SizedBox.shrink();
         }
         if (widget.item.properties.type == "separator") {
+          // TODO: 2 remove separators when there are two in a row or first/last on the list
           return AnimatedDivider(
             duration: mainConfig.animationDuration,
             curve: mainConfig.animationCurve,
@@ -200,11 +201,12 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                         ? null
                         : widget.item.submenu.isNotEmpty
                         ? () {
-                          popover.togglePopover();
-                          if (popover.isPopoverShown) {
-                            widget.trayItem.dbusmenu!.aboutToShow(widget.item);
+                            popover.togglePopover();
+                            if (popover.isPopoverShown) {
+                              widget.trayItem.dbusmenu!.aboutToShow(widget.item);
+                            }
                           }
-                        }
+                        // TODO: 3 do we need to send events for the other event types? (hover, opened, closed, etc.)
                         : () => widget.trayItem.dbusmenu!.sendEvent(widget.item, DBusMenuEventType.clicked),
                     child: Row(
                       children: [

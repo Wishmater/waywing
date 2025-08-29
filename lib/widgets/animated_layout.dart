@@ -1,6 +1,8 @@
 import "dart:ui";
 
+import "package:dartx/dartx.dart";
 import "package:flutter/widgets.dart";
+import "package:waywing/util/state_positioning.dart";
 
 typedef ItemBuilder<T> = Widget Function(BuildContext context, T data);
 typedef ItemTransitionBuilder<T> =
@@ -16,6 +18,9 @@ class AnimatedLayout<T> extends StatefulWidget {
   final Duration duration;
   final Curve? curve;
 
+  /// This makes sense for some layouts, like Column and Row; but doesn't for others, like Stacks.
+  final bool animateIndexChanges;
+
   /// Add a GlobalKey to each item. This has a performance impact and could have some issues,
   /// but it allows the child state to live permanently through list order changes,
   /// this allows to more easily implement consistent implicit animations when the child internals themselves change.
@@ -29,26 +34,34 @@ class AnimatedLayout<T> extends StatefulWidget {
     required this.duration,
     this.curve,
     this.addGlobalKeys = true,
+    this.animateIndexChanges = false,
     super.key,
-  });
+  }) : assert(
+         !animateIndexChanges || addGlobalKeys,
+         "animateIndexChanges requires addGlobalKeys to be enabled, "
+         "so the AnimatedLayout can get the positioning of the children widgets.",
+       );
 
   @override
   State<AnimatedLayout<T>> createState() => _AnimatedLayoutState<T>();
 }
 
 class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProviderStateMixin {
-  late final Map<T, AnimationValues> incomingItems = {};
-  late final Map<T, AnimationValues> outgoingItems = {};
-  late final Map<T, MovingAnimationValues> movingItems = {};
+  late final List<_UpdateBatch<T>> updateBatches = [];
   late final Map<T, GlobalKey> itemKeys = {};
 
   @override
   void dispose() {
-    for (final e in incomingItems.values) {
-      e.animationController.dispose();
-    }
-    for (final e in outgoingItems.values) {
-      e.animationController.dispose();
+    for (final batch in updateBatches) {
+      for (final e in batch.incomingItems.values) {
+        e.animationController.dispose();
+      }
+      for (final e in batch.outgoingItems.values) {
+        e.animationController.dispose();
+      }
+      for (final e in batch.movingItems.values) {
+        e.animationController.dispose();
+      }
     }
     super.dispose();
   }
@@ -56,91 +69,104 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   @override
   void didUpdateWidget(covariant AnimatedLayout<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final List<int> removedOriginalIndices = [];
+    final batch = _UpdateBatch<T>();
     for (int i = 0; i < oldWidget.data.length; i++) {
       final e = oldWidget.data[i];
       if (!widget.data.contains(e)) {
-        removedOriginalIndices.add(i);
-        addOutgoingItem(e, i);
+        addOutgoingItem(batch, e, i);
       }
     }
-    int addedItemsCount = 0;
     for (int i = 0; i < widget.data.length; i++) {
       final e = widget.data[i];
       final oldIndex = oldWidget.data.indexOf(e);
       if (oldIndex < 0) {
-        addIncomingItem(e, i);
-        addedItemsCount++;
-      } else if (widget.addGlobalKeys) {
-        // not supported without global keys
-        final removedOriginalItemsCount = _getRemovedItemsCountUpToIndex(removedOriginalIndices, oldIndex);
+        addIncomingItem(batch, e);
+      } else if (widget.animateIndexChanges) {
+        // add moving items if their index changed
+        final addedItemsCount = batch.incomingItems.length;
+        final removedOriginalItemsCount = _getRemovedItemsCountUpToIndex(batch, oldIndex);
         final oldIndexAdjusted = oldIndex + addedItemsCount - removedOriginalItemsCount;
         if (oldIndexAdjusted != i) {
-          // item moved (changed index)
-          if (!outgoingItems.containsKey(e)) {
-            addOutgoingItem(e, oldIndexAdjusted);
-          }
-          // TODO: 1 what happens if the item is already moving? (incoming or outcoming should be fine) -- also what happens if the item is removed while its being moved
-          addMovingItem(e, i, oldIndexAdjusted);
+          // TODO: 1 what happens if the item is already moving?
+          addMovingItem(batch, e, i, oldIndexAdjusted);
         }
       }
     }
+    updateBatches.add(batch);
   }
 
-  int _getRemovedItemsCountUpToIndex(List<int> removedOriginalIndices, int oldIndex) {
-    for (int i = 0; i < removedOriginalIndices.length; i++) {
-      if (removedOriginalIndices[i] >= oldIndex) {
+  int _getRemovedItemsCountUpToIndex(_UpdateBatch<T> batch, int oldIndex) {
+    final outgoingAnims = batch.outgoingItems.values.toList();
+    for (int i = 0; i < outgoingAnims.length; i++) {
+      if (outgoingAnims[i].oldIndex >= oldIndex) {
         return i;
       }
     }
-    return removedOriginalIndices.length;
+    return outgoingAnims.length;
   }
 
-  void addIncomingItem(T e, int index) {
-    final anim = outgoingItems.remove(e) ?? initAnimationValues(AnimationValues(), true, index);
+  void addIncomingItem(_UpdateBatch<T> batch, T e) {
+    final outgoingAnim = _removeOutgoingItem(e);
+    final anim = IncomingAnimationValues();
+    if (outgoingAnim != null) {
+      anim
+        ..animationController = outgoingAnim.animationController
+        ..animation = outgoingAnim.animation;
+    } else {
+      initAnimationValues(anim, true);
+    }
     anim.animationController.forward().whenComplete(() {
       if (!mounted) return;
       setState(() {
         anim.animationController.dispose();
-        incomingItems.remove(e);
+        _removeIncomingItem(e);
       });
     });
-    incomingItems[e] = anim;
+    batch.incomingItems[e] = anim;
   }
 
-  void addOutgoingItem(T e, int index) {
-    final anim = incomingItems.remove(e) ?? initAnimationValues(AnimationValues(), false, index);
+  void addOutgoingItem(_UpdateBatch<T> batch, T e, int index) {
+    final incomingAnim = _removeIncomingItem(e);
+    final anim = OutgoingAnimationValues();
+    if (incomingAnim != null) {
+      anim
+        ..animationController = incomingAnim.animationController
+        ..animation = incomingAnim.animation;
+    } else {
+      initAnimationValues(anim, false);
+    }
+    anim.oldIndex = index;
     anim.animationController.reverse().whenComplete(() {
       if (!mounted) return;
       setState(() {
         anim.animationController.dispose();
-        outgoingItems.remove(e);
+        _removeOutgoingItem(e);
         itemKeys.remove(e);
       });
     });
-    outgoingItems[e] = anim;
+    batch.outgoingItems[e] = anim;
   }
 
-  void addMovingItem(T e, int index, int originalIndex) {
-    final anim = initAnimationValues(MovingAnimationValues(), true, index);
-    anim.originalIndex = originalIndex;
+  void addMovingItem(_UpdateBatch<T> batch, T e, int newIndex, int originalIndex) {
+    final anim = initAnimationValues(MovingAnimationValues(), true);
+    anim.targetIndex = newIndex;
+    anim.originIndex = originalIndex;
     anim.originalPositioning = getPositioningForItem(e)!;
     anim.animationController.forward().whenComplete(() {
       if (!mounted) return;
       setState(() {
         anim.animationController.dispose();
-        movingItems.remove(e);
+        _removeMovingItem(e);
       });
     });
-    movingItems[e] = anim;
+    batch.movingItems[e] = anim;
   }
 
-  A initAnimationValues<A extends AnimationValues>(A anim, bool isIncoming, int index) {
-    anim.index = index;
+  A initAnimationValues<A extends AnimationValues>(A anim, bool isForward) {
     anim.animationController = AnimationController(
       vsync: this,
       duration: widget.duration,
-      value: isIncoming ? 0 : 1,
+      value: isForward ? 0 : 1,
     );
     if (widget.curve != null) {
       anim.animation = CurvedAnimation(
@@ -154,64 +180,253 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
     return anim;
   }
 
+  IncomingAnimationValues? _removeIncomingItem(T e) {
+    final batchIndex = updateBatches.indexWhere((batch) => batch.incomingItems.containsKey(e));
+    if (batchIndex < 0) return null;
+    final result = updateBatches[batchIndex].incomingItems.remove(e);
+    if (updateBatches[batchIndex].isEmpty) {
+      updateBatches.removeAt(batchIndex);
+    }
+    return result;
+  }
+
+  OutgoingAnimationValues? _removeOutgoingItem(T e) {
+    final batchIndex = updateBatches.indexWhere((batch) => batch.outgoingItems.containsKey(e));
+    if (batchIndex < 0) return null;
+    final result = updateBatches[batchIndex].outgoingItems.remove(e);
+    if (updateBatches[batchIndex].isEmpty) {
+      updateBatches.removeAt(batchIndex);
+    }
+    return result;
+  }
+
+  MovingAnimationValues? _removeMovingItem(T e) {
+    final batchIndex = updateBatches.indexWhere((batch) => batch.movingItems.containsKey(e));
+    if (batchIndex < 0) return null;
+    final result = updateBatches[batchIndex].movingItems.remove(e);
+    if (updateBatches[batchIndex].isEmpty) {
+      updateBatches.removeAt(batchIndex);
+    }
+    return result;
+  }
+
+  // TODO: 3 PERFORMANCE we might want to optimize the findItem methods, because they are called SEVERAL times during build
+  IncomingAnimationValues? _findIncomingAnim(T e) {
+    return updateBatches.map((batch) => batch.incomingItems[e]).firstOrNullWhere((e) => e != null);
+  }
+
+  OutgoingAnimationValues? _findOutgoingAnim(T e) {
+    return updateBatches.map((batch) => batch.outgoingItems[e]).firstOrNullWhere((e) => e != null);
+  }
+
+  MovingAnimationValues? _findMovingAnim(T e) {
+    if (!widget.animateIndexChanges) return null;
+    return updateBatches.map((batch) => batch.movingItems[e]).firstOrNullWhere((e) => e != null);
+  }
+
+  int getIndexOffset(int batchIndex, int itemIndex) {
+    int result = 0;
+    for (int i = 0; i < batchIndex; i++) {
+      for (final previousOutgoingAnim in updateBatches[i].outgoingItems.values) {
+        if (previousOutgoingAnim.oldIndex > itemIndex) break;
+        result++;
+      }
+      for (final previousMovingAnim in updateBatches[i].outgoingItems.values) {
+        if (previousMovingAnim.oldIndex > itemIndex) break;
+        result++;
+      }
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final List<Widget> items = [];
-    final List<Widget> overlays = [];
+    final List<Widget> widgets = [];
+    final List<Widget> overlayWidgets = [];
 
+    // build currently existing item widgets
     for (final e in widget.data) {
-      Widget item = widget.itemBuilder(context, e);
-      final incomingAnim = incomingItems[e];
-      if (incomingAnim != null) {
-        item = addGlobalKey(context, e, item);
-        item = widget.transitionBuilder(context, e, item, incomingAnim.animation);
-      } else {
-        final movingAnim = movingItems[e];
-        if (movingAnim != null) {
-          // original item is added to overlay and a sized proxy is added to main list instead
-          overlays.add(buildMovingTransition(movingAnim, e, item));
-          final positioning = getPositioningForItem(e);
-          item = buildProxiedSizedBox(e, positioning?.$2 ?? movingAnim.originalPositioning.$2);
-          item = addGlobalKey(context, e, item);
-          item = widget.transitionBuilder(context, e, item, movingAnim.animation);
-        } else {
-          item = addGlobalKey(context, e, item);
+      final movingAnim = _findMovingAnim(e);
+      Widget itemWidget;
+      if (movingAnim == null) {
+        itemWidget = widget.itemBuilder(context, e);
+        itemWidget = addGlobalKey(context, e, itemWidget);
+        final incomingAnim = _findIncomingAnim(e);
+        if (incomingAnim != null) {
+          itemWidget = widget.transitionBuilder(context, e, itemWidget, incomingAnim.animation);
         }
+      } else {
+        // we need to add the target widget of moving items at this moment,
+        // if we don't, indices will be distorted.
+        // in other words: the target widget of a movingAnim for an item that is still on the list
+        // is technically an existing item widget for layout, so not adding it at the proper time
+        // will break the indices and layout
+        itemWidget = buildMovingTargetWidget(movingAnim, _findOutgoingAnim(e), e);
       }
-      items.add(item);
+      widgets.add(itemWidget);
     }
 
-    final outgoingEntries = outgoingItems.entries.toList();
-    for (int i = 0; i < outgoingItems.length; i++) {
-      final entry = outgoingEntries[i];
-      final e = entry.key;
-      final outgoingAnim = entry.value;
-      Widget item;
-      final movingAnim = movingItems[e];
-      if (movingAnim != null) {
-        item = buildProxiedSizedBox(e, movingAnim.originalPositioning.$2);
-      } else {
-        item = widget.itemBuilder(context, e);
-        item = addGlobalKey(context, e, item);
+    for (int batchIndex = 0; batchIndex < updateBatches.length; batchIndex++) {
+      final batch = updateBatches[batchIndex];
+
+      // build outgoing item widgets
+      for (final entry in batch.outgoingItems.entries) {
+        final e = entry.key;
+        final outgoingAnim = entry.value;
+        final movingAnim = _findMovingAnim(e);
+        Widget outgoingWidget;
+        if (movingAnim == null) {
+          outgoingWidget = widget.itemBuilder(context, e);
+          outgoingWidget = addGlobalKey(context, e, outgoingWidget);
+          outgoingWidget = widget.transitionBuilder(context, e, outgoingWidget, outgoingAnim.animation);
+        } else {
+          // we need to add the target widget of moving items at this moment,
+          // if we don't, indices will be distorted.
+          // in other words: the origin widget of a movingAnim is technically an outgoing item widget,
+          // so  adding at this time makes it way easier to handle calculating adjustedIndices
+          assert(movingAnim.originIndex == outgoingAnim.oldIndex);
+          outgoingWidget = buildMovingOriginWidget(movingAnim, _findIncomingAnim(e), e);
+        }
+        final indexOffset = getIndexOffset(batchIndex, outgoingAnim.oldIndex);
+        final adjustedIndex = outgoingAnim.oldIndex + indexOffset;
+        widgets.insert(adjustedIndex.clamp(0, widgets.length), outgoingWidget);
       }
-      item = widget.transitionBuilder(context, e, item, outgoingAnim.animation);
-      items.insert(outgoingAnim.index.clamp(0, items.length), item);
+
+      // build moving item widgets, this is the cause for 90% of the complexity
+      for (final entry in batch.movingItems.entries) {
+        final e = entry.key;
+        final movingAnim = entry.value;
+        final incomingAnim = _findIncomingAnim(e);
+        final outgoingAnim = _findOutgoingAnim(e);
+        // add actual item to overlay, animating its Position
+        Widget item = widget.itemBuilder(context, e);
+        item = addGlobalKey(context, e, item);
+        if (incomingAnim != null || outgoingAnim != null) {
+          assert(
+            incomingAnim == null || outgoingAnim == null,
+            "An item can't have both incoming and outgoint animations, "
+            "this should have be validated when creating them",
+          );
+          item = widget.transitionBuilder(context, e, item, (incomingAnim ?? outgoingAnim!).animation);
+        }
+        item = buildMovingTransition(movingAnim, e, item);
+        overlayWidgets.add(item);
+        // add a sized proxy to the original index,
+        // only if it wasn't already added (item is still in list).
+        // in other words: if the item was removed from list, originWidget will be added
+        // when building outgoingAnims; if it still in the list, we need to add it here
+        if (outgoingAnim == null) {
+          final originWidget = buildMovingOriginWidget(movingAnim, incomingAnim, e);
+          final outgoingIndexOffset = getIndexOffset(batchIndex, movingAnim.originIndex);
+          final outgoingAdjustedIndex = movingAnim.originIndex + outgoingIndexOffset;
+          widgets.insert(outgoingAdjustedIndex, originWidget);
+        }
+        // add a sized proxy to the target index,
+        // only if it wasn't already added (item was removed from the list).
+        // in other words: if the item is still on the list, targetWidget will be added
+        // when building widget.data; if it was removed from the list, we need to add it here
+        if (outgoingAnim != null) {
+          final targetWidget = buildMovingTargetWidget(movingAnim, outgoingAnim, e);
+          final targetIndexOffset = getIndexOffset(batchIndex, movingAnim.targetIndex);
+          final targetAdjustedIndex = movingAnim.originIndex + targetIndexOffset;
+          widgets.insert(targetAdjustedIndex, targetWidget);
+        }
+      }
     }
 
     return Stack(
       children: [
-        widget.layoutBuilder(context, items),
-        ...overlays,
+        widget.layoutBuilder(context, widgets),
+        ...overlayWidgets,
       ],
     );
   }
 
-  AnimatedBuilder buildMovingTransition(MovingAnimationValues movingAnim, T e, Widget item) {
+  (Offset, Size)? getPositioningForItem(T e) {
+    if (!widget.addGlobalKeys) return null;
+    final globalKey = itemKeys[e];
+    if (globalKey == null || globalKey.currentContext == null) return null;
+    try {
+      RenderBox box = globalKey.currentContext!.findRenderObject()! as RenderBox;
+      final position = box.localToGlobal(
+        Offset.zero,
+        ancestor: context.findRenderObject(),
+      );
+      return (position, box.size);
+    } catch (_) {}
+    return null;
+  }
+
+  Widget addGlobalKey(BuildContext context, T e, Widget item) {
+    if (!widget.addGlobalKeys) return item;
+    var key = itemKeys[e];
+    if (key == null) {
+      key = GlobalKey();
+      itemKeys[e] = key;
+    }
+    return KeyedSubtree(
+      key: key,
+      child: item,
+    );
+  }
+
+  Widget buildMovingOriginWidget(MovingAnimationValues movingAnim, IncomingAnimationValues? incomingAnim, T e) {
+    // // TODO: 2 getting size from flying item isn't working,
+    // // so we use the cached size from when the move happened
+    // // this will look weird if the item size changes while flying
+    // // this issue applies to both outgoing and incoming proxied sizebox
+    // final positioning = getPositioningForItem(e);
+    Widget originItem = buildProxiedSizedBox(e, movingAnim.originalPositioning.$2);
+    // if there is an item incoming to the list that has been moved,
+    // the incomingAnim will affect be the originWidget animation
+    final originAnimation = incomingAnim == null
+        ? ReverseAnimation(movingAnim.animation)
+        : MultipliedAnimation(incomingAnim.animation, ReverseAnimation(movingAnim.animation));
+    originItem = widget.transitionBuilder(context, e, originItem, originAnimation);
+    return originItem;
+  }
+
+  Widget buildMovingTargetWidget(MovingAnimationValues movingAnim, OutgoingAnimationValues? outgoingAnim, T e) {
+    // // TODO: 2 getting size from flying item isn't working,
+    // // so we use the cached size from when the move happened
+    // // this will look weird if the item size changes while flying
+    // // this issue applies to both outgoing and incoming proxied sizebox
+    // final positioning = getPositioningForItem(e);
+    Widget targetItem = buildProxiedSizedBox(e, movingAnim.originalPositioning.$2);
+    // if there is a moving item that has been removed from the list,
+    // the outgoingAnim will affect be the targetWidget animation
+    targetItem = PositioningMonitor(
+      controller: movingAnim.targetPositioningController,
+      child: targetItem,
+    );
+    final targetAnimation = outgoingAnim == null
+        ? movingAnim.animation
+        : MultipliedAnimation(outgoingAnim.animation, movingAnim.animation);
+    targetItem = widget.transitionBuilder(context, e, targetItem, targetAnimation);
+    return targetItem;
+  }
+
+  Widget buildProxiedSizedBox(T e, [Size? size]) {
+    final size = getPositioningForItem(e)?.$2;
+    if (size != null) {
+      return SizedBox.fromSize(size: size);
+    } else {
+      return SizedBox.shrink();
+    }
+  }
+
+  Widget buildMovingTransition(MovingAnimationValues movingAnim, T e, Widget item) {
+    // this builds a Positioned widget that will animate the moving item's position from origin to target point
     return AnimatedBuilder(
       animation: movingAnim.animation,
       child: item,
       builder: (context, child) {
-        final positioning = getPositioningForItem(e);
+        (Offset, Size)? positioning;
+        try {
+          positioning = movingAnim.targetPositioningController.getPositioning(
+            parentContext: this.context,
+          );
+        } catch (_) {}
         final left = positioning == null
             ? movingAnim.originalPositioning.$1.dx
             : lerpDouble(
@@ -247,54 +462,32 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
       },
     );
   }
+}
 
-  Widget addGlobalKey(BuildContext context, T e, Widget item) {
-    if (!widget.addGlobalKeys) return item;
-    var key = itemKeys[e];
-    if (key == null) {
-      key = GlobalKey();
-      itemKeys[e] = key;
-    }
-    return KeyedSubtree(
-      key: key,
-      child: item,
-    );
-  }
+class _UpdateBatch<T> {
+  final Map<T, IncomingAnimationValues> incomingItems = {};
+  final Map<T, OutgoingAnimationValues> outgoingItems = {};
+  final Map<T, MovingAnimationValues> movingItems = {};
 
-  (Offset, Size)? getPositioningForItem(T e) {
-    if (!widget.addGlobalKeys) return null;
-    final globalKey = itemKeys[e];
-    if (globalKey == null || globalKey.currentContext == null) return null;
-    try {
-      RenderBox box = globalKey.currentContext!.findRenderObject()! as RenderBox;
-      final position = box.localToGlobal(
-        Offset.zero,
-        ancestor: context.findRenderObject(),
-      );
-      return (position, box.size);
-    } catch (_) {}
-    return null;
-  }
-
-  Widget buildProxiedSizedBox(T e, [Size? size]) {
-    final size = getPositioningForItem(e)?.$2;
-    if (size != null) {
-      return SizedBox.fromSize(size: size);
-    } else {
-      return SizedBox.shrink();
-    }
-  }
+  bool get isEmpty => incomingItems.isEmpty && outgoingItems.isEmpty && movingItems.isEmpty;
 }
 
 class AnimationValues {
   late final AnimationController animationController;
   late final Animation<double> animation;
-  late final int index; // only used for ougoing items
+}
+
+class IncomingAnimationValues extends AnimationValues {}
+
+class OutgoingAnimationValues extends AnimationValues {
+  late final int oldIndex;
 }
 
 class MovingAnimationValues extends AnimationValues {
-  late final int originalIndex;
+  late final int targetIndex;
+  late final int originIndex;
   late final (Offset, Size) originalPositioning;
+  late final PositioningController targetPositioningController = PositioningController();
 }
 
 class AnimatedFlex<T> extends StatelessWidget {
@@ -303,6 +496,7 @@ class AnimatedFlex<T> extends StatelessWidget {
   final ItemTransitionBuilder<T>? transitionBuilder;
   final Duration duration;
   final Curve? curve;
+  final bool animateIndexChanges;
   final bool addGlobalKeys;
   // Flex params (Column / Row)
   final Axis direction;
@@ -322,6 +516,7 @@ class AnimatedFlex<T> extends StatelessWidget {
     required this.duration,
     this.curve,
     this.addGlobalKeys = true,
+    this.animateIndexChanges = true,
     // Flex params (Column / Row)
     required this.direction,
     this.mainAxisAlignment = MainAxisAlignment.start,
@@ -344,6 +539,7 @@ class AnimatedFlex<T> extends StatelessWidget {
       duration: duration,
       curve: curve,
       addGlobalKeys: addGlobalKeys,
+      animateIndexChanges: animateIndexChanges,
       layoutBuilder: (context, children) {
         return Flex(
           direction: direction,
@@ -387,6 +583,7 @@ class AnimatedColumn<T> extends AnimatedFlex<T> {
     required super.duration,
     super.curve,
     super.addGlobalKeys = true,
+    super.animateIndexChanges = true,
     // Column params
     super.mainAxisAlignment = MainAxisAlignment.start,
     super.mainAxisSize = MainAxisSize.max,
@@ -408,6 +605,7 @@ class AnimatedRow<T> extends AnimatedFlex<T> {
     required super.duration,
     super.curve,
     super.addGlobalKeys = true,
+    super.animateIndexChanges = true,
     // Column params
     super.mainAxisAlignment = MainAxisAlignment.start,
     super.mainAxisSize = MainAxisSize.max,
@@ -422,3 +620,42 @@ class AnimatedRow<T> extends AnimatedFlex<T> {
 }
 
 // TODO: 2 implement AnimatedStack with this same logic
+
+// TODO: 3 maybe move this somewhere else, maybe make it a "DerivedAnimation"
+// that accepts a list of dependency animations and a derive callback
+class MultipliedAnimation extends Animation<double> {
+  final Animation<double> first;
+  final Animation<double> second;
+
+  MultipliedAnimation(this.first, this.second);
+
+  @override
+  double get value => first.value * second.value;
+
+  @override
+  AnimationStatus get status => first.status == second.status ? first.status : AnimationStatus.forward;
+
+  @override
+  void addListener(VoidCallback listener) {
+    first.addListener(listener);
+    second.addListener(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    first.removeListener(listener);
+    second.removeListener(listener);
+  }
+
+  @override
+  void addStatusListener(AnimationStatusListener listener) {
+    first.addStatusListener(listener);
+    second.addStatusListener(listener);
+  }
+
+  @override
+  void removeStatusListener(AnimationStatusListener listener) {
+    first.removeStatusListener(listener);
+    second.removeStatusListener(listener);
+  }
+}

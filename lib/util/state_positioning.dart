@@ -1,13 +1,14 @@
 import "package:flutter/widgets.dart";
 
 mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {
-  (Offset, Size) getPositioning() {
+  (Offset, Size) getPositioning({
+    BuildContext? parentContext,
+  }) {
     try {
       RenderBox box = context.findRenderObject()! as RenderBox;
       final position = box.localToGlobal(
         Offset.zero,
-        // // this shouldn't be necessary since we always have a single provider at the root
-        // ancestor: _provider?.context.findRenderObject(), // hack to support UI scale
+        ancestor: parentContext?.findRenderObject(),
       );
       _lastPositioning = (position, box.size);
     } catch (_) {}
@@ -43,8 +44,8 @@ mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositionin
   }
 }
 
-typedef PositioningGetter = (Offset, Size) Function();
-typedef PositioningNullableGetter = (Offset, Size)? Function();
+typedef PositioningGetter = (Offset, Size) Function({BuildContext? parentContext});
+typedef PositioningNullableGetter = (Offset, Size)? Function({BuildContext? parentContext});
 
 class PositioningController {
   late PositioningGetter getPositioning;

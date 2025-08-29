@@ -11,6 +11,7 @@ import "package:tronco/tronco.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/logger.dart";
 
@@ -41,9 +42,18 @@ mixin MainConfigBase on MainConfigI {
   // Animations
   //===========================================================================
 
-  static const _animationDuration = DurationField(defaultTo: Duration(milliseconds: 250));
-  static const _animationCurve = CurveField(defaultTo: Curves.easeOutCubic);
-  // TODO: 2 we probably want to set different animation "types" and then the user can set duration and curve for each of them
+  static const _animationStiffnessMultiplier = DoubleNumberField(defaultTo: 1);
+  static const _animationDampingMultiplier = DoubleNumberField(defaultTo: 1);
+  // TODO: 3 validate that these are >=0 and maybe an upper bound as well
+
+  late final motions = MaterialSpringMotionValues(
+    stiffness: animationStiffnessMultiplier,
+    damping: animationDampingMultiplier,
+  );
+
+  // TODO: 1 remove this
+  final animationCurve = Curves.easeOutCubic;
+  final animationDuration = Duration(milliseconds: 250);
 
   //===========================================================================
   // Layer settings

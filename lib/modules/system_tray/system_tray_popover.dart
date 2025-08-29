@@ -214,8 +214,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                     child: Row(
                       children: [
                         AnimatedIntrinsicSize(
-                          duration: mainConfig.animationDuration,
-                          curve: mainConfig.animationCurve,
+                          motion: mainConfig.motions.standard.spatial.normal,
                           child: SystemTrayMenuIcon(
                             item: widget.item,
                             forceIconSpace: widget.forceIconSpace,

@@ -42,6 +42,7 @@ dependencies:
   animations: ^2.0.11
   auto_size_text: ^3.0.0
   implicitly_animated_list: ^2.3.0
+  motor: 1.0.0-dev.4
 
   # Native plugins
   path: ^1.9.1

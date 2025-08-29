@@ -603,6 +603,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  motor:
+    dependency: "direct main"
+    description:
+      name: motor
+      sha256: "8d8a4115f6ba8ea40d34dbe55404f809672bc3b851c4355a91553b41f9536fca"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0-dev.4"
   mutex:
     dependency: "direct main"
     description:

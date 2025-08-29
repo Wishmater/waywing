@@ -2,6 +2,7 @@ import "dart:ui";
 
 import "package:dartx/dartx.dart";
 import "package:flutter/widgets.dart";
+import "package:motor/motor.dart";
 import "package:waywing/util/state_positioning.dart";
 
 typedef ItemBuilder<T> = Widget Function(BuildContext context, T data);
@@ -87,7 +88,6 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
         final removedOriginalItemsCount = _getRemovedItemsCountUpToIndex(batch, oldIndex);
         final oldIndexAdjusted = oldIndex + addedItemsCount - removedOriginalItemsCount;
         if (oldIndexAdjusted != i) {
-          // TODO: 1 what happens if the item is already moving?
           addMovingItem(batch, e, i, oldIndexAdjusted);
         }
       }
@@ -109,9 +109,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
     final outgoingAnim = _removeOutgoingItem(e);
     final anim = IncomingAnimationValues();
     if (outgoingAnim != null) {
-      anim
-        ..animationController = outgoingAnim.animationController
-        ..animation = outgoingAnim.animation;
+      anim.animationController = outgoingAnim.animationController;
     } else {
       initAnimationValues(anim, true);
     }
@@ -129,9 +127,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
     final incomingAnim = _removeIncomingItem(e);
     final anim = OutgoingAnimationValues();
     if (incomingAnim != null) {
-      anim
-        ..animationController = incomingAnim.animationController
-        ..animation = incomingAnim.animation;
+      anim.animationController = incomingAnim.animationController;
     } else {
       initAnimationValues(anim, false);
     }
@@ -148,10 +144,18 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   }
 
   void addMovingItem(_UpdateBatch<T> batch, T e, int newIndex, int originalIndex) {
-    final anim = initAnimationValues(MovingAnimationValues(), true);
+    // TODO: 1 what happens if the item is already moving?
+    final movingAnim = _removeMovingItem(e);
+    final anim = MovingAnimationValues();
+    if (movingAnim == null) {
+      initAnimationValues(anim, true);
+      anim.originalPositioning = getPositioningForItem(e)!;
+    } else {
+      initAnimationValues(anim, true);
+      anim.originalPositioning = getPositioningForItem(e)!;
+    }
     anim.targetIndex = newIndex;
     anim.originIndex = originalIndex;
-    anim.originalPositioning = getPositioningForItem(e)!;
     anim.animationController.forward().whenComplete(() {
       if (!mounted) return;
       setState(() {
@@ -163,20 +167,19 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   }
 
   A initAnimationValues<A extends AnimationValues>(A anim, bool isForward) {
-    anim.animationController = AnimationController(
+    final animationStiffnessMultiplier = 1;
+    final animationDampingMultiplier = 1;
+    anim.animationController = BoundedMotionController<double>(
       vsync: this,
-      duration: widget.duration,
-      value: isForward ? 0 : 1,
+      motion: MaterialSpringMotion.standardSpatialDefault.copyWith(
+        stiffness: MaterialSpringMotion.standardSpatialDefault.stiffness * animationStiffnessMultiplier,
+        damping: MaterialSpringMotion.standardSpatialDefault.damping * animationDampingMultiplier,
+      ),
+      converter: SingleMotionConverter(),
+      lowerBound: 0,
+      upperBound: 1,
+      initialValue: isForward ? 0 : 1,
     );
-    if (widget.curve != null) {
-      anim.animation = CurvedAnimation(
-        parent: anim.animationController,
-        curve: widget.curve!,
-        reverseCurve: FlippedCurve(widget.curve!),
-      );
-    } else {
-      anim.animation = anim.animationController;
-    }
     return anim;
   }
 
@@ -342,7 +345,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
     );
   }
 
-  (Offset, Size)? getPositioningForItem(T e) {
+  Positioning? getPositioningForItem(T e) {
     if (!widget.addGlobalKeys) return null;
     final globalKey = itemKeys[e];
     if (globalKey == null || globalKey.currentContext == null) return null;
@@ -352,7 +355,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
         Offset.zero,
         ancestor: context.findRenderObject(),
       );
-      return (position, box.size);
+      return Positioning(position, box.size);
     } catch (_) {}
     return null;
   }
@@ -376,7 +379,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
     // // this will look weird if the item size changes while flying
     // // this issue applies to both outgoing and incoming proxied sizebox
     // final positioning = getPositioningForItem(e);
-    Widget originItem = buildProxiedSizedBox(e, movingAnim.originalPositioning.$2);
+    Widget originItem = buildProxiedSizedBox(e, movingAnim.originalPositioning.size);
     // if there is an item incoming to the list that has been moved,
     // the incomingAnim will affect be the originWidget animation
     final originAnimation = incomingAnim == null
@@ -392,7 +395,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
     // // this will look weird if the item size changes while flying
     // // this issue applies to both outgoing and incoming proxied sizebox
     // final positioning = getPositioningForItem(e);
-    Widget targetItem = buildProxiedSizedBox(e, movingAnim.originalPositioning.$2);
+    Widget targetItem = buildProxiedSizedBox(e, movingAnim.originalPositioning.size);
     // if there is a moving item that has been removed from the list,
     // the outgoingAnim will affect be the targetWidget animation
     targetItem = PositioningMonitor(
@@ -407,7 +410,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   }
 
   Widget buildProxiedSizedBox(T e, [Size? size]) {
-    final size = getPositioningForItem(e)?.$2;
+    final size = getPositioningForItem(e)?.size;
     if (size != null) {
       return SizedBox.fromSize(size: size);
     } else {
@@ -421,24 +424,24 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
       animation: movingAnim.animation,
       child: item,
       builder: (context, child) {
-        (Offset, Size)? positioning;
+        Positioning? positioning;
         try {
           positioning = movingAnim.targetPositioningController.getPositioning(
             parentContext: this.context,
           );
         } catch (_) {}
         final left = positioning == null
-            ? movingAnim.originalPositioning.$1.dx
+            ? movingAnim.originalPositioning.offset.dx
             : lerpDouble(
-                movingAnim.originalPositioning.$1.dx,
-                positioning.$1.dx,
+                movingAnim.originalPositioning.offset.dx,
+                positioning.offset.dx,
                 movingAnim.animation.value,
               );
         final top = positioning == null
-            ? movingAnim.originalPositioning.$1.dy
+            ? movingAnim.originalPositioning.offset.dy
             : lerpDouble(
-                movingAnim.originalPositioning.$1.dy,
-                positioning.$1.dy,
+                movingAnim.originalPositioning.offset.dy,
+                positioning.offset.dy,
                 movingAnim.animation.value,
               );
         var opacityValue = movingAnim.animation.value;
@@ -454,7 +457,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
           child: Opacity(
             opacity: opacityValue,
             child: SizedBox.fromSize(
-              size: movingAnim.originalPositioning.$2,
+              size: movingAnim.originalPositioning.size,
               child: child!,
             ),
           ),
@@ -472,21 +475,21 @@ class _UpdateBatch<T> {
   bool get isEmpty => incomingItems.isEmpty && outgoingItems.isEmpty && movingItems.isEmpty;
 }
 
-class AnimationValues {
-  late final AnimationController animationController;
-  late final Animation<double> animation;
+class AnimationValues<T extends Object> {
+  late final BoundedMotionController<T> animationController;
+  Animation<T> get animation => animationController;
 }
 
-class IncomingAnimationValues extends AnimationValues {}
+class IncomingAnimationValues extends AnimationValues<double> {}
 
-class OutgoingAnimationValues extends AnimationValues {
+class OutgoingAnimationValues extends AnimationValues<double> {
   late final int oldIndex;
 }
 
-class MovingAnimationValues extends AnimationValues {
+class MovingAnimationValues extends AnimationValues<double> {
   late final int targetIndex;
   late final int originIndex;
-  late final (Offset, Size) originalPositioning;
+  late final Positioning originalPositioning;
   late final PositioningController targetPositioningController = PositioningController();
 }
 

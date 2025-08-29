@@ -387,7 +387,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               });
               return SizedBox.shrink();
             }
-            final (hostPosition, hostSize) = hostPositioning;
+            final hostPosition = hostPositioning.offset;
+            final hostSize = hostPositioning.size;
             // print("-----------------------------------");
             // print("hostSize: $hostSize");
             // print("hostPosition: $hostPosition");
@@ -483,7 +484,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                   builder: (context, positioning, child) {
                     Rect? rect;
                     if (positioning != null) {
-                      final (offset, size) = positioning;
+                      final offset = positioning.offset;
+                      final size = positioning.size;
                       rect = Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
                     }
                     return ClipPath(

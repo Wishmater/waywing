@@ -80,7 +80,7 @@ class WingedPopover extends StatefulWidget {
   final Widget? child;
   final PopoverParams? popoverParams;
   final PopoverParams? tooltipParams;
-  final List<(ShapeBorder, ValueNotifier<(Offset, Size)?>)> extraClientClippers;
+  final List<(ShapeBorder, ValueNotifier<Positioning?>)> extraClientClippers;
 
   const WingedPopover({
     required this.builder,

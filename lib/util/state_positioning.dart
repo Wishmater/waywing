@@ -1,7 +1,14 @@
 import "package:flutter/widgets.dart";
 
+class Positioning {
+  final Offset offset;
+  final Size size;
+
+  const Positioning(this.offset, this.size);
+}
+
 mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {
-  (Offset, Size) getPositioning({
+  Positioning getPositioning({
     BuildContext? parentContext,
   }) {
     try {
@@ -10,17 +17,17 @@ mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {
         Offset.zero,
         ancestor: parentContext?.findRenderObject(),
       );
-      _lastPositioning = (position, box.size);
+      _lastPositioning = Positioning(position, box.size);
     } catch (_) {}
     return _lastPositioning;
   }
 
   // cache last known positioning, to use it if queried after widget is dismounted
-  late (Offset, Size) _lastPositioning;
+  late Positioning _lastPositioning;
 }
 
 mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositioningMixin<T> {
-  late ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+  late ValueNotifier<Positioning?> positioningNotifier = ValueNotifier(null);
   late ValueNotifier<Offset?> offsetNotifier = ValueNotifier(null);
   late ValueNotifier<Size?> sizeNotifier = ValueNotifier(null);
 
@@ -38,14 +45,14 @@ mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositionin
     if (!mounted) return;
     final newPositioning = getPositioning();
     positioningNotifier.value = newPositioning;
-    offsetNotifier.value = newPositioning.$1;
-    sizeNotifier.value = newPositioning.$2;
+    offsetNotifier.value = newPositioning.offset;
+    sizeNotifier.value = newPositioning.size;
     scheduleCheckPositioningChange();
   }
 }
 
-typedef PositioningGetter = (Offset, Size) Function({BuildContext? parentContext});
-typedef PositioningNullableGetter = (Offset, Size)? Function({BuildContext? parentContext});
+typedef PositioningGetter = Positioning Function({BuildContext? parentContext});
+typedef PositioningNullableGetter = Positioning? Function({BuildContext? parentContext});
 
 class PositioningController {
   late PositioningGetter getPositioning;
@@ -101,7 +108,7 @@ mixin StatePositioningControllerMixin<T extends StatefulWidget> on StatePosition
 }
 
 class PositioningNotifierController extends PositioningController {
-  final ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+  final ValueNotifier<Positioning?> positioningNotifier = ValueNotifier(null);
   final ValueNotifier<Offset?> offsetNotifier = ValueNotifier(null);
   final ValueNotifier<Size?> sizeNotifier = ValueNotifier(null);
 }

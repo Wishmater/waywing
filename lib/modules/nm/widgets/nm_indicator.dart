@@ -6,8 +6,8 @@ import "package:nm/nm.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/util/human_readable_bytes.dart";
-import "package:waywing/widgets/winged_button.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class NetworkManagerIndicator extends StatelessWidget {
   final NetworkManagerConfig config;

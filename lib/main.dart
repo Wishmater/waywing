@@ -12,7 +12,7 @@ import "package:waywing/util/logger.dart";
 import "package:waywing/widgets/config_changes_watcher.dart";
 import "package:waywing/util/window_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
-import "package:waywing/widgets/winged_popover_provider.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
 final notificationService = NotificationService();

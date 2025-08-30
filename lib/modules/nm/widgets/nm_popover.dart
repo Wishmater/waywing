@@ -6,7 +6,7 @@ import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/simple_shadow.dart";
-import "package:waywing/widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
 
 class NetworkManagerPopover extends StatefulWidget {
   final NetworkManagerConfig config;

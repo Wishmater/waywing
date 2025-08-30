@@ -1,8 +1,8 @@
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/state_positioning.dart";
-import "package:waywing/widgets/winged_container.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_container.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class TextTooltipOnOverflow extends StatefulWidget {
   final Widget child;

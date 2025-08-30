@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 
-class AnimatedDivider extends ImplicitlyAnimatedWidget {
+class MotionDivider extends ImplicitlyAnimatedWidget {
   final double? height;
   final double? thickness;
   final double? indent;
@@ -8,7 +8,7 @@ class AnimatedDivider extends ImplicitlyAnimatedWidget {
   final BorderRadiusGeometry? radius;
   final Color? color;
 
-  const AnimatedDivider({
+  const MotionDivider({
     required super.duration,
     super.curve,
     this.height,
@@ -22,10 +22,10 @@ class AnimatedDivider extends ImplicitlyAnimatedWidget {
   });
 
   @override
-  AnimatedWidgetBaseState<AnimatedDivider> createState() => _AnimatedDividerState();
+  AnimatedWidgetBaseState<MotionDivider> createState() => _AnimatedDividerState();
 }
 
-class _AnimatedDividerState extends AnimatedWidgetBaseState<AnimatedDivider> {
+class _AnimatedDividerState extends AnimatedWidgetBaseState<MotionDivider> {
   Tween<double>? _height;
   Tween<double>? _thickness;
   Tween<double>? _indent;
@@ -91,4 +91,3 @@ class _AnimatedDividerState extends AnimatedWidgetBaseState<AnimatedDivider> {
     );
   }
 }
-

@@ -10,14 +10,13 @@ typedef ItemTransitionBuilder<T> =
     Widget Function(BuildContext context, T data, Widget child, Animation<double> animation);
 typedef LayoutBuilder<T> = Widget Function(BuildContext context, List<Widget> items);
 
-class AnimatedLayout<T> extends StatefulWidget {
+class MotionLayout<T> extends StatefulWidget {
   /// T must implement equals and hashCode properly
   final List<T> data;
   final ItemBuilder<T> itemBuilder;
   final LayoutBuilder<T> layoutBuilder;
   final ItemTransitionBuilder<T> transitionBuilder;
-  final Duration duration;
-  final Curve? curve;
+  final Motion motion;
 
   /// This makes sense for some layouts, like Column and Row; but doesn't for others, like Stacks.
   final bool animateIndexChanges;
@@ -27,27 +26,26 @@ class AnimatedLayout<T> extends StatefulWidget {
   /// this allows to more easily implement consistent implicit animations when the child internals themselves change.
   final bool addGlobalKeys;
 
-  const AnimatedLayout({
+  const MotionLayout({
     required this.data,
     required this.itemBuilder,
     required this.layoutBuilder,
     required this.transitionBuilder,
-    required this.duration,
-    this.curve,
+    required this.motion,
     this.addGlobalKeys = true,
     this.animateIndexChanges = false,
     super.key,
   }) : assert(
          !animateIndexChanges || addGlobalKeys,
          "animateIndexChanges requires addGlobalKeys to be enabled, "
-         "so the AnimatedLayout can get the positioning of the children widgets.",
+         "so the MotionLayout can get the positioning of the children widgets.",
        );
 
   @override
-  State<AnimatedLayout<T>> createState() => _AnimatedLayoutState<T>();
+  State<MotionLayout<T>> createState() => _MotionLayoutState<T>();
 }
 
-class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProviderStateMixin {
+class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderStateMixin {
   late final List<_UpdateBatch<T>> updateBatches = [];
   late final Map<T, GlobalKey> itemKeys = {};
 
@@ -68,7 +66,7 @@ class _AnimatedLayoutState<T> extends State<AnimatedLayout<T>> with TickerProvid
   }
 
   @override
-  void didUpdateWidget(covariant AnimatedLayout<T> oldWidget) {
+  void didUpdateWidget(covariant MotionLayout<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     final batch = _UpdateBatch<T>();
     for (int i = 0; i < oldWidget.data.length; i++) {
@@ -493,12 +491,11 @@ class MovingAnimationValues extends AnimationValues<double> {
   late final PositioningController targetPositioningController = PositioningController();
 }
 
-class AnimatedFlex<T> extends StatelessWidget {
+class MotionFlex<T> extends StatelessWidget {
   final List<T> data;
   final ItemBuilder<T> itemBuilder;
   final ItemTransitionBuilder<T>? transitionBuilder;
-  final Duration duration;
-  final Curve? curve;
+  final Motion motion;
   final bool animateIndexChanges;
   final bool addGlobalKeys;
   // Flex params (Column / Row)
@@ -512,12 +509,11 @@ class AnimatedFlex<T> extends StatelessWidget {
   final Clip clipBehavior;
   final double spacing;
 
-  const AnimatedFlex({
+  const MotionFlex({
     required this.data,
     required this.itemBuilder,
     this.transitionBuilder,
-    required this.duration,
-    this.curve,
+    required this.motion,
     this.addGlobalKeys = true,
     this.animateIndexChanges = true,
     // Flex params (Column / Row)
@@ -535,12 +531,11 @@ class AnimatedFlex<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedLayout<T>(
+    return MotionLayout<T>(
       data: data,
       itemBuilder: itemBuilder,
       transitionBuilder: transitionBuilder ?? defaultTransitionBuilder,
-      duration: duration,
-      curve: curve,
+      motion: motion,
       addGlobalKeys: addGlobalKeys,
       animateIndexChanges: animateIndexChanges,
       layoutBuilder: (context, children) {
@@ -578,13 +573,12 @@ class AnimatedFlex<T> extends StatelessWidget {
   }
 }
 
-class AnimatedColumn<T> extends AnimatedFlex<T> {
-  const AnimatedColumn({
+class MotionColumn<T> extends MotionFlex<T> {
+  const MotionColumn({
     required super.data,
     required super.itemBuilder,
     super.transitionBuilder,
-    required super.duration,
-    super.curve,
+    required super.motion,
     super.addGlobalKeys = true,
     super.animateIndexChanges = true,
     // Column params
@@ -600,13 +594,12 @@ class AnimatedColumn<T> extends AnimatedFlex<T> {
   }) : super(direction: Axis.vertical);
 }
 
-class AnimatedRow<T> extends AnimatedFlex<T> {
-  const AnimatedRow({
+class MotionRow<T> extends MotionFlex<T> {
+  const MotionRow({
     required super.data,
     required super.itemBuilder,
     super.transitionBuilder,
-    required super.duration,
-    super.curve,
+    required super.motion,
     super.addGlobalKeys = true,
     super.animateIndexChanges = true,
     // Column params
@@ -622,7 +615,7 @@ class AnimatedRow<T> extends AnimatedFlex<T> {
   }) : super(direction: Axis.horizontal);
 }
 
-// TODO: 2 implement AnimatedStack with this same logic
+// TODO: 2 implement MotionStack with this same logic
 
 // TODO: 3 maybe move this somewhere else, maybe make it a "DerivedAnimation"
 // that accepts a list of dependency animations and a derive callback

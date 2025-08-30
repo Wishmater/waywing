@@ -2,7 +2,7 @@ import "package:flutter/foundation.dart";
 import "package:flutter/widgets.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 /// Every "component" added to waywing needs to implement this class.
 /// Here, it will define any services init/cleanup it needs

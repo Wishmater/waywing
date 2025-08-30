@@ -1,0 +1,133 @@
+import "package:flutter/material.dart";
+import "package:motor/motor.dart";
+
+class MotionAlign extends StatefulWidget {
+  final Motion motion;
+  final bool active;
+  final ValueChanged<AnimationStatus>? onAnimationStatusChanged;
+
+  final AlignmentGeometry alignment;
+  final double? widthFactor;
+  final double? heightFactor;
+
+  final AlignmentGeometry? fromAlignment;
+  final double? fromWidthFactor;
+  final double? fromHeightFactor;
+
+  final Widget child;
+
+  const MotionAlign({
+    required this.motion,
+    this.active = true,
+    this.onAnimationStatusChanged,
+    required this.alignment,
+    this.widthFactor,
+    this.heightFactor,
+    this.fromAlignment,
+    this.fromWidthFactor,
+    this.fromHeightFactor,
+    required this.child,
+    super.key,
+  });
+
+  @override
+  State<MotionAlign> createState() => _MotionAlignState();
+}
+
+class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin {
+  late final MotionController<AlignmentGeometry> alignment;
+  MotionController<double>? widthFactor;
+  MotionController<double>? heightFactor;
+
+  void _onControllerTick() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    alignment = MotionController(
+      vsync: this,
+      motion: widget.motion,
+      converter: AlignmentMotionConverter(),
+      initialValue: widget.fromAlignment ?? widget.alignment,
+    )..addListener(_onControllerTick);
+    if (widget.fromAlignment != null) {
+      alignment.animateTo(widget.alignment);
+    }
+    if (widget.widthFactor != null) {
+      initWidthFactor(initial: true);
+      if (widget.fromWidthFactor != null) {
+        widthFactor!.animateTo(widget.widthFactor!);
+      }
+    }
+    if (widget.heightFactor != null) {
+      initHeightFactor(initial: true);
+      if (widget.fromHeightFactor != null) {
+        heightFactor!.animateTo(widget.heightFactor!);
+      }
+    }
+  }
+
+  void initWidthFactor({bool initial = false}) {
+    widthFactor = MotionController(
+      vsync: this,
+      motion: widget.motion,
+      converter: SingleMotionConverter(),
+      initialValue: initial ? (widget.fromWidthFactor ?? widget.widthFactor!) : widget.widthFactor!,
+    )..addListener(_onControllerTick);
+  }
+
+  void initHeightFactor({bool initial = false}) {
+    heightFactor = MotionController(
+      vsync: this,
+      motion: widget.motion,
+      converter: SingleMotionConverter(),
+      initialValue: initial ? (widget.fromHeightFactor ?? widget.heightFactor!) : widget.heightFactor!,
+    )..addListener(_onControllerTick);
+  }
+
+  @override
+  void didUpdateWidget(covariant MotionAlign oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.alignment != oldWidget.alignment) {
+      alignment.animateTo(widget.alignment);
+    }
+    if (widget.widthFactor != oldWidget.widthFactor) {
+      if (widget.widthFactor == null) {
+        widthFactor!.dispose();
+        widthFactor = null;
+      } else if (oldWidget.widthFactor == null) {
+        initWidthFactor();
+      } else {
+        widthFactor!.animateTo(widget.widthFactor!);
+      }
+    }
+    if (widget.heightFactor != oldWidget.heightFactor) {
+      if (widget.heightFactor == null) {
+        heightFactor!.dispose();
+        heightFactor = null;
+      } else if (oldWidget.heightFactor == null) {
+        initHeightFactor();
+      } else {
+        heightFactor!.animateTo(widget.heightFactor!);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    alignment.dispose();
+    widthFactor?.dispose();
+    heightFactor?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: alignment.value,
+      widthFactor: widthFactor?.value,
+      heightFactor: heightFactor?.value,
+      child: widget.child,
+    );
+  }
+}

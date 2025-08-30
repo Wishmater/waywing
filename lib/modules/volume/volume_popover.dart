@@ -4,7 +4,7 @@ import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/modules/volume/volume_tooltip.dart";
-import "package:waywing/widgets/animated_layout.dart";
+import "package:waywing/widgets/motion_layout/motion_layout.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
@@ -153,10 +153,8 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
                   // TODO: 2 add animations to list
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: AnimatedColumn(
-                      duration: mainConfig.animationDuration,
-                      curve: mainConfig.animationCurve,
-                      addGlobalKeys: true,
+                    child: MotionColumn(
+                      motion: mainConfig.motions.standard.spatial.normal,
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       data: [

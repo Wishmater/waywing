@@ -5,7 +5,7 @@ import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/widgets/text_tooltip_on_overflow.dart";
-import "package:waywing/widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
 
 class VolumeTooltip extends StatelessWidget {
   final VolumeConfig config;

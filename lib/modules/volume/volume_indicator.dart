@@ -4,8 +4,8 @@ import "package:flutter_font_icons/flutter_font_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_service.dart";
-import "package:waywing/widgets/winged_button.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 enum VolumeIndicatorType {
   single,

@@ -6,14 +6,14 @@ import "package:waywing/core/config.dart";
 import "package:waywing/modules/system_tray/service/menu.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
-import "package:waywing/widgets/animated_divider.dart";
-import "package:waywing/widgets/animated_intrinsic_size.dart";
-import "package:waywing/widgets/animated_layout.dart";
+import "package:waywing/widgets/motion_widgets/motion_divider.dart";
+import "package:waywing/widgets/motion_widgets/motion_intrinsic_size.dart";
+import "package:waywing/widgets/motion_layout/motion_layout.dart";
 import "package:waywing/widgets/disposable_builder.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
-import "package:waywing/widgets/winged_button.dart";
-import "package:waywing/widgets/winged_container.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_container.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
 class SystemTrayPopover extends StatelessWidget {
@@ -113,9 +113,8 @@ class _SystemTrayMenuState extends State<SystemTrayMenu> {
                 }
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: AnimatedColumn<WrappedDbusMenuItem>(
-                    duration: mainConfig.animationDuration,
-                    curve: mainConfig.animationCurve,
+                  child: MotionColumn<WrappedDbusMenuItem>(
+                    motion: mainConfig.motions.standard.spatial.normal,
                     addGlobalKeys: true,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     data: wrappedItems,
@@ -174,7 +173,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
         }
         if (widget.item.properties.type == "separator") {
           // TODO: 2 remove separators when there are two in a row or first/last on the list
-          return AnimatedDivider(
+          return MotionDivider(
             duration: mainConfig.animationDuration,
             curve: mainConfig.animationCurve,
             indent: widget.forceIconSpace ? 38 : 16,

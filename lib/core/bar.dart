@@ -6,11 +6,13 @@ import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/state_positioning.dart";
-import "package:waywing/widgets/docked_rounded_corners_shape.dart";
+import "package:waywing/widgets/motion_widgets/motion_align.dart";
+import "package:waywing/widgets/motion_widgets/motion_container.dart";
+import "package:waywing/widgets/shapes/docked_rounded_corners_shape.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/config.dart";
-import "package:waywing/widgets/winged_container.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_container.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 // TODO: 2 this logger should come from the wingRegistry once Wings are implemented
 final _logger = mainLogger.clone();
@@ -87,13 +89,11 @@ class _BarState extends State<Bar> {
     );
     Map<String, int> feathersCount = {};
     return Positioned.fill(
-      child: AnimatedAlign(
-        duration: mainConfig.animationDuration,
-        curve: mainConfig.animationCurve,
+      child: MotionAlign(
+        motion: mainConfig.motions.expressive.spatial.slow,
         alignment: barAlignment,
-        child: AnimatedContainer(
-          duration: mainConfig.animationDuration,
-          curve: mainConfig.animationCurve,
+        child: MotionContainer(
+          motion: mainConfig.motions.expressive.spatial.slow,
           width: width ?? monitorSize.width,
           height: height ?? monitorSize.height,
           padding: EdgeInsets.only(

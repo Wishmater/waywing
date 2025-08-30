@@ -2,7 +2,7 @@
 
 import "package:flutter/material.dart";
 import "package:waywing/util/state_positioning.dart";
-import "package:waywing/widgets/winged_popover_provider.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
 typedef WingedPopoverBuilder =
     Widget Function(

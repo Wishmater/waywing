@@ -6,7 +6,7 @@ import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/session/os_info_service.dart";
 import "package:waywing/modules/session/session_service.dart";
 import "package:waywing/widgets/text_icon.dart";
-import "package:waywing/widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
 
 class SessionFeather extends Feather {
   late SessionService service;

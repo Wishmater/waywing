@@ -8,8 +8,8 @@ import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/popup_utils.dart";
 import "package:waywing/util/state_positioning.dart";
-import "package:waywing/widgets/shape_clipper.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/shapes/shape_clipper.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 final _logger = mainLogger.clone(properties: [LogType("PopoverProvider")]);
 

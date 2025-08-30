@@ -8,6 +8,7 @@ import "package:waywing/util/logger.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/motion_widgets/motion_align.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
+import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
 import "package:waywing/widgets/shapes/docked_rounded_corners_shape.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/config.dart";
@@ -432,18 +433,16 @@ class _BarState extends State<Bar> {
                         );
                       },
                       containerBuilder: (context, controller, child) {
-                        return AnimatedOpacity(
+                        return MotionOpacity(
+                          motion: mainConfig.motions.standard.effects.normal,
                           opacity: 1,
-                          duration: mainConfig.animationDuration,
-                          curve: mainConfig.animationCurve,
                           child: buildPopoverContainer(context, child, tooltipShape, isTooltip: true),
                         );
                       },
                       closedContainerBuilder: (context, controller, child) {
-                        return AnimatedOpacity(
+                        return MotionOpacity(
+                          motion: mainConfig.motions.standard.effects.normal,
                           opacity: 0,
-                          duration: mainConfig.animationDuration,
-                          curve: mainConfig.animationCurve,
                           child: buildPopoverContainer(context, child, buttonShape, isTooltip: true),
                         );
                       },

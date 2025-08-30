@@ -36,8 +36,8 @@ class MotionAlign extends StatefulWidget {
 
 class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin {
   late final MotionController<AlignmentGeometry> alignment;
-  MotionController<double>? widthFactor;
-  MotionController<double>? heightFactor;
+  SingleMotionController? widthFactor;
+  SingleMotionController? heightFactor;
 
   void _onControllerTick() => setState(() {});
 
@@ -68,19 +68,17 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
   }
 
   void initWidthFactor({bool initial = false}) {
-    widthFactor = MotionController(
+    widthFactor = SingleMotionController(
       vsync: this,
       motion: widget.motion,
-      converter: SingleMotionConverter(),
       initialValue: initial ? (widget.fromWidthFactor ?? widget.widthFactor!) : widget.widthFactor!,
     )..addListener(_onControllerTick);
   }
 
   void initHeightFactor({bool initial = false}) {
-    heightFactor = MotionController(
+    heightFactor = SingleMotionController(
       vsync: this,
       motion: widget.motion,
-      converter: SingleMotionConverter(),
       initialValue: initial ? (widget.fromHeightFactor ?? widget.heightFactor!) : widget.heightFactor!,
     )..addListener(_onControllerTick);
   }

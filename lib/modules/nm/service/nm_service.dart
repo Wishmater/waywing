@@ -568,6 +568,15 @@ class NMServiceAccessPoint {
   void dispose() {
     _strength.dispose();
   }
+
+  @override
+  int get hashCode => ssid.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NMServiceAccessPoint) other.ssid == ssid;
+    return super == other;
+  }
 }
 
 enum ConnectResponse {

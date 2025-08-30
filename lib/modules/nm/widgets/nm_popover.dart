@@ -1,9 +1,15 @@
+import "dart:math";
+
 import "package:flutter/material.dart";
+import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/widgets/nm_indicator.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
+import "package:waywing/widgets/motion_layout/motion_layout.dart";
+import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/simple_shadow.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -101,37 +107,6 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                     return ValueListenableBuilder(
                       valueListenable: widget.device.accessPoints,
                       builder: (context, accessPoints, child) {
-                        final apWidgets = <Widget>[];
-                        if (activeAccessPoint != null) {
-                          apWidgets.addAll([
-                            APWidget(
-                              device: widget.device,
-                              ap: activeAccessPoint,
-                              isConnected: true,
-                              selectedSsid: selectedSsid,
-                              requestingPassword: requestingPassword,
-                            ),
-                            if (accessPoints.length > 1)
-                              Divider(
-                                height: 12,
-                              ),
-                          ]);
-                        }
-                        for (int i = 0; i < accessPoints.length; i++) {
-                          final ap = accessPoints[i];
-                          if (activeAccessPoint?.ssid == ap.ssid) continue;
-                          apWidgets.add(
-                            APWidget(
-                              device: widget.device,
-                              ap: ap,
-                              isConnected: false,
-                              selectedSsid: selectedSsid,
-                              requestingPassword: requestingPassword,
-                            ),
-                          );
-                        }
-
-                        // TODO: 2 implement animated list
                         final scrollController = ScrollController();
                         return Scrollbar(
                           controller: scrollController,
@@ -150,12 +125,31 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                                 scrollController: scrollController,
                                 child: SingleChildScrollView(
                                   controller: scrollController,
-                                  child: Column(
-                                    children: [
-                                      SizedBox(height: 8),
-                                      ...apWidgets,
-                                      SizedBox(height: 8),
-                                    ],
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    // TODO: 2 debug this and make sure animations are played right
+                                    // also, ideally popover would stop animating its size once it finishes opening,
+                                    // and fully leave that responsibility with its children
+                                    child: MotionColumn(
+                                      motion: mainConfig.motions.standard.spatial.normal,
+                                      data: [
+                                        if (activeAccessPoint != null) activeAccessPoint,
+                                        if (activeAccessPoint != null) null,
+                                        ...accessPoints.where((e) => e.ssid != activeAccessPoint?.ssid),
+                                      ],
+                                      itemBuilder: (context, ap) {
+                                        if (ap == null) {
+                                          return Divider(height: 12);
+                                        }
+                                        return APWidget(
+                                          device: widget.device,
+                                          ap: ap,
+                                          isConnected: ap.ssid == activeAccessPoint?.ssid,
+                                          selectedSsid: selectedSsid,
+                                          requestingPassword: requestingPassword,
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
@@ -331,9 +325,8 @@ class _APWidgetState extends State<APWidget> {
                   widget.selectedSsid.value = widget.ap.ssid;
                   widget.requestingPassword.value = false;
                 },
-          child: AnimatedContainer(
-            duration: mainConfig.animationDuration * 2,
-            curve: mainConfig.animationCurve,
+          child: MotionContainer(
+            motion: mainConfig.motions.standard.effects.slow,
             color: !isSelected ? Colors.transparent : Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             constraints: BoxConstraints(minHeight: 38),
@@ -397,25 +390,33 @@ class RefreshIcon extends StatefulWidget {
 }
 
 class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin {
-  late final animationController = AnimationController(
-    vsync: this,
-    duration: mainConfig.animationDuration * 2.5,
-  );
-  late final animation = CurvedAnimation(
-    parent: animationController,
-    curve: Curves.easeInOut,
-  );
+  late final SingleMotionController motionController;
+
+  void _onControllerTick() => setState(() {});
+
+  int get nextValue => (motionController.value + 1).floor();
 
   @override
   void initState() {
     super.initState();
+    motionController = SingleMotionController(
+      motion: mainConfig.motions.expressive.spatial.slow.multiply(
+        stiffness: 0.33, // make it a bit slower
+      ),
+      vsync: this,
+      initialValue: 0,
+    )..addListener(_onControllerTick);
+    motionController.addListener(() {
+      if (widget.isRefreshing && motionController.value % 1 > 0.33) {
+        motionController.animateTo(nextValue + 1);
+      }
+    });
     updateAnimation(null);
   }
 
   @override
   void dispose() {
-    animation.dispose();
-    animationController.dispose();
+    motionController.dispose();
     super.dispose();
   }
 
@@ -428,16 +429,15 @@ class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin
   void updateAnimation(bool? previousRefreshing) {
     if (previousRefreshing != null && previousRefreshing == widget.isRefreshing) return;
     if (widget.isRefreshing) {
-      animationController.repeat();
-    } else {
-      animationController.forward();
+      motionController.animateTo(nextValue.toDouble());
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return RotationTransition(
-      turns: animation,
+    return Transform.rotate(
+      angle: 2 * pi * motionController.value,
+      transformHitTests: false,
       child: widget.child,
     );
   }

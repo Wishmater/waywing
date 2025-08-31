@@ -4,6 +4,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
+import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/text_tooltip_on_overflow.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 
@@ -127,9 +128,8 @@ class VolumeSlider extends StatelessWidget {
                         return WingedButton(
                           padding: EdgeInsets.zero,
                           constraints: BoxConstraints(),
-                          child: AnimatedContainer(
-                            duration: mainConfig.animationDuration,
-                            curve: mainConfig.animationCurve,
+                          child: MotionContainer(
+                            motion: mainConfig.motions.expressive.effects.normal,
                             color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
                             padding: const EdgeInsets.all(4),
                             child: Icon(
@@ -173,6 +173,7 @@ class VolumeSlider extends StatelessWidget {
                             ),
                           ),
                         ),
+                        // TODO: 3 maybe try to make Slider use Motion animations, probably too much work
                         child: Slider(
                           padding: EdgeInsets.zero,
                           // label: label,

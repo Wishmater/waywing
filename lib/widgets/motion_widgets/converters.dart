@@ -1,8 +1,8 @@
 import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
 
-class EdgeInsetsConverter implements MotionConverter<EdgeInsets> {
-  const EdgeInsetsConverter();
+class EdgeInsetsMotionConverter implements MotionConverter<EdgeInsets> {
+  const EdgeInsetsMotionConverter();
 
   @override
   EdgeInsets denormalize(List<double> v) => EdgeInsets.fromLTRB(v[0], v[1], v[2], v[3]);
@@ -11,8 +11,8 @@ class EdgeInsetsConverter implements MotionConverter<EdgeInsets> {
   List<double> normalize(EdgeInsets v) => [v.left, v.top, v.right, v.bottom];
 }
 
-class BoxConstraintsConverter implements MotionConverter<BoxConstraints> {
-  const BoxConstraintsConverter();
+class BoxConstraintsMotionConverter implements MotionConverter<BoxConstraints> {
+  const BoxConstraintsMotionConverter();
 
   @override
   BoxConstraints denormalize(List<double> v) =>
@@ -22,8 +22,8 @@ class BoxConstraintsConverter implements MotionConverter<BoxConstraints> {
   List<double> normalize(BoxConstraints v) => [v.minWidth, v.minHeight, v.maxWidth, v.maxHeight];
 }
 
-class Matrix4Converter implements MotionConverter<Matrix4> {
-  const Matrix4Converter();
+class Matrix4MotionConverter implements MotionConverter<Matrix4> {
+  const Matrix4MotionConverter();
 
   @override
   Matrix4 denormalize(List<double> v) => Matrix4.fromList(v);
@@ -31,3 +31,104 @@ class Matrix4Converter implements MotionConverter<Matrix4> {
   @override
   List<double> normalize(Matrix4 v) => v.storage;
 }
+
+class BorderRadiusMotionConverter implements MotionConverter<BorderRadius> {
+  const BorderRadiusMotionConverter();
+
+  @override
+  BorderRadius denormalize(List<double> v) {
+    return BorderRadius.only(
+      topLeft: Radius.elliptical(v[0], v[1]),
+      topRight: Radius.elliptical(v[2], v[3]),
+      bottomLeft: Radius.elliptical(v[4], v[5]),
+      bottomRight: Radius.elliptical(v[6], v[7]),
+    );
+  }
+
+  @override
+  List<double> normalize(BorderRadius v) => [
+    v.topLeft.x,
+    v.topLeft.y,
+    v.topRight.x,
+    v.topRight.y,
+    v.bottomLeft.x,
+    v.bottomLeft.y,
+    v.bottomRight.x,
+    v.bottomRight.y,
+  ];
+}
+
+class ColorMotionConverter implements MotionConverter<Color> {
+  const ColorMotionConverter();
+
+  @override
+  Color denormalize(List<double> v) {
+    return Color.fromARGB(v[0].round(), v[1].round(), v[2].round(), v[3].round());
+  }
+
+  @override
+  List<double> normalize(Color v) => [v.a, v.r, v.g, v.b];
+}
+
+class RoundedRectangleBorderMotionConverter implements MotionConverter<RoundedRectangleBorder> {
+  const RoundedRectangleBorderMotionConverter();
+
+  @override
+  RoundedRectangleBorder denormalize(List<double> v) {
+    return RoundedRectangleBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.elliptical(v[0], v[1]),
+        topRight: Radius.elliptical(v[2], v[3]),
+        bottomLeft: Radius.elliptical(v[4], v[5]),
+        bottomRight: Radius.elliptical(v[6], v[7]),
+      ),
+      side: BorderSide(
+        strokeAlign: v[8],
+        width: v[9],
+        style: BorderStyle.values.firstWhere((e) => e.index == v[10].round()),
+        color: Color.fromARGB(v[11].round(), v[12].round(), v[13].round(), v[14].round()),
+      ),
+    );
+  }
+
+  @override
+  List<double> normalize(RoundedRectangleBorder v) {
+    final borderRadius = v.borderRadius as BorderRadius;
+    return [
+      borderRadius.topLeft.x,
+      borderRadius.topLeft.y,
+      borderRadius.topRight.x,
+      borderRadius.topRight.y,
+      borderRadius.bottomLeft.x,
+      borderRadius.bottomLeft.y,
+      borderRadius.bottomRight.x,
+      borderRadius.bottomRight.y,
+      v.side.strokeAlign,
+      v.side.width,
+      v.side.style.index.toDouble(),
+      v.side.color.a,
+      v.side.color.r,
+      v.side.color.g,
+      v.side.color.b,
+    ];
+  }
+}
+
+// class DockedRoundedCornersBorderMotionConverter implements MotionConverter<DockedRoundedCornersBorder> {
+//   const ColorMotionConverter();
+//
+//   @override
+//   DockedRoundedCornersBorder denormalize(List<double> v) {
+//     return DockedRoundedCornersBorder(
+//       dockedSide: ScreenEdge., 
+//       radiusInMain: radiusInMain,
+//       radiusInCross: radiusInCross, 
+//       radiusOutMain: ,
+//       radiusOutCross: ,
+//       isVertical: ,
+//     );
+//   }
+//
+//   @override
+//   List<double> normalize(DockedRoundedCornersBorder v) => [v.a, v.r, v.g, v.b];
+// }

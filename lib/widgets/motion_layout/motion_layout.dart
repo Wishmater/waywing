@@ -53,13 +53,13 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
   void dispose() {
     for (final batch in updateBatches) {
       for (final e in batch.incomingItems.values) {
-        e.animationController.dispose();
+        e.motionController.dispose();
       }
       for (final e in batch.outgoingItems.values) {
-        e.animationController.dispose();
+        e.motionController.dispose();
       }
       for (final e in batch.movingItems.values) {
-        e.animationController.dispose();
+        e.motionController.dispose();
       }
     }
     super.dispose();
@@ -107,14 +107,14 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
     final outgoingAnim = _removeOutgoingItem(e);
     final anim = IncomingAnimationValues();
     if (outgoingAnim != null) {
-      anim.animationController = outgoingAnim.animationController;
+      anim.motionController = outgoingAnim.motionController;
     } else {
       initAnimationValues(anim, true);
     }
-    anim.animationController.forward().whenComplete(() {
+    anim.motionController.forward().whenComplete(() {
       if (!mounted) return;
       setState(() {
-        anim.animationController.dispose();
+        anim.motionController.dispose();
         _removeIncomingItem(e);
       });
     });
@@ -125,15 +125,15 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
     final incomingAnim = _removeIncomingItem(e);
     final anim = OutgoingAnimationValues();
     if (incomingAnim != null) {
-      anim.animationController = incomingAnim.animationController;
+      anim.motionController = incomingAnim.motionController;
     } else {
       initAnimationValues(anim, false);
     }
     anim.oldIndex = index;
-    anim.animationController.reverse().whenComplete(() {
+    anim.motionController.reverse().whenComplete(() {
       if (!mounted) return;
       setState(() {
-        anim.animationController.dispose();
+        anim.motionController.dispose();
         _removeOutgoingItem(e);
         itemKeys.remove(e);
       });
@@ -154,10 +154,10 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
     }
     anim.targetIndex = newIndex;
     anim.originIndex = originalIndex;
-    anim.animationController.forward().whenComplete(() {
+    anim.motionController.forward().whenComplete(() {
       if (!mounted) return;
       setState(() {
-        anim.animationController.dispose();
+        anim.motionController.dispose();
         _removeMovingItem(e);
       });
     });
@@ -167,7 +167,7 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
   A initAnimationValues<A extends AnimationValues>(A anim, bool isForward) {
     final animationStiffnessMultiplier = 1;
     final animationDampingMultiplier = 1;
-    anim.animationController = BoundedMotionController<double>(
+    anim.motionController = BoundedMotionController<double>(
       vsync: this,
       motion: MaterialSpringMotion.standardSpatialDefault.copyWith(
         stiffness: MaterialSpringMotion.standardSpatialDefault.stiffness * animationStiffnessMultiplier,
@@ -474,8 +474,8 @@ class _UpdateBatch<T> {
 }
 
 class AnimationValues<T extends Object> {
-  late final BoundedMotionController<T> animationController;
-  Animation<T> get animation => animationController;
+  late final BoundedMotionController<T> motionController;
+  Animation<T> get animation => motionController;
 }
 
 class IncomingAnimationValues extends AnimationValues<double> {}

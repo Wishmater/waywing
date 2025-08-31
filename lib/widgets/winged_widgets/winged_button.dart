@@ -171,7 +171,8 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
 
         return InkResponse(
           highlightShape: BoxShape.rectangle,
-          hoverDuration: mainConfig.animationDuration * 0.5,
+          // TODO: 2 remove default inkwell hover effect and implement our own (with blackjack and hookers)
+          hoverDuration: Duration(milliseconds: 200),
           borderRadius: borderRadius,
           onTap: widget.onTap == null || snapshot.connectionState != ConnectionState.done
               ? null

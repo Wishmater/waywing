@@ -51,10 +51,6 @@ mixin MainConfigBase on MainConfigI {
     damping: animationDampingMultiplier,
   );
 
-  // TODO: 1 remove this
-  final animationCurve = Curves.easeOutCubic;
-  final animationDuration = Duration(milliseconds: 250);
-
   //===========================================================================
   // Layer settings
   //===========================================================================

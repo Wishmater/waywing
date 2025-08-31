@@ -27,7 +27,7 @@ class MotionContainer extends StatefulWidget {
 
   final Clip clipBehavior;
 
-  final Widget child;
+  final Widget? child;
 
   MotionContainer({
     required this.motion,
@@ -56,7 +56,7 @@ class MotionContainer extends StatefulWidget {
     this.fromTransform,
     this.fromTransformAlignment,
     this.clipBehavior = Clip.none,
-    required this.child,
+    this.child,
     super.key,
   }) : assert(margin == null || margin.isNonNegative),
        assert(padding == null || padding.isNonNegative),
@@ -164,7 +164,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
     padding = MotionController(
       vsync: this,
       motion: widget.motion,
-      converter: EdgeInsetsConverter(),
+      converter: EdgeInsetsMotionConverter(),
       initialValue: initial ? (widget.fromPadding ?? widget.padding!) : widget.padding!,
     )..addListener(_onControllerTick);
   }
@@ -211,7 +211,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
     constraints = MotionController(
       vsync: this,
       motion: widget.motion,
-      converter: BoxConstraintsConverter(),
+      converter: BoxConstraintsMotionConverter(),
       initialValue: initial ? (widget.fromConstraints ?? widget.constraints!) : widget.constraints!,
     )..addListener(_onControllerTick);
   }
@@ -220,7 +220,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
     margin = MotionController(
       vsync: this,
       motion: widget.motion,
-      converter: EdgeInsetsConverter(),
+      converter: EdgeInsetsMotionConverter(),
       initialValue: initial ? (widget.fromMargin ?? widget.margin!) : widget.margin!,
     )..addListener(_onControllerTick);
   }
@@ -229,7 +229,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
     transform = MotionController(
       vsync: this,
       motion: widget.motion,
-      converter: Matrix4Converter(),
+      converter: Matrix4MotionConverter(),
       initialValue: initial ? (widget.fromTransform ?? widget.transform!) : widget.transform!,
     )..addListener(_onControllerTick);
   }

@@ -1,6 +1,7 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
 import "package:flutter/material.dart";
+import "package:motor/motor.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
@@ -49,7 +50,7 @@ class PopoverParams {
   final bool enabled;
   final Offset extraOffset;
   final EdgeInsets extraPadding;
-  final Duration? animationDuration;
+  final Motion? motion;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -71,7 +72,7 @@ class PopoverParams {
     this.enabled = true,
     this.extraOffset = Offset.zero,
     this.extraPadding = EdgeInsets.zero,
-    this.animationDuration,
+    this.motion,
   });
 }
 

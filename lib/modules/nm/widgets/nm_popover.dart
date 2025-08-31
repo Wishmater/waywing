@@ -401,7 +401,7 @@ class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin
     super.initState();
     motionController = SingleMotionController(
       motion: mainConfig.motions.expressive.spatial.slow.multiply(
-        stiffness: 0.33, // make it a bit slower
+        stiffness: 0.033, // make it a bit slower
       ),
       vsync: this,
       initialValue: 0,

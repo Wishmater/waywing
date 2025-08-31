@@ -4,6 +4,8 @@ import "package:flutter_font_icons/flutter_font_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_service.dart";
+import "package:waywing/widgets/motion_widgets/motion_container.dart";
+import "package:waywing/widgets/motion_widgets/motion_fractionally_sized_box.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
@@ -101,42 +103,36 @@ class VolumeIndicator extends StatelessWidget {
                                     alignment: Alignment.bottomCenter,
                                     children: [
                                       Positioned.fill(
-                                        child: AnimatedFractionallySizedBox(
-                                          duration: mainConfig.animationDuration,
-                                          curve: mainConfig.animationCurve,
+                                        child: MotionFractionallySizedBox(
+                                          motion: mainConfig.motions.expressive.spatial.normal,
                                           heightFactor: volume <= 1 ? 0 : (volume - 1) / volume,
                                           alignment: Alignment.topCenter,
-                                          child: AnimatedContainer(
-                                            duration: mainConfig.animationDuration,
-                                            curve: mainConfig.animationCurve,
+                                          child: MotionContainer(
+                                            motion: mainConfig.motions.expressive.spatial.normal,
                                             width: volBarSize,
                                             color: Theme.of(context).colorScheme.error,
                                           ),
                                         ),
                                       ),
-                                      AnimatedFractionallySizedBox(
-                                        duration: mainConfig.animationDuration,
-                                        curve: mainConfig.animationCurve,
+                                      MotionFractionallySizedBox(
+                                        motion: mainConfig.motions.expressive.spatial.normal,
                                         heightFactor: volume <= 1 ? 1 : 1 / volume,
                                         alignment: Alignment.bottomCenter,
                                         child: Stack(
                                           alignment: Alignment.bottomCenter,
                                           children: [
-                                            AnimatedContainer(
-                                              duration: mainConfig.animationDuration,
-                                              curve: mainConfig.animationCurve,
+                                            MotionContainer(
+                                              motion: mainConfig.motions.expressive.spatial.normal,
                                               width: volBarSize,
                                               color: volTrackColor,
                                             ),
                                             Positioned.fill(
-                                              child: AnimatedFractionallySizedBox(
-                                                duration: mainConfig.animationDuration,
-                                                curve: mainConfig.animationCurve,
+                                              child: MotionFractionallySizedBox(
+                                                motion: mainConfig.motions.expressive.spatial.normal,
                                                 heightFactor: volume.clamp(0, 1),
                                                 alignment: Alignment.bottomCenter,
-                                                child: AnimatedContainer(
-                                                  duration: mainConfig.animationDuration,
-                                                  curve: mainConfig.animationCurve,
+                                                child: MotionContainer(
+                                                  motion: mainConfig.motions.expressive.spatial.normal,
                                                   color: volValueColor,
                                                 ),
                                               ),

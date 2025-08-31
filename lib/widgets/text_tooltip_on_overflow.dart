@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
@@ -40,7 +41,6 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
             //   waitDuration: const Duration(milliseconds: 250),
             //   child: result,
             // );
-            final animationDuration = mainConfig.animationDuration * 0.4;
             result = WingedPopover(
               // TODO: 2 add wait duration, potentially more that the one the Bar indicators have
               tooltipParams: PopoverParams(
@@ -49,7 +49,6 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                 anchorAlignment: Alignment.centerLeft,
                 popupAlignment: Alignment.centerRight,
                 zIndex: 999999,
-                animationDuration: animationDuration,
                 builder: (context, controller, positioning) {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -63,9 +62,8 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                     color: Colors.transparent,
                     child: Stack(
                       children: [
-                        AnimatedPositioned(
-                          duration: animationDuration,
-                          curve: mainConfig.animationCurve,
+                        MotionPositioned(
+                          motion: mainConfig.motions.standard.spatial.fast,
                           left: -12,
                           top: 0,
                           bottom: 0,
@@ -82,9 +80,8 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: Stack(
                       children: [
-                        AnimatedPositioned(
-                          duration: animationDuration,
-                          curve: mainConfig.animationCurve,
+                        MotionPositioned(
+                          motion: mainConfig.motions.standard.spatial.fast,
                           left: -0,
                           top: 0,
                           bottom: 0,

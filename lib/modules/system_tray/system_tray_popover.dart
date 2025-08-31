@@ -173,9 +173,8 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
         }
         if (widget.item.properties.type == "separator") {
           // TODO: 2 remove separators when there are two in a row or first/last on the list
-          return MotionDivider(
-            duration: mainConfig.animationDuration,
-            curve: mainConfig.animationCurve,
+          return MotionDivider.horizontal(
+            motion: mainConfig.motions.standard.spatial.normal,
             indent: widget.forceIconSpace ? 38 : 16,
             endIndent: 16,
           );

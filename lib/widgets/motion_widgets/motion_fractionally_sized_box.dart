@@ -1,8 +1,8 @@
-import "package:dartx/dartx_io.dart";
+import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 
-class MotionAlign extends StatefulWidget {
+class MotionFractionallySizedBox extends StatefulWidget {
   final Motion motion;
   final bool active;
   final ValueChanged<AnimationStatus>? onAnimationStatusChanged;
@@ -17,7 +17,7 @@ class MotionAlign extends StatefulWidget {
 
   final Widget child;
 
-  const MotionAlign({
+  const MotionFractionallySizedBox({
     required this.motion,
     this.active = true,
     this.onAnimationStatusChanged,
@@ -32,10 +32,10 @@ class MotionAlign extends StatefulWidget {
   });
 
   @override
-  State<MotionAlign> createState() => _MotionAlignState();
+  State<MotionFractionallySizedBox> createState() => _MotionFractionallySizedBoxState();
 }
 
-class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin {
+class _MotionFractionallySizedBoxState extends State<MotionFractionallySizedBox> with TickerProviderStateMixin {
   late final MotionController<AlignmentGeometry> alignment;
   SingleMotionController? widthFactor;
   SingleMotionController? heightFactor;
@@ -85,7 +85,7 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
   }
 
   @override
-  void didUpdateWidget(covariant MotionAlign oldWidget) {
+  void didUpdateWidget(covariant MotionFractionallySizedBox oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.alignment != oldWidget.alignment) {
       alignment.animateTo(widget.alignment);
@@ -122,7 +122,7 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return Align(
+    return FractionallySizedBox(
       alignment: alignment.value,
       widthFactor: widthFactor?.value.coerceAtLeast(0),
       heightFactor: heightFactor?.value.coerceAtLeast(0),

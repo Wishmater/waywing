@@ -3,11 +3,14 @@ import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
+import "package:motor/motor.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/popup_utils.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/motion_widgets/motion_padding.dart";
+import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "package:waywing/widgets/shapes/shape_clipper.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
@@ -286,10 +289,20 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
 
   late final focusNode = FocusScopeNode();
 
+  late BoundedSingleMotionController contentOpacityMotionController;
+  late MotionController<Offset> contentOffsetMotionController;
+  final List<_OutgoingChild> _outgoingChildren = [];
+
+  PopoverParams get popoverParams =>
+      (widget.isTooltip ? widget.host.widget.tooltipParams : widget.host.widget.popoverParams)!;
+
+  // TODO: 1 try different kinds of animations here, this is important
+  Motion get motion => popoverParams.motion ?? mainConfig.motions.expressive.spatial.normal;
+
   @override
   void initState() {
     super.initState();
-    _buildContentAnimationController(isFirst: true);
+    _initContentAnimations(initialOpacity: 1, initialOffset: Offset.zero);
     if (!widget.isTooltip) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -298,9 +311,34 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     }
   }
 
+  void _initContentAnimations({
+    required double initialOpacity,
+    required Offset initialOffset,
+  }) {
+    final motion = this.motion;
+    contentOpacityMotionController = BoundedSingleMotionController(
+      motion: motion,
+      vsync: this,
+      initialValue: initialOpacity,
+      lowerBound: 0,
+      upperBound: 1,
+    );
+    contentOffsetMotionController = MotionController(
+      motion: motion,
+      vsync: this,
+      converter: OffsetMotionConverter(),
+      initialValue: initialOffset,
+    );
+  }
+
   @override
   void dispose() {
-    contentAnimationController.dispose();
+    contentOpacityMotionController.dispose();
+    contentOffsetMotionController.dispose();
+    for (final e in _outgoingChildren) {
+      e.opacityMotionController.dispose();
+      e.offsetMotionController.dispose();
+    }
     super.dispose();
   }
 
@@ -312,44 +350,46 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     }
   }
 
-  late AnimationController contentAnimationController;
-  void _buildContentAnimationController({
-    bool isFirst = false,
-  }) {
-    if (!isFirst) {
-      contentAnimationController.dispose();
-    }
-    final popoverParams = (widget.isTooltip ? widget.host.widget.tooltipParams : widget.host.widget.popoverParams)!;
-    contentAnimationController = AnimationController(
-      vsync: this,
-      duration: popoverParams.animationDuration ?? mainConfig.animationDuration,
-      value: 1,
-    );
-  }
-
   void _triggerContentAnimation() {
-    _buildContentAnimationController();
-    contentAnimationController.forward(from: 0);
+    final outgoingChild = _OutgoingChild(
+      // TODO: 3 PERFORMANCE should we just cache this last time it was built?
+      widget: popoverParams.builder(context, widget.host, childPositioningController),
+      opacityMotionController: contentOpacityMotionController,
+      offsetMotionController: contentOffsetMotionController,
+    );
+    // TODO: 1 calculate target offset
+    final targetContentOffset = Offset(128, 128);
+    outgoingChild.opacityMotionController.reverse();
+    outgoingChild.offsetMotionController.animateTo(targetContentOffset);
+    // TODO: 1 remove the outgoingChild once animations end
+    _initContentAnimations(initialOpacity: 0, initialOffset: targetContentOffset);
+    contentOpacityMotionController.forward();
+    contentOffsetMotionController.animateTo(Offset.zero);
+    _outgoingChildren.add(outgoingChild);
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.isRemoved && !passedMeaningfulPaint) {
-      // this should never happen, because provider checks this and insta-removed if needed, but just in case...
+      // this should never happen, because provider checks this and insta-removes if needed, but just in case...
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        onRemoveAnimationEnd();
+        provider._removeHost(widget.host);
       });
       return SizedBox.shrink();
     }
-    final popoverParams = (widget.isTooltip ? widget.host.widget.tooltipParams : widget.host.widget.popoverParams)!;
+    final popoverParams = this.popoverParams;
     widget.host.clientState = this;
     final screenSize = MediaQuery.sizeOf(context);
+    // TODO: 1 render outgoing children
     final content = AnimatedBuilder(
-      animation: CurvedAnimation(parent: contentAnimationController, curve: mainConfig.animationCurve),
+      animation: Listenable.merge([contentOpacityMotionController, contentOffsetMotionController]),
       builder: (context, child) {
         return Opacity(
-          opacity: contentAnimationController.value,
-          child: child!,
+          opacity: contentOpacityMotionController.value.clamp(0, 1),
+          child: Transform.translate(
+            offset: contentOffsetMotionController.value,
+            child: child!,
+          ),
         );
       },
       child: OverflowBox(
@@ -422,9 +462,9 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               );
               passedMeaningfulPaint = true;
             }
-            container = AnimatedPadding(
-              duration: popoverParams.animationDuration ?? mainConfig.animationDuration,
-              curve: mainConfig.animationCurve,
+            final motion = this.motion;
+            container = MotionPadding(
+              motion: motion,
               padding: passedMeaningfulPaint ? popoverParams.extraPadding : EdgeInsets.zero,
               child: container,
             );
@@ -459,14 +499,20 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
             );
             // print("childSize: $childSize");
             // print("childPosition: $childPosition");
-            result = AnimatedPositioned(
-              duration: popoverParams.animationDuration ?? mainConfig.animationDuration,
-              curve: mainConfig.animationCurve,
+            result = MotionPositioned(
+              motion: motion,
               left: childPosition.dx,
               top: childPosition.dy,
               width: childSize.width,
               height: childSize.height,
-              onEnd: !widget.isRemoved ? null : onRemoveAnimationEnd,
+              onAnimationStatusChanged: !widget.isRemoved
+                  ? null
+                  : (status) {
+                      // TODO: 1 implement onAnimationStatusChanged on all motion widgets
+                      if (status == AnimationStatus.completed) {
+                        provider._removeHost(widget.host);
+                      }
+                    },
               child: result,
             );
 
@@ -504,10 +550,6 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       },
     );
   }
-
-  void onRemoveAnimationEnd() {
-    provider._removeHost(widget.host);
-  }
 }
 
 class TooltipHoverStatus {
@@ -516,5 +558,16 @@ class TooltipHoverStatus {
   TooltipHoverStatus({
     this.host = false,
     this.client = false,
+  });
+}
+
+class _OutgoingChild {
+  final BoundedSingleMotionController opacityMotionController;
+  final MotionController<Offset> offsetMotionController;
+  final Widget widget;
+  _OutgoingChild({
+    required this.opacityMotionController,
+    required this.offsetMotionController,
+    required this.widget,
   });
 }

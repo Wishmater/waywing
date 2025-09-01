@@ -418,10 +418,10 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "b2b8a8e5570e77fa97841fc7257b1c8e97362684",
-        "resolved-ref": "b2b8a8e5570e77fa97841fc7257b1c8e97362684",
+        "ref": "aff979c4ae0a",
+        "resolved-ref": "aff979c4ae0a8d11eb24a81f150b9940894fc0c0",
         "url": "https://github.com/Wishmater/fl-linux-window-manager",
-        "sha256": "sha256-Pa7W3RdWIUztILG2LOXpbxtp4l5bx9WIJuSvQ8QMI4c="
+        "sha256": "sha256-7ipLP6UAwFf6QFkR60E+JGNfv8NaDJaOOUoYhqVuFFA="
       },
       "source": "git",
       "version": "1.2.0"

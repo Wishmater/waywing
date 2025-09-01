@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
 class MotionOpacity extends StatefulWidget {
   final Motion motion;
@@ -31,6 +32,23 @@ class _MotionOpacityState extends State<MotionOpacity> with TickerProviderStateM
 
   void _onControllerTick() => setState(() {});
 
+  // AnimationStatus? _lastStatus;
+  void _onControllerStatus(status) {
+    if (widget.onAnimationStatusChanged == null) return;
+    // final status = consolidateAnimationStatus([
+    //   opacity.status,
+    // ]);
+    // if (status == _lastStatus) return;
+    // _lastStatus = status;
+    widget.onAnimationStatusChanged!(status);
+  }
+
+  T registerController<T extends MotionController>(T controller) {
+    return controller
+      ..addListener(_onControllerTick)
+      ..addStatusListener(_onControllerStatus);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -38,7 +56,7 @@ class _MotionOpacityState extends State<MotionOpacity> with TickerProviderStateM
       vsync: this,
       motion: widget.motion,
       initialValue: widget.fromOpacity ?? widget.opacity,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
     if (widget.fromOpacity != null) {
       opacity.animateTo(widget.opacity);
     }

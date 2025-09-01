@@ -5,6 +5,17 @@ class Positioning {
   final Size size;
 
   const Positioning(this.offset, this.size);
+
+  @override
+  int get hashCode => Object.hash(offset, size);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is Positioning) {
+      return offset == other.offset && size == other.size;
+    }
+    return super == other;
+  }
 }
 
 mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {
@@ -17,6 +28,9 @@ mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {
         Offset.zero,
         ancestor: parentContext?.findRenderObject(),
       );
+      if (position.dx.isNaN || position.dy.isNaN) {
+        return _lastPositioning;
+      }
       _lastPositioning = Positioning(position, box.size);
     } catch (_) {}
     return _lastPositioning;

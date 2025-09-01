@@ -11,8 +11,9 @@ mixin MainConfigI {
   ThemeMode get themeMode;
   MyColor get seedColor;
   MyColor? get surfaceColor;
-  double get animationStiffnessMultiplier;
-  double get animationDampingMultiplier;
+  double get animationSpeed;
+  double get animationDamping;
+  AnimationFitting get animationFitting;
   bool get requestKeyboardFocus;
   double? get _exclusiveSizeLeft;
   double? get _exclusiveSizeRight;
@@ -40,8 +41,9 @@ class MainConfig with MainConfigI, MainConfigBase {
   final ThemeMode themeMode;
   final MyColor seedColor;
   final MyColor? surfaceColor;
-  final double animationStiffnessMultiplier;
-  final double animationDampingMultiplier;
+  final double animationSpeed;
+  final double animationDamping;
+  final AnimationFitting animationFitting;
   final bool requestKeyboardFocus;
   final double? _exclusiveSizeLeft;
   final double? _exclusiveSizeRight;
@@ -68,8 +70,9 @@ class MainConfig with MainConfigI, MainConfigBase {
     ThemeMode? themeMode,
     required this.seedColor,
     this.surfaceColor,
-    double? animationStiffnessMultiplier,
-    double? animationDampingMultiplier,
+    double? animationSpeed,
+    double? animationDamping,
+    AnimationFitting? animationFitting,
     bool? requestKeyboardFocus,
     double? exclusiveSizeLeft,
     double? exclusiveSizeRight,
@@ -92,8 +95,9 @@ class MainConfig with MainConfigI, MainConfigBase {
     List<Feather<dynamic>>? barCenterFeathers,
     List<Feather<dynamic>>? barEndFeathers,
   }) : themeMode = themeMode ?? ThemeMode.system,
-       animationStiffnessMultiplier = animationStiffnessMultiplier ?? 1,
-       animationDampingMultiplier = animationDampingMultiplier ?? 1,
+       animationSpeed = animationSpeed ?? 1,
+       animationDamping = animationDamping ?? 1,
+       animationFitting = animationFitting ?? AnimationFitting.clip,
        requestKeyboardFocus = requestKeyboardFocus ?? false,
        _exclusiveSizeLeft = exclusiveSizeLeft,
        _exclusiveSizeRight = exclusiveSizeRight,
@@ -119,8 +123,9 @@ class MainConfig with MainConfigI, MainConfigBase {
       themeMode: map['themeMode'],
       seedColor: map['seedColor'],
       surfaceColor: map['surfaceColor'],
-      animationStiffnessMultiplier: map['animationStiffnessMultiplier'],
-      animationDampingMultiplier: map['animationDampingMultiplier'],
+      animationSpeed: map['animationSpeed'],
+      animationDamping: map['animationDamping'],
+      animationFitting: map['animationFitting'],
       requestKeyboardFocus: map['requestKeyboardFocus'],
       exclusiveSizeLeft: map['exclusiveSizeLeft'],
       exclusiveSizeRight: map['exclusiveSizeRight'],
@@ -151,9 +156,9 @@ class MainConfig with MainConfigI, MainConfigBase {
       'themeMode': MainConfigBase._themeMode,
       'seedColor': MainConfigBase._seedColor,
       'surfaceColor': MainConfigBase._surfaceColor,
-      'animationStiffnessMultiplier':
-          MainConfigBase._animationStiffnessMultiplier,
-      'animationDampingMultiplier': MainConfigBase._animationDampingMultiplier,
+      'animationSpeed': MainConfigBase._animationSpeed,
+      'animationDamping': MainConfigBase._animationDamping,
+      'animationFitting': MainConfigBase._animationFitting,
       'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
       'exclusiveSizeLeft': MainConfigBase.__exclusiveSizeLeft,
       'exclusiveSizeRight': MainConfigBase.__exclusiveSizeRight,

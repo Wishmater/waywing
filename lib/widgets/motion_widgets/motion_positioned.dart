@@ -1,5 +1,8 @@
+import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/math_utils.dart";
+import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
 class MotionPositioned extends StatefulWidget {
   final Motion motion;
@@ -20,6 +23,19 @@ class MotionPositioned extends StatefulWidget {
   final double? fromWidth;
   final double? fromHeight;
 
+  final double? minLeft;
+  final double? minTop;
+  final double? minRight;
+  final double? minBottom;
+  final double? minWidth;
+  final double? minHeight;
+  final double? maxLeft;
+  final double? maxTop;
+  final double? maxRight;
+  final double? maxBottom;
+  final double? maxWidth;
+  final double? maxHeight;
+
   final Widget child;
 
   const MotionPositioned({
@@ -38,6 +54,18 @@ class MotionPositioned extends StatefulWidget {
     this.fromBottom,
     this.fromWidth,
     this.fromHeight,
+    this.minLeft,
+    this.minTop,
+    this.minRight,
+    this.minBottom,
+    this.minWidth,
+    this.minHeight,
+    this.maxLeft,
+    this.maxTop,
+    this.maxRight,
+    this.maxBottom,
+    this.maxWidth,
+    this.maxHeight,
     required this.child,
     super.key,
   });
@@ -48,6 +76,8 @@ class MotionPositioned extends StatefulWidget {
     this.onAnimationStatusChanged,
     required Rect rect,
     Rect? fromRect,
+    Rect? minRect,
+    Rect? maxRect,
     required this.child,
     super.key,
   }) : left = rect.left,
@@ -61,7 +91,19 @@ class MotionPositioned extends StatefulWidget {
        fromWidth = fromRect?.width,
        fromHeight = fromRect?.height,
        fromRight = null,
-       fromBottom = null;
+       fromBottom = null,
+       minLeft = minRect?.left,
+       minTop = minRect?.top,
+       minWidth = minRect?.width,
+       minHeight = minRect?.height,
+       minRight = null,
+       minBottom = null,
+       maxLeft = maxRect?.left,
+       maxTop = maxRect?.top,
+       maxWidth = maxRect?.width,
+       maxHeight = maxRect?.height,
+       maxRight = null,
+       maxBottom = null;
 
   @override
   State<MotionPositioned> createState() => _MotionPositionedState();
@@ -76,6 +118,28 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   SingleMotionController? height;
 
   void _onControllerTick() => setState(() {});
+
+  AnimationStatus? _lastStatus;
+  void _onControllerStatus(_) {
+    if (widget.onAnimationStatusChanged == null) return;
+    final status = consolidateAnimationStatus([
+      left?.status,
+      top?.status,
+      right?.status,
+      bottom?.status,
+      width?.status,
+      height?.status,
+    ]);
+    if (status == _lastStatus) return;
+    _lastStatus = status;
+    widget.onAnimationStatusChanged!(status);
+  }
+
+  T registerController<T extends MotionController>(T controller) {
+    return controller
+      ..addListener(_onControllerTick)
+      ..addStatusListener(_onControllerStatus);
+  }
 
   @override
   void initState() {
@@ -123,7 +187,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromLeft ?? widget.left!) : widget.left!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initTop({bool initial = false}) {
@@ -131,7 +195,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromTop ?? widget.top!) : widget.top!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initRight({bool initial = false}) {
@@ -139,7 +203,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromRight ?? widget.right!) : widget.right!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initBottom({bool initial = false}) {
@@ -147,7 +211,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromBottom ?? widget.bottom!) : widget.bottom!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initWidth({bool initial = false}) {
@@ -155,7 +219,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromWidth ?? widget.width!) : widget.width!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initHeight({bool initial = false}) {
@@ -163,7 +227,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromHeight ?? widget.height!) : widget.height!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   @override
@@ -245,13 +309,29 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: left?.value,
-      top: top?.value,
-      right: right?.value,
-      bottom: bottom?.value,
-      width: width?.value,
-      height: height?.value,
+      left: left?.value.clampNullable(widget.minLeft, widget.maxLeft),
+      top: top?.value.clampNullable(widget.minTop, widget.maxTop),
+      right: right?.value.clampNullable(widget.minRight, widget.maxRight),
+      bottom: bottom?.value.clampNullable(widget.minBottom, widget.maxBottom),
+      width: width?.value.clampNullable(minWidth, widget.maxWidth),
+      height: height?.value.clampNullable(minHeight, widget.maxHeight),
       child: widget.child,
     );
+  }
+
+  double? get minWidth {
+    if (widget.minWidth != null) return widget.minWidth!;
+    if (widget.minRight != null && left?.value != null) {
+      return (widget.minRight! - left!.value).coerceAtLeast(0);
+    }
+    return null;
+  }
+
+  double? get minHeight {
+    if (widget.minHeight != null) return widget.minHeight!;
+    if (widget.minBottom != null && top?.value != null) {
+      return (widget.minBottom! - top!.value).coerceAtLeast(0);
+    }
+    return null;
   }
 }

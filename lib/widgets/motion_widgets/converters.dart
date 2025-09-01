@@ -1,3 +1,4 @@
+import "package:dartx/dartx.dart";
 import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
 
@@ -5,7 +6,12 @@ class EdgeInsetsMotionConverter implements MotionConverter<EdgeInsets> {
   const EdgeInsetsMotionConverter();
 
   @override
-  EdgeInsets denormalize(List<double> v) => EdgeInsets.fromLTRB(v[0], v[1], v[2], v[3]);
+  EdgeInsets denormalize(List<double> v) => EdgeInsets.fromLTRB(
+    v[0].coerceAtLeast(0),
+    v[1].coerceAtLeast(0),
+    v[2].coerceAtLeast(0),
+    v[3].coerceAtLeast(0),
+  );
 
   @override
   List<double> normalize(EdgeInsets v) => [v.left, v.top, v.right, v.bottom];
@@ -15,8 +21,12 @@ class BoxConstraintsMotionConverter implements MotionConverter<BoxConstraints> {
   const BoxConstraintsMotionConverter();
 
   @override
-  BoxConstraints denormalize(List<double> v) =>
-      BoxConstraints(minWidth: v[0], minHeight: v[1], maxWidth: v[2], maxHeight: v[3]);
+  BoxConstraints denormalize(List<double> v) => BoxConstraints(
+    minWidth: v[0].coerceAtLeast(0),
+    minHeight: v[1].coerceAtLeast(0),
+    maxWidth: v[2].coerceAtLeast(0),
+    maxHeight: v[3].coerceAtLeast(0),
+  );
 
   @override
   List<double> normalize(BoxConstraints v) => [v.minWidth, v.minHeight, v.maxWidth, v.maxHeight];

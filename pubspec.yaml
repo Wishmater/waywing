@@ -56,7 +56,7 @@ dependencies:
     # path: ../fl-linux-window-manager
     git:
       url: https://github.com/Wishmater/fl-linux-window-manager
-      ref: b2b8a8e5570e77fa97841fc7257b1c8e97362684
+      ref: aff979c4ae0a
   pulseaudio: # for audio mixing
     # path: ../pulseaudio.dart
     git:

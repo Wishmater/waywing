@@ -3,6 +3,7 @@ import "dart:ui";
 import "package:dartx/dartx.dart";
 import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/state_positioning.dart";
 
 typedef ItemBuilder<T> = Widget Function(BuildContext context, T data);
@@ -165,14 +166,9 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
   }
 
   A initAnimationValues<A extends AnimationValues>(A anim, bool isForward) {
-    final animationStiffnessMultiplier = 1;
-    final animationDampingMultiplier = 1;
     anim.motionController = BoundedMotionController<double>(
       vsync: this,
-      motion: MaterialSpringMotion.standardSpatialDefault.copyWith(
-        stiffness: MaterialSpringMotion.standardSpatialDefault.stiffness * animationStiffnessMultiplier,
-        damping: MaterialSpringMotion.standardSpatialDefault.damping * animationDampingMultiplier,
-      ),
+      motion: widget.motion,
       converter: SingleMotionConverter(),
       lowerBound: 0,
       upperBound: 1,
@@ -489,169 +485,4 @@ class MovingAnimationValues extends AnimationValues<double> {
   late final int originIndex;
   late final Positioning originalPositioning;
   late final PositioningController targetPositioningController = PositioningController();
-}
-
-class MotionFlex<T> extends StatelessWidget {
-  final List<T> data;
-  final ItemBuilder<T> itemBuilder;
-  final ItemTransitionBuilder<T>? transitionBuilder;
-  final Motion motion;
-  final bool animateIndexChanges;
-  final bool addGlobalKeys;
-  // Flex params (Column / Row)
-  final Axis direction;
-  final MainAxisAlignment mainAxisAlignment;
-  final MainAxisSize mainAxisSize;
-  final CrossAxisAlignment crossAxisAlignment;
-  final TextDirection? textDirection;
-  final VerticalDirection verticalDirection;
-  final TextBaseline? textBaseline;
-  final Clip clipBehavior;
-  final double spacing;
-
-  const MotionFlex({
-    required this.data,
-    required this.itemBuilder,
-    this.transitionBuilder,
-    required this.motion,
-    this.addGlobalKeys = true,
-    this.animateIndexChanges = true,
-    // Flex params (Column / Row)
-    required this.direction,
-    this.mainAxisAlignment = MainAxisAlignment.start,
-    this.mainAxisSize = MainAxisSize.max,
-    this.crossAxisAlignment = CrossAxisAlignment.center,
-    this.textDirection,
-    this.verticalDirection = VerticalDirection.down,
-    this.textBaseline,
-    this.clipBehavior = Clip.none,
-    this.spacing = 0.0,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return MotionLayout<T>(
-      data: data,
-      itemBuilder: itemBuilder,
-      transitionBuilder: transitionBuilder ?? defaultTransitionBuilder,
-      motion: motion,
-      addGlobalKeys: addGlobalKeys,
-      animateIndexChanges: animateIndexChanges,
-      layoutBuilder: (context, children) {
-        return Flex(
-          direction: direction,
-          mainAxisAlignment: mainAxisAlignment,
-          mainAxisSize: mainAxisSize,
-          crossAxisAlignment: crossAxisAlignment,
-          textDirection: textDirection,
-          verticalDirection: verticalDirection,
-          textBaseline: textBaseline,
-          clipBehavior: clipBehavior,
-          spacing: spacing,
-          children: children,
-        );
-      },
-    );
-  }
-
-  Widget defaultTransitionBuilder(BuildContext context, T data, Widget child, Animation<double> animation) {
-    return FadeTransition(
-      opacity: animation,
-      child: SizeTransition(
-        sizeFactor: animation,
-        axis: direction,
-        // hack to prevent SizeTransition from breaking cross-axis sizing when inside IntrinsicWidth/Height
-        child: Flex(
-          direction: direction,
-          crossAxisAlignment: crossAxisAlignment,
-          mainAxisSize: MainAxisSize.min,
-          children: [child],
-        ),
-      ),
-    );
-  }
-}
-
-class MotionColumn<T> extends MotionFlex<T> {
-  const MotionColumn({
-    required super.data,
-    required super.itemBuilder,
-    super.transitionBuilder,
-    required super.motion,
-    super.addGlobalKeys = true,
-    super.animateIndexChanges = true,
-    // Column params
-    super.mainAxisAlignment = MainAxisAlignment.start,
-    super.mainAxisSize = MainAxisSize.max,
-    super.crossAxisAlignment = CrossAxisAlignment.center,
-    super.textDirection,
-    super.verticalDirection = VerticalDirection.down,
-    super.textBaseline,
-    super.clipBehavior = Clip.none,
-    super.spacing = 0.0,
-    super.key,
-  }) : super(direction: Axis.vertical);
-}
-
-class MotionRow<T> extends MotionFlex<T> {
-  const MotionRow({
-    required super.data,
-    required super.itemBuilder,
-    super.transitionBuilder,
-    required super.motion,
-    super.addGlobalKeys = true,
-    super.animateIndexChanges = true,
-    // Column params
-    super.mainAxisAlignment = MainAxisAlignment.start,
-    super.mainAxisSize = MainAxisSize.max,
-    super.crossAxisAlignment = CrossAxisAlignment.center,
-    super.textDirection,
-    super.verticalDirection = VerticalDirection.down,
-    super.textBaseline,
-    super.clipBehavior = Clip.none,
-    super.spacing = 0.0,
-    super.key,
-  }) : super(direction: Axis.horizontal);
-}
-
-// TODO: 2 implement MotionStack with this same logic
-
-// TODO: 3 maybe move this somewhere else, maybe make it a "DerivedAnimation"
-// that accepts a list of dependency animations and a derive callback
-class MultipliedAnimation extends Animation<double> {
-  final Animation<double> first;
-  final Animation<double> second;
-
-  MultipliedAnimation(this.first, this.second);
-
-  @override
-  double get value => first.value * second.value;
-
-  @override
-  AnimationStatus get status => first.status == second.status ? first.status : AnimationStatus.forward;
-
-  @override
-  void addListener(VoidCallback listener) {
-    first.addListener(listener);
-    second.addListener(listener);
-  }
-
-  @override
-  void removeListener(VoidCallback listener) {
-    first.removeListener(listener);
-    second.removeListener(listener);
-  }
-
-  @override
-  void addStatusListener(AnimationStatusListener listener) {
-    first.addStatusListener(listener);
-    second.addStatusListener(listener);
-  }
-
-  @override
-  void removeStatusListener(AnimationStatusListener listener) {
-    first.removeStatusListener(listener);
-    second.removeStatusListener(listener);
-  }
 }

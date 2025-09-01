@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
+import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
 class MotionDivider extends StatefulWidget {
   final Motion motion;
@@ -99,6 +100,28 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
 
   void _onControllerTick() => setState(() {});
 
+  AnimationStatus? _lastStatus;
+  void _onControllerStatus(_) {
+    if (widget.onAnimationStatusChanged == null) return;
+    final status = consolidateAnimationStatus([
+      size?.status,
+      thickness?.status,
+      indent?.status,
+      endIndent?.status,
+      radius?.status,
+      color?.status,
+    ]);
+    if (status == _lastStatus) return;
+    _lastStatus = status;
+    widget.onAnimationStatusChanged!(status);
+  }
+
+  T registerController<T extends MotionController>(T controller) {
+    return controller
+      ..addListener(_onControllerTick)
+      ..addStatusListener(_onControllerStatus);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -145,7 +168,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromSize ?? widget.size!) : widget.size!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initThickness({bool initial = false}) {
@@ -153,7 +176,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromThickness ?? widget.thickness!) : widget.thickness!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initIndent({bool initial = false}) {
@@ -161,7 +184,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromIndent ?? widget.indent!) : widget.indent!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initEndIndent({bool initial = false}) {
@@ -169,7 +192,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromEndIndent ?? widget.endIndent!) : widget.endIndent!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initRadius({bool initial = false}) {
@@ -178,7 +201,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
       motion: widget.motion,
       converter: BorderRadiusMotionConverter(),
       initialValue: initial ? (widget.fromRadius ?? widget.radius!) : widget.radius!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initColor({bool initial = false}) {
@@ -187,7 +210,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
       motion: widget.motion,
       converter: ColorMotionConverter(),
       initialValue: initial ? (widget.fromColor ?? widget.color!) : widget.color!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   @override

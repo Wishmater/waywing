@@ -1,7 +1,10 @@
+import "dart:math";
+
 import "package:dartx/dartx_io.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:motor/motor.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/util/logger.dart";
@@ -91,10 +94,10 @@ class _BarState extends State<Bar> {
     Map<String, int> feathersCount = {};
     return Positioned.fill(
       child: MotionAlign(
-        motion: mainConfig.motions.expressive.spatial.slow,
+        motion: motion,
         alignment: barAlignment,
         child: MotionContainer(
-          motion: mainConfig.motions.expressive.spatial.slow,
+          motion: motion,
           width: width ?? monitorSize.width,
           height: height ?? monitorSize.height,
           padding: EdgeInsets.only(
@@ -234,8 +237,9 @@ class _BarState extends State<Bar> {
 
             if (snapshot.connectionState != ConnectionState.done) {
               return Container(
-                height: mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : null,
-                width: !mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : null,
+                height: mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : mainConfig.barSize.toDouble(),
+                width: !mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : mainConfig.barSize.toDouble(),
+                padding: EdgeInsets.all(0.25 * min(mainConfig.barIndicatorMinSize, mainConfig.barSize)),
                 alignment: Alignment.center,
                 child: AspectRatio(aspectRatio: 1, child: CircularProgressIndicator()),
               );
@@ -311,6 +315,8 @@ class _BarState extends State<Bar> {
     return result;
   }
 
+  Motion get motion => mainConfig.motions.expressive.spatial.slow;
+
   Widget buildPopover({
     required BuildContext context,
     required FeatherComponent component,
@@ -365,11 +371,13 @@ class _BarState extends State<Bar> {
                   : PopoverParams(
                       enabled: isPopoverEnabled,
                       containerId: "BarPopover",
+                      motion: motion,
                       // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
                       zIndex: -10,
                       popupAlignment: popoverAlignment,
                       anchorAlignment: popoverAlignment,
                       overflowAlignment: overflowAlignment,
+                      stickToHost: true,
                       screenPadding: EdgeInsets.only(
                         left: mainConfig.isBarVertical ? 0 : mainConfig.barMarginLeft + mainConfig.barRadiusInMain,
                         right: mainConfig.isBarVertical ? 0 : mainConfig.barMarginRight + mainConfig.barRadiusInMain,
@@ -406,6 +414,7 @@ class _BarState extends State<Bar> {
                   : PopoverParams(
                       enabled: isTooltipEnabled,
                       containerId: "BarTooltip",
+                      motion: motion,
                       // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
                       zIndex: -5,
                       popupAlignment: popoverAlignment,
@@ -434,14 +443,14 @@ class _BarState extends State<Bar> {
                       },
                       containerBuilder: (context, controller, child) {
                         return MotionOpacity(
-                          motion: mainConfig.motions.standard.effects.normal,
+                          motion: motion,
                           opacity: 1,
                           child: buildPopoverContainer(context, child, tooltipShape, isTooltip: true),
                         );
                       },
                       closedContainerBuilder: (context, controller, child) {
                         return MotionOpacity(
-                          motion: mainConfig.motions.standard.effects.normal,
+                          motion: motion,
                           opacity: 0,
                           child: buildPopoverContainer(context, child, buttonShape, isTooltip: true),
                         );
@@ -461,6 +470,7 @@ class _BarState extends State<Bar> {
     required isTooltip,
   }) {
     return WingedContainer(
+      motion: motion,
       elevation: 4, // TODO: 2 expose popover elevation theme option to user
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shape: shape,

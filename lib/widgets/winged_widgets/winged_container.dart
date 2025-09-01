@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
+import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 import "package:waywing/widgets/shapes/docked_rounded_corners_shape.dart";
 
 class WingedContainer extends StatelessWidget {
@@ -87,6 +88,24 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
 
   void _onControllerTick() => setState(() {});
 
+  AnimationStatus? _lastStatus;
+  void _onControllerStatus(_) {
+    if (widget.onAnimationStatusChanged == null) return;
+    final status = consolidateAnimationStatus([
+      shape?.status,
+      shapeManualController?.status,
+    ]);
+    if (status == _lastStatus) return;
+    _lastStatus = status;
+    widget.onAnimationStatusChanged!(status);
+  }
+
+  T registerController<T extends MotionController>(T controller) {
+    return controller
+      ..addListener(_onControllerTick)
+      ..addStatusListener(_onControllerStatus);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -136,7 +155,7 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
         motion: widget.motion,
         converter: converter,
         initialValue: oldShape ?? newShape,
-      )..addListener(_onControllerTick);
+      )..pipe(registerController);
       if (oldShape != null) {
         shape!.animateTo(newShape);
       }
@@ -147,13 +166,13 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
         vsync: this,
         motion: widget.motion,
         initialValue: oldShape != null ? 0 : 1,
-      )..addListener(_onControllerTick);
+      )..pipe(registerController);
       shapeManual = ShapeBorderTween(
         begin: oldShape ?? newShape,
         end: newShape,
       ).animate(shapeManualController!);
       if (oldShape != null) {
-        shapeManualController!.forward();
+        shapeManualController!.forward(from: 0);
       }
     }
   }

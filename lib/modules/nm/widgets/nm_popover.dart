@@ -8,7 +8,7 @@ import "package:waywing/modules/nm/widgets/nm_indicator.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
-import "package:waywing/widgets/motion_layout/motion_layout.dart";
+import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/simple_shadow.dart";

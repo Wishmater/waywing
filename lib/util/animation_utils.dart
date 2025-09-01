@@ -1,4 +1,44 @@
+import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
+
+enum AnimationFitting { clip, stretch }
+
+class MultipliedAnimation extends Animation<double> {
+  final Animation<double> first;
+  final Animation<double> second;
+
+  MultipliedAnimation(this.first, this.second);
+
+  @override
+  double get value => first.value * second.value;
+
+  @override
+  AnimationStatus get status => first.status == second.status ? first.status : AnimationStatus.forward;
+
+  @override
+  void addListener(VoidCallback listener) {
+    first.addListener(listener);
+    second.addListener(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    first.removeListener(listener);
+    second.removeListener(listener);
+  }
+
+  @override
+  void addStatusListener(AnimationStatusListener listener) {
+    first.addStatusListener(listener);
+    second.addStatusListener(listener);
+  }
+
+  @override
+  void removeStatusListener(AnimationStatusListener listener) {
+    first.removeStatusListener(listener);
+    second.removeStatusListener(listener);
+  }
+}
 
 extension MaterialSpringMotionMultiply on MaterialSpringMotion {
   MaterialSpringMotion multiply({

@@ -42,13 +42,16 @@ mixin MainConfigBase on MainConfigI {
   // Animations
   //===========================================================================
 
-  static const _animationStiffnessMultiplier = DoubleNumberField(defaultTo: 1);
-  static const _animationDampingMultiplier = DoubleNumberField(defaultTo: 1);
+  static const _animationSpeed = DoubleNumberField(defaultTo: 1); // stiffness
+  static const _animationDamping = DoubleNumberField(defaultTo: 1);
+  static const _animationFitting = EnumField(AnimationFitting.values, defaultTo: AnimationFitting.clip);
   // TODO: 3 validate that these are >=0 and maybe an upper bound as well
 
   late final motions = MaterialSpringMotionValues(
-    stiffness: animationStiffnessMultiplier,
-    damping: animationDampingMultiplier,
+    // increasing damping will still speed and decreasing dambing will increase speed,
+    // multiplying stiffness by damping causes damping changes to not affect speed as much.
+    stiffness: animationSpeed * animationDamping,
+    damping: animationDamping,
   );
 
   //===========================================================================

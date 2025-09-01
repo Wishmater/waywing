@@ -59,6 +59,10 @@ class PopoverParams {
   /// Useful to trigger implicit animations in container (borders, etc.)
   final WingedPopoverChildBuilder? closedContainerBuilder;
 
+  /// If this is true, when position or size animations overshoot, the side of the
+  /// popover that touches the host will not be separated from it.
+  final bool stickToHost;
+
   const PopoverParams({
     required this.builder,
     required this.containerBuilder,
@@ -73,6 +77,7 @@ class PopoverParams {
     this.extraOffset = Offset.zero,
     this.extraPadding = EdgeInsets.zero,
     this.motion,
+    this.stickToHost = false,
   });
 }
 
@@ -139,20 +144,20 @@ class WingedPopoverState extends State<WingedPopover>
     super.didUpdateWidget(oldWidget);
     if (isPopoverShown && (widget.popoverParams == null || !widget.popoverParams!.enabled)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (isPopoverShown && (clientState?.mounted ?? false)) {
+        if (mounted && isPopoverShown && (clientState?.mounted ?? false)) {
           hidePopover();
         }
       });
     }
     if (isTooltipShown && (widget.tooltipParams == null || !widget.tooltipParams!.enabled)) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (isTooltipShown && (clientState?.mounted ?? false)) {
+        if (mounted && isTooltipShown && (clientState?.mounted ?? false)) {
           hideTooltip();
         }
       });
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (clientState?.mounted ?? false) {
+      if (mounted && (clientState?.mounted ?? false)) {
         clientState?.setState(() {});
       }
     });

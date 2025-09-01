@@ -57,6 +57,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                 },
                 closedContainerBuilder: (context, controller, child) {
                   return WingedContainer(
+                    motion: mainConfig.motions.standard.spatial.fast,
                     clipBehavior: Clip.hardEdge,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(0))),
                     color: Colors.transparent,
@@ -75,6 +76,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                 },
                 containerBuilder: (context, controller, child) {
                   return WingedContainer(
+                    motion: mainConfig.motions.standard.spatial.fast,
                     clipBehavior: Clip.hardEdge,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(12))),
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,

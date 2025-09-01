@@ -1,14 +1,15 @@
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
-import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
 import "package:motor/motor.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
+import "package:waywing/util/math_utils.dart";
 import "package:waywing/util/popup_utils.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/overflow_or_fit.dart";
 import "package:waywing/widgets/motion_widgets/motion_padding.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "package:waywing/widgets/shapes/shape_clipper.dart";
@@ -296,8 +297,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
   PopoverParams get popoverParams =>
       (widget.isTooltip ? widget.host.widget.tooltipParams : widget.host.widget.popoverParams)!;
 
-  // TODO: 1 try different kinds of animations here, this is important
-  Motion get motion => popoverParams.motion ?? mainConfig.motions.expressive.spatial.normal;
+  Motion get motion => popoverParams.motion ?? mainConfig.motions.expressive.spatial.slow;
 
   @override
   void initState() {
@@ -346,26 +346,82 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
   void didUpdateWidget(covariant WingedPopoverClient oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.host != oldWidget.host || widget.isTooltip != oldWidget.isTooltip) {
-      _triggerContentAnimation();
+      _triggerContentAnimation(oldWidget.host);
     }
   }
 
-  void _triggerContentAnimation() {
+  late Widget _lastContent;
+  void _triggerContentAnimation(WingedPopoverState oldHost) {
+    Offset? targetContentOffset;
+    final newHostPositioning = widget.host.positioningNotifier.value;
+    final oldChildPositioning = childPositioningController.positioningNotifier.value;
+    if (newHostPositioning != null && oldChildPositioning != null) {
+      final popoverParams = this.popoverParams;
+      final oldChildSize = oldChildPositioning.size;
+      final oldChildOffset = oldChildPositioning.offset;
+      final newChildSize = oldChildSize; // there is no way of getting the new size at this point
+      var newChildOffset = getPopoverPosition(
+        anchorAlignment: popoverParams.anchorAlignment,
+        popupAlignment: popoverParams.popupAlignment,
+        hostPosition: newHostPositioning.offset,
+        hostSize: newHostPositioning.size,
+        childSize: newChildSize,
+        screenSize: MediaQuery.sizeOf(context),
+        padding: popoverParams.screenPadding,
+        extraOffset: popoverParams.extraOffset,
+      );
+      newChildOffset += Offset(
+        popoverParams.extraPadding.horizontal,
+        popoverParams.extraPadding.vertical,
+      );
+      final oldChildCenter = Offset(
+        oldChildOffset.dx + oldChildSize.width / 2,
+        oldChildOffset.dy + oldChildSize.height / 2,
+      );
+      final newChildCenter = Offset(
+        newChildOffset.dx + newChildSize.width / 2,
+        newChildOffset.dy + newChildSize.height / 2,
+      );
+      targetContentOffset = newChildCenter - oldChildCenter;
+      targetContentOffset *= 0.75;
+      final maxContentOffset = Offset(
+        newChildSize.width * targetContentOffset.dx.sign * 0.75,
+        newChildSize.height * targetContentOffset.dy.sign * 0.75,
+      );
+      targetContentOffset = Offset(
+        minAbs(targetContentOffset.dx, maxContentOffset.dx),
+        minAbs(targetContentOffset.dy, maxContentOffset.dy),
+      );
+    }
+
     final outgoingChild = _OutgoingChild(
-      // TODO: 3 PERFORMANCE should we just cache this last time it was built?
-      widget: popoverParams.builder(context, widget.host, childPositioningController),
+      widget: _lastContent,
       opacityMotionController: contentOpacityMotionController,
       offsetMotionController: contentOffsetMotionController,
     );
-    // TODO: 1 calculate target offset
-    final targetContentOffset = Offset(128, 128);
     outgoingChild.opacityMotionController.reverse();
-    outgoingChild.offsetMotionController.animateTo(targetContentOffset);
-    // TODO: 1 remove the outgoingChild once animations end
-    _initContentAnimations(initialOpacity: 0, initialOffset: targetContentOffset);
+    if (targetContentOffset != null) {
+      outgoingChild.offsetMotionController.animateTo(targetContentOffset * -1);
+    }
+    _initContentAnimations(
+      initialOpacity: 0,
+      initialOffset: targetContentOffset ?? Offset.zero,
+    );
     contentOpacityMotionController.forward();
-    contentOffsetMotionController.animateTo(Offset.zero);
+    if (targetContentOffset != null) {
+      contentOffsetMotionController.animateTo(Offset.zero);
+    }
     _outgoingChildren.add(outgoingChild);
+    contentOpacityMotionController.addStatusListener((status) {
+      if (!mounted) return;
+      if (!status.isAnimating) {
+        setState(() {
+          outgoingChild.opacityMotionController.dispose();
+          outgoingChild.offsetMotionController.dispose();
+          _outgoingChildren.remove(outgoingChild);
+        });
+      }
+    });
   }
 
   @override
@@ -380,36 +436,63 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     final popoverParams = this.popoverParams;
     widget.host.clientState = this;
     final screenSize = MediaQuery.sizeOf(context);
-    // TODO: 1 render outgoing children
-    final content = AnimatedBuilder(
-      animation: Listenable.merge([contentOpacityMotionController, contentOffsetMotionController]),
-      builder: (context, child) {
-        return Opacity(
-          opacity: contentOpacityMotionController.value.clamp(0, 1),
-          child: Transform.translate(
-            offset: contentOffsetMotionController.value,
-            child: child!,
-          ),
-        );
-      },
-      child: OverflowBox(
-        alignment: popoverParams.overflowAlignment,
-        fit: OverflowBoxFit.deferToChild,
-        minWidth: 0,
-        minHeight: 0,
-        maxWidth: screenSize.width,
-        maxHeight: screenSize.height,
-        // TODO: 2 add animation transition to the child (for cases with containerId)
-        // maybe allow host to decide the transitionBuilder, so the bar can animate up/down
+
+    _lastContent = popoverParams.builder(context, widget.host, childPositioningController);
+    final currentContent = OverflowOrFit(
+      alignment: popoverParams.overflowAlignment,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([contentOpacityMotionController, contentOffsetMotionController]),
+        builder: (context, child) {
+          return Opacity(
+            opacity: contentOpacityMotionController.value.clamp(0, 1),
+            child: Transform.translate(
+              offset: contentOffsetMotionController.value,
+              child: child!,
+            ),
+          );
+        },
         child: FocusScope(
           node: focusNode,
           child: PositioningNotifierMonitor(
             controller: childPositioningController,
-            child: popoverParams.builder(context, widget.host, childPositioningController),
+            child: _lastContent,
           ),
         ),
       ),
     );
+
+    final content = Stack(
+      clipBehavior: Clip.none,
+      fit: StackFit.passthrough,
+      children: [
+        for (final e in _outgoingChildren)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ExcludeFocus(
+                child: OverflowOrFit(
+                  alignment: popoverParams.overflowAlignment,
+                  child: AnimatedBuilder(
+                    animation: Listenable.merge([e.opacityMotionController, e.offsetMotionController]),
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: e.opacityMotionController.value.clamp(0, 1),
+                        child: Transform.translate(
+                          offset: e.offsetMotionController.value,
+                          transformHitTests: false,
+                          child: child!,
+                        ),
+                      );
+                    },
+                    child: e.widget,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        currentContent,
+      ],
+    );
+
     final container = popoverParams.containerBuilder(context, widget.host, content);
 
     return ValueListenableBuilder(
@@ -499,17 +582,47 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
             );
             // print("childSize: $childSize");
             // print("childPosition: $childPosition");
+            double? minLeft, maxLeft, minTop, maxTop, minRight, maxRight, minBottom, maxBottom;
+            if (popoverParams.stickToHost) {
+              if (popoverParams.popupAlignment.x < 0) {
+                minRight = hostPosition.dx;
+              } else if (popoverParams.popupAlignment.x > 0) {
+                maxLeft = hostPosition.dx + hostSize.width;
+              }
+              if (popoverParams.popupAlignment.y < 0) {
+                minBottom = hostPosition.dy;
+              } else if (popoverParams.popupAlignment.y > 0) {
+                maxTop = hostPosition.dy + hostSize.height;
+              }
+            }
             result = MotionPositioned(
+              // TODO: 2 ANIMATIONS ideally, we separate animation for the container and the content,
+              // so that the content doesn't "bounce around" like the container does.
+              // This seems hard to do, because the motion controller doesn't expose when the animation
+              // reached the target and is now "bouncing".
+              // An alternative is to add container and content as separate MotionPositioned widgets,
+              // but this is ugly and has risk of causing other bugs like desync and clipping issues.
               motion: motion,
               left: childPosition.dx,
               top: childPosition.dy,
+              // TODO: 2 ANIMATIONS maybe we should stop animationg width/height changes when not animationg
+              // in/out and just leave that as the content's responsibility to implement. If implemented in
+              // the content, animations can be more custom and exact, and if implemented both here and in
+              // content, it can have weird interactions (which happens now)
               width: childSize.width,
               height: childSize.height,
+              minLeft: minLeft,
+              maxLeft: maxLeft,
+              minTop: minTop,
+              maxTop: maxTop,
+              minRight: minRight,
+              maxRight: maxRight,
+              minBottom: minBottom,
+              maxBottom: maxBottom,
               onAnimationStatusChanged: !widget.isRemoved
                   ? null
                   : (status) {
-                      // TODO: 1 implement onAnimationStatusChanged on all motion widgets
-                      if (status == AnimationStatus.completed) {
+                      if (!status.isAnimating) {
                         provider._removeHost(widget.host);
                       }
                     },

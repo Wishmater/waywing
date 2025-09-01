@@ -6,9 +6,9 @@ import "package:waywing/core/config.dart";
 import "package:waywing/modules/system_tray/service/menu.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
+import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/motion_widgets/motion_divider.dart";
 import "package:waywing/widgets/motion_widgets/motion_intrinsic_size.dart";
-import "package:waywing/widgets/motion_layout/motion_layout.dart";
 import "package:waywing/widgets/disposable_builder.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -277,6 +277,10 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
               },
               // TODO: 1 handle menu overflowing when too close to the right
               // TODO: 1 this should be a tooltip (opening on hover), not a popover
+              // this requires implementing the chain of depndant popovers, so we can keep
+              // parents alive while children are hovered, and also so we can instatly close
+              // children when parents are closed (instead of waiting for the end of parent
+              // animation to close child, which looks really weird)
               popoverParams: PopoverParams(
                 enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
                 anchorAlignment: Alignment.topRight,

@@ -4,7 +4,7 @@ import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/modules/volume/volume_tooltip.dart";
-import "package:waywing/widgets/motion_layout/motion_layout.dart";
+import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:xdg_icons/xdg_icons.dart";
 

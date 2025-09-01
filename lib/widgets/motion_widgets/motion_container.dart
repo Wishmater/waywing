@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
+import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
 class MotionContainer extends StatefulWidget {
   final Motion motion;
@@ -104,8 +105,34 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
 
   void _onControllerTick() => setState(() {});
 
+  AnimationStatus? _lastStatus;
+  void _onControllerStatus(_) {
+    if (widget.onAnimationStatusChanged == null) return;
+    final status = consolidateAnimationStatus([
+      alignment?.status,
+      padding?.status,
+      decorationController?.status,
+      foregroundDecorationController?.status,
+      constraints?.status,
+      margin?.status,
+      transform?.status,
+      transformAlignment?.status,
+    ]);
+    if (status == _lastStatus) return;
+    _lastStatus = status;
+    widget.onAnimationStatusChanged!(status);
+  }
+
+  T registerController<T extends MotionController>(T controller) {
+    return controller
+      ..addListener(_onControllerTick)
+      ..addStatusListener(_onControllerStatus);
+  }
+
   @override
   void initState() {
+    // TODO: 2 if the motion animation vaules are changed in the config, MotionControllers
+    // that are already initialized won't be updated and will stay with the old motion
     super.initState();
     if (widget.alignment != null) {
       initAlignment(initial: true);
@@ -157,7 +184,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
       motion: widget.motion,
       converter: AlignmentMotionConverter(),
       initialValue: initial ? (widget.fromAlignment ?? widget.alignment!) : widget.alignment!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initPadding({bool initial = false}) {
@@ -166,7 +193,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
       motion: widget.motion,
       converter: EdgeInsetsMotionConverter(),
       initialValue: initial ? (widget.fromPadding ?? widget.padding!) : widget.padding!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initDecoration({bool initial = false}) {
@@ -174,7 +201,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
       vsync: this,
       motion: widget.motion,
       initialValue: widget.fromDecoration != null ? 0 : 1,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
     updateDecoration(initial: initial);
   }
 
@@ -193,7 +220,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
       vsync: this,
       motion: widget.motion,
       initialValue: widget.fromForegroundDecoration != null ? 0 : 1,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
     updateForegroundDecoration(initial: initial);
   }
 
@@ -213,7 +240,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
       motion: widget.motion,
       converter: BoxConstraintsMotionConverter(),
       initialValue: initial ? (widget.fromConstraints ?? widget.constraints!) : widget.constraints!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initMargin({bool initial = false}) {
@@ -222,7 +249,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
       motion: widget.motion,
       converter: EdgeInsetsMotionConverter(),
       initialValue: initial ? (widget.fromMargin ?? widget.margin!) : widget.margin!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initTransform({bool initial = false}) {
@@ -231,7 +258,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
       motion: widget.motion,
       converter: Matrix4MotionConverter(),
       initialValue: initial ? (widget.fromTransform ?? widget.transform!) : widget.transform!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initTransformAlignment({bool initial = false}) {
@@ -242,7 +269,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
       initialValue: initial
           ? (widget.fromTransformAlignment ?? widget.transformAlignment!)
           : widget.transformAlignment!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   @override
@@ -347,7 +374,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   Widget build(BuildContext context) {
     return Container(
       alignment: alignment?.value,
-      padding: padding?.value.clamp(EdgeInsets.zero, const EdgeInsets.all(double.infinity)),
+      padding: padding?.value,
       decoration: decoration?.value,
       foregroundDecoration: foregroundDecoration?.value,
       constraints: constraints?.value,

@@ -1,6 +1,7 @@
 import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
 class MotionAlign extends StatefulWidget {
   final Motion motion;
@@ -42,6 +43,25 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
 
   void _onControllerTick() => setState(() {});
 
+  AnimationStatus? _lastStatus;
+  void _onControllerStatus(_) {
+    if (widget.onAnimationStatusChanged == null) return;
+    final status = consolidateAnimationStatus([
+      alignment.status,
+      widthFactor?.status,
+      heightFactor?.status,
+    ]);
+    if (status == _lastStatus) return;
+    _lastStatus = status;
+    widget.onAnimationStatusChanged!(status);
+  }
+
+  T registerController<T extends MotionController>(T controller) {
+    return controller
+      ..addListener(_onControllerTick)
+      ..addStatusListener(_onControllerStatus);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +70,7 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
       motion: widget.motion,
       converter: AlignmentMotionConverter(),
       initialValue: widget.fromAlignment ?? widget.alignment,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
     if (widget.fromAlignment != null) {
       alignment.animateTo(widget.alignment);
     }
@@ -73,7 +93,7 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromWidthFactor ?? widget.widthFactor!) : widget.widthFactor!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   void initHeightFactor({bool initial = false}) {
@@ -81,7 +101,7 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
       vsync: this,
       motion: widget.motion,
       initialValue: initial ? (widget.fromHeightFactor ?? widget.heightFactor!) : widget.heightFactor!,
-    )..addListener(_onControllerTick);
+    )..pipe(registerController);
   }
 
   @override

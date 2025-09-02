@@ -1,6 +1,7 @@
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
+import "package:flutter/painting.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/util/config_fields.dart";
 
@@ -20,6 +21,7 @@ mixin BarConfigBase on BarConfigI {
   static const _marginRight = DoubleNumberField(defaultTo: 0);
   static const _marginTop = DoubleNumberField(defaultTo: 0);
   static const _marginBottom = DoubleNumberField(defaultTo: 0);
+  late final EdgeInsets margin = EdgeInsets.fromLTRB(marginLeft, marginTop, marginRight, marginBottom);
 
   // Derived
   late final bool isVertical = side == ScreenEdge.left || side == ScreenEdge.right;

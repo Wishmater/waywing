@@ -41,10 +41,11 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
             //   waitDuration: const Duration(milliseconds: 250),
             //   child: result,
             // );
+            final motion = mainConfig.motions.standard.spatial.fast;
             result = WingedPopover(
               // TODO: 2 add wait duration, potentially more that the one the Bar indicators have
               tooltipParams: PopoverParams(
-                motion: mainConfig.motions.standard.spatial.fast,
+                motion: motion,
                 overflowAlignment: Alignment.centerLeft,
                 extraOffset: Offset(-12, 0),
                 anchorAlignment: Alignment.centerLeft,
@@ -58,14 +59,14 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                 },
                 closedContainerBuilder: (context, controller, child) {
                   return WingedContainer(
-                    motion: mainConfig.motions.standard.spatial.fast,
+                    motion: motion,
                     clipBehavior: Clip.hardEdge,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(0))),
                     color: Colors.transparent,
                     child: Stack(
                       children: [
                         MotionPositioned(
-                          motion: mainConfig.motions.standard.spatial.fast,
+                          motion: motion,
                           left: -12,
                           top: 0,
                           bottom: 0,
@@ -77,14 +78,14 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                 },
                 containerBuilder: (context, controller, child) {
                   return WingedContainer(
-                    motion: mainConfig.motions.standard.spatial.fast,
+                    motion: motion,
                     clipBehavior: Clip.hardEdge,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(12))),
                     color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     child: Stack(
                       children: [
                         MotionPositioned(
-                          motion: mainConfig.motions.standard.spatial.fast,
+                          motion: motion,
                           left: -0,
                           top: 0,
                           bottom: 0,

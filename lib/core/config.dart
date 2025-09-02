@@ -5,14 +5,16 @@ import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
-import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/core/wing.dart";
 import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/config_fields.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
 
 part "config.g.dart";
@@ -30,6 +32,11 @@ typedef ConfigBuilder<Conf> = Conf Function(Map<String, dynamic> map);
 
 @Config()
 mixin MainConfigBase on MainConfigI {
+  // TODO: 2 each wing should declare its monitor, instead of having it here globally
+  // This requires a big refactor in window_utils
+  static const _monitor = IntegerNumberField(defaultTo: 0);
+  static const _wings = ListField(WingField(), defaultTo: <Wing>[]);
+
   //===========================================================================
   // Theme / styling
   //===========================================================================
@@ -37,6 +44,12 @@ mixin MainConfigBase on MainConfigI {
   static const _themeMode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
   static const _seedColor = ColorField();
   static const _surfaceColor = ColorField(nullable: true);
+
+  // TODO: 2 STYLE add style colors (think well about this)
+
+  // TODO: 2 STYLE think well on how to expose button theme
+  late final double buttonRadiusX = 12;
+  late final double buttonRadiusY = 12;
 
   //===========================================================================
   // Animations
@@ -60,70 +73,18 @@ mixin MainConfigBase on MainConfigI {
 
   static const _requestKeyboardFocus = BooleanField(defaultTo: false);
 
-  static const __exclusiveSizeLeft = DoubleNumberField(nullable: true);
-  double get exclusiveSizeLeft => _exclusiveSizeLeft ?? (barSide == ScreenEdge.left ? barSize.toDouble() : 0);
-  static const __exclusiveSizeRight = DoubleNumberField(nullable: true);
-  double get exclusiveSizeRight => _exclusiveSizeRight ?? (barSide == ScreenEdge.right ? barSize.toDouble() : 0);
-  static const __exclusiveSizeTop = DoubleNumberField(nullable: true);
-  double get exclusiveSizeTop => _exclusiveSizeTop ?? (barSide == ScreenEdge.top ? barSize.toDouble() : 0);
-  static const __exclusiveSizeBottom = DoubleNumberField(nullable: true);
-  double get exclusiveSizeBottom => _exclusiveSizeBottom ?? (barSide == ScreenEdge.bottom ? barSize.toDouble() : 0);
-
-  // Note (add to readme when it exists): explicitly set exclusiveSice will have priority over Bar size.
-  // Set exclusiveSize to zero on same side bar is on to remove autoExclusiveSize on Bar.
+  late final ValueListenable<EdgeInsets> exclusiveSize = DerivedValueNotifier(
+    dependencies: wings.map((e) => e.exclusiveSize).toList(),
+    derive: () => wings.map((e) => e.exclusiveSize.value).fold(EdgeInsets.zero, (a, b) => a + b),
+  );
   double? getExclusiveSizeForSide(ScreenEdge side) {
     return switch (side) {
-      ScreenEdge.left => exclusiveSizeLeft,
-      ScreenEdge.right => exclusiveSizeRight,
-      ScreenEdge.top => exclusiveSizeTop,
-      ScreenEdge.bottom => exclusiveSizeBottom,
+      ScreenEdge.left => exclusiveSize.value.left,
+      ScreenEdge.right => exclusiveSize.value.right,
+      ScreenEdge.top => exclusiveSize.value.top,
+      ScreenEdge.bottom => exclusiveSize.value.bottom,
     };
   }
-
-  //===========================================================================
-  // Bar positioning / sizing
-  //===========================================================================
-
-  static const _barMonitor = IntegerNumberField(defaultTo: 0);
-  static const _barSide = EnumField(ScreenEdge.values);
-  static const _barSize = IntegerNumberField(); // in pixels
-  // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginLeft = DoubleNumberField(defaultTo: 0);
-  static const _barMarginRight = DoubleNumberField(defaultTo: 0);
-  static const _barMarginTop = DoubleNumberField(defaultTo: 0);
-  static const _barMarginBottom = DoubleNumberField(defaultTo: 0);
-  static const __barIndicatorMinSize = DoubleNumberField(nullable: true); // defaults to barSize
-  double get barIndicatorMinSize => _barIndicatorMinSize ?? barSize.toDouble();
-  static const __barIndicatorPadding = DoubleNumberField(nullable: true); // defaults to a fraction of barSize
-  double get barIndicatorPadding => _barIndicatorPadding ?? barSize.toDouble();
-
-  // Derived
-  late final bool isBarVertical = mainConfig.barSide == ScreenEdge.left || mainConfig.barSide == ScreenEdge.right;
-  // TODO: 3 validate that mainSize is not <=0 after deducting margins
-  // TODO: 3 validate that you can't add margin on sides that conflict with barSide selected
-
-  //===========================================================================
-  // Bar border radius
-  //===========================================================================
-
-  // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusInCross = DoubleNumberField(defaultTo: 0);
-  static const _barRadiusInMain = DoubleNumberField(defaultTo: 0);
-  static const _barRadiusOutCross = DoubleNumberField(defaultTo: 0);
-  static const _barRadiusOutMain = DoubleNumberField(defaultTo: 0);
-  // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
-
-  // Derived
-  late final double buttonRadiusX = 0.5 * (isBarVertical ? barRadiusInCross : barRadiusInMain);
-  late final double buttonRadiusY = 0.5 * (isBarVertical ? barRadiusInMain : barRadiusInCross);
-
-  //===========================================================================
-  // Bar feathers (components)
-  //===========================================================================
-
-  static const _barStartFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
-  static const _barCenterFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
-  static const _barEndFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
 
   //===========================================================================
   // Add config tables defined in other files

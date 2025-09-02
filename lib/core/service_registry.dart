@@ -5,6 +5,7 @@ import "package:waywing/core/service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
+import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/session/os_info_service.dart";
 import "package:waywing/modules/session/session_service.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
@@ -149,6 +150,7 @@ class ServiceRegistry {
     VolumeService.registerService(registerService);
     SessionService.registerService(registerService);
     OsInfoService.registerService(registerService);
+    NotificationService.registerService(registerService);
   }
 }
 

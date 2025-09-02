@@ -33,7 +33,7 @@ class BatteryFeather extends Feather {
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([batteryComponent]);
 
   late final batteryComponent = FeatherComponent(
-    buildIndicators: (context, popover, tooltip) {
+    buildIndicators: (context, popover) {
       return [
         BatteryWidget(values: BatteryValues(service.displayDevice)),
       ];

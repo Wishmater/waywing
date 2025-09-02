@@ -1,5 +1,4 @@
 import "package:flutter/cupertino.dart";
-import "package:waywing/core/config.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
@@ -25,7 +24,7 @@ class BatteryWidgetState extends State<BatteryWidget> {
       builder: (context, _) {
         return Padding(
           padding: const EdgeInsets.only(top: 8, bottom: 8),
-          child: XdgIcon(name: values.iconName.value, size: (mainConfig.barSize)),
+          child: XdgIcon(name: values.iconName.value),
         );
       },
     );

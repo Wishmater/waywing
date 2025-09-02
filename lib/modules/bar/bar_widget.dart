@@ -7,7 +7,7 @@ import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
-import "package:waywing/util/logger.dart";
+import "package:waywing/modules/bar/bar_config.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/motion_widgets/motion_align.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
@@ -18,11 +18,17 @@ import "package:waywing/core/config.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
-// TODO: 2 this logger should come from the wingRegistry once Wings are implemented
-final _logger = mainLogger.clone();
-
 class Bar extends StatefulWidget {
-  const Bar({super.key});
+  final BarConfig config;
+  // TODO: 2 there should never be a need to log in the widgets, it's probably
+  // a skill issue that can be validated before getting here
+  final Logger logger;
+
+  const Bar({
+    required this.config,
+    required this.logger,
+    super.key,
+  });
 
   @override
   State<Bar> createState() => _BarState();
@@ -34,6 +40,7 @@ class _BarState extends State<Bar> {
   Map<String, List<GlobalKey>> featherGlobalKeys = {};
   final PositioningNotifierController barPositioningController = PositioningNotifierController();
 
+  // TODO: 2 ANIMATION animate entrance of the bar when it is initialized
   @override
   Widget build(BuildContext context) {
     // For our calculations on high scale screens, devicePixelRatio needs to be
@@ -49,18 +56,18 @@ class _BarState extends State<Bar> {
     // Get actual devicePixelRatio (scale) by comparing the original monitor size to the current one.
     // The devicePixelRatio reported by flutter is different for some reason.
     final devicePixelRatio = originalMonitorSize.width / monitorSize.width;
-    final barCrossSize = mainConfig.barSize.toDouble();
-    final outerRoundedEdgeMainSize = mainConfig.barRadiusOutMain;
+    final barCrossSize = widget.config.size.toDouble();
+    final outerRoundedEdgeMainSize = widget.config.radiusOutMain;
     double? width, height, top, bottom, left, right;
     Alignment barAlignment, startAlignment, endAlignment;
-    if (mainConfig.isBarVertical) {
+    if (widget.config.isVertical) {
       startAlignment = Alignment.topCenter;
       endAlignment = Alignment.bottomCenter;
       width = barCrossSize;
-      top = mainConfig.barMarginTop / devicePixelRatio - outerRoundedEdgeMainSize;
-      bottom = mainConfig.barMarginBottom / devicePixelRatio - outerRoundedEdgeMainSize;
+      top = widget.config.marginTop / devicePixelRatio - outerRoundedEdgeMainSize;
+      bottom = widget.config.marginBottom / devicePixelRatio - outerRoundedEdgeMainSize;
       // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
-      if (mainConfig.barSide == ScreenEdge.left) {
+      if (widget.config.side == ScreenEdge.left) {
         barAlignment = Alignment.centerLeft;
         left = 0; // config.barMarginLeft;
       } else {
@@ -71,10 +78,10 @@ class _BarState extends State<Bar> {
       startAlignment = Alignment.centerLeft;
       endAlignment = Alignment.centerRight;
       height = barCrossSize;
-      left = mainConfig.barMarginLeft / devicePixelRatio - outerRoundedEdgeMainSize;
-      right = mainConfig.barMarginRight / devicePixelRatio - outerRoundedEdgeMainSize;
+      left = widget.config.marginLeft / devicePixelRatio - outerRoundedEdgeMainSize;
+      right = widget.config.marginRight / devicePixelRatio - outerRoundedEdgeMainSize;
       // don't allow setting an anchor to the opossite of dockSide, doing this would break the Stack widget
-      if (mainConfig.barSide == ScreenEdge.top) {
+      if (widget.config.side == ScreenEdge.top) {
         barAlignment = Alignment.topCenter;
         top = 0; // config.barMarginTop;
       } else {
@@ -84,12 +91,12 @@ class _BarState extends State<Bar> {
     }
 
     final shape = DockedRoundedCornersBorder(
-      dockedSide: mainConfig.barSide,
-      radiusInCross: mainConfig.barRadiusInCross,
-      radiusInMain: mainConfig.barRadiusInMain,
-      radiusOutCross: mainConfig.barRadiusOutCross,
-      radiusOutMain: mainConfig.barRadiusOutMain,
-      isVertical: mainConfig.isBarVertical,
+      dockedSide: widget.config.side,
+      radiusInCross: widget.config.radiusInCross,
+      radiusInMain: widget.config.radiusInMain,
+      radiusOutCross: widget.config.radiusOutCross,
+      radiusOutMain: widget.config.radiusOutMain,
+      isVertical: widget.config.isVertical,
     );
     Map<String, int> feathersCount = {};
     return Positioned.fill(
@@ -113,7 +120,7 @@ class _BarState extends State<Bar> {
               clipBehavior: Clip.antiAliasWithSaveLayer,
               elevation: 6, // TODO: 2 expose bar elevation theme option to user
               shape: shape,
-              // TODO: 2 implement a proper layout that handles gracefully when widgets overflow
+              // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
               // this should also solve the issue of widgets being disposed when switching vertical
               // to horizontal bar (or viceversa) because we switched Row / Column
               child: Padding(
@@ -122,8 +129,8 @@ class _BarState extends State<Bar> {
                   data: Theme.of(context).copyWith(
                     buttonTheme: Theme.of(context).buttonTheme.copyWith(
                       padding: EdgeInsets.symmetric(
-                        horizontal: !mainConfig.isBarVertical ? mainConfig.barIndicatorPadding : 0,
-                        vertical: mainConfig.isBarVertical ? mainConfig.barIndicatorPadding : 0,
+                        horizontal: !widget.config.isVertical ? widget.config.indicatorPadding : 0,
+                        vertical: widget.config.isVertical ? widget.config.indicatorPadding : 0,
                       ),
                     ),
                   ),
@@ -134,14 +141,14 @@ class _BarState extends State<Bar> {
                       Container(
                         alignment: endAlignment,
                         padding: EdgeInsets.only(
-                          right: !mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
-                          bottom: mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
+                          right: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                          bottom: widget.config.isVertical ? widget.config.size * 0.2 : 0,
                         ),
                         child: buildLayoutWidget(
                           context,
                           buildFeatherWidgets(
                             context: context,
-                            feathers: mainConfig.barEndFeathers,
+                            feathers: widget.config.endFeathers,
                             feathersCount: feathersCount,
                             barShape: shape,
                           ),
@@ -154,7 +161,7 @@ class _BarState extends State<Bar> {
                           context,
                           buildFeatherWidgets(
                             context: context,
-                            feathers: mainConfig.barCenterFeathers,
+                            feathers: widget.config.centerFeathers,
                             feathersCount: feathersCount,
                             barShape: shape,
                           ),
@@ -164,14 +171,14 @@ class _BarState extends State<Bar> {
                       Container(
                         alignment: startAlignment,
                         padding: EdgeInsets.only(
-                          left: !mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
-                          top: mainConfig.isBarVertical ? mainConfig.barSize * 0.2 : 0,
+                          left: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                          top: widget.config.isVertical ? widget.config.size * 0.2 : 0,
                         ),
                         child: buildLayoutWidget(
                           context,
                           buildFeatherWidgets(
                             context: context,
-                            feathers: mainConfig.barStartFeathers,
+                            feathers: widget.config.startFeathers,
                             feathersCount: feathersCount,
                             barShape: shape,
                           ),
@@ -189,7 +196,8 @@ class _BarState extends State<Bar> {
   }
 
   Widget buildLayoutWidget(BuildContext context, List<Widget> children) {
-    if (mainConfig.isBarVertical) {
+    // TODO: 1 add animations to bar components layout
+    if (widget.config.isVertical) {
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -216,18 +224,18 @@ class _BarState extends State<Bar> {
         FutureBuilder(
           future: featherRegistry.awaitInitialization(feather),
           builder: (context, snapshot) {
-            // TODO: 2 animation when switching out of loading state,
+            // TODO: 2 ANIMATIONS animate when switching out of loading state,
             if (snapshot.hasError) {
-              // TODO: 2 should we do this log here??? this means it will be repeated every time bar is rebuilt
-              _logger.log(
+              // TODO: 1 Implement proper error handling in featherRegistry and remove this
+              widget.logger.log(
                 Level.error,
                 "Error caught in bar when awaiting feather initialization for feather ${feather.name}",
                 error: snapshot.error,
                 stackTrace: snapshot.stackTrace,
               );
               return SizedBox(
-                height: mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : null,
-                width: !mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : null,
+                height: widget.config.isVertical ? widget.config.indicatorMinSize : null,
+                width: !widget.config.isVertical ? widget.config.indicatorMinSize : null,
                 child: Icon(
                   Icons.error,
                   color: Theme.of(context).colorScheme.error,
@@ -237,9 +245,9 @@ class _BarState extends State<Bar> {
 
             if (snapshot.connectionState != ConnectionState.done) {
               return Container(
-                height: mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : mainConfig.barSize.toDouble(),
-                width: !mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : mainConfig.barSize.toDouble(),
-                padding: EdgeInsets.all(0.25 * min(mainConfig.barIndicatorMinSize, mainConfig.barSize)),
+                height: widget.config.isVertical ? widget.config.indicatorMinSize : widget.config.size.toDouble(),
+                width: !widget.config.isVertical ? widget.config.indicatorMinSize : widget.config.size.toDouble(),
+                padding: EdgeInsets.all(0.25 * min(widget.config.indicatorMinSize, widget.config.size)),
                 alignment: Alignment.center,
                 child: AspectRatio(aspectRatio: 1, child: CircularProgressIndicator()),
               );
@@ -261,27 +269,29 @@ class _BarState extends State<Bar> {
                   featherKeys.add(GlobalKey());
                 }
                 // TODO: 3 PERFORMANCE remove unused keys from featherKeys ???
+                // TODO: 3 ERROR HANDLING bar should throw an error if it is assigned a feather
+                // that doesn't support indicators (probably do this on handling config)
                 for (int i = 0; i < components.length; i++) {
                   final component = components[i];
                   if (component.buildIndicators == null) continue;
                   final key = featherKeys[i];
 
-                  var widget = buildPopover(
+                  var componentWidget = buildPopover(
                     context: context,
                     component: component,
                     barShape: barShape,
                     builder: (context, popover) {
-                      final indicators = component.buildIndicators!(context, popover, null);
+                      final indicators = component.buildIndicators!(context, popover);
                       for (int i = 0; i < indicators.length; i++) {
                         indicators[i] = ConstrainedBox(
                           constraints: BoxConstraints(
-                            minWidth: !mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : 0,
-                            minHeight: mainConfig.isBarVertical ? mainConfig.barIndicatorMinSize : 0,
+                            minWidth: !widget.config.isVertical ? widget.config.indicatorMinSize : 0,
+                            minHeight: widget.config.isVertical ? widget.config.indicatorMinSize : 0,
                           ),
                           child: indicators[i],
                         );
                       }
-                      if (mainConfig.isBarVertical) {
+                      if (widget.config.isVertical) {
                         return Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -301,9 +311,9 @@ class _BarState extends State<Bar> {
 
                   // TODO: 2 PERFORMANCE maybe pass a builder instead if a Widget to _buildVisibility
                   // so children aren't build unnecessarily for hidden feathers
-                  widget = buildVisibility(context, component, widget);
+                  componentWidget = buildVisibility(context, component, componentWidget);
 
-                  result.add(KeyedSubtree(key: key, child: widget));
+                  result.add(KeyedSubtree(key: key, child: componentWidget));
                 }
                 return buildLayoutWidget(context, result);
               },
@@ -326,13 +336,13 @@ class _BarState extends State<Bar> {
     if (component.buildPopover == null && component.buildTooltip == null) {
       return builder(context, null);
     }
-    final popoverAlignment = switch (mainConfig.barSide) {
+    final popoverAlignment = switch (widget.config.side) {
       ScreenEdge.top => Alignment.bottomCenter,
       ScreenEdge.right => Alignment.centerLeft,
       ScreenEdge.bottom => Alignment.topCenter,
       ScreenEdge.left => Alignment.centerRight,
     };
-    final overflowAlignment = switch (mainConfig.barSide) {
+    final overflowAlignment = switch (widget.config.side) {
       ScreenEdge.top => Alignment.topCenter,
       ScreenEdge.right => Alignment.centerRight,
       ScreenEdge.bottom => Alignment.bottomCenter,
@@ -345,18 +355,18 @@ class _BarState extends State<Bar> {
           valueListenable: component.isTooltipEnabled,
           builder: (context, isTooltipEnabled, _) {
             final popoverShape = DockedRoundedCornersBorder(
-              dockedSide: mainConfig.barSide,
-              isVertical: mainConfig.isBarVertical,
+              dockedSide: widget.config.side,
+              isVertical: widget.config.isVertical,
               // TODO: 3 radius should probably vary with popover size, so there is more flare and animations
-              radiusInCross: mainConfig.barRadiusInCross,
-              radiusInMain: mainConfig.barRadiusInMain,
-              radiusOutCross: mainConfig.barRadiusOutCross,
-              radiusOutMain: mainConfig.barRadiusOutMain,
+              radiusInCross: widget.config.radiusInCross,
+              radiusInMain: widget.config.radiusInMain,
+              radiusOutCross: widget.config.radiusOutCross,
+              radiusOutMain: widget.config.radiusOutMain,
             );
             final tooltipShape = RoundedRectangleBorder(
-              borderRadius: mainConfig.isBarVertical
-                  ? BorderRadius.all(Radius.elliptical(mainConfig.barRadiusInCross, mainConfig.barRadiusInMain))
-                  : BorderRadius.all(Radius.elliptical(mainConfig.barRadiusInMain, mainConfig.barRadiusInCross)),
+              borderRadius: widget.config.isVertical
+                  ? BorderRadius.all(Radius.elliptical(widget.config.radiusInCross, widget.config.radiusInMain))
+                  : BorderRadius.all(Radius.elliptical(widget.config.radiusInMain, widget.config.radiusInCross)),
             );
             final buttonShape = RoundedRectangleBorder(
               borderRadius: BorderRadius.all(
@@ -379,10 +389,10 @@ class _BarState extends State<Bar> {
                       overflowAlignment: overflowAlignment,
                       stickToHost: true,
                       screenPadding: EdgeInsets.only(
-                        left: mainConfig.isBarVertical ? 0 : mainConfig.barMarginLeft + mainConfig.barRadiusInMain,
-                        right: mainConfig.isBarVertical ? 0 : mainConfig.barMarginRight + mainConfig.barRadiusInMain,
-                        top: !mainConfig.isBarVertical ? 0 : mainConfig.barMarginTop + mainConfig.barRadiusInMain,
-                        bottom: !mainConfig.isBarVertical ? 0 : mainConfig.barMarginBottom + mainConfig.barRadiusInMain,
+                        left: widget.config.isVertical ? 0 : widget.config.marginLeft + widget.config.radiusInMain,
+                        right: widget.config.isVertical ? 0 : widget.config.marginRight + widget.config.radiusInMain,
+                        top: !widget.config.isVertical ? 0 : widget.config.marginTop + widget.config.radiusInMain,
+                        bottom: !widget.config.isVertical ? 0 : widget.config.marginBottom + widget.config.radiusInMain,
                       ),
                       builder: (context, controller, _) {
                         return Padding(
@@ -393,8 +403,8 @@ class _BarState extends State<Bar> {
                             builder: (context, hostSize, child) {
                               return ConstrainedBox(
                                 constraints: BoxConstraints(
-                                  minWidth: !mainConfig.isBarVertical ? hostSize?.height ?? 0 : 0,
-                                  minHeight: mainConfig.isBarVertical ? hostSize?.width ?? 0 : 0,
+                                  minWidth: !widget.config.isVertical ? hostSize?.height ?? 0 : 0,
+                                  minHeight: widget.config.isVertical ? hostSize?.width ?? 0 : 0,
                                 ),
                                 child: child,
                               );
@@ -421,10 +431,10 @@ class _BarState extends State<Bar> {
                       anchorAlignment: popoverAlignment,
                       overflowAlignment: overflowAlignment,
                       extraPadding: EdgeInsets.only(
-                        top: mainConfig.barSide == ScreenEdge.top ? mainConfig.barSize / 2 : 0,
-                        bottom: mainConfig.barSide == ScreenEdge.bottom ? mainConfig.barSize / 2 : 0,
-                        left: mainConfig.barSide == ScreenEdge.left ? mainConfig.barSize / 2 : 0,
-                        right: mainConfig.barSide == ScreenEdge.right ? mainConfig.barSize / 2 : 0,
+                        top: widget.config.side == ScreenEdge.top ? widget.config.size / 2 : 0,
+                        bottom: widget.config.side == ScreenEdge.bottom ? widget.config.size / 2 : 0,
+                        left: widget.config.side == ScreenEdge.left ? widget.config.size / 2 : 0,
+                        right: widget.config.side == ScreenEdge.right ? widget.config.size / 2 : 0,
                       ),
                       builder: (context, controller, _) {
                         return ValueListenableBuilder(
@@ -433,8 +443,8 @@ class _BarState extends State<Bar> {
                           builder: (context, hostSize, child) {
                             return ConstrainedBox(
                               constraints: BoxConstraints(
-                                minWidth: !mainConfig.isBarVertical ? hostSize?.height ?? 0 : 0,
-                                minHeight: mainConfig.isBarVertical ? hostSize?.width ?? 0 : 0,
+                                minWidth: !widget.config.isVertical ? hostSize?.height ?? 0 : 0,
+                                minHeight: widget.config.isVertical ? hostSize?.width ?? 0 : 0,
                               ),
                               child: child,
                             );

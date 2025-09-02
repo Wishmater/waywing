@@ -46,7 +46,7 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
             isIndicatorVisible: device.deviceType == NetworkManagerDeviceType.wifi
                 ? DummyValueNotifier(true)
                 : device.isConnected,
-            buildIndicators: (context, popover, tooltip) {
+            buildIndicators: (context, popover) {
               return [
                 NetworkManagerIndicator(config: config, device: device, popover: popover),
               ];

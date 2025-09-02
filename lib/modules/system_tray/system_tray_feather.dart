@@ -43,7 +43,7 @@ class SystemTrayFeather extends Feather {
           // TODO: 2 implement reordering system tray icons
           // TODO: 2 implement overflow menu for hidden tray icons
           FeatherComponent(
-            buildIndicators: (context, popover, tooltip) {
+            buildIndicators: (context, popover) {
               return [
                 SystemTrayIndicator(
                   service: service,

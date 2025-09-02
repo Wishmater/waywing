@@ -4,17 +4,28 @@ import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:flutter/material.dart" hide Notification;
 import "package:flutter/foundation.dart";
 import "package:waywing/core/service.dart";
+import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:tronco/tronco.dart" as tronco;
 import "package:waywing/util/search_sound.dart";
 
 class NotificationService extends Service {
+  NotificationService._();
+
   late final OrgFreedesktopNotifications server;
   late final DBusClient client;
   late final NotificationsList notifications;
 
   static const String dbusName = "org.freedesktop.Notifications";
+
+  static registerService(RegisterServiceCallback registerService) {
+    registerService<NotificationService, dynamic>(
+      ServiceRegistration(
+        constructor: NotificationService._,
+      ),
+    );
+  }
 
   @override
   Future<void> init() async {

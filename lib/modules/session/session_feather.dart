@@ -34,7 +34,7 @@ class SessionFeather extends Feather {
   ValueListenable<List<FeatherComponent>> get components => ValueNotifier([sessionComponent]);
 
   late final sessionComponent = FeatherComponent(
-    buildIndicators: (context, popover, tooltip) {
+    buildIndicators: (context, popover) {
       return [
         WingedButton(
           onTap: () => popover!.togglePopover(),

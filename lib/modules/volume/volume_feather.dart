@@ -58,7 +58,7 @@ class VolumeFeather extends Feather<VolumeConfig> {
 
   FeatherComponent _buildComponent(VolumeIndicatorType type) {
     return FeatherComponent(
-      buildIndicators: (context, popover, tooltip) {
+      buildIndicators: (context, popover) {
         return [
           VolumeIndicator(
             config: config,

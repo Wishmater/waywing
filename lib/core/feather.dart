@@ -67,5 +67,4 @@ typedef IndicatorsBuilder =
     List<Widget> Function(
       BuildContext context,
       WingedPopoverController? popover,
-      WingedPopoverController? tooltip,
     );

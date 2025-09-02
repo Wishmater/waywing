@@ -1,7 +1,6 @@
 import "dart:async";
 import "dart:io";
 
-import "package:fl_linux_window_manager/controller/input_region_controller.dart";
 import "package:flutter/widgets.dart";
 import "package:watcher/watcher.dart" as watcher;
 import "package:waywing/core/feather_registry.dart";
@@ -48,6 +47,8 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
 
     // Initialize feathers. This has to be done here, because we don't have a BuildContext in main()
     featherRegistry.onConfigUpdated(context);
+    mainConfig.exclusiveSize.addListener(updateWindows);
+    updateWindows();
 
     _watch();
   }
@@ -69,22 +70,13 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     featherRegistry.onConfigUpdated(context);
     serviceRegistry.onConfigUpdated();
 
-    if (newConfig.barSide != oldConfig.barSide ||
-        newConfig.barSize != oldConfig.barSize ||
-        newConfig.exclusiveSizeLeft != oldConfig.exclusiveSizeLeft ||
-        newConfig.exclusiveSizeRight != oldConfig.exclusiveSizeRight ||
-        newConfig.exclusiveSizeTop != oldConfig.exclusiveSizeTop ||
-        newConfig.exclusiveSizeBottom != oldConfig.exclusiveSizeBottom ||
-        newConfig.barMonitor != oldConfig.barMonitor) {
-      onWindowConfigUpdated();
+    if (newConfig.exclusiveSize.value != oldConfig.exclusiveSize.value || newConfig.monitor != oldConfig.monitor) {
+      updateWindows();
     }
+    oldConfig.exclusiveSize.removeListener(updateWindows);
+    newConfig.exclusiveSize.addListener(updateWindows);
 
     setState(() {});
-  }
-
-  Future<void> onWindowConfigUpdated() async {
-    await updateWindows();
-    InputRegionController.notifyConfigChange();
   }
 
   @override

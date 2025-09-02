@@ -2,10 +2,12 @@ import "dart:io";
 
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart" hide Notification, Action, Actions;
+import "package:waywing/core/config.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
+import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:xdg_icons/xdg_icons.dart";
 import "package:flutter_html/flutter_html.dart";
 
@@ -16,6 +18,8 @@ class NotificationsWidget extends StatefulWidget {
 
   @override
   State<NotificationsWidget> createState() => _NotificationsWidgetState();
+
+  static const spacing = 16;
 }
 
 class _NotificationsWidgetState extends State<NotificationsWidget> {
@@ -26,8 +30,20 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
       child: ValueListenableBuilder(
         valueListenable: widget.service.notifications.notifications,
         builder: (context, notifications, _) {
-          final children = [for (final noti in notifications) _NotificationWidget(noti)];
-          return Column(spacing: 5, children: children);
+          // TODO: 1 this is doing a weird thing where if 3 notifications with the same duration are
+          // added at the same time, the last one will be removed before the 2nd. The bug is on our side,
+          // because it is removed correctly in the service.
+          return MotionColumn(
+            motion: mainConfig.motions.expressive.spatial.slow,
+            mainAxisSize: MainAxisSize.min,
+            data: List.from(notifications),
+            itemBuilder: (context, noti) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: NotificationsWidget.spacing / 2),
+                child: _NotificationWidget(noti),
+              );
+            },
+          );
         },
       ),
     );
@@ -70,12 +86,16 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
         return KeyboardFocus(
           mode: KeyboardFocusMode.onDemand,
           child: MouseRegion(
-            onEnter: (_) {
-                timer.stop();
-            },
-            onExit: (_) {
-                timer.start();
-            },
+            onEnter: timer == null
+                ? null
+                : (_) {
+                    timer.stop();
+                  },
+            onExit: timer == null
+                ? null
+                : (_) {
+                    timer.start();
+                  },
             child: NotificationInheritedWidget(
               notification,
               child: InputRegion(
@@ -232,7 +252,7 @@ class _RenderInlineReply extends StatelessWidget {
       width: 100,
       child: TextField(
         onSubmitted: (value) => service.emitNotificationReplied(notification, value),
-        decoration: InputDecoration(hintText: notification.hints.inlineReplyPlaceholderText)
+        decoration: InputDecoration(hintText: notification.hints.inlineReplyPlaceholderText),
       ),
     );
   }

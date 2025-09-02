@@ -82,7 +82,7 @@ class NotificationsList {
 
   NotificationsList(OrgFreedesktopNotifications server) {
     notifications = ManualValueNotifier(
-      server.activeNotifications.values.map((e) => ValueNotifier(e)).toList(),
+      server.activeNotifications.values.map((e) => NotificationValueNotifier(e)).toList(),
     );
 
     server.notificationChanged.listen((id) {
@@ -94,7 +94,7 @@ class NotificationsList {
     });
 
     server.notificationCreated.listen((notification) {
-      notifications.value.add(ValueNotifier(notification));
+      notifications.value.add(NotificationValueNotifier(notification));
       (notifications as ManualValueNotifier).manualNotifyListeners();
 
       if (!(notification.hints.suppressSound ?? false)) {
@@ -156,5 +156,17 @@ class NotificationServiceInheritedWidget extends InheritedWidget {
   @override
   bool updateShouldNotify(covariant NotificationServiceInheritedWidget oldWidget) {
     return oldWidget.service != service;
+  }
+}
+
+class NotificationValueNotifier extends ValueNotifier<Notification> {
+  NotificationValueNotifier(super.value);
+
+  @override
+  int get hashCode => value.id;
+  @override
+  bool operator ==(Object other) {
+    if (other is NotificationValueNotifier) return value.id == other.value.id;
+    return super == other;
   }
 }

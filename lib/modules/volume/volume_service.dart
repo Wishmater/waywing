@@ -207,8 +207,19 @@ class VolumeService extends Service {
   void _updateDefaultOutput(PulseAudioServerInfo serverInfo) {
     if (serverInfo.defaultSinkName == _defaultOutput.value?._sink.name) return;
     final result = _getDefaultOutput(serverInfo);
-    // if (result == null) return; // this should never happen after init() is successful
-    _defaultOutput.value = result!;
+    if (result == null) {
+      // this should never happen after init() is successful
+      // but is in fact happening.
+      // When i close the laptop lid, after opening again i get duplicated inputs (output throw but i dont get duplicated)
+      // This is a bad state so I will just reset it
+      _client.getSinkList().then((sinks) {
+        _outputs.value.clear();
+        _outputs.value.addAll(sinks.map((sink) => VolumeOutputInterface(_client, sink)));
+        _outputs.manualNotifyListeners();
+      });
+      return;
+    }
+    _defaultOutput.value = result;
   }
 
   VolumeOutputInterface? _getDefaultOutput(PulseAudioServerInfo serverInfo) {
@@ -218,8 +229,17 @@ class VolumeService extends Service {
   void _updateDefaultInput(PulseAudioServerInfo serverInfo) {
     if (serverInfo.defaultSourceName == _defaultInput.value?._source.name) return;
     final result = _getDefaultInput(serverInfo);
-    // if (result == null) return; // this should never happen after init() is successful
-    _defaultInput.value = result!;
+    if (result == null) {
+      // this should never happen after init() is successful
+      // but is in fact happening, see _updateDefaultOutput above
+      _client.getSourceList().then((sources) {
+        _inputs.value.clear();
+        _inputs.value.addAll(sources.map((source) => VolumeInputInterface(_client, source)));
+        _inputs.manualNotifyListeners();
+      });
+      return;
+    }
+    _defaultInput.value = result;
   }
 
   VolumeInputInterface? _getDefaultInput(PulseAudioServerInfo serverInfo) {

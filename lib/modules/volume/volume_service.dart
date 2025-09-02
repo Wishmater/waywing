@@ -207,6 +207,10 @@ class VolumeService extends Service {
       // When i close the laptop lid, after opening again i get duplicated inputs (output throw but i dont get duplicated)
       // This is a bad state so I will just reset it
       _client.getSinkList().then((sinks) {
+        // if for some reason you think this code is ugly and should be using async await
+        // instead of callbacks then test this code.
+        //
+        // This code was necessary due to a bug that happens after the pc wakes up from suspende
         final outputs = sinks.map((sink) => VolumeOutputInterface(_client, sink));
         Future.wait(
           outputs.map((e) async {
@@ -238,6 +242,10 @@ class VolumeService extends Service {
       // this should never happen after init() is successful
       // but is in fact happening, see _updateDefaultOutput above
       _client.getSourceList().then((sources) {
+        // if for some reason you think this code is ugly and should be using async await
+        // instead of callbacks then test this code.
+        //
+        // This code was necessary due to a bug that happens after the pc wakes up from suspende
         final inputs = sources
             .where((e) => e.monitorOfSink == null)
             .map((source) => VolumeInputInterface(_client, source));

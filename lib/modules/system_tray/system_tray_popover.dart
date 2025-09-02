@@ -177,6 +177,8 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
             motion: mainConfig.motions.standard.spatial.normal,
             indent: widget.forceIconSpace ? 38 : 16,
             endIndent: 16,
+            thickness: 0.5,
+            radius: BorderRadius.circular(0.25),
           );
         }
         // // unused props that could be useful
@@ -186,6 +188,8 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
         // item.properties.disposition // always "normal" on all examples i've seen
         return IntrinsicWidth(
           child: IntrinsicHeight(
+            // TODO: 1 in nm-applet, when seeing available APs, when the available APs are refreshed,
+            // it will close an open AP submenu, presumably because this is re-initialized.
             child: WingedPopover(
               builder: (context, popover, _) {
                 return DefaultTextStyle(
@@ -282,6 +286,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
               // children when parents are closed (instead of waiting for the end of parent
               // animation to close child, which looks really weird)
               popoverParams: PopoverParams(
+                motion: mainConfig.motions.standard.spatial.normal,
                 enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
                 anchorAlignment: Alignment.topRight,
                 popupAlignment: Alignment.bottomRight,
@@ -290,6 +295,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                 zIndex: -10 - 1 - widget.depth,
                 containerId: widget.uniqueID,
                 extraOffset: Offset(0, -8),
+                stickToHost: true,
                 builder: (context, _, _) {
                   return SystemTrayMenu(
                     // make sure the state is dispose when switching to another popover
@@ -304,11 +310,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                   return WingedContainer(
                     clipBehavior: Clip.hardEdge,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
-                        bottomLeft: Radius.circular(12),
-                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: child,
                   );

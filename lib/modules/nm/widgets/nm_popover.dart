@@ -75,7 +75,10 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                         },
                         onTap: requestScan,
                         initialFuture: initialRefreshFuture,
-                        child: Icon(Icons.refresh),
+                        child: Icon(
+                          Icons.refresh,
+                          color: Theme.of(context).textTheme.bodyMedium!.color,
+                        ),
                       ),
                       SizedBox(width: 6),
                       SizedBox(
@@ -127,11 +130,10 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                                   controller: scrollController,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 8),
-                                    // TODO: 2 debug this and make sure animations are played right
-                                    // also, ideally popover would stop animating its size once it finishes opening,
-                                    // and fully leave that responsibility with its children
                                     child: MotionColumn(
                                       motion: mainConfig.motions.standard.spatial.normal,
+                                      // TODO: 1 equality  seem to not be working correctly, causing the animations
+                                      // to be wonky when APs are refreshed
                                       data: [
                                         if (activeAccessPoint != null) activeAccessPoint,
                                         if (activeAccessPoint != null) null,
@@ -139,7 +141,13 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                                       ],
                                       itemBuilder: (context, ap) {
                                         if (ap == null) {
-                                          return Divider(height: 12);
+                                          return Divider(
+                                            height: 12,
+                                            indent: 16,
+                                            endIndent: 16,
+                                            thickness: 0.5,
+                                            radius: BorderRadius.circular(0.25),
+                                          );
                                         }
                                         return APWidget(
                                           device: widget.device,

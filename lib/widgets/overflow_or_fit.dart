@@ -3,7 +3,6 @@ import "package:flutter/rendering.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/animation_utils.dart";
 
-// TODO: 1 implement this everywhere
 class OverflowOrFit extends StatelessWidget {
   final Clip clipBehavior;
   final AlignmentGeometry alignment;

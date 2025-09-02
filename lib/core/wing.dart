@@ -14,8 +14,6 @@ abstract class Wing<Conf> extends Feather<Conf> {
   @override
   String toString() => "Wing($name)";
 
-  // TODO: 1 implement a system for wings to be able to add reservedSpace that following wings have to follow
-
   /// This should return a Positioned widget. It will be added to a stack that spans the whole screen.
   Widget buildWing(EdgeInsets rerservedSpace);
 

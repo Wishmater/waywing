@@ -22,11 +22,22 @@ in unstablepkgs.flutter.buildFlutterApplication rec {
   pubspecLock = pkgs.lib.importJSON (src + "/pubspec.lock.json");
   gitHashes = pkgs.lib.importJSON (src + "/pubspecGitHashes.json");
 
-  nativeBuildInputs = with pkgs;
-    [
-      gtk-layer-shell # fl_linux_window_manager dependency
-      # pulseaudio # pulseaudio.dart dependency
-    ];
+  nativeBuildInputs = with pkgs; [
+
+    # required by gtk-layer-shell
+    gtk-layer-shell
+
+    # # required by pulseaudio
+    # pulseaudio 
+
+    # required by audioplayers
+    gst_all_1.gstreamer
+    gst_all_1.gst-plugins-base
+    libunwind
+    elfutils
+    orc
+
+  ];
 
   # env variables accessible to the built app at runtime
   # runtimeEnvironment = { LD_LIBRARY_PATH = "${pkgs.pulseaudio.out}/lib"; };

@@ -213,9 +213,12 @@ class VolumeService extends Service {
       // When i close the laptop lid, after opening again i get duplicated inputs (output throw but i dont get duplicated)
       // This is a bad state so I will just reset it
       _client.getSinkList().then((sinks) {
-        _outputs.value.clear();
-        _outputs.value.addAll(sinks.map((sink) => VolumeOutputInterface(_client, sink)));
-        _outputs.manualNotifyListeners();
+        final outputs = sinks.map((sink) => VolumeOutputInterface(_client, sink));
+        Future.wait(outputs.map((e) => e.init())).then((_) {
+          _outputs.value.clear();
+          _outputs.value.addAll(outputs);
+          _outputs.manualNotifyListeners();
+        });
       });
       return;
     }
@@ -233,9 +236,12 @@ class VolumeService extends Service {
       // this should never happen after init() is successful
       // but is in fact happening, see _updateDefaultOutput above
       _client.getSourceList().then((sources) {
-        _inputs.value.clear();
-        _inputs.value.addAll(sources.map((source) => VolumeInputInterface(_client, source)));
-        _inputs.manualNotifyListeners();
+        final inputs = sources.map((source) => VolumeInputInterface(_client, source));
+        Future.wait(inputs.map((e) => e.init())).then((_) {
+          _inputs.value.clear();
+          _inputs.value.addAll(inputs);
+          _inputs.manualNotifyListeners();
+        });
       });
       return;
     }

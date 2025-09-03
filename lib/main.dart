@@ -6,6 +6,7 @@ import "package:flutter/material.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/theme.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/widgets/config_changes_watcher.dart";
@@ -39,11 +40,14 @@ void main(List<String> args) async {
   await setupMainWindow();
 
   mainLogger.log(Level.debug, "Done setting initial window config, running app...");
-  runApp(const App());
+  runApp(App(themeConfiguration: ThemeConfiguration.fromMap(rawMainConfig)));
 }
 
 class App extends StatelessWidget {
-  const App({super.key});
+  final ThemeConfiguration themeConfiguration;
+  final WaywingTheme theme;
+
+  App({super.key, required this.themeConfiguration}) : theme = WaywingTheme(themeConfiguration);
 
   @override
   Widget build(BuildContext context) {
@@ -90,32 +94,9 @@ class App extends StatelessWidget {
             child: MaterialApp(
               title: "WayWing",
               debugShowCheckedModeBanner: false,
-              themeMode: mainConfig.themeMode,
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: mainConfig.seedColor,
-                  surface: mainConfig.surfaceColor,
-                ),
-                buttonTheme: ButtonThemeData(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                ),
-                splashFactory: InkSparkle.splashFactory,
-              ),
-              darkTheme: ThemeData(
-                brightness: Brightness.dark,
-                colorScheme: ColorScheme.fromSeed(
-                  brightness: Brightness.dark,
-                  seedColor: mainConfig.seedColor,
-                  surface: mainConfig.surfaceColor,
-                ),
-                buttonTheme: ButtonThemeData(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                ),
-                splashFactory: InkSparkle.splashFactory,
-                dividerTheme: DividerThemeData(
-                  color: Colors.grey.shade400.withValues(alpha: 0.66),
-                ),
-              ),
+              themeMode: themeConfiguration.mode,
+              theme: theme.themeLight,
+              darkTheme: theme.themeDark,
               home: Builder(
                 builder: (context) {
                   return XdgIconTheme(

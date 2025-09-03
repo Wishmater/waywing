@@ -11,6 +11,7 @@ import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/core/theme.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/config_fields.dart";
@@ -44,8 +45,6 @@ mixin MainConfigBase on MainConfigI {
   static const _themeMode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
   static const _seedColor = ColorField();
   static const _surfaceColor = ColorField(nullable: true);
-
-  // TODO: 2 STYLE add style colors (think well about this)
 
   // TODO: 2 STYLE think well on how to expose button theme
   late final double buttonRadiusX = 12;
@@ -92,6 +91,7 @@ mixin MainConfigBase on MainConfigI {
 
   static Map<String, TableSchema> _getSchemaTables() => {
     "Logging": LoggingConfig.schema,
+    "Theme": ThemeConfiguration.schema,
     ...featherRegistry.getSchemaTables(),
     ...serviceRegistry.getSchemaTables(),
   };

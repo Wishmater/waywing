@@ -233,7 +233,7 @@ class _RenderActions extends StatelessWidget {
     return Row(
       children: [
         if (actions.inlineReply != null) _RenderInlineReply(actions.inlineReply!, notification),
-        if (actions.defaultAction != null) _RenderAction(actions.defaultAction!, identifierAreIcons),
+        if (actions.defaultAction != null) _RenderAction(actions.defaultAction!, false),
         ...[for (final action in actions.actions) _RenderAction(action, identifierAreIcons)],
       ],
     );
@@ -270,7 +270,12 @@ class _RenderAction extends StatelessWidget {
     if (identifierAreIcons) {
       return MaterialButton(
         onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
-        child: XdgIcon(name: action.value),
+        child: Row(
+          children: [
+            XdgIcon(name: action.key),
+            Text(action.value),
+          ],
+        ),
       );
     } else {
       return TextButton(

@@ -6,10 +6,10 @@ import "package:waywing/core/wing.dart";
 
 // Hack because Color class breaks codegen for some reason :)))
 class MyColor extends Color {
-  MyColor(super.value);
-  MyColor.from({required super.alpha, required super.red, required super.green, required super.blue}) : super.from();
-  MyColor.fromARGB(super.a, super.r, super.g, super.b) : super.fromARGB();
-  MyColor.fromRGBO(super.r, super.g, super.b, super.opacity) : super.fromRGBO();
+  const MyColor(super.value);
+  const MyColor.from({required super.alpha, required super.red, required super.green, required super.blue}) : super.from();
+  const MyColor.fromARGB(super.a, super.r, super.g, super.b) : super.fromARGB();
+  const MyColor.fromRGBO(super.r, super.g, super.b, super.opacity) : super.fromRGBO();
 }
 
 class ColorField extends StringFieldBase<MyColor> {

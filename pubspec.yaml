@@ -66,6 +66,7 @@ dependencies:
   flutter_html: ^3.0.0
   audioplayers: ^6.5.0
   ini: ^2.1.0
+  flex_seed_scheme: ^3.5.1
 
 dev_dependencies:
   flutter_test:

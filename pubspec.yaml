@@ -16,12 +16,12 @@ dependencies:
     # path: ../config.dart
     git:
       url: https://github.com/ross96D/config.dart
-      ref: 5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8
+      ref: fc6264fa2b3d7fa7684c4157f19dca617f6e23c0
   config_gen:
     # path: ../config_gen
     git:
       url: https://github.com/Wishmater/config_gen
-      ref: 1a31a94460fb290b67af14f43bdf407dd48638c7
+      ref: fa27e598aa3088e8b3f4df6d2e438ed4a317eed8
 
   # Logger
   tronco:

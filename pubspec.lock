@@ -228,20 +228,16 @@ packages:
   config:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8"
-      resolved-ref: "5a47dbbbe5b95b9b5a5a454d939a29a1027fd4d8"
-      url: "https://github.com/ross96D/config.dart"
-    source: git
+      path: "../config.dart"
+      relative: true
+    source: path
     version: "1.0.0"
   config_gen:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "1a31a94460fb290b67af14f43bdf407dd48638c7"
-      resolved-ref: "1a31a94460fb290b67af14f43bdf407dd48638c7"
-      url: "https://github.com/Wishmater/config_gen"
-    source: git
+      path: "../config_gen"
+      relative: true
+    source: path
     version: "1.0.0"
   convert:
     dependency: transitive

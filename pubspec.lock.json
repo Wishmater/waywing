@@ -283,19 +283,25 @@
     "config": {
       "dependency": "direct main",
       "description": {
-        "path": "../config.dart",
-        "relative": true
+        "path": ".",
+        "ref": "fc6264fa2b3d7fa7684c4157f19dca617f6e23c0",
+        "resolved-ref": "fc6264fa2b3d7fa7684c4157f19dca617f6e23c0",
+        "url": "https://github.com/ross96D/config.dart",
+        "sha256": "sha256-6G3I9pEtWjXNGJen3Ck2UV7Z0Q5YVppGxKBDz+pQHr8="
       },
-      "source": "path",
+      "source": "git",
       "version": "1.0.0"
     },
     "config_gen": {
       "dependency": "direct main",
       "description": {
-        "path": "../config_gen",
-        "relative": true
+        "path": ".",
+        "ref": "fa27e598aa3088e8b3f4df6d2e438ed4a317eed8",
+        "resolved-ref": "fa27e598aa3088e8b3f4df6d2e438ed4a317eed8",
+        "url": "https://github.com/Wishmater/config_gen",
+        "sha256": "sha256-XZi9YOMLRJJ88nQyFZbUn1qqxE72D4TSYclln5u7NB4="
       },
-      "source": "path",
+      "source": "git",
       "version": "1.0.0"
     },
     "convert": {

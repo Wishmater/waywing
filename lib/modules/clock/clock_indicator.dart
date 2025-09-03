@@ -28,9 +28,9 @@ class ClockIndicator extends StatelessWidget {
             final isVertical = constraints.maxHeight > constraints.maxWidth;
             String value;
             if (isVertical) {
-              value = DateFormat("${config.use24HourFormat ? "HH" : "hh"}\nmm").format(time);
+              value = DateFormat("${config.militar ? "HH" : "hh"}\nmm").format(time);
             } else {
-              value = DateFormat("${config.use24HourFormat ? "HH" : "hh"}:mm").format(time);
+              value = DateFormat("${config.militar ? "HH" : "hh"}:mm").format(time);
             }
             return WingedButton(
               onTap: () {

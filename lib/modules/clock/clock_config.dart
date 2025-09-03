@@ -5,5 +5,5 @@ part "clock_config.g.dart";
 
 @Config()
 mixin ClockConfigBase on ClockConfigI {
-  static const _use24HourFormat = BooleanField(defaultTo: false);
+  static const _militar = BooleanField(defaultTo: false);
 }

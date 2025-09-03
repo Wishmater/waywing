@@ -8,20 +8,18 @@ part of 'clock_config.dart';
 // **************************************************************************
 
 mixin ClockConfigI {
-  bool get use24HourFormat;
+  bool get militar;
 }
 
 class ClockConfig with ClockConfigI, ClockConfigBase {
-  final bool use24HourFormat;
+  final bool militar;
 
-  ClockConfig({bool? use24HourFormat})
-    : use24HourFormat = use24HourFormat ?? false;
+  ClockConfig({bool? militar}) : militar = militar ?? false;
 
   factory ClockConfig.fromMap(Map<String, dynamic> map) {
-    return ClockConfig(use24HourFormat: map['use24HourFormat']);
+    return ClockConfig(militar: map['militar']);
   }
 
-  static TableSchema get schema => TableSchema(
-    fields: {'use24HourFormat': ClockConfigBase._use24HourFormat},
-  );
+  static TableSchema get schema =>
+      TableSchema(fields: {'militar': ClockConfigBase._militar});
 }

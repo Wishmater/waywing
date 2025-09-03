@@ -18,7 +18,7 @@ class ClockTooltip extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: service.time,
       builder: (context, time, _) {
-        final timeFormat = config.use24HourFormat ? DateFormat.Hms() : DateFormat.jms();
+        final timeFormat = config.militar ? DateFormat.Hms() : DateFormat.jms();
         final value = "${DateFormat.yMMMMEEEEd().format(time)} - ${timeFormat.format(time)}";
         return IntrinsicHeight(
           child: IntrinsicWidth(

@@ -91,6 +91,8 @@ mixin MainConfigBase on MainConfigI {
   //===========================================================================
 
   static Map<String, TableSchema> _getSchemaTables() => {
+    // TODO: 2 config_gen should add these (at least the static ones) as fields on the resulting config
+    // so we can do something like mainConfig.theme and we don't have to manually parse it.
     "Logging": LoggingConfig.schema,
     "Theme": ThemeConfiguration.schema,
     ...featherRegistry.getSchemaTables(),
@@ -154,6 +156,7 @@ Future<String> getConfigurationString() async {
   }
 }
 
+// TODO: 2 RELEASE update the defalut config
 const String defaultConfig = '''
   seedColor = "#0000ff"
   animationDuration = 250ms

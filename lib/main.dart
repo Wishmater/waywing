@@ -40,7 +40,7 @@ void main(List<String> args) async {
   await setupMainWindow();
 
   mainLogger.log(Level.debug, "Done setting initial window config, running app...");
-  runApp(App(themeConfiguration: ThemeConfiguration.fromMap(rawMainConfig)));
+  runApp(App(themeConfiguration: ThemeConfiguration.fromMap(rawMainConfig["Theme"])));
 }
 
 class App extends StatelessWidget {
@@ -70,7 +70,7 @@ class App extends StatelessWidget {
                     // TODO: 1 Implement proper error handling in featherRegistry and remove this
                     mainLogger.log(
                       Level.error,
-                      "Error caught when wing feather initialization for wing ${wing.name}",
+                      "Error caught when initializing wing ${wing.name}",
                       error: snapshot.error,
                       stackTrace: snapshot.stackTrace,
                     );

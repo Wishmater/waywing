@@ -35,6 +35,12 @@ dependencies:
   dartx: ^1.2.0
   args: ^2.7.0
   human_file_size: ^0.6.0
+  # used to read audio themes index files
+  ini: ^2.1.0
+  # allow correct execution between async executions
+  mutex: ^3.1.0
+  # render notifications html subset
+  flutter_html: ^3.0.0
 
   # Widgets / UI
   sliver_tools: ^0.2.12
@@ -43,30 +49,37 @@ dependencies:
   auto_size_text: ^3.0.0
   implicitly_animated_list: ^2.3.0
   motor: 1.0.0-dev.4
+  # color scheme creation
+  flex_seed_scheme: ^3.5.1
 
   # Native plugins
   path: ^1.9.1
-  watcher: ^1.1.2 # directory/file watcher library
-  chalkdart: ^3.0.5 # cli colors
-  dbus: ^0.7.11 # interprocess comunication library for linux
-  nm: ^0.5.0 # network manager
-  xdg_icons: ^0.1.2 # render icons from string as defined in xdg icons spec
-  upower: ^0.7.0 # battery and other power options
-  fl_linux_window_manager: # Linux window / shellLayer manager
+  # directory/file watcher library
+  watcher: ^1.1.2
+  # cli colors
+  chalkdart: ^3.0.5
+  # interprocess comunication library for linux
+  dbus: ^0.7.11
+  # network manager
+  nm: ^0.5.0
+  # render icons from string as defined in xdg icons spec
+  xdg_icons: ^0.1.2
+  # battery and other power options
+  upower: ^0.7.0
+  # Linux window / shellLayer manager
+  fl_linux_window_manager:
     # path: ../fl-linux-window-manager
     git:
       url: https://github.com/Wishmater/fl-linux-window-manager
       ref: aff979c4ae0a
-  pulseaudio: # for audio mixing
+  # for audio mixing
+  pulseaudio:
     # path: ../pulseaudio.dart
     git:
       url: https://github.com/ross96D/pulseaudio.dart
       ref: ed2dcce81c8e2031192f23c5925209ab7e0da6dc
-  mutex: ^3.1.0
-  flutter_html: ^3.0.0
+  # plays audio in notifications
   audioplayers: ^6.5.0
-  ini: ^2.1.0
-  flex_seed_scheme: ^3.5.1
 
 dev_dependencies:
   flutter_test:

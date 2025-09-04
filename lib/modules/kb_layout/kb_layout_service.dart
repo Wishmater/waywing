@@ -20,6 +20,8 @@ class KeyboardLayoutService extends Service {
 
   ValueNotifier<String> layout = ValueNotifier("");
   ValueNotifier<List<String>> availableLayouts = ValueNotifier([]);
+  ValueNotifier<bool> capsLockActive = ValueNotifier(false);
+  ValueNotifier<bool> numsLockActive = ValueNotifier(false);
 
   String _activeKeyboardName = "";
   final Map<String, int> _layoutIndexes = {};
@@ -95,6 +97,9 @@ class KeyboardLayoutService extends Service {
 
       for (final keyboard in keyboards) {
         if (keyboard["main"] == true) {
+          capsLockActive.value = keyboard["capsLock"] as bool? ?? false;
+          numsLockActive.value = keyboard["numLock"] as bool? ?? false;
+
           _activeKeyboardName = keyboard["name"];
           final layouts = (keyboard["layout"] as String).split(",");
           final humanReadableName = keyboard["active_keymap"] as String;

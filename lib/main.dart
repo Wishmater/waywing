@@ -40,11 +40,11 @@ void main(List<String> args) async {
   await setupMainWindow();
 
   mainLogger.log(Level.debug, "Done setting initial window config, running app...");
-  runApp(App(themeConfiguration: ThemeConfiguration.fromMap(rawMainConfig["Theme"])));
+  runApp(App(themeConfiguration: ThemeConfig.fromMap(rawMainConfig["Theme"])));
 }
 
 class App extends StatelessWidget {
-  final ThemeConfiguration themeConfiguration;
+  final ThemeConfig themeConfiguration;
   final WaywingTheme theme;
 
   App({super.key, required this.themeConfiguration}) : theme = WaywingTheme(themeConfiguration);

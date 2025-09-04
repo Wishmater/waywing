@@ -7,7 +7,7 @@ part of 'theme.dart';
 // ConfigGenerator
 // **************************************************************************
 
-mixin ThemeConfigurationI {
+mixin ThemeConfigI {
   ThemeMode get mode;
   double get backgroundTransparency;
   MyColor get primaryColorKey;
@@ -18,7 +18,7 @@ mixin ThemeConfigurationI {
   String? get fontFamily;
 }
 
-class ThemeConfiguration with ThemeConfigurationI, ThemeConfigurationBase {
+class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   final ThemeMode mode;
   final double backgroundTransparency;
   final MyColor primaryColorKey;
@@ -28,7 +28,7 @@ class ThemeConfiguration with ThemeConfigurationI, ThemeConfigurationBase {
   final MyColor? errorColorKey;
   final String? fontFamily;
 
-  ThemeConfiguration({
+  ThemeConfig({
     ThemeMode? mode,
     double? backgroundTransparency,
     MyColor? primaryColorKey,
@@ -41,8 +41,8 @@ class ThemeConfiguration with ThemeConfigurationI, ThemeConfigurationBase {
        backgroundTransparency = backgroundTransparency ?? 1.0,
        primaryColorKey = primaryColorKey ?? MyColor(0xFF2196F3);
 
-  factory ThemeConfiguration.fromMap(Map<String, dynamic> map) {
-    return ThemeConfiguration(
+  factory ThemeConfig.fromMap(Map<String, dynamic> map) {
+    return ThemeConfig(
       mode: map['mode'],
       backgroundTransparency: map['backgroundTransparency'],
       primaryColorKey: map['primaryColorKey'],
@@ -56,14 +56,14 @@ class ThemeConfiguration with ThemeConfigurationI, ThemeConfigurationBase {
 
   static TableSchema get schema => TableSchema(
     fields: {
-      'mode': ThemeConfigurationBase._mode,
-      'backgroundTransparency': ThemeConfigurationBase._backgroundTransparency,
-      'primaryColorKey': ThemeConfigurationBase._primaryColorKey,
-      'secondaryColorKey': ThemeConfigurationBase._secondaryColorKey,
-      'tertiaryColorKey': ThemeConfigurationBase._tertiaryColorKey,
-      'neutralColorKey': ThemeConfigurationBase._neutralColorKey,
-      'errorColorKey': ThemeConfigurationBase._errorColorKey,
-      'fontFamily': ThemeConfigurationBase._fontFamily,
+      'mode': ThemeConfigBase._mode,
+      'backgroundTransparency': ThemeConfigBase._backgroundTransparency,
+      'primaryColorKey': ThemeConfigBase._primaryColorKey,
+      'secondaryColorKey': ThemeConfigBase._secondaryColorKey,
+      'tertiaryColorKey': ThemeConfigBase._tertiaryColorKey,
+      'neutralColorKey': ThemeConfigBase._neutralColorKey,
+      'errorColorKey': ThemeConfigBase._errorColorKey,
+      'fontFamily': ThemeConfigBase._fontFamily,
     },
   );
 }

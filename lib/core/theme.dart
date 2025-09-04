@@ -7,7 +7,7 @@ import "package:waywing/util/config_fields.dart";
 part "theme.g.dart";
 
 @Config()
-mixin ThemeConfigurationBase on ThemeConfigurationI {
+mixin ThemeConfigBase on ThemeConfigI {
   static const _mode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
 
   static const _backgroundTransparency = DoubleNumberField(
@@ -39,14 +39,13 @@ mixin ThemeConfigurationBase on ThemeConfigurationI {
   // static const _surfaceColor = ColorField(nullable: true);
   // static const _errorColor = ColorField(nullable: true);
 
-
   // TODO: 2 STYLE think well on how to expose button theme
   final double buttonRadiusX = 12;
   final double buttonRadiusY = 12;
 }
 
 class WaywingTheme {
-  final ThemeConfiguration configuration;
+  final ThemeConfig configuration;
   const WaywingTheme(this.configuration);
 
   ColorScheme get colorSchemeLight => _colorScheme(Brightness.light);
@@ -65,7 +64,7 @@ class WaywingTheme {
       errorKey: configuration.errorColorKey,
     );
     return scheme.copyWith(
-      surface: scheme.surface.withAlpha((255 * configuration.backgroundTransparency).floor()),
+      surface: scheme.surface.withValues(alpha: configuration.backgroundTransparency),
     );
   }
 

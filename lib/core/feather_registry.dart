@@ -3,6 +3,7 @@ import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
@@ -25,11 +26,13 @@ class FeatherRegistration<T extends Feather<Conf>, Conf> {
   final FeatherConstructor<T> constructor;
   final SchemaBuilder? schemaBuilder;
   final ConfigBuilder? configBuilder;
+  final List<WaywingRouteCallback> actions;
 
   FeatherRegistration({
     required this.constructor,
     this.schemaBuilder,
     this.configBuilder,
+    this.actions = const [],
   }) : assert(schemaBuilder == null && configBuilder == null || schemaBuilder != null && configBuilder != null);
 }
 

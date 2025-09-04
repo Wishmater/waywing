@@ -22,4 +22,17 @@ class ClockConfig with ClockConfigI, ClockConfigBase {
 
   static TableSchema get schema =>
       TableSchema(fields: {'militar': ClockConfigBase._militar});
+
+  @override
+  String toString() {
+    return 'ClockConfigmilitar = $militar';
+  }
+
+  @override
+  bool operator ==(covariant ClockConfig other) {
+    return militar == other.militar;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([militar]);
 }

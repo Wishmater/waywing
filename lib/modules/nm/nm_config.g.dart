@@ -50,4 +50,25 @@ class NetworkManagerConfig
           NetworkManagerConfigBase._showThroughputIndicator,
     },
   );
+
+  @override
+  String toString() {
+    return 'NetworkManagerConfigshowConnectionNameIndicator = $showConnectionNameIndicator, showUploadIndicator = $showUploadIndicator, showDownloadIndicator = $showDownloadIndicator, showThroughputIndicator = $showThroughputIndicator';
+  }
+
+  @override
+  bool operator ==(covariant NetworkManagerConfig other) {
+    return showConnectionNameIndicator == other.showConnectionNameIndicator &&
+        showUploadIndicator == other.showUploadIndicator &&
+        showDownloadIndicator == other.showDownloadIndicator &&
+        showThroughputIndicator == other.showThroughputIndicator;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    showConnectionNameIndicator,
+    showUploadIndicator,
+    showDownloadIndicator,
+    showThroughputIndicator,
+  ]);
 }

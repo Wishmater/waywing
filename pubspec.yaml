@@ -21,7 +21,7 @@ dependencies:
     # path: ../config_gen
     git:
       url: https://github.com/Wishmater/config_gen
-      ref: fa27e598aa3088e8b3f4df6d2e438ed4a317eed8
+      ref: 0c491c2d8aa23e8ecd88a4206e1392f6c4d8deb8
 
   # Logger
   tronco:

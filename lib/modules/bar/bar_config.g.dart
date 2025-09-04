@@ -135,4 +135,55 @@ class BarConfig with BarConfigI, BarConfigBase {
       'endFeathers': BarConfigBase._endFeathers,
     },
   );
+
+  @override
+  String toString() {
+    return 'BarConfigside = $side, size = $size, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, _exclusiveSizeLeft = $_exclusiveSizeLeft, _exclusiveSizeRight = $_exclusiveSizeRight, _exclusiveSizeTop = $_exclusiveSizeTop, _exclusiveSizeBottom = $_exclusiveSizeBottom, radiusInCross = $radiusInCross, radiusInMain = $radiusInMain, radiusOutCross = $radiusOutCross, radiusOutMain = $radiusOutMain, _indicatorMinSize = $_indicatorMinSize, _indicatorPadding = $_indicatorPadding, startFeathers = $startFeathers, centerFeathers = $centerFeathers, endFeathers = $endFeathers';
+  }
+
+  @override
+  bool operator ==(covariant BarConfig other) {
+    return side == other.side &&
+        size == other.size &&
+        marginLeft == other.marginLeft &&
+        marginRight == other.marginRight &&
+        marginTop == other.marginTop &&
+        marginBottom == other.marginBottom &&
+        _exclusiveSizeLeft == other._exclusiveSizeLeft &&
+        _exclusiveSizeRight == other._exclusiveSizeRight &&
+        _exclusiveSizeTop == other._exclusiveSizeTop &&
+        _exclusiveSizeBottom == other._exclusiveSizeBottom &&
+        radiusInCross == other.radiusInCross &&
+        radiusInMain == other.radiusInMain &&
+        radiusOutCross == other.radiusOutCross &&
+        radiusOutMain == other.radiusOutMain &&
+        _indicatorMinSize == other._indicatorMinSize &&
+        _indicatorPadding == other._indicatorPadding &&
+        startFeathers == other.startFeathers &&
+        centerFeathers == other.centerFeathers &&
+        endFeathers == other.endFeathers;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    side,
+    size,
+    marginLeft,
+    marginRight,
+    marginTop,
+    marginBottom,
+    _exclusiveSizeLeft,
+    _exclusiveSizeRight,
+    _exclusiveSizeTop,
+    _exclusiveSizeBottom,
+    radiusInCross,
+    radiusInMain,
+    radiusOutCross,
+    radiusOutMain,
+    _indicatorMinSize,
+    _indicatorPadding,
+    startFeathers,
+    centerFeathers,
+    endFeathers,
+  ]);
 }

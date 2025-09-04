@@ -47,4 +47,25 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
       'volumeStep': VolumeConfigBase._volumeStep,
     },
   );
+
+  @override
+  String toString() {
+    return 'VolumeConfigshowPercentageIndicator = $showPercentageIndicator, showSeparateMicIndicator = $showSeparateMicIndicator, maxVolume = $maxVolume, volumeStep = $volumeStep';
+  }
+
+  @override
+  bool operator ==(covariant VolumeConfig other) {
+    return showPercentageIndicator == other.showPercentageIndicator &&
+        showSeparateMicIndicator == other.showSeparateMicIndicator &&
+        maxVolume == other.maxVolume &&
+        volumeStep == other.volumeStep;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    showPercentageIndicator,
+    showSeparateMicIndicator,
+    maxVolume,
+    volumeStep,
+  ]);
 }

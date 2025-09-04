@@ -66,4 +66,33 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       'fontFamily': ThemeConfigBase._fontFamily,
     },
   );
+
+  @override
+  String toString() {
+    return 'ThemeConfigmode = $mode, backgroundTransparency = $backgroundTransparency, primaryColorKey = $primaryColorKey, secondaryColorKey = $secondaryColorKey, tertiaryColorKey = $tertiaryColorKey, neutralColorKey = $neutralColorKey, errorColorKey = $errorColorKey, fontFamily = $fontFamily';
+  }
+
+  @override
+  bool operator ==(covariant ThemeConfig other) {
+    return mode == other.mode &&
+        backgroundTransparency == other.backgroundTransparency &&
+        primaryColorKey == other.primaryColorKey &&
+        secondaryColorKey == other.secondaryColorKey &&
+        tertiaryColorKey == other.tertiaryColorKey &&
+        neutralColorKey == other.neutralColorKey &&
+        errorColorKey == other.errorColorKey &&
+        fontFamily == other.fontFamily;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    mode,
+    backgroundTransparency,
+    primaryColorKey,
+    secondaryColorKey,
+    tertiaryColorKey,
+    neutralColorKey,
+    errorColorKey,
+    fontFamily,
+  ]);
 }

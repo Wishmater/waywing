@@ -60,4 +60,29 @@ class MainConfig with MainConfigI, MainConfigBase {
       'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
     },
   );
+
+  @override
+  String toString() {
+    return 'MainConfigmonitor = $monitor, wings = $wings, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, requestKeyboardFocus = $requestKeyboardFocus';
+  }
+
+  @override
+  bool operator ==(covariant MainConfig other) {
+    return monitor == other.monitor &&
+        wings == other.wings &&
+        animationSpeed == other.animationSpeed &&
+        animationDamping == other.animationDamping &&
+        animationFitting == other.animationFitting &&
+        requestKeyboardFocus == other.requestKeyboardFocus;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    monitor,
+    wings,
+    animationSpeed,
+    animationDamping,
+    animationFitting,
+    requestKeyboardFocus,
+  ]);
 }

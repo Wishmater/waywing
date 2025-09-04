@@ -53,4 +53,27 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
       'marginBottom': NotificationsConfigBase._marginBottom,
     },
   );
+
+  @override
+  String toString() {
+    return 'NotificationsConfigalignment = $alignment, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom';
+  }
+
+  @override
+  bool operator ==(covariant NotificationsConfig other) {
+    return alignment == other.alignment &&
+        marginLeft == other.marginLeft &&
+        marginRight == other.marginRight &&
+        marginTop == other.marginTop &&
+        marginBottom == other.marginBottom;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([
+    alignment,
+    marginLeft,
+    marginRight,
+    marginTop,
+    marginBottom,
+  ]);
 }

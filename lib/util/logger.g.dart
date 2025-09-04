@@ -33,4 +33,18 @@ class LoggingConfig with LoggingConfigI, LoggingConfigBase {
       'typeLevelFilters': LoggingConfigBase._typeLevelFilters,
     },
   );
+
+  @override
+  String toString() {
+    return 'LoggingConfiglevelFilter = $levelFilter, typeLevelFilters = $typeLevelFilters';
+  }
+
+  @override
+  bool operator ==(covariant LoggingConfig other) {
+    return levelFilter == other.levelFilter &&
+        typeLevelFilters == other.typeLevelFilters;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([levelFilter, typeLevelFilters]);
 }

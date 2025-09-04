@@ -72,9 +72,10 @@ mixin BarConfigBase on BarConfigI {
   static const __indicatorMinSize = DoubleNumberField(nullable: true); // defaults to barSize
   double get indicatorMinSize => _indicatorMinSize ?? size.toDouble();
   static const __indicatorPadding = DoubleNumberField(nullable: true); // defaults to a fraction of barSize
-  double get indicatorPadding => _indicatorPadding ?? size.toDouble();
+  double get indicatorPadding => _indicatorPadding ?? size / 8;
 
   static const _startFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
   static const _centerFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
   static const _endFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
+  // TODO: 3 validate that at least one feather is added to one of the lists
 }

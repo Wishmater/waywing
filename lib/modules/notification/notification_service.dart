@@ -143,6 +143,7 @@ class NotificationsList {
       return;
     }
     final player = AudioPlayer();
+    // TODO: 1 fix gstreamer error in nix when playing any audio
     player.play(source);
     Future.delayed(Duration(seconds: 5), player.dispose);
   }

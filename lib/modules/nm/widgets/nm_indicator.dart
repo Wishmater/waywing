@@ -29,13 +29,14 @@ class NetworkManagerIndicator extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, constraints) {
             final isVertical = constraints.maxHeight > constraints.maxWidth;
+            final allowIconTxRxIndicators = constraints.maxHeight >= 40;
             Widget result = NetworkIcon(
               device: device,
               type: device.deviceType,
               isConnected: isConnected,
               showTxRxIndicators:
-                  isVertical ||
-                  (!config.showThroughputIndicator && !config.showDownloadIndicator && !config.showUploadIndicator),
+                  allowIconTxRxIndicators &&
+                  (isVertical || (!config.showDownloadIndicator && !config.showUploadIndicator)),
             );
 
             if (isConnected) {
@@ -70,7 +71,14 @@ class NetworkManagerIndicator extends StatelessWidget {
                             children: [
                               if (config.showDownloadIndicator) RxRateWidget(device: device),
                               if (config.showUploadIndicator) TxRateWidget(device: device),
-                              if (config.showThroughputIndicator) ThroughputRateWidget(device: device),
+                              if (config.showThroughputIndicator)
+                                ThroughputRateWidget(
+                                  device: device,
+                                  showIcon:
+                                      !allowIconTxRxIndicators ||
+                                      config.showDownloadIndicator ||
+                                      config.showUploadIndicator,
+                                ),
                             ],
                           ),
                         ],
@@ -84,7 +92,12 @@ class NetworkManagerIndicator extends StatelessWidget {
                       if (config.showConnectionNameIndicator) ConnectionNameWidget(device: device),
                       if (config.showDownloadIndicator) RxRateWidget(device: device),
                       if (config.showUploadIndicator) TxRateWidget(device: device),
-                      if (config.showThroughputIndicator) ThroughputRateWidget(device: device),
+                      if (config.showThroughputIndicator)
+                        ThroughputRateWidget(
+                          device: device,
+                          showIcon:
+                              !allowIconTxRxIndicators || config.showDownloadIndicator || config.showUploadIndicator,
+                        ),
                     ],
                   );
                 }

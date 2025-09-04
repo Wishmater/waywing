@@ -31,7 +31,12 @@ mixin ThemeConfigBase on ThemeConfigI {
     }
   }
 
-  // TODO: 2 STYLE think well on how to expose button theme
+  // TODO: 1 STYLE implement elevation settings, default 0, and use our own implementation of shadows
+  // in WingedContainer always, that doesn't cast the shadow behind the container, because that will
+  // cause issues on transparent backgrounds
+
+  // TODO: 1 STYLE think well on how to expose corners theme (including rounding and "docking"(negative rounding)).
+  // This should affect: buttons, popovers / tooltips, and Bar (if not overriden in the bar config)
   final double buttonRadiusX = 12;
   final double buttonRadiusY = 12;
 }

@@ -59,7 +59,7 @@ class KeyboardLayoutService extends Service {
     bool inLayout = false;
     for (String line in xkbdataLines) {
       line = line.trim();
-      if (inLayout) {
+      if (!inLayout) {
         if (line == "! layout") {
           inLayout = true;
         }
@@ -69,7 +69,7 @@ class KeyboardLayoutService extends Service {
         }
         final data = line.split(RegExp("\\s+"));
         final layoutName = data[0];
-        final humanReadableName = data[1];
+        final humanReadableName = line.substring(data[0].length).trim();
         _layouts[layoutName] = humanReadableName;
       }
     }
@@ -91,7 +91,7 @@ class KeyboardLayoutService extends Service {
       if (result.exitCode != 0) {
         logger.error(
           "Keyboard layout service stop. hyprctl devices -j returns non 0 exit code: ${result.exitCode}",
-          properties: [StringProperty(result.stderr)],
+          properties: [StringProperty(result.stderr), StringProperty(result.stdout)],
         );
         timer.cancel();
         return;
@@ -109,6 +109,7 @@ class KeyboardLayoutService extends Service {
       }
 
       for (final keyboard in keyboards) {
+        assert(keyboard["main"] != null);
         if (keyboard["main"] == true) {
           capsLockActive.value = keyboard["capsLock"] as bool? ?? false;
           numsLockActive.value = keyboard["numLock"] as bool? ?? false;

@@ -10,6 +10,14 @@ part "theme.g.dart";
 mixin ThemeConfigBase on ThemeConfigI {
   static const _mode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
 
+  static const _fontFamily = StringField(nullable: true);
+
+  static const _primaryColor = ColorField(defaultTo: MyColor(0xFF2196F3));
+  static const _secondaryColor = ColorField(nullable: true);
+  static const _tertiaryColor = ColorField(nullable: true);
+  static const _errorColor = ColorField(nullable: true);
+  static const _surfaceColor = ColorField(nullable: true);
+
   static const _backgroundTransparency = DoubleNumberField(
     defaultTo: 1.0,
     validator: _backgroundTransparencyValidator,
@@ -21,23 +29,6 @@ mixin ThemeConfigBase on ThemeConfigI {
       return ValidatorError(MyValError("Background transparency should be between 0 and 1 but was $value"));
     }
   }
-
-  static const _primaryColorKey = ColorField(defaultTo: MyColor(0xFF2196F3));
-  static const _secondaryColorKey = ColorField(nullable: true);
-  static const _tertiaryColorKey = ColorField(nullable: true);
-  static const _neutralColorKey = ColorField(nullable: true);
-  static const _errorColorKey = ColorField(nullable: true);
-  static const _fontFamily = StringField(nullable: true);
-
-  // Here we could expose the actual colors like this
-  // The problem with this is that may produce color inconsitence and that
-  // there is a lot of color variations like primary, primaryContainer,
-  // primaryFixed and primaryFixedDim
-  // static const _primaryColor = ColorField(nullable: true);
-  // static const _secondaryColor = ColorField(nullable: true);
-  // static const _tertiaryColor = ColorField(nullable: true);
-  // static const _errorColor = ColorField(nullable: true);
-  // static const _surfaceColor = ColorField(nullable: true);
 
   // TODO: 2 STYLE think well on how to expose button theme
   final double buttonRadiusX = 12;
@@ -55,29 +46,34 @@ class WaywingTheme {
 
   ColorScheme _getColorScheme(Brightness brightness) {
     final tones = FlexTones.material(brightness);
-    final primaryKeyHct = Hct.fromInt(config.primaryColorKey.toARGB32());
+    final primaryKeyHct = Hct.fromInt(config.primaryColor.toARGB32());
     const colorRotation = 60;
-    final secondaryKeyHct = config.secondaryColorKey != null
-        ? Hct.fromInt(config.secondaryColorKey!.toARGB32())
+    final secondaryKeyHct = config.secondaryColor != null
+        ? Hct.fromInt(config.secondaryColor!.toARGB32())
         : primaryKeyHct.multTone(tones.secondaryTone / tones.primaryTone).addHue(colorRotation);
-    final tertiaryKeyHct = config.tertiaryColorKey != null
-        ? Hct.fromInt(config.tertiaryColorKey!.toARGB32())
+    final tertiaryKeyHct = config.tertiaryColor != null
+        ? Hct.fromInt(config.tertiaryColor!.toARGB32())
         : primaryKeyHct.multTone(tones.tertiaryTone / tones.primaryTone).addHue(colorRotation);
-    final errorKeyHct = config.errorColorKey != null
-        ? Hct.fromInt(config.errorColorKey!.toARGB32())
+    final errorKeyHct = config.errorColor != null
+        ? Hct.fromInt(config.errorColor!.toARGB32())
         : primaryKeyHct.multTone(tones.errorTone / tones.primaryTone);
-    // TODO: 1 what to do with surface
-    // TODO: 1 what to do with colors not being adapted to dark/light mode now
+    double surfaceToneMultiplier = 1;
+    if (config.surfaceColor != null) {
+      final surfaceHct = Hct.fromInt(config.surfaceColor!.toARGB32());
+      surfaceToneMultiplier = surfaceHct.tone / tones.surfaceTone;
+    }
+    // TODO: 2 what to do with colors not being adapted to dark/light mode now?
+    // this includes primary,secondary,etc. and especially background/foreground
     final scheme = SeedColorScheme.fromSeeds(
-      // primary: config.primaryColorKey,
       brightness: brightness,
       respectMonochromeSeed: true,
-      primaryKey: config.primaryColorKey,
-      secondaryKey: config.secondaryColorKey ?? Color(secondaryKeyHct.toInt()),
-      tertiaryKey: config.tertiaryColorKey ?? Color(tertiaryKeyHct.toInt()),
-      neutralKey: config.neutralColorKey,
-      errorKey: config.errorColorKey,
+      primaryKey: config.primaryColor,
+      secondaryKey: config.secondaryColor ?? Color(secondaryKeyHct.toInt()),
+      tertiaryKey: config.tertiaryColor ?? Color(tertiaryKeyHct.toInt()),
+      errorKey: config.errorColor,
+      surface: config.surfaceColor,
       tones: tones.copyWith(
+        // respect declared primary, secondary, tercary and error colors exactly
         primaryTone: primaryKeyHct.tone.toInt(),
         primaryChroma: primaryKeyHct.chroma,
         primaryMinChroma: 0,
@@ -89,14 +85,20 @@ class WaywingTheme {
         tertiaryMinChroma: 0,
         errorTone: errorKeyHct.tone.toInt(),
         errorChroma: errorKeyHct.chroma,
+        // errorMinChroma: 0, // we DO want error to have a min chroma value
+
+        // make all surfaces darker/lighter to match the declared surface color
+        surfaceTintTone: (tones.surfaceTintTone * surfaceToneMultiplier).round(),
+        surfaceContainerHighestTone: (tones.surfaceContainerHighestTone * surfaceToneMultiplier).round(),
+        surfaceContainerTone: (tones.surfaceContainerTone * surfaceToneMultiplier).round(),
+        surfaceContainerLowTone: (tones.surfaceContainerLowTone * surfaceToneMultiplier).round(),
+        surfaceContainerHighTone: (tones.surfaceContainerHighTone * surfaceToneMultiplier).round(),
+        surfaceContainerLowestTone: (tones.surfaceContainerLowestTone * surfaceToneMultiplier).round(),
+        surfaceBrightTone: (tones.surfaceBrightTone * surfaceToneMultiplier).round(),
+        surfaceDimTone: (tones.surfaceDimTone * surfaceToneMultiplier).round(),
+        inverseSurfaceTone: (tones.inverseSurfaceTone * surfaceToneMultiplier).round(),
       ),
     );
-    print("------------------------");
-    print(Hct.fromInt(scheme.primary.value));
-    print(Hct.fromInt(scheme.secondary.value));
-    print(Hct.fromInt(scheme.tertiary.value));
-    print(Hct.fromInt(scheme.surface.value));
-    print(Hct.fromInt(scheme.error.value));
     return scheme.copyWith(
       surface: scheme.surface.withValues(alpha: config.backgroundTransparency),
     );
@@ -110,9 +112,8 @@ class WaywingTheme {
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       ),
       splashFactory: InkSparkle.splashFactory,
-      // TODO: 1 remove this hardcoded value
       dividerTheme: DividerThemeData(
-        color: Colors.grey.shade400.withValues(alpha: 0.66),
+        color: Color.alphaBlend(colorScheme.onSurface.withValues(alpha: 0.2), colorScheme.surface),
       ),
     );
   }

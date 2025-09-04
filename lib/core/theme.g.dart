@@ -9,61 +9,61 @@ part of 'theme.dart';
 
 mixin ThemeConfigI {
   ThemeMode get mode;
-  double get backgroundTransparency;
-  MyColor get primaryColorKey;
-  MyColor? get secondaryColorKey;
-  MyColor? get tertiaryColorKey;
-  MyColor? get neutralColorKey;
-  MyColor? get errorColorKey;
   String? get fontFamily;
+  MyColor get primaryColor;
+  MyColor? get secondaryColor;
+  MyColor? get tertiaryColor;
+  MyColor? get errorColor;
+  MyColor? get surfaceColor;
+  double get backgroundTransparency;
 }
 
 class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   final ThemeMode mode;
-  final double backgroundTransparency;
-  final MyColor primaryColorKey;
-  final MyColor? secondaryColorKey;
-  final MyColor? tertiaryColorKey;
-  final MyColor? neutralColorKey;
-  final MyColor? errorColorKey;
   final String? fontFamily;
+  final MyColor primaryColor;
+  final MyColor? secondaryColor;
+  final MyColor? tertiaryColor;
+  final MyColor? errorColor;
+  final MyColor? surfaceColor;
+  final double backgroundTransparency;
 
   ThemeConfig({
     ThemeMode? mode,
-    double? backgroundTransparency,
-    MyColor? primaryColorKey,
-    this.secondaryColorKey,
-    this.tertiaryColorKey,
-    this.neutralColorKey,
-    this.errorColorKey,
     this.fontFamily,
+    MyColor? primaryColor,
+    this.secondaryColor,
+    this.tertiaryColor,
+    this.errorColor,
+    this.surfaceColor,
+    double? backgroundTransparency,
   }) : mode = mode ?? ThemeMode.system,
-       backgroundTransparency = backgroundTransparency ?? 1.0,
-       primaryColorKey = primaryColorKey ?? MyColor(0xFF2196F3);
+       primaryColor = primaryColor ?? MyColor(0xFF2196F3),
+       backgroundTransparency = backgroundTransparency ?? 1.0;
 
   factory ThemeConfig.fromMap(Map<String, dynamic> map) {
     return ThemeConfig(
       mode: map['mode'],
-      backgroundTransparency: map['backgroundTransparency'],
-      primaryColorKey: map['primaryColorKey'],
-      secondaryColorKey: map['secondaryColorKey'],
-      tertiaryColorKey: map['tertiaryColorKey'],
-      neutralColorKey: map['neutralColorKey'],
-      errorColorKey: map['errorColorKey'],
       fontFamily: map['fontFamily'],
+      primaryColor: map['primaryColor'],
+      secondaryColor: map['secondaryColor'],
+      tertiaryColor: map['tertiaryColor'],
+      errorColor: map['errorColor'],
+      surfaceColor: map['surfaceColor'],
+      backgroundTransparency: map['backgroundTransparency'],
     );
   }
 
   static TableSchema get schema => TableSchema(
     fields: {
       'mode': ThemeConfigBase._mode,
-      'backgroundTransparency': ThemeConfigBase._backgroundTransparency,
-      'primaryColorKey': ThemeConfigBase._primaryColorKey,
-      'secondaryColorKey': ThemeConfigBase._secondaryColorKey,
-      'tertiaryColorKey': ThemeConfigBase._tertiaryColorKey,
-      'neutralColorKey': ThemeConfigBase._neutralColorKey,
-      'errorColorKey': ThemeConfigBase._errorColorKey,
       'fontFamily': ThemeConfigBase._fontFamily,
+      'primaryColor': ThemeConfigBase._primaryColor,
+      'secondaryColor': ThemeConfigBase._secondaryColor,
+      'tertiaryColor': ThemeConfigBase._tertiaryColor,
+      'errorColor': ThemeConfigBase._errorColor,
+      'surfaceColor': ThemeConfigBase._surfaceColor,
+      'backgroundTransparency': ThemeConfigBase._backgroundTransparency,
     },
   );
 

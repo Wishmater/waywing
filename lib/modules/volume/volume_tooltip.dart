@@ -190,6 +190,9 @@ class VolumeSlider extends StatelessWidget {
                               : volume < 1
                               ? Theme.of(context).colorScheme.primary
                               : Theme.of(context).colorScheme.error,
+                          activeColor: volume == 1
+                              ? Theme.of(context).colorScheme.secondary
+                              : Theme.of(context).colorScheme.primary,
                           secondaryActiveColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
                           inactiveColor: Theme.of(context).colorScheme.error.withValues(alpha: 0.4),
                         ),

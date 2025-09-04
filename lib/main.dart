@@ -107,6 +107,7 @@ class App extends StatelessWidget {
                       backgroundColor: Colors.transparent,
                       body: WingedPopoverProvider(
                         child: Stack(
+                          fit: StackFit.expand,
                           children: wingWidgets,
                         ),
                       ),

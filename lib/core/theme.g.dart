@@ -14,8 +14,9 @@ mixin ThemeConfigI {
   MyColor? get secondaryColor;
   MyColor? get tertiaryColor;
   MyColor? get errorColor;
-  MyColor? get surfaceColor;
-  double get backgroundTransparency;
+  MyColor? get backgroundColor;
+  MyColor? get foregroundColor;
+  double get backgroundOpacity;
 }
 
 class ThemeConfig with ThemeConfigI, ThemeConfigBase {
@@ -25,8 +26,9 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   final MyColor? secondaryColor;
   final MyColor? tertiaryColor;
   final MyColor? errorColor;
-  final MyColor? surfaceColor;
-  final double backgroundTransparency;
+  final MyColor? backgroundColor;
+  final MyColor? foregroundColor;
+  final double backgroundOpacity;
 
   ThemeConfig({
     ThemeMode? mode,
@@ -35,11 +37,12 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     this.secondaryColor,
     this.tertiaryColor,
     this.errorColor,
-    this.surfaceColor,
-    double? backgroundTransparency,
+    this.backgroundColor,
+    this.foregroundColor,
+    double? backgroundOpacity,
   }) : mode = mode ?? ThemeMode.system,
        primaryColor = primaryColor ?? MyColor(0xFF2196F3),
-       backgroundTransparency = backgroundTransparency ?? 1.0;
+       backgroundOpacity = backgroundOpacity ?? 1.0;
 
   factory ThemeConfig.fromMap(Map<String, dynamic> map) {
     return ThemeConfig(
@@ -49,8 +52,9 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       secondaryColor: map['secondaryColor'],
       tertiaryColor: map['tertiaryColor'],
       errorColor: map['errorColor'],
-      surfaceColor: map['surfaceColor'],
-      backgroundTransparency: map['backgroundTransparency'],
+      backgroundColor: map['backgroundColor'],
+      foregroundColor: map['foregroundColor'],
+      backgroundOpacity: map['backgroundOpacity'],
     );
   }
 
@@ -62,14 +66,15 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       'secondaryColor': ThemeConfigBase._secondaryColor,
       'tertiaryColor': ThemeConfigBase._tertiaryColor,
       'errorColor': ThemeConfigBase._errorColor,
-      'surfaceColor': ThemeConfigBase._surfaceColor,
-      'backgroundTransparency': ThemeConfigBase._backgroundTransparency,
+      'backgroundColor': ThemeConfigBase._backgroundColor,
+      'foregroundColor': ThemeConfigBase._foregroundColor,
+      'backgroundOpacity': ThemeConfigBase._backgroundOpacity,
     },
   );
 
   @override
   String toString() {
-    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, surfaceColor = $surfaceColor, backgroundTransparency = $backgroundTransparency';
+    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity';
   }
 
   @override
@@ -80,8 +85,9 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
         secondaryColor == other.secondaryColor &&
         tertiaryColor == other.tertiaryColor &&
         errorColor == other.errorColor &&
-        surfaceColor == other.surfaceColor &&
-        backgroundTransparency == other.backgroundTransparency;
+        backgroundColor == other.backgroundColor &&
+        foregroundColor == other.foregroundColor &&
+        backgroundOpacity == other.backgroundOpacity;
   }
 
   @override
@@ -92,7 +98,8 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     secondaryColor,
     tertiaryColor,
     errorColor,
-    surfaceColor,
-    backgroundTransparency,
+    backgroundColor,
+    foregroundColor,
+    backgroundOpacity,
   ]);
 }

@@ -16,13 +16,14 @@ mixin ThemeConfigBase on ThemeConfigI {
   static const _secondaryColor = ColorField(nullable: true);
   static const _tertiaryColor = ColorField(nullable: true);
   static const _errorColor = ColorField(nullable: true);
-  static const _surfaceColor = ColorField(nullable: true);
+  static const _backgroundColor = ColorField(nullable: true);
+  static const _foregroundColor = ColorField(nullable: true);
 
-  static const _backgroundTransparency = DoubleNumberField(
+  static const _backgroundOpacity = DoubleNumberField(
     defaultTo: 1.0,
-    validator: _backgroundTransparencyValidator,
+    validator: _backgroundOpacityValidator,
   );
-  static ValidatorResult<double> _backgroundTransparencyValidator(value) {
+  static ValidatorResult<double> _backgroundOpacityValidator(value) {
     if (value >= 0 && value <= 1) {
       return ValidatorSuccess();
     } else {
@@ -58,20 +59,26 @@ class WaywingTheme {
         ? Hct.fromInt(config.errorColor!.toARGB32())
         : primaryKeyHct.multTone(tones.errorTone / tones.primaryTone);
     double surfaceToneMultiplier = 1;
-    if (config.surfaceColor != null) {
-      final surfaceHct = Hct.fromInt(config.surfaceColor!.toARGB32());
+    if (config.backgroundColor != null) {
+      final surfaceHct = Hct.fromInt(config.backgroundColor!.toARGB32());
       surfaceToneMultiplier = surfaceHct.tone / tones.surfaceTone;
     }
-    // TODO: 2 what to do with colors not being adapted to dark/light mode now?
+
+    // TODO: 2 STYLE what to do with colors not being adapted to dark/light mode now?
     // this includes primary,secondary,etc. and especially background/foreground
+
     final scheme = SeedColorScheme.fromSeeds(
       brightness: brightness,
       respectMonochromeSeed: true,
+
       primaryKey: config.primaryColor,
       secondaryKey: config.secondaryColor ?? Color(secondaryKeyHct.toInt()),
       tertiaryKey: config.tertiaryColor ?? Color(tertiaryKeyHct.toInt()),
       errorKey: config.errorColor,
-      surface: config.surfaceColor,
+      surface: config.backgroundColor,
+      onSurface: config.foregroundColor,
+      onSurfaceVariant: config.foregroundColor,
+
       tones: tones.copyWith(
         // respect declared primary, secondary, tercary and error colors exactly
         primaryTone: primaryKeyHct.tone.toInt(),
@@ -88,19 +95,30 @@ class WaywingTheme {
         // errorMinChroma: 0, // we DO want error to have a min chroma value
 
         // make all surfaces darker/lighter to match the declared surface color
-        surfaceTintTone: (tones.surfaceTintTone * surfaceToneMultiplier).round(),
-        surfaceContainerHighestTone: (tones.surfaceContainerHighestTone * surfaceToneMultiplier).round(),
         surfaceContainerTone: (tones.surfaceContainerTone * surfaceToneMultiplier).round(),
         surfaceContainerLowTone: (tones.surfaceContainerLowTone * surfaceToneMultiplier).round(),
-        surfaceContainerHighTone: (tones.surfaceContainerHighTone * surfaceToneMultiplier).round(),
         surfaceContainerLowestTone: (tones.surfaceContainerLowestTone * surfaceToneMultiplier).round(),
-        surfaceBrightTone: (tones.surfaceBrightTone * surfaceToneMultiplier).round(),
+        surfaceContainerHighTone: (tones.surfaceContainerHighTone * surfaceToneMultiplier).round(),
+        surfaceContainerHighestTone: (tones.surfaceContainerHighestTone * surfaceToneMultiplier).round(),
         surfaceDimTone: (tones.surfaceDimTone * surfaceToneMultiplier).round(),
+        surfaceBrightTone: (tones.surfaceBrightTone * surfaceToneMultiplier).round(),
+        surfaceTintTone: (tones.surfaceTintTone * surfaceToneMultiplier).round(),
         inverseSurfaceTone: (tones.inverseSurfaceTone * surfaceToneMultiplier).round(),
       ),
     );
+
     return scheme.copyWith(
-      surface: scheme.surface.withValues(alpha: config.backgroundTransparency),
+      // add background opacity to all surfaces
+      surface: scheme.surface.withValues(alpha: config.backgroundOpacity),
+      surfaceContainer: scheme.surfaceContainer.withValues(alpha: config.backgroundOpacity),
+      surfaceContainerLow: scheme.surfaceContainerLow.withValues(alpha: config.backgroundOpacity),
+      surfaceContainerLowest: scheme.surfaceContainerLowest.withValues(alpha: config.backgroundOpacity),
+      surfaceContainerHigh: scheme.surfaceContainerHigh.withValues(alpha: config.backgroundOpacity),
+      surfaceContainerHighest: scheme.surfaceContainerHighest.withValues(alpha: config.backgroundOpacity),
+      surfaceDim: scheme.surfaceDim.withValues(alpha: config.backgroundOpacity),
+      surfaceBright: scheme.surfaceBright.withValues(alpha: config.backgroundOpacity),
+      surfaceTint: scheme.surfaceTint.withValues(alpha: config.backgroundOpacity),
+      inverseSurface: scheme.inverseSurface.withValues(alpha: config.backgroundOpacity),
     );
   }
 
@@ -108,10 +126,10 @@ class WaywingTheme {
     return ThemeData(
       colorScheme: colorScheme,
       fontFamily: config.fontFamily,
+      splashFactory: InkSparkle.splashFactory,
       buttonTheme: ButtonThemeData(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       ),
-      splashFactory: InkSparkle.splashFactory,
       dividerTheme: DividerThemeData(
         color: Color.alphaBlend(colorScheme.onSurface.withValues(alpha: 0.2), colorScheme.surface),
       ),

@@ -123,7 +123,7 @@ class WaywingTheme {
   }
 
   ThemeData _getTheme(ColorScheme colorScheme) {
-    return ThemeData(
+    final result = ThemeData(
       colorScheme: colorScheme,
       fontFamily: config.fontFamily,
       splashFactory: InkSparkle.splashFactory,
@@ -134,6 +134,24 @@ class WaywingTheme {
         color: Color.alphaBlend(colorScheme.onSurface.withValues(alpha: 0.2), colorScheme.surface),
       ),
     );
+    return result.copyWith(
+      iconTheme: result.iconTheme.copyWith(
+        color: config.foregroundColor == null
+            ? result.iconTheme.color
+            : Color.lerp(config.foregroundColor, result.iconTheme.color, 0.5),
+      ),
+    );
+  }
+}
+
+extension ThemeColors on ThemeData {
+  Color getColor(int index) {
+    return switch (index % 3) {
+      0 => colorScheme.primary,
+      1 => colorScheme.secondary,
+      2 => colorScheme.tertiary,
+      _ => throw Exception(),
+    };
   }
 }
 

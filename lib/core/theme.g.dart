@@ -69,30 +69,30 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
 
   @override
   String toString() {
-    return 'ThemeConfigmode = $mode, backgroundTransparency = $backgroundTransparency, primaryColorKey = $primaryColorKey, secondaryColorKey = $secondaryColorKey, tertiaryColorKey = $tertiaryColorKey, neutralColorKey = $neutralColorKey, errorColorKey = $errorColorKey, fontFamily = $fontFamily';
+    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, surfaceColor = $surfaceColor, backgroundTransparency = $backgroundTransparency';
   }
 
   @override
   bool operator ==(covariant ThemeConfig other) {
     return mode == other.mode &&
-        backgroundTransparency == other.backgroundTransparency &&
-        primaryColorKey == other.primaryColorKey &&
-        secondaryColorKey == other.secondaryColorKey &&
-        tertiaryColorKey == other.tertiaryColorKey &&
-        neutralColorKey == other.neutralColorKey &&
-        errorColorKey == other.errorColorKey &&
-        fontFamily == other.fontFamily;
+        fontFamily == other.fontFamily &&
+        primaryColor == other.primaryColor &&
+        secondaryColor == other.secondaryColor &&
+        tertiaryColor == other.tertiaryColor &&
+        errorColor == other.errorColor &&
+        surfaceColor == other.surfaceColor &&
+        backgroundTransparency == other.backgroundTransparency;
   }
 
   @override
   int get hashCode => Object.hashAll([
     mode,
-    backgroundTransparency,
-    primaryColorKey,
-    secondaryColorKey,
-    tertiaryColorKey,
-    neutralColorKey,
-    errorColorKey,
     fontFamily,
+    primaryColor,
+    secondaryColor,
+    tertiaryColor,
+    errorColor,
+    surfaceColor,
+    backgroundTransparency,
   ]);
 }

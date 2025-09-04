@@ -40,20 +40,19 @@ void main(List<String> args) async {
   await setupMainWindow();
 
   mainLogger.log(Level.debug, "Done setting initial window config, running app...");
-  runApp(App(themeConfiguration: ThemeConfig.fromMap(rawMainConfig["Theme"])));
+  runApp(App());
 }
 
 class App extends StatelessWidget {
-  final ThemeConfig themeConfiguration;
-  final WaywingTheme theme;
-
-  App({super.key, required this.themeConfiguration}) : theme = WaywingTheme(themeConfiguration);
+  const App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return InputRegion.negative(
       child: ConfigChangeWatcher(
         builder: (context) {
+          final themeConfig = ThemeConfig.fromMap(rawMainConfig["Theme"]);
+          final waywingTheme = WaywingTheme(themeConfig);
           final wingWidgets = <Widget>[];
           for (int i = 0; i < mainConfig.wings.length; i++) {
             final wing = mainConfig.wings[i];
@@ -94,9 +93,9 @@ class App extends StatelessWidget {
             child: MaterialApp(
               title: "WayWing",
               debugShowCheckedModeBanner: false,
-              themeMode: themeConfiguration.mode,
-              theme: theme.themeLight,
-              darkTheme: theme.themeDark,
+              themeMode: themeConfig.mode,
+              theme: waywingTheme.themeLight,
+              darkTheme: waywingTheme.themeDark,
               home: Builder(
                 builder: (context) {
                   return XdgIconTheme(

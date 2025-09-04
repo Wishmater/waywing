@@ -45,37 +45,37 @@ mixin ThemeConfigBase on ThemeConfigI {
 }
 
 class WaywingTheme {
-  final ThemeConfig configuration;
-  const WaywingTheme(this.configuration);
+  final ThemeConfig config;
+  WaywingTheme(this.config);
 
-  ColorScheme get colorSchemeLight => _colorScheme(Brightness.light);
-  ColorScheme get colorSchemeDark => _colorScheme(Brightness.dark);
-  ThemeData get themeLight => _theme(Brightness.light);
-  ThemeData get themeDark => _theme(Brightness.dark);
+  late final ColorScheme colorSchemeLight = _getColorScheme(Brightness.light);
+  late final ColorScheme colorSchemeDark = _getColorScheme(Brightness.dark);
+  late final ThemeData themeLight = _getTheme(colorSchemeLight);
+  late final ThemeData themeDark = _getTheme(colorSchemeDark);
 
-  ColorScheme _colorScheme(Brightness brightness) {
+  ColorScheme _getColorScheme(Brightness brightness) {
     final scheme = flex.SeedColorScheme.fromSeeds(
       brightness: brightness,
-
-      primaryKey: configuration.primaryColorKey,
-      secondaryKey: configuration.secondaryColorKey,
-      tertiaryKey: configuration.tertiaryColorKey,
-      neutralKey: configuration.neutralColorKey,
-      errorKey: configuration.errorColorKey,
+      primaryKey: config.primaryColorKey,
+      secondaryKey: config.secondaryColorKey,
+      tertiaryKey: config.tertiaryColorKey,
+      neutralKey: config.neutralColorKey,
+      errorKey: config.errorColorKey,
     );
     return scheme.copyWith(
-      surface: scheme.surface.withValues(alpha: configuration.backgroundTransparency),
+      surface: scheme.surface.withValues(alpha: config.backgroundTransparency),
     );
   }
 
-  ThemeData _theme(Brightness brightness) {
+  ThemeData _getTheme(ColorScheme colorScheme) {
     return ThemeData(
-      colorScheme: _colorScheme(brightness),
-      fontFamily: configuration.fontFamily,
+      colorScheme: colorScheme,
+      fontFamily: config.fontFamily,
       buttonTheme: ButtonThemeData(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       ),
       splashFactory: InkSparkle.splashFactory,
+      // TODO: 1 remove this hardcoded value
       dividerTheme: DividerThemeData(
         color: Colors.grey.shade400.withValues(alpha: 0.66),
       ),

@@ -94,7 +94,7 @@ mixin MainConfigBase on MainConfigI {
     // TODO: 2 config_gen should add these (at least the static ones) as fields on the resulting config
     // so we can do something like mainConfig.theme and we don't have to manually parse it.
     "Logging": LoggingConfig.schema,
-    "Theme": ThemeConfiguration.schema,
+    "Theme": ThemeConfig.schema,
     ...featherRegistry.getSchemaTables(),
     ...serviceRegistry.getSchemaTables(),
   };

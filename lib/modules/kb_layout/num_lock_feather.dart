@@ -33,9 +33,16 @@ class NumLockFeather extends Feather {
   @override
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([
     FeatherComponent(
+      isIndicatorVisible: DerivedValueNotifier(
+        dependencies: [service.numsLockActive],
+        derive: () => !service.numsLockActive.value,
+      ),
       buildIndicators: (context, popover) {
         return [
-          SizedBox.shrink(),
+          ColoredBox(
+            color: Theme.of(context).colorScheme.error,
+            child: Text("Num"),
+          ),
         ];
       },
     ),

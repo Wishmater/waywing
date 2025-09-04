@@ -12,7 +12,7 @@ import "package:waywing/widgets/motion_widgets/motion_align.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 
 class NotificationsWing extends Wing<NotificationsConfig> {
-  late NotificationService service;
+  late NotificationsService service;
 
   NotificationsWing._();
 
@@ -32,7 +32,7 @@ class NotificationsWing extends Wing<NotificationsConfig> {
 
   @override
   Future<void> init(BuildContext context) async {
-    service = await serviceRegistry.requestService<NotificationService>(this);
+    service = await serviceRegistry.requestService<NotificationsService>(this);
   }
 
   @override
@@ -49,7 +49,10 @@ class NotificationsWing extends Wing<NotificationsConfig> {
         alignment: config.alignment,
         child: SizedBox(
           width: 256 * 1.5,
-          child: NotificationsWidget(service: service),
+          child: NotificationsWidget(
+            service: service,
+            config: config,
+          ),
         ),
       ),
     );

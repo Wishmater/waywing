@@ -151,7 +151,7 @@ class ServiceRegistry {
     VolumeService.registerService(registerService);
     SessionService.registerService(registerService);
     OsInfoService.registerService(registerService);
-    NotificationService.registerService(registerService);
+    NotificationsService.registerService(registerService);
     KeyboardLayoutService.registerService(registerService);
   }
 }

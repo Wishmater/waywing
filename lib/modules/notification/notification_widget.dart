@@ -1,20 +1,27 @@
 import "dart:io";
 
-import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart" hide Notification, Action, Actions;
+import "package:intl/intl.dart";
+import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/modules/notification/notification_config.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/motion_layout/motion_column.dart";
+import "package:waywing/widgets/opacity_gradient.dart";
+import "package:waywing/widgets/text_icon.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:xdg_icons/xdg_icons.dart";
 import "package:flutter_html/flutter_html.dart";
 
 class NotificationsWidget extends StatefulWidget {
-  final NotificationService service;
+  final NotificationsConfig config;
+  final NotificationsService service;
 
-  const NotificationsWidget({super.key, required this.service});
+  const NotificationsWidget({super.key, required this.service, required this.config});
 
   @override
   State<NotificationsWidget> createState() => _NotificationsWidgetState();
@@ -30,19 +37,52 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
       child: ValueListenableBuilder(
         valueListenable: widget.service.notifications.notifications,
         builder: (context, notifications, _) {
-          // TODO: 1 this is doing a weird thing where if 3 notifications with the same duration are
-          // added at the same time, the last one will be removed before the 2nd. The bug is on our side,
-          // because it is removed correctly in the service.
-          return MotionColumn(
-            motion: mainConfig.motions.expressive.spatial.slow,
-            mainAxisSize: MainAxisSize.min,
-            data: List<ValueNotifier<Notification>>.from(notifications),
-            itemBuilder: (context, noti) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: NotificationsWidget.spacing / 2),
-                child: _NotificationWidget(noti),
-              );
-            },
+          final scrollController = ScrollController();
+          return FocusScope(
+            // TODO: 2 STYLE flutter scrollbars are very ugly. Come up with a custom solution everywhere
+            // TODO: 2 this has a bug where if the mouse falls in between notifications, the focus removed from
+            // waywing, because InputRegions are declared in each notification widget. This causes scrolling to
+            // be weird. Ideally we enable a big Input region only when scrolling? This probably requires making
+            // a better scrollbar.
+            child: Scrollbar(
+              controller: scrollController,
+              child: ScrollOpacityGradient(
+                scrollController: scrollController,
+                maxSize: 64,
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  // TODO: 1 this is doing a weird thing where if 3 notifications with the same duration are
+                  // added at the same time, the last one will be removed before the 2nd. The bug is on our side,
+                  // because it is removed correctly in the service.
+                  child: MotionColumn(
+                    motion: mainConfig.motions.expressive.spatial.slow,
+                    mainAxisSize: MainAxisSize.min,
+                    data: List<ValueNotifier<Notification>>.from(notifications),
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    itemBuilder: (context, noti) {
+                      Widget result = _NotificationWidget(noti);
+                      // TODO: 2 should we enable variable notif width, at least as an option ?
+                      // result = Align(
+                      //   alignment: widget.config.alignment,
+                      //   child: IntrinsicWidth(
+                      //     child: ConstrainedBox(
+                      //       constraints: BoxConstraints(
+                      //         minWidth: 256,
+                      //         // maxWidth: 256 * 1.5, // redundant because it's already specified above
+                      //       ),
+                      //       child: _NotificationWidget(noti),
+                      //     ),
+                      //   ),
+                      // );
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: NotificationsWidget.spacing / 2),
+                        child: result,
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
           );
         },
       ),
@@ -74,46 +114,57 @@ class _NotificationWidget extends StatefulWidget {
 }
 
 class _NotificationWidgetState extends State<_NotificationWidget> {
+  ValueNotifier<bool> isHovered = ValueNotifier(false);
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final service = NotificationServiceInheritedWidget.of(context);
-
     return ValueListenableBuilder(
       valueListenable: widget.notification,
       builder: (context, notification, _) {
         final timer = service.server.getTimer(widget.notification.value);
-        return KeyboardFocus(
-          mode: KeyboardFocusMode.onDemand,
-          child: MouseRegion(
-            onEnter: timer == null ? null : (_) => timer.stop(),
-            onExit: timer == null ? null : (_) => timer.start(),
-            child: NotificationInheritedWidget(
-              notification,
-              child: InputRegion(
-                child: InkWell(
-                  onTap: () {
-                    service.emitActivationToken(notification);
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
+        return FocusTraversalGroup(
+          child: KeyboardFocus(
+            mode: KeyboardFocusMode.onDemand,
+            child: MouseRegion(
+              onEnter: (_) {
+                timer?.stop();
+                isHovered.value = true;
+              },
+              onExit: (_) {
+                timer?.start();
+                isHovered.value = false;
+              },
+              child: NotificationInheritedWidget(
+                notification,
+                child: WingedContainer(
+                  shape: RoundedRectangleBorder(
+                    // TODO: 2 STYLE this should take the border radius from theme, oncesthat is decided
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Stack(
+                    children: [
+                      // TODO: 2 STYLE should this also use WingedButton? or maybe separate WingedInkWell and use that?
+                      Positioned.fill(
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onTap: () async {
+                            await service.emitActivationToken(notification);
+                            await service.closeNotification(notification);
+                          },
+                        ),
+                      ),
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _RenderTitle(notification),
-                          // render summary
-                          Text(notification.summary, style: theme.textTheme.titleSmall),
-                          // render body
-                          _RenderBody(notification),
+                          _NotificationTitle(notification, isHovered),
+                          SizedBox(height: 4),
+                          _NotificationBody(notification),
+                          _NotificationActions(notification.actions, notification),
                         ],
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -125,34 +176,173 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
   }
 }
 
-class _RenderTitle extends StatelessWidget {
+class _NotificationTitle extends StatelessWidget {
   final Notification notification;
-  const _RenderTitle(this.notification);
+  final ValueNotifier<bool> isHovered;
+  const _NotificationTitle(this.notification, this.isHovered);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fontStyle = theme.textTheme.titleLarge;
-    final fontSize = fontStyle?.fontSize;
     final service = NotificationServiceInheritedWidget.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          spacing: 5,
+    final effectiveIconSize = TextIcon.getIconEffectiveSize(context);
+    String title, subtitle;
+    // TODO: 2 should date/time format setting be global?
+    // TODO: 2 improve the way this date is rendered, maybe with relative time,
+    // and include day (maybe also relative to today or just show if not today)
+    final timeFormat = DateFormat.Hms();
+    final dateTime = DateTime.fromMillisecondsSinceEpoch(notification.timestampMs);
+    if (notification.summary.isNotEmpty) {
+      title = notification.summary;
+      subtitle = "${notification.appName} - ${timeFormat.format(dateTime)}";
+    } else {
+      title = notification.appName;
+      subtitle = timeFormat.format(dateTime);
+    }
+    return Container(
+      padding: EdgeInsets.only(top: 8),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (notification.appIcon.isNotEmpty) ...[
-              XdgIcon(
-                name: notification.appIcon,
-                size: fontSize?.floor(),
-                iconNotFoundBuilder: () => XdgIcon(
-                  name: notification.appIcon,
-                  size: fontSize?.floor(),
+            SizedBox(width: 12),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (notification.appIcon.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: IgnorePointer(
+                          child: XdgIcon(
+                            name: notification.appIcon,
+                            // TODO: 3 if icon is passed but not found, shouldn't it fall back to using notification.image?
+                            iconNotFoundBuilder: () => SizedBox.shrink(),
+                          ),
+                        ),
+                      ),
+                    if (notification.appIcon.isEmpty && notification.image != null)
+                      // TODO: 2 should we render images larger? test with sending an image with telegram
+                      SizedBox(
+                        width: effectiveIconSize,
+                        height: effectiveIconSize,
+                        child: IgnorePointer(
+                          child: switch (notification.image!) {
+                            NotificationImageData image => FutureBuilder(
+                              future: image.image,
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting || snapshot.hasError) {
+                                  return SizedBox.shrink();
+                                }
+                                return RawImage(image: snapshot.data!);
+                              },
+                            ),
+                            NotificationImagePath imagePath => Image.file(File(imagePath.path)),
+                          },
+                        ),
+                      ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: IgnorePointer(
+                        child: Container(
+                          alignment: Alignment.centerLeft,
+                          padding: EdgeInsets.only(bottom: 2),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                title,
+                                style: theme.textTheme.titleMedium!.copyWith(
+                                  height: 1,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                subtitle,
+                                style: theme.textTheme.labelMedium!.copyWith(
+                                  height: 1,
+                                  color: Color.alphaBlend(
+                                    theme.colorScheme.onSurface.withValues(alpha: 0.85),
+                                    theme.colorScheme.surface,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-            if (notification.appIcon.isEmpty && notification.image != null) ...[
-              switch (notification.image!) {
+            ),
+            SizedBox(width: 8),
+            ValueListenableBuilder(
+              valueListenable: isHovered,
+              builder: (context, isHovered, child) {
+                return SingleMotionBuilder(
+                  motion: mainConfig.motions.standard.effects.normal,
+                  value: isHovered ? 1 : 0,
+                  builder: (context, motionValue, child) {
+                    return ExcludeFocus(
+                      child: Opacity(
+                        opacity: motionValue.clamp(0, 1),
+                        child: child!,
+                      ),
+                    );
+                  },
+                  child: child!,
+                );
+              },
+              child: ExcludeFocusTraversal(
+                child: WingedButton(
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints.tightFor(
+                    width: effectiveIconSize * 1.33,
+                    height: effectiveIconSize * 1.33,
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    size: effectiveIconSize * 0.8,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ),
+                  onTap: () => service.closeNotification(notification),
+                ),
+              ),
+            ),
+            SizedBox(width: 8),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationBody extends StatelessWidget {
+  final Notification notification;
+  const _NotificationBody(this.notification);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(left: 12, right: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (notification.body.isNotEmpty)
+            IgnorePointer(
+              child: Html(
+                data: notification.body.replaceAll("\n", "\n<br/>\n"),
+                onlyRenderTheseTags: {"html", "body", "br", "a", "b", "img", "u", "i"},
+              ),
+            ),
+          // only use the image as part of the body when the notification appIcon is not empty
+          if (notification.appIcon.isNotEmpty && notification.image != null) ...[
+            IgnorePointer(
+              child: switch (notification.image!) {
                 NotificationImageData image => FutureBuilder(
                   future: image.image,
                   builder: (context, snapshot) {
@@ -162,108 +352,109 @@ class _RenderTitle extends StatelessWidget {
                     if (snapshot.hasError) {
                       return SizedBox.shrink();
                     }
-                    return RawImage(image: snapshot.data!, height: fontSize);
+                    return RawImage(image: snapshot.data!);
                   },
                 ),
-                NotificationImagePath imagePath => Image.file(File(imagePath.path), height: fontSize),
-              },
-            ],
-            Text(notification.appName, style: fontStyle),
-          ],
-        ),
-        IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () => service.closeNotification(notification),
-          iconSize: 15,
-        ),
-      ],
-    );
-  }
-}
-
-class _RenderBody extends StatelessWidget {
-  final Notification notification;
-  const _RenderBody(this.notification);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Html(
-          data: notification.body.replaceAll("\n", "\n<br/>\n"),
-          onlyRenderTheseTags: {"html", "body", "br", "a", "b", "img", "u", "i"},
-        ),
-        // only use the image as part of the body when the notification appIcon is not empty
-        if (notification.appIcon.isNotEmpty && notification.image != null) ...[
-          switch (notification.image!) {
-            NotificationImageData image => FutureBuilder(
-              future: image.image,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                }
-                if (snapshot.hasError) {
-                  return SizedBox.shrink();
-                }
-                return RawImage(image: snapshot.data!);
+                NotificationImagePath imagePath => Image.file(File(imagePath.path)),
               },
             ),
-            NotificationImagePath imagePath => Image.file(File(imagePath.path)),
-          },
+          ],
         ],
-        _RenderActions(notification.actions, notification),
-      ],
-    );
-  }
-}
-
-class _RenderActions extends StatelessWidget {
-  final Notification notification;
-  final Actions actions;
-  bool get identifierAreIcons => notification.hints.actionIcons;
-  const _RenderActions(this.actions, this.notification);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        if (actions.inlineReply != null) _RenderInlineReply(actions.inlineReply!, notification),
-        if (actions.defaultAction != null) _RenderAction(actions.defaultAction!, false),
-        ...[for (final action in actions.actions) _RenderAction(action, identifierAreIcons)],
-      ],
-    );
-  }
-}
-
-class _RenderInlineReply extends StatelessWidget {
-  final Action action;
-  final Notification notification;
-  const _RenderInlineReply(this.action, this.notification);
-
-  @override
-  Widget build(BuildContext context) {
-    final service = NotificationServiceInheritedWidget.of(context);
-    return SizedBox(
-      width: 100,
-      child: TextField(
-        onSubmitted: (value) => service.emitNotificationReplied(notification, value),
-        decoration: InputDecoration(hintText: notification.hints.inlineReplyPlaceholderText),
       ),
     );
   }
 }
 
-class _RenderAction extends StatelessWidget {
+class _NotificationActions extends StatelessWidget {
+  final Notification notification;
+  final Actions actions;
+  bool get identifierAreIcons => notification.hints.actionIcons;
+  const _NotificationActions(this.actions, this.notification);
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: actions.inlineReply == null ? 8 : 4,
+          left: 12,
+          right: 12,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (actions.inlineReply != null)
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: _NotificationInlineReply(actions.inlineReply!, notification),
+                ),
+              ),
+            Expanded(
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                runAlignment: WrapAlignment.end,
+                children: [
+                  if (actions.defaultAction != null) //
+                    _NotificationAction(actions.defaultAction!, false),
+                  for (final action in actions.actions) //
+                    _NotificationAction(action, identifierAreIcons),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationInlineReply extends StatelessWidget {
+  final Action action;
+  final Notification notification;
+  const _NotificationInlineReply(this.action, this.notification);
+
+  @override
+  Widget build(BuildContext context) {
+    final service = NotificationServiceInheritedWidget.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: 128, maxWidth: 256, minHeight: 30, maxHeight: 30),
+        child: TextField(
+          onSubmitted: (value) => service.emitNotificationReplied(notification, value),
+          style: Theme.of(context).textTheme.bodyMedium,
+          decoration: InputDecoration(
+            alignLabelWithHint: true,
+            contentPadding: EdgeInsets.only(bottom: 16),
+            label: Text(
+              notification.hints.inlineReplyPlaceholderText ?? "Reply",
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.fade,
+            ),
+            labelStyle: TextStyle(
+              fontSize: Theme.of(context).textTheme.bodyMedium!.fontSize,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationAction extends StatelessWidget {
   final Action action;
   final bool identifierAreIcons;
-  const _RenderAction(this.action, this.identifierAreIcons);
+  const _NotificationAction(this.action, this.identifierAreIcons);
 
   @override
   Widget build(BuildContext context) {
     final service = NotificationServiceInheritedWidget.of(context);
     final notification = NotificationInheritedWidget.of(context);
     if (identifierAreIcons) {
+      // TODO: 2 STYLE this should use WingedButton
       return MaterialButton(
         onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
         child: Row(
@@ -274,6 +465,7 @@ class _RenderAction extends StatelessWidget {
         ),
       );
     } else {
+      // TODO: 2 STYLE this should use WingedButton
       return TextButton(
         onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
         child: Text(action.value),

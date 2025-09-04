@@ -10,8 +10,8 @@ import "package:waywing/util/derived_value_notifier.dart";
 import "package:tronco/tronco.dart" as tronco;
 import "package:waywing/util/search_sound.dart";
 
-class NotificationService extends Service {
-  NotificationService._();
+class NotificationsService extends Service {
+  NotificationsService._();
 
   late final OrgFreedesktopNotifications server;
   late final DBusClient client;
@@ -20,9 +20,9 @@ class NotificationService extends Service {
   static const String dbusName = "org.freedesktop.Notifications";
 
   static registerService(RegisterServiceCallback registerService) {
-    registerService<NotificationService, dynamic>(
+    registerService<NotificationsService, dynamic>(
       ServiceRegistration(
-        constructor: NotificationService._,
+        constructor: NotificationsService._,
       ),
     );
   }
@@ -150,11 +150,11 @@ class NotificationsList {
 }
 
 class NotificationServiceInheritedWidget extends InheritedWidget {
-  final NotificationService service;
+  final NotificationsService service;
 
   const NotificationServiceInheritedWidget({super.key, required super.child, required this.service});
 
-  static NotificationService of(BuildContext context) {
+  static NotificationsService of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<NotificationServiceInheritedWidget>()!.service;
   }
 

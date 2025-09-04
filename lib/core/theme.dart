@@ -39,6 +39,8 @@ mixin ThemeConfigBase on ThemeConfigI {
   // This should affect: buttons, popovers / tooltips, and Bar (if not overriden in the bar config)
   final double buttonRadiusX = 12;
   final double buttonRadiusY = 12;
+
+  // TODO: 1 STYLE splash theming (maybe allow aplying color to it), and by default lower highlight color opacity.
 }
 
 class WaywingTheme {

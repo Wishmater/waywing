@@ -2,8 +2,6 @@ import "dart:async";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:motor/motor.dart";
-import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/feather.dart";
@@ -35,33 +33,12 @@ class CapsLockFeather extends Feather {
   @override
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([
     FeatherComponent(
+      isIndicatorVisible: service.capsLockActive,
       buildIndicators: (context, popover) {
         return [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final isVertical = constraints.maxHeight > constraints.maxWidth;
-              return ValueListenableBuilder(
-                valueListenable: service.capsLockActive,
-                builder: (context, active, child) {
-                  return SingleMotionBuilder(
-                    value: active ? 1 : 0,
-                    motion: mainConfig.motions.expressive.spatial.fast,
-                    child: child,
-                    builder: (context, value, child) {
-                      return ClipRect(
-                        child: Align(
-                          alignment: isVertical ? AlignmentDirectional(-1, 0) : AlignmentDirectional(0, -1),
-                          heightFactor: isVertical ? value : 1,
-                          widthFactor: !isVertical ? value : 1,
-                          child: child,
-                        ),
-                      );
-                    },
-                  );
-                },
-                child: ColoredBox(color: Theme.of(context).colorScheme.error),
-              );
-            },
+          ColoredBox(
+            color: Theme.of(context).colorScheme.error,
+            child: Text("Caps"),
           ),
         ];
       },

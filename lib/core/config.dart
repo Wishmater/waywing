@@ -43,11 +43,7 @@ mixin MainConfigBase on MainConfigI {
   // Theme / styling
   //===========================================================================
 
-  static const _themeMode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
-  static const _seedColor = ColorField();
-  static const _surfaceColor = ColorField(nullable: true);
-
-  // TODO: 2 STYLE think well on how to expose button theme
+  // TODO: 2 remove this once mainConfig.style.xxx is easily accesible
   late final double buttonRadiusX = 12;
   late final double buttonRadiusY = 12;
 

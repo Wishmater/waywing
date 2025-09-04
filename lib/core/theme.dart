@@ -1,7 +1,7 @@
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:flutter/material.dart";
-import "package:flex_seed_scheme/flex_seed_scheme.dart" as flex;
+import "package:flex_seed_scheme/flex_seed_scheme.dart";
 import "package:waywing/util/config_fields.dart";
 
 part "theme.g.dart";
@@ -36,8 +36,8 @@ mixin ThemeConfigBase on ThemeConfigI {
   // static const _primaryColor = ColorField(nullable: true);
   // static const _secondaryColor = ColorField(nullable: true);
   // static const _tertiaryColor = ColorField(nullable: true);
-  // static const _surfaceColor = ColorField(nullable: true);
   // static const _errorColor = ColorField(nullable: true);
+  // static const _surfaceColor = ColorField(nullable: true);
 
   // TODO: 2 STYLE think well on how to expose button theme
   final double buttonRadiusX = 12;
@@ -54,14 +54,49 @@ class WaywingTheme {
   late final ThemeData themeDark = _getTheme(colorSchemeDark);
 
   ColorScheme _getColorScheme(Brightness brightness) {
-    final scheme = flex.SeedColorScheme.fromSeeds(
+    final tones = FlexTones.material(brightness);
+    final primaryKeyHct = Hct.fromInt(config.primaryColorKey.toARGB32());
+    const colorRotation = 60;
+    final secondaryKeyHct = config.secondaryColorKey != null
+        ? Hct.fromInt(config.secondaryColorKey!.toARGB32())
+        : primaryKeyHct.multTone(tones.secondaryTone / tones.primaryTone).addHue(colorRotation);
+    final tertiaryKeyHct = config.tertiaryColorKey != null
+        ? Hct.fromInt(config.tertiaryColorKey!.toARGB32())
+        : primaryKeyHct.multTone(tones.tertiaryTone / tones.primaryTone).addHue(colorRotation);
+    final errorKeyHct = config.errorColorKey != null
+        ? Hct.fromInt(config.errorColorKey!.toARGB32())
+        : primaryKeyHct.multTone(tones.errorTone / tones.primaryTone);
+    // TODO: 1 what to do with surface
+    // TODO: 1 what to do with colors not being adapted to dark/light mode now
+    final scheme = SeedColorScheme.fromSeeds(
+      // primary: config.primaryColorKey,
       brightness: brightness,
+      respectMonochromeSeed: true,
       primaryKey: config.primaryColorKey,
-      secondaryKey: config.secondaryColorKey,
-      tertiaryKey: config.tertiaryColorKey,
+      secondaryKey: config.secondaryColorKey ?? Color(secondaryKeyHct.toInt()),
+      tertiaryKey: config.tertiaryColorKey ?? Color(tertiaryKeyHct.toInt()),
       neutralKey: config.neutralColorKey,
       errorKey: config.errorColorKey,
+      tones: tones.copyWith(
+        primaryTone: primaryKeyHct.tone.toInt(),
+        primaryChroma: primaryKeyHct.chroma,
+        primaryMinChroma: 0,
+        secondaryTone: secondaryKeyHct.tone.toInt(),
+        secondaryChroma: secondaryKeyHct.chroma,
+        secondaryMinChroma: 0,
+        tertiaryTone: tertiaryKeyHct.tone.toInt(),
+        tertiaryChroma: tertiaryKeyHct.chroma,
+        tertiaryMinChroma: 0,
+        errorTone: errorKeyHct.tone.toInt(),
+        errorChroma: errorKeyHct.chroma,
+      ),
     );
+    print("------------------------");
+    print(Hct.fromInt(scheme.primary.value));
+    print(Hct.fromInt(scheme.secondary.value));
+    print(Hct.fromInt(scheme.tertiary.value));
+    print(Hct.fromInt(scheme.surface.value));
+    print(Hct.fromInt(scheme.error.value));
     return scheme.copyWith(
       surface: scheme.surface.withValues(alpha: config.backgroundTransparency),
     );
@@ -80,5 +115,44 @@ class WaywingTheme {
         color: Colors.grey.shade400.withValues(alpha: 0.66),
       ),
     );
+  }
+}
+
+extension HctMultiply on Hct {
+  Hct multTone(num v) {
+    return Hct.from(hue, chroma, tone * v);
+  }
+
+  Hct divTone(num v) {
+    return Hct.from(hue, chroma, tone / v);
+  }
+
+  Hct addHue(num v) {
+    return Hct.from(_addHue(hue, v), chroma, tone);
+  }
+
+  double _addHue(double hue, num v) {
+    var newHue = hue + v;
+    while (newHue > 360) {
+      newHue -= 360;
+    }
+    while (newHue < 0) {
+      newHue += 360;
+    }
+    // // avoid overlapping with errorColor
+    // const minProximityToError = 90;
+    // const errorColorHue = 25; // this shouldn't be const, take it from user input if specified
+    // final diffToError = newHue - errorColorHue;
+    // // this doesn't account for when it wraps around 1
+    // if (diffToError.isNegative) {
+    //   if (diffToError > -minProximityToError) {
+    //     newHue = _addHue(newHue, -minProximityToError - diffToError);
+    //   }
+    // } else {
+    //   if (diffToError < minProximityToError) {
+    //     newHue = _addHue(newHue, minProximityToError - diffToError);
+    //   }
+    // }
+    return newHue;
   }
 }

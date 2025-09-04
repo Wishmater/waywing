@@ -69,6 +69,10 @@ class NotificationService extends Service {
     await server.emitActivationToken(notification, token);
   }
 
+  Future<void> closeNotification(Notification notification) async {
+    await server.doCloseNotification(notification.id);
+  }
+
   Future<void> emitNotificationReplied(Notification notification, String text) async {
     await server.emitSignal("org.freedesktop.Notifications", "NotificationReplied", [
       DBusUint32(notification.id),

@@ -36,7 +36,7 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
           return MotionColumn(
             motion: mainConfig.motions.expressive.spatial.slow,
             mainAxisSize: MainAxisSize.min,
-            data: List.from(notifications),
+            data: List<ValueNotifier<Notification>>.from(notifications),
             itemBuilder: (context, noti) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: NotificationsWidget.spacing / 2),
@@ -86,16 +86,8 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
         return KeyboardFocus(
           mode: KeyboardFocusMode.onDemand,
           child: MouseRegion(
-            onEnter: timer == null
-                ? null
-                : (_) {
-                    timer.stop();
-                  },
-            onExit: timer == null
-                ? null
-                : (_) {
-                    timer.start();
-                  },
+            onEnter: timer == null ? null : (_) => timer.stop(),
+            onExit: timer == null ? null : (_) => timer.start(),
             child: NotificationInheritedWidget(
               notification,
               child: InputRegion(
@@ -142,26 +134,25 @@ class _RenderTitle extends StatelessWidget {
     final theme = Theme.of(context);
     final fontStyle = theme.textTheme.titleLarge;
     final fontSize = fontStyle?.fontSize;
+    final service = NotificationServiceInheritedWidget.of(context);
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        if (notification.appIcon.isNotEmpty) ...[
-          XdgIcon(
-            name: notification.appIcon,
-            size: fontSize?.floor(),
-            iconNotFoundBuilder: () => XdgIcon(
-              name: notification.appIcon,
-              size: fontSize?.floor(),
-            ),
-          ),
-          SizedBox(width: 10),
-        ],
-        if (notification.appIcon.isEmpty && notification.image != null) ...[
-          SizedBox(
-            height: fontSize,
-            width: fontSize,
-            child: Padding(
-              padding: const EdgeInsets.only(right: 5),
-              child: switch (notification.image!) {
+        Row(
+          spacing: 5,
+          children: [
+            if (notification.appIcon.isNotEmpty) ...[
+              XdgIcon(
+                name: notification.appIcon,
+                size: fontSize?.floor(),
+                iconNotFoundBuilder: () => XdgIcon(
+                  name: notification.appIcon,
+                  size: fontSize?.floor(),
+                ),
+              ),
+            ],
+            if (notification.appIcon.isEmpty && notification.image != null) ...[
+              switch (notification.image!) {
                 NotificationImageData image => FutureBuilder(
                   future: image.image,
                   builder: (context, snapshot) {
@@ -171,15 +162,20 @@ class _RenderTitle extends StatelessWidget {
                     if (snapshot.hasError) {
                       return SizedBox.shrink();
                     }
-                    return RawImage(image: snapshot.data!);
+                    return RawImage(image: snapshot.data!, height: fontSize);
                   },
                 ),
-                NotificationImagePath imagePath => Image.file(File(imagePath.path)),
+                NotificationImagePath imagePath => Image.file(File(imagePath.path), height: fontSize),
               },
-            ),
-          ),
-        ],
-        Text(notification.appName, style: fontStyle),
+            ],
+            Text(notification.appName, style: fontStyle),
+          ],
+        ),
+        IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () => service.closeNotification(notification),
+          iconSize: 15,
+        ),
       ],
     );
   }

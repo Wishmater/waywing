@@ -52,6 +52,7 @@ class KeyboardLayoutService extends Service {
     }
     throw StateError("X11/xkb/rules/evdev.lst file not found");
   }
+
   Future<void> _createLayout() async {
     _layouts = {};
     final xkbdataLines = (await _searchFile().readAsString()).split("\n");
@@ -97,7 +98,7 @@ class KeyboardLayoutService extends Service {
       }
 
       final data = json.decode(result.stdout) as Map<String, dynamic>;
-      final keyboards = data["keyboards"] as List<Map<String, dynamic>>?;
+      final keyboards = (data["keyboards"] as List?)?.cast<Map<String, dynamic>>();
       if (keyboards == null) {
         logger.error(
           "Keyboard layout service stop. hyprctl devices -j no keyboards detected",

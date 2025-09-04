@@ -35,7 +35,14 @@ class KeyboardLayoutFeather extends Feather {
     FeatherComponent(
       buildIndicators: (context, popover) {
         return [
-          SizedBox.shrink(),
+          ValueListenableBuilder(
+            valueListenable: service.layout,
+            builder: (context, layout, _) {
+              print("Layout: $layout");
+              print(service.availableLayouts.value);
+              return Text(layout);
+            },
+          ),
         ];
       },
     ),

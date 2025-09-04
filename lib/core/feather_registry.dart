@@ -7,6 +7,9 @@ import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
+import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
+import "package:waywing/modules/kb_layout/kb_layout_feather.dart";
+import "package:waywing/modules/kb_layout/num_lock_feather.dart";
 import "package:waywing/modules/nm/nm_feather.dart";
 import "package:waywing/modules/notification/notification_wing.dart";
 import "package:waywing/modules/session/session_feather.dart";
@@ -171,6 +174,9 @@ class FeatherRegistry {
     BatteryFeather.registerFeather(registerFeather);
     VolumeFeather.registerFeather(registerFeather);
     SessionFeather.registerFeather(registerFeather);
+    KeyboardLayoutFeather.registerFeather(registerFeather);
+    CapsLockFeather.registerFeather(registerFeather);
+    NumLockFeather.registerFeather(registerFeather);
   }
 }
 

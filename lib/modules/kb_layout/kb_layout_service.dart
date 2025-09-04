@@ -3,6 +3,7 @@ import "dart:convert";
 import "dart:io";
 
 import "package:flutter/foundation.dart" hide StringProperty;
+import "package:path/path.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
@@ -40,9 +41,20 @@ class KeyboardLayoutService extends Service {
   }
 
   late Map<String, String> _layouts;
+  File _searchFile() {
+    final path = "X11/xkb/rules/evdev.lst";
+    final dirs = (Platform.environment["XDG_DATA_DIRS"] ?? "/usr/local/share:/usr/share").split(":");
+    for (final dir in dirs) {
+      final file = File(join(dir, path));
+      if (file.existsSync()) {
+        return file;
+      }
+    }
+    throw StateError("X11/xkb/rules/evdev.lst file not found");
+  }
   Future<void> _createLayout() async {
     _layouts = {};
-    final xkbdataLines = (await File("/usr/share/X11/xkb/rules/evdev.lst").readAsString()).split("\n");
+    final xkbdataLines = (await _searchFile().readAsString()).split("\n");
     bool inLayout = false;
     for (String line in xkbdataLines) {
       line = line.trim();

@@ -54,7 +54,7 @@ class WaywingRouter {
   final Map<String, WaywingRouteCallback> _routes;
 
   WaywingRouter() : _routes = {} {
-    _routes["list"] = (_) {
+    _routes["list-actions"] = (_) {
       return (200, _routes.keys.join("\n").codeUnits);
     };
   }

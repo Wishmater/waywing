@@ -46,7 +46,7 @@ void main(List<String> args) async {
     mainConfig.socket ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing.sock"),
     mainLogger.clone(properties: [LogType("WaywingServer")]),
   );
-  await WaywingServer.instance.init();
+  WaywingServer.instance.init();
 
   WidgetsFlutterBinding.ensureInitialized();
   await setupMainWindow();

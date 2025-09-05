@@ -6,6 +6,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/application-launcher/launcher_wing.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
@@ -23,11 +24,13 @@ final featherRegistry = FeatherRegistry._();
 
 typedef FeatherConstructor<T extends Feather> = T Function();
 
+typedef FeatherRouteCallback = (int, List<int>) Function(Map<String, String> params, Feather feather);
+
 class FeatherRegistration<T extends Feather<Conf>, Conf> {
   final FeatherConstructor<T> constructor;
   final SchemaBuilder? schemaBuilder;
   final ConfigBuilder? configBuilder;
-  final Map<String, WaywingRouteCallback> actions;
+  final Map<String, FeatherRouteCallback> actions;
 
   FeatherRegistration({
     required this.constructor,
@@ -144,8 +147,11 @@ class FeatherRegistry {
     if (registration.configBuilder != null) {
       feather.config = registration.configBuilder!(rawMainConfig[feather.name]);
     }
+    // add feather rotues actions
     for (final entry in registration.actions.entries) {
-      WaywingServer.instance.router.register(join(feather.name, entry.key), entry.value);
+      WaywingServer.instance.router.register(join(feather.name, entry.key), (params) {
+        return entry.value(params, feather);
+      });
     }
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
@@ -157,6 +163,11 @@ class FeatherRegistry {
   Future<void> _disposeFeather(Feather feather) async {
     assert(_initializedFeathers.containsKey(feather), "Trying to remove a feather that is not in Feathers.all");
     _initializedFeathers.remove(feather);
+    final registration = _registeredFeathers[feather.name]!;
+    // remove feather routes
+    for (final entry in registration.actions.entries) {
+      WaywingServer.instance.router.unregister(join(feather.name, entry.key));
+    }
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
     featherRegistry._dereferenceFeather(feather.name);
     await feather.dispose();
@@ -174,6 +185,7 @@ class FeatherRegistry {
     // Wings
     BarWing.registerFeather(registerFeather);
     NotificationsWing.registerFeather(registerFeather);
+    AppLauncherWing.registerFeather(registerFeather);
     // Feathers
     ClockFeather.registerFeather(registerFeather);
     SystemTrayFeather.registerFeather(registerFeather);

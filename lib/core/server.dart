@@ -33,6 +33,9 @@ class WaywingServer {
   }
 
   Future<void> init() async {
+    if (await File(path).exists()) {
+      await File(path).delete();
+    }
     _server = await ServerSocket.bind(InternetAddress(path, type: InternetAddressType.unix), 0);
 
     await for (final socket in _server) {
@@ -59,9 +62,13 @@ class WaywingRouter {
     };
   }
 
-  register(String path, WaywingRouteCallback callback) {
+  void register(String path, WaywingRouteCallback callback) {
     assert(!_routes.containsKey(path), "trying to register an already register path: $path");
     _routes[path] = callback;
+  }
+
+  void unregister(String path) {
+    _routes.remove(path);
   }
 
   List<int> enroute(Uri url) {

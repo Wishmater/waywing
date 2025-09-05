@@ -455,11 +455,15 @@ class _NotificationAction extends StatelessWidget {
     final notification = NotificationInheritedWidget.of(context);
     if (identifierAreIcons) {
       // TODO: 2 STYLE this should use WingedButton
-      return MaterialButton(
+      return TextButton(
         onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            XdgIcon(name: action.key),
+            XdgIcon(
+              name: action.key,
+              iconNotFoundBuilder: () => SizedBox.shrink(),
+            ),
             Text(action.value),
           ],
         ),

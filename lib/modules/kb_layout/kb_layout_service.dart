@@ -80,61 +80,18 @@ class KeyboardLayoutService extends Service {
   @override
   Future<void> init() async {
     await _createLayout();
-
+    await _update();
     _timer = Timer.periodic(Duration(milliseconds: 300), (timer) async {
-      final result = await Process.run(
-        "hyprctl",
-        ["devices", "-j"],
-        stdoutEncoding: Utf8Codec(allowMalformed: true),
-      );
-
-      if (result.exitCode != 0) {
-        logger.error(
-          "Keyboard layout service stop. hyprctl devices -j returns non 0 exit code: ${result.exitCode}",
-          properties: [StringProperty(result.stderr), StringProperty(result.stdout)],
+      try {
+        await _update();
+      } catch (e, st) {
+        _timer.cancel();
+        logger.log(
+          Level.error,
+          "Error while processing scheduled update. Cancelling further updates.",
+          error: e,
+          stackTrace: st,
         );
-        timer.cancel();
-        return;
-      }
-
-      final data = json.decode(result.stdout) as Map<String, dynamic>;
-      final keyboards = (data["keyboards"] as List?)?.cast<Map<String, dynamic>>();
-      if (keyboards == null) {
-        logger.error(
-          "Keyboard layout service stop. hyprctl devices -j no keyboards detected",
-          properties: [StringProperty(result.stdout)],
-        );
-        timer.cancel();
-        return;
-      }
-
-      for (final keyboard in keyboards) {
-        assert(keyboard["main"] != null);
-        if (keyboard["main"] == true) {
-          capsLockActive.value = keyboard["capsLock"] as bool? ?? false;
-          numsLockActive.value = keyboard["numLock"] as bool? ?? false;
-
-          _activeKeyboardName = keyboard["name"];
-          final layouts = (keyboard["layout"] as String).split(",");
-          final humanReadableName = keyboard["active_keymap"] as String;
-          _layoutIndexes.clear();
-
-          int count = 0;
-          List<String> newLayouts = [];
-          for (final layout in layouts) {
-            _layoutIndexes[layout] = count;
-            count++;
-            newLayouts.add(layout);
-
-            if (_layouts[layout] == humanReadableName) {
-              this.layout.value = layout;
-            }
-          }
-          if (!listEquals(availableLayouts.value, newLayouts)) {
-            availableLayouts.value = newLayouts;
-          }
-          break;
-        }
       }
     });
   }
@@ -143,5 +100,62 @@ class KeyboardLayoutService extends Service {
   Future<void> dispose() async {
     _timer.cancel();
     layout.dispose();
+  }
+
+  Future<void> _update() async {
+    final result = await Process.run(
+      "hyprctl",
+      ["devices", "-j"],
+      stdoutEncoding: Utf8Codec(allowMalformed: true),
+    );
+
+    if (result.exitCode != 0) {
+      throw Exception(
+        "Keyboard layout service stop. hyprctl devices -j returns non 0 exit code: ${result.exitCode}",
+        // properties: [StringProperty(result.stderr), StringProperty(result.stdout)],
+        // TODO: 2 implement a feature in logging lib that allows throwing an error with properties that
+        // will be added to the log when an error of that type is received
+      );
+    }
+
+    final data = json.decode(result.stdout) as Map<String, dynamic>;
+    final keyboards = (data["keyboards"] as List?)?.cast<Map<String, dynamic>>();
+    if (keyboards == null) {
+      throw Exception(
+        "Keyboard layout service stop. hyprctl devices -j no keyboards detected",
+        // properties: [StringProperty(result.stdout)],
+        // TODO: 2 implement a feature in logging lib that allows throwing an error with properties that
+        // will be added to the log when an error of that type is received
+      );
+    }
+
+    for (final keyboard in keyboards) {
+      assert(keyboard["main"] != null);
+      if (keyboard["main"] == true) {
+        capsLockActive.value = keyboard["capsLock"] as bool? ?? false;
+        numsLockActive.value = keyboard["numLock"] as bool? ?? false;
+
+        _activeKeyboardName = keyboard["name"];
+        final layouts = (keyboard["layout"] as String).split(",");
+        final humanReadableName = keyboard["active_keymap"] as String;
+        _layoutIndexes.clear();
+
+        int count = 0;
+        List<String> newLayouts = [];
+        for (final layout in layouts) {
+          _layoutIndexes[layout] = count;
+          count++;
+          newLayouts.add(layout);
+
+          if (_layouts[layout] == humanReadableName) {
+            this.layout.value = layout;
+          }
+        }
+        if (!listEquals(availableLayouts.value, newLayouts)) {
+          availableLayouts.value = newLayouts;
+        }
+        break;
+      }
+    }
   }
 }

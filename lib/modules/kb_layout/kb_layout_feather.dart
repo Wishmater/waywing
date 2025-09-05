@@ -6,12 +6,13 @@ import "package:flutter_font_icons/flutter_font_icons.dart" show MaterialCommuni
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 
 class KeyboardLayoutFeather extends Feather {
-  late KeyboardLayoutService service;
+  late final KeyboardLayoutService service;
 
   KeyboardLayoutFeather._();
 
@@ -37,10 +38,35 @@ class KeyboardLayoutFeather extends Feather {
     FeatherComponent(
       buildIndicators: (context, popover) {
         return [
-          ValueListenableBuilder(
-            valueListenable: service.layout,
-            builder: (context, layout, _) {
-              return LayoutBuilder(
+          KeyboardLayoutIndicator(service: service),
+          // TODO: 2 implement tooltip showing full selected layout name and popover showing picker
+        ];
+      },
+    ),
+  ]);
+}
+
+class KeyboardLayoutIndicator extends StatelessWidget {
+  final KeyboardLayoutService service;
+
+  const KeyboardLayoutIndicator({
+    required this.service,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: service.availableLayouts,
+      builder: (context, availableLayouts, child) {
+        return ValueListenableBuilder(
+          valueListenable: service.layout,
+          builder: (context, layout, _) {
+            final theme = Theme.of(context);
+            return SplashPulse(
+              pulsing: availableLayouts.indexOf(layout) > 0,
+              color: theme.colorScheme.error.withValues(alpha: 0.5),
+              child: LayoutBuilder(
                 builder: (context, constraints) {
                   // final isVertical = constraints.maxHeight > constraints.maxWidth;
                   return WingedButton(
@@ -49,20 +75,27 @@ class KeyboardLayoutFeather extends Feather {
                     // },
                     child: Column(
                       children: [
-                        Icon(
-                          MaterialCommunityIcons.keyboard_variant,
-                          size: Theme.of(context).textTheme.bodyMedium!.fontSize,
+                        Text(
+                          layout,
+                          style: theme.textTheme.bodyMedium!.copyWith(height: 0.1),
                         ),
-                        Text(layout),
+                        Transform.translate(
+                          offset: Offset(0, 4),
+                          child: Icon(
+                            MaterialCommunityIcons.keyboard_variant,
+                            size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
+                            color: theme.textTheme.bodyMedium!.color,
+                          ),
+                        ),
                       ],
                     ),
                   );
                 },
-              );
-            },
-          ),
-        ];
+              ),
+            );
+          },
+        );
       },
-    ),
-  ]);
+    );
+  }
 }

@@ -350,6 +350,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     }
   }
 
+  // TODO: 1 ignore pointer and focus for outgoing clients
+
   late Widget _lastContent;
   void _triggerContentAnimation(WingedPopoverState oldHost) {
     Offset? targetContentOffset;
@@ -605,10 +607,12 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               motion: motion,
               left: childPosition.dx,
               top: childPosition.dy,
-              // TODO: 2 ANIMATIONS maybe we should stop animationg width/height changes when not animationg
+              // TODO: 1 ANIMATIONS maybe we should stop animationg width/height changes when not animating
               // in/out and just leave that as the content's responsibility to implement. If implemented in
               // the content, animations can be more custom and exact, and if implemented both here and in
-              // content, it can have weird interactions (which happens now)
+              // content, it can have weird interactions (which happens now). We should also stop animationg
+              // position so it "sticks" to the host if the host moves
+              // (maybe leave both of tjese as separate options)
               width: childSize.width,
               height: childSize.height,
               minLeft: minLeft,

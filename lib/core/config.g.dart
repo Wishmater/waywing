@@ -10,6 +10,7 @@ part of 'config.dart';
 mixin MainConfigI {
   int get monitor;
   List<Wing<dynamic>> get wings;
+  String? get socket;
   double get animationSpeed;
   double get animationDamping;
   AnimationFitting get animationFitting;
@@ -19,6 +20,7 @@ mixin MainConfigI {
 class MainConfig with MainConfigI, MainConfigBase {
   final int monitor;
   final List<Wing<dynamic>> wings;
+  final String? socket;
   final double animationSpeed;
   final double animationDamping;
   final AnimationFitting animationFitting;
@@ -27,6 +29,7 @@ class MainConfig with MainConfigI, MainConfigBase {
   MainConfig({
     int? monitor,
     List<Wing<dynamic>>? wings,
+    this.socket,
     double? animationSpeed,
     double? animationDamping,
     AnimationFitting? animationFitting,
@@ -42,6 +45,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     return MainConfig(
       monitor: map['monitor'],
       wings: map['wings'],
+      socket: map['socket'],
       animationSpeed: map['animationSpeed'],
       animationDamping: map['animationDamping'],
       animationFitting: map['animationFitting'],
@@ -54,6 +58,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     fields: {
       'monitor': MainConfigBase._monitor,
       'wings': MainConfigBase._wings,
+      'socket': MainConfigBase._socket,
       'animationSpeed': MainConfigBase._animationSpeed,
       'animationDamping': MainConfigBase._animationDamping,
       'animationFitting': MainConfigBase._animationFitting,
@@ -63,13 +68,14 @@ class MainConfig with MainConfigI, MainConfigBase {
 
   @override
   String toString() {
-    return 'MainConfigmonitor = $monitor, wings = $wings, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, requestKeyboardFocus = $requestKeyboardFocus';
+    return 'MainConfigmonitor = $monitor, wings = $wings, socket = $socket, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, requestKeyboardFocus = $requestKeyboardFocus';
   }
 
   @override
   bool operator ==(covariant MainConfig other) {
     return monitor == other.monitor &&
         wings == other.wings &&
+        socket == other.socket &&
         animationSpeed == other.animationSpeed &&
         animationDamping == other.animationDamping &&
         animationFitting == other.animationFitting &&
@@ -80,6 +86,7 @@ class MainConfig with MainConfigI, MainConfigBase {
   int get hashCode => Object.hashAll([
     monitor,
     wings,
+    socket,
     animationSpeed,
     animationDamping,
     animationFitting,

@@ -1,11 +1,15 @@
 // ignore_for_file: prefer_single_quotes
 
+import "dart:io";
+
 import "package:args/args.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
+import "package:path/path.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/theme.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
@@ -37,6 +41,13 @@ void main(List<String> args) async {
 
   initializeLogger();
   await reloadConfig(await getConfigurationString());
+
+  WaywingServer.create(
+    mainConfig.socket ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing.sock"),
+    mainLogger.clone(properties: [LogType("WaywingServer")]),
+  );
+  await WaywingServer.instance.init();
+
   WidgetsFlutterBinding.ensureInitialized();
   await setupMainWindow();
 

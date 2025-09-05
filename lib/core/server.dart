@@ -28,9 +28,8 @@ class WaywingServer {
   static WaywingServer get instance => _instance!;
 
   WaywingServer._(this.path, this.logger) : router = WaywingRouter();
-  factory WaywingServer(String path, Logger logger) {
+  static void create(String path, Logger logger) {
     _instance ??= WaywingServer._(path, logger);
-    return _instance!;
   }
 
   Future<void> init() async {
@@ -42,28 +41,34 @@ class WaywingServer {
         for (final line in lines) {
           final uri = Uri.parse(line);
           socket.add(router.enroute(uri));
+          socket.add("\n".codeUnits);
         }
       });
     }
   }
 }
 
-typedef WaywingRouteCallback = (int, Uint8List) Function(Map<String, String> params);
+typedef WaywingRouteCallback = (int, List<int>) Function(Map<String, String> params);
 
 class WaywingRouter {
   final Map<String, WaywingRouteCallback> _routes;
 
-  WaywingRouter() : _routes = {};
+  WaywingRouter() : _routes = {} {
+    _routes["list"] = (_) {
+      return (200, _routes.keys.join("\n").codeUnits);
+    };
+  }
 
   register(String path, WaywingRouteCallback callback) {
     assert(!_routes.containsKey(path), "trying to register an already register path: $path");
     _routes[path] = callback;
   }
 
-  Uint8List enroute(Uri url) {
+  List<int> enroute(Uri url) {
     final result = _routes[url.path]?.call(url.queryParameters);
     if (result != null) {
-      final response = Uint8List.fromList("${result.$1}\n".codeUnits);
+      final response = <int>[];
+      response.addAll("${result.$1}\n".codeUnits);
       response.addAll(result.$2);
       return response;
     } else {
@@ -71,5 +76,5 @@ class WaywingRouter {
     }
   }
 
-  static final Uint8List _notFound = Uint8List.fromList("404\n".codeUnits);
+  static final Uint8List _notFound = Uint8List.fromList("404".codeUnits);
 }

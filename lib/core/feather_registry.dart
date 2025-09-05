@@ -1,6 +1,7 @@
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
+import "package:path/path.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/server.dart";
@@ -26,13 +27,13 @@ class FeatherRegistration<T extends Feather<Conf>, Conf> {
   final FeatherConstructor<T> constructor;
   final SchemaBuilder? schemaBuilder;
   final ConfigBuilder? configBuilder;
-  final List<WaywingRouteCallback> actions;
+  final Map<String, WaywingRouteCallback> actions;
 
   FeatherRegistration({
     required this.constructor,
     this.schemaBuilder,
     this.configBuilder,
-    this.actions = const [],
+    this.actions = const {},
   }) : assert(schemaBuilder == null && configBuilder == null || schemaBuilder != null && configBuilder != null);
 }
 
@@ -142,6 +143,9 @@ class FeatherRegistry {
     final registration = _registeredFeathers[feather.name]!;
     if (registration.configBuilder != null) {
       feather.config = registration.configBuilder!(rawMainConfig[feather.name]);
+    }
+    for (final entry in registration.actions.entries) {
+      WaywingServer.instance.router.register(join(feather.name, entry.key), entry.value);
     }
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;

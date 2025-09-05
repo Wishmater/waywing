@@ -69,11 +69,15 @@ class KeyboardLayoutIndicator extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // final isVertical = constraints.maxHeight > constraints.maxWidth;
-                  return WingedButton(
-                    // onTap: () {
-                    //   popover.togglePopover();
-                    // },
-                    child: Column(
+                  final icon = Icon(
+                    MaterialCommunityIcons.keyboard_variant,
+                    size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
+                    color: theme.textTheme.bodyMedium!.color,
+                  );
+                  final Widget content;
+                  if (constraints.maxHeight >= 40) {
+                    content = Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           layout,
@@ -81,14 +85,27 @@ class KeyboardLayoutIndicator extends StatelessWidget {
                         ),
                         Transform.translate(
                           offset: Offset(0, 4),
-                          child: Icon(
-                            MaterialCommunityIcons.keyboard_variant,
-                            size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
-                            color: theme.textTheme.bodyMedium!.color,
-                          ),
+                          child: icon,
                         ),
                       ],
-                    ),
+                    );
+                  } else {
+                    content = Row(
+                      children: [
+                        Transform.translate(
+                          offset: Offset(0, 1),
+                          child: icon,
+                        ),
+                        SizedBox(width: 2),
+                        Text(layout, style: theme.textTheme.bodyMedium),
+                      ],
+                    );
+                  }
+                  return WingedButton(
+                    // onTap: () {
+                    //   popover.togglePopover();
+                    // },
+                    child: content,
                   );
                 },
               ),

@@ -150,6 +150,9 @@ class _SplashPulseState extends State<SplashPulse> {
         _init();
       } else {
         splashTimer.cancel();
+        for (final splash in _splashes) {
+          splash.cancel();
+        }
       }
     }
     // TODO: 3 update the rest of the arguments if they change: color, interval

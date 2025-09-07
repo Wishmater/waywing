@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/wing.dart";
+import "package:waywing/modules/application-launcher/launcher_widget.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 
 class AppLauncherWing extends Wing {
@@ -53,7 +54,7 @@ class AppLauncherWing extends Wing {
             return SizedBox.shrink();
           }
         },
-        child: Container(color: Colors.blue, height: 400, width: 400, child: TextFormField()),
+        child: LauncherWidget(),
       ),
     );
   }

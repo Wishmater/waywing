@@ -39,11 +39,11 @@ void main(List<String> args) async {
   }
   customConfigPath = results["config"];
 
-  initializeLogger();
+  await initializeLogger();
   await reloadConfig(await getConfigurationString());
 
   WaywingServer.create(
-    mainConfig.socket ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing.sock"),
+    mainConfig.socket ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "waywing.sock"),
     mainLogger.clone(properties: [LogType("WaywingServer")]),
   );
   WaywingServer.instance.init();

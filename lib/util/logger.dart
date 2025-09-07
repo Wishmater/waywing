@@ -1,6 +1,10 @@
+import "dart:io";
+
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx.dart";
+import "package:flutter/foundation.dart";
+import "package:path/path.dart";
 import "package:tronco/tronco.dart";
 import "package:chalkdart/chalk.dart";
 
@@ -12,17 +16,20 @@ late Logger mainLogger;
 mixin LoggingConfigBase on LoggingConfigI {
   static const _levelFilter = EnumField(Level.values, defaultTo: Level.info);
   static const _typeLevelFilters = MapField(StringField(), EnumField(Level.values), defaultTo: <String, Level>{});
+  static const _output = StringField(nullable: true);
 }
 
-void initializeLogger() {
+Future<void> initializeLogger() async {
   mainLogger = Logger(
-    output: ConsoleOutput(),
+    output: Output(null),
     printer: Printer(),
     filter: Filter(Level.info, {}),
   );
+  await mainLogger.init();
 }
 
 void updateLoggerConfig(LoggingConfig config) {
+  (mainLogger.output.value as Output).filePath = config.output;
   (mainLogger.filter.value as Filter)._defaultLevel = config.levelFilter;
   (mainLogger.filter.value as Filter)._types = config.typeLevelFilters.mapKeys((e) => LogType(e.key));
 }
@@ -70,6 +77,76 @@ class Filter extends LogFilter {
       return true;
     }
     return event.level >= defaultLevel;
+  }
+}
+
+class FileOutput extends LogOutput {
+  late final RandomAccessFile _file;
+  final String path;
+  FileOutput(this.path);
+
+  @override
+  Future<void> init() async {
+    await File(path).parent.create(recursive: true);
+    _file = File(path).openSync(mode: FileMode.writeOnlyAppend);
+  }
+
+  @override
+  void output(OutputEvent event) {
+    for (final line in event.lines) {
+      _file.writeFromSync(line.codeUnits);
+    }
+  }
+
+  @override
+  Future<void> destroy() async {
+    await _file.close();
+  }
+}
+
+class Output extends LogOutput {
+  String? _filePath;
+  set filePath(String? v) {
+    if (_filePath == v) return;
+
+    _filePath = v;
+    if (v == null) {
+      _fileOutput?.destroy();
+      _fileOutput = kReleaseMode ? FileOutput(join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "log")) : null;
+    } else {
+      _fileOutput?.destroy();
+      _fileOutput = FileOutput(v);
+    }
+  }
+
+  FileOutput? _fileOutput;
+  final ConsoleOutput? _consoleOutput;
+
+  Output(this._filePath)
+    : _consoleOutput = kReleaseMode ? null : ConsoleOutput(),
+      _fileOutput = kReleaseMode || _filePath != null
+          ? FileOutput(_filePath ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "log"))
+          : null;
+
+  @override
+  Future<void> init() async {
+    _fileOutput?.init();
+    _consoleOutput?.init();
+  }
+
+  @override
+  Future<void> destroy() async {
+    _fileOutput?.destroy();
+    _consoleOutput?.destroy();
+  }
+
+  @override
+  void output(OutputEvent event) {
+    if (_fileOutput != null) {
+      _fileOutput!.output(event);
+    } else {
+      _consoleOutput!.output(event);
+    }
   }
 }
 

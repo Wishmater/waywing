@@ -36,6 +36,8 @@ class WaywingServer {
     if (await File(path).exists()) {
       await File(path).delete();
     }
+    await File(path).parent.create(recursive: true);
+
     _server = await ServerSocket.bind(InternetAddress(path, type: InternetAddressType.unix), 0);
 
     await for (final socket in _server) {

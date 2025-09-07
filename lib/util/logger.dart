@@ -80,6 +80,7 @@ class Filter extends LogFilter {
   }
 }
 
+// TODO 3.. create a buffered implementation for a performance gain oportunity
 class FileOutput extends LogOutput {
   late final RandomAccessFile _file;
   final String path;
@@ -95,7 +96,9 @@ class FileOutput extends LogOutput {
   void output(OutputEvent event) {
     for (final line in event.lines) {
       _file.writeFromSync(line.codeUnits);
+      _file.writeByteSync(10); // write newline character
     }
+    _file.flushSync();
   }
 
   @override

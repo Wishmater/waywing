@@ -1,7 +1,7 @@
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 
-part "nm_config.g.dart";
+part "nm_config.config.dart";
 
 @Config()
 mixin NetworkManagerConfigBase on NetworkManagerConfigI {

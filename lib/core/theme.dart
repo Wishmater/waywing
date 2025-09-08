@@ -4,7 +4,7 @@ import "package:flutter/material.dart";
 import "package:flex_seed_scheme/flex_seed_scheme.dart";
 import "package:waywing/util/config_fields.dart";
 
-part "theme.g.dart";
+part "theme.config.dart";
 
 @Config()
 mixin ThemeConfigBase on ThemeConfigI {

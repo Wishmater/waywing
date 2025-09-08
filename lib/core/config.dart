@@ -18,7 +18,17 @@ import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
 
-part "config.g.dart";
+part "config.config.dart";
+
+final _dataHome = Platform.environment["XDG_DATA_HOME"] ?? path.join(Platform.environment["HOME"]!, ".local/share");
+Directory? _mainDataDir;
+Directory get mainDataDir {
+  if (_mainDataDir == null) {
+    _mainDataDir = Directory(path.join(_dataHome, "waywing "));
+    _mainDataDir!.createSync();
+  }
+  return _mainDataDir!;
+}
 
 final _logger = mainLogger.clone(properties: [LogType("Config")]);
 

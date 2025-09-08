@@ -5,7 +5,7 @@ import "package:flutter/painting.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/util/config_fields.dart";
 
-part "bar_config.g.dart";
+part "bar_config.config.dart";
 
 @Config()
 mixin BarConfigBase on BarConfigI {

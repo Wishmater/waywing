@@ -1,6 +1,10 @@
+import "dart:io";
+
 import "package:flutter/foundation.dart";
 import "package:flutter/widgets.dart";
+import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
@@ -13,6 +17,16 @@ abstract class Feather<Conf> {
   late Conf config;
 
   String get name;
+
+  Directory? _dataDir;
+  /// Feathear directory where any kind of runtime data can be set
+  Directory get dataDir {
+    if (_dataDir == null) {
+      _dataDir = Directory(path.join(mainDataDir.path, "feather", name));
+      _dataDir!.createSync(recursive: true);
+    }
+    return _dataDir!;
+  }
 
   @override
   bool operator ==(Object other) => other is Feather && name == other.name;

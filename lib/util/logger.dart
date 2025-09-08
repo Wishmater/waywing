@@ -8,7 +8,7 @@ import "package:path/path.dart";
 import "package:tronco/tronco.dart";
 import "package:chalkdart/chalk.dart";
 
-part "logger.g.dart";
+part "logger.config.dart";
 
 late Logger mainLogger;
 

@@ -65,10 +65,12 @@ class WaywingTheme {
     final errorKeyHct = config.errorColor != null
         ? Hct.fromInt(config.errorColor!.toARGB32())
         : primaryKeyHct.multTone(tones.errorTone / tones.primaryTone);
-    double surfaceToneMultiplier = 1;
+    // double surfaceToneMultiplier = 1;
+    double surfaceToneDiff = 1;
     if (config.backgroundColor != null) {
       final surfaceHct = Hct.fromInt(config.backgroundColor!.toARGB32());
-      surfaceToneMultiplier = surfaceHct.tone / tones.surfaceTone;
+      // surfaceToneMultiplier = surfaceHct.tone / tones.surfaceTone;
+      surfaceToneDiff = surfaceHct.tone - tones.surfaceTone;
     }
 
     // TODO: 2 STYLE what to do with colors not being adapted to dark/light mode now?
@@ -102,15 +104,24 @@ class WaywingTheme {
         // errorMinChroma: 0, // we DO want error to have a min chroma value
 
         // make all surfaces darker/lighter to match the declared surface color
-        surfaceContainerTone: (tones.surfaceContainerTone * surfaceToneMultiplier).round(),
-        surfaceContainerLowTone: (tones.surfaceContainerLowTone * surfaceToneMultiplier).round(),
-        surfaceContainerLowestTone: (tones.surfaceContainerLowestTone * surfaceToneMultiplier).round(),
-        surfaceContainerHighTone: (tones.surfaceContainerHighTone * surfaceToneMultiplier).round(),
-        surfaceContainerHighestTone: (tones.surfaceContainerHighestTone * surfaceToneMultiplier).round(),
-        surfaceDimTone: (tones.surfaceDimTone * surfaceToneMultiplier).round(),
-        surfaceBrightTone: (tones.surfaceBrightTone * surfaceToneMultiplier).round(),
-        surfaceTintTone: (tones.surfaceTintTone * surfaceToneMultiplier).round(),
-        inverseSurfaceTone: (tones.inverseSurfaceTone * surfaceToneMultiplier).round(),
+        surfaceContainerTone: (tones.surfaceContainerTone + surfaceToneDiff).round(),
+        surfaceContainerLowTone: (tones.surfaceContainerLowTone + surfaceToneDiff).round(),
+        surfaceContainerLowestTone: (tones.surfaceContainerLowestTone + surfaceToneDiff).round(),
+        surfaceContainerHighTone: (tones.surfaceContainerHighTone + surfaceToneDiff).round(),
+        surfaceContainerHighestTone: (tones.surfaceContainerHighestTone + surfaceToneDiff).round(),
+        surfaceDimTone: (tones.surfaceDimTone + surfaceToneDiff).round(),
+        surfaceBrightTone: (tones.surfaceBrightTone + surfaceToneDiff).round(),
+        surfaceTintTone: (tones.surfaceTintTone + surfaceToneDiff).round(),
+        inverseSurfaceTone: (tones.inverseSurfaceTone + surfaceToneDiff).round(),
+        // surfaceContainerTone: (tones.surfaceContainerTone * surfaceToneMultiplier).round(),
+        // surfaceContainerLowTone: (tones.surfaceContainerLowTone * surfaceToneMultiplier).round(),
+        // surfaceContainerLowestTone: (tones.surfaceContainerLowestTone * surfaceToneMultiplier).round(),
+        // surfaceContainerHighTone: (tones.surfaceContainerHighTone * surfaceToneMultiplier).round(),
+        // surfaceContainerHighestTone: (tones.surfaceContainerHighestTone * surfaceToneMultiplier).round(),
+        // surfaceDimTone: (tones.surfaceDimTone * surfaceToneMultiplier).round(),
+        // surfaceBrightTone: (tones.surfaceBrightTone * surfaceToneMultiplier).round(),
+        // surfaceTintTone: (tones.surfaceTintTone * surfaceToneMultiplier).round(),
+        // inverseSurfaceTone: (tones.inverseSurfaceTone * surfaceToneMultiplier).round(),
       ),
     );
 

@@ -136,6 +136,8 @@ class WaywingTheme {
       splashFactory: InkSparkle.splashFactory,
       splashColor: colorScheme.primary.withValues(alpha: 0.25),
       highlightColor: Colors.transparent,
+      hoverColor: colorScheme.onSurface.withValues(alpha: 0.04),
+      focusColor: colorScheme.onSurface.withValues(alpha: 0.08),
       buttonTheme: ButtonThemeData(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       ),

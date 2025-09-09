@@ -334,10 +334,12 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       converter: OffsetMotionConverter(),
       initialValue: initialOffset,
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      focusNode.requestFocus();
-    });
+    if (!widget.isTooltip) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        focusNode.requestFocus();
+      });
+    }
   }
 
   @override

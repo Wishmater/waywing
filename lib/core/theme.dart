@@ -27,7 +27,19 @@ mixin ThemeConfigBase on ThemeConfigI {
     if (value >= 0 && value <= 1) {
       return ValidatorSuccess();
     } else {
-      return ValidatorError(MyValError("Background transparency should be between 0 and 1 but was $value"));
+      return ValidatorError(MyValError("Background transparency should be between 0 and 1, but was $value"));
+    }
+  }
+
+  static const _shadows = DoubleNumberField(
+    defaultTo: 1.0,
+    validator: _shadowsValidator,
+  );
+  static ValidatorResult<double> _shadowsValidator(value) {
+    if (value >= 0) {
+      return ValidatorSuccess();
+    } else {
+      return ValidatorError(MyValError("Shadows value should be greater than or equal to 0, but was $value"));
     }
   }
 
@@ -39,8 +51,6 @@ mixin ThemeConfigBase on ThemeConfigI {
   // This should affect: buttons, popovers / tooltips, and Bar (if not overriden in the bar config)
   final double buttonRadiusX = 12;
   final double buttonRadiusY = 12;
-
-  // TODO: 1 STYLE splash theming (maybe allow aplying color to it), and by default lower highlight color opacity.
 }
 
 class WaywingTheme {
@@ -87,8 +97,8 @@ class WaywingTheme {
       final surfaceHct = Hct.fromInt(config.backgroundColor!.toARGB32());
       final surfaceToneMultiplier = surfaceHct.tone / tones.surfaceTone;
       final surfaceToneDiff = surfaceHct.tone - tones.surfaceTone;
-      // // we use multiplier only for lowest, which is closer to zero, this should probably be
-      // // the other way around for light theme
+      // // we use multiplier only for lowest, which is closer than surface to zero in dark mode (or max for light mode),
+      // // the rest need to be addition, otherwise they can scale to be too bright in dark mode (or too dark in light mode)
       // surfaceContainerLowestTone = tones.surfaceContainerLowestTone + surfaceToneDiff;
       surfaceContainerLowestTone = tones.surfaceContainerLowestTone * surfaceToneMultiplier;
       surfaceContainerLowest = Color(Hct.from(surfaceHct.hue, surfaceHct.chroma, surfaceContainerLowestTone).toInt());
@@ -104,6 +114,7 @@ class WaywingTheme {
       surfaceContainerHighestTone = tones.surfaceContainerHighestTone + surfaceToneDiff;
       // surfaceContainerHighestTone = tones.surfaceContainerHighestTone * surfaceToneMultiplier;
       surfaceContainerHighest = Color(Hct.from(surfaceHct.hue, surfaceHct.chroma, surfaceContainerHighestTone).toInt());
+      // // we don't specify a set color for these, we only set the tone so they get the default material "tint"
       surfaceDimTone = tones.surfaceDimTone + surfaceToneDiff;
       // surfaceDimTone = tones.surfaceDimTone * surfaceToneMultiplier;
       // surfaceDim = Color(Hct.from(surfaceHct.hue, surfaceHct.chroma, surfaceDimTone).toInt());
@@ -194,7 +205,7 @@ class WaywingTheme {
       splashColor: colorScheme.primary.withValues(alpha: 0.25),
       highlightColor: Colors.transparent,
       hoverColor: colorScheme.onSurface.withValues(alpha: 0.04),
-      focusColor: colorScheme.onSurface.withValues(alpha: 0.08),
+      focusColor: colorScheme.onSurface.withValues(alpha: colorScheme.brightness == Brightness.light ? 0.12 : 0.08),
       buttonTheme: ButtonThemeData(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       ),

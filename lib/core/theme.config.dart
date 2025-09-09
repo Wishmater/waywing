@@ -17,6 +17,7 @@ mixin ThemeConfigI {
   MyColor? get backgroundColor;
   MyColor? get foregroundColor;
   double get backgroundOpacity;
+  double get shadows;
 }
 
 class ThemeConfig with ThemeConfigI, ThemeConfigBase {
@@ -29,6 +30,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   final MyColor? backgroundColor;
   final MyColor? foregroundColor;
   final double backgroundOpacity;
+  final double shadows;
 
   ThemeConfig({
     ThemeMode? mode,
@@ -40,9 +42,11 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     this.backgroundColor,
     this.foregroundColor,
     double? backgroundOpacity,
+    double? shadows,
   }) : mode = mode ?? ThemeMode.system,
        primaryColor = primaryColor ?? MyColor(0xFF2196F3),
-       backgroundOpacity = backgroundOpacity ?? 1.0;
+       backgroundOpacity = backgroundOpacity ?? 1.0,
+       shadows = shadows ?? 1.0;
 
   factory ThemeConfig.fromMap(Map<String, dynamic> map) {
     return ThemeConfig(
@@ -55,6 +59,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       backgroundColor: map['backgroundColor'],
       foregroundColor: map['foregroundColor'],
       backgroundOpacity: map['backgroundOpacity'],
+      shadows: map['shadows'],
     );
   }
 
@@ -69,12 +74,13 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       'backgroundColor': ThemeConfigBase._backgroundColor,
       'foregroundColor': ThemeConfigBase._foregroundColor,
       'backgroundOpacity': ThemeConfigBase._backgroundOpacity,
+      'shadows': ThemeConfigBase._shadows,
     },
   );
 
   @override
   String toString() {
-    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity';
+    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows';
   }
 
   @override
@@ -87,7 +93,8 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
         errorColor == other.errorColor &&
         backgroundColor == other.backgroundColor &&
         foregroundColor == other.foregroundColor &&
-        backgroundOpacity == other.backgroundOpacity;
+        backgroundOpacity == other.backgroundOpacity &&
+        shadows == other.shadows;
   }
 
   @override
@@ -101,5 +108,6 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     backgroundColor,
     foregroundColor,
     backgroundOpacity,
+    shadows,
   ]);
 }

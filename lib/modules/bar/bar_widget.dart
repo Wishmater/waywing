@@ -119,7 +119,8 @@ class _BarState extends State<Bar> {
               child: WingedContainer(
                 // animationDuration: config.animationDuration * 1.5,
                 clipBehavior: Clip.antiAliasWithSaveLayer,
-                elevation: 6, // TODO: 2 expose bar elevation theme option to user
+                elevation: 5,
+                shadowOffset: getShadowOffset(),
                 shape: shape,
                 // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
                 // this should also solve the issue of widgets being disposed when switching vertical
@@ -483,7 +484,8 @@ class _BarState extends State<Bar> {
   }) {
     return WingedContainer(
       motion: motion,
-      elevation: 4, // TODO: 2 expose popover elevation theme option to user
+      elevation: 3.5,
+      shadowOffset: getShadowOffset(),
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shape: shape,
       color: isTooltip
@@ -491,6 +493,15 @@ class _BarState extends State<Bar> {
           : Theme.of(context).colorScheme.surfaceContainerLowest,
       child: child,
     );
+  }
+
+  Offset getShadowOffset() {
+    return switch (widget.config.side) {
+      ScreenEdge.top => Offset(0.66, 1),
+      ScreenEdge.bottom => Offset(0.66, -1),
+      ScreenEdge.left => Offset(1, 0.66),
+      ScreenEdge.right => Offset(-1, 0.66),
+    };
   }
 
   /// hides widget if component.isIndicatorsVisible is false

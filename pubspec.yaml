@@ -80,12 +80,18 @@ dependencies:
       ref: ed2dcce81c8e2031192f23c5925209ab7e0da6dc
   # plays audio in notifications
   audioplayers: ^6.5.0
+  sembast: ^3.8.5+1
+  freezed_annotation: ^3.1.0
+  collection: ^1.19.1
+  json_annotation: ^4.9.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  build_runner: ^2.6.0
+  build_runner: ^2.7.1
+  freezed: ^3.2.0
+  json_serializable: ^6.11.1
 
 flutter:
   uses-material-design: true

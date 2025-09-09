@@ -284,25 +284,25 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "fc6264fa2b3d7fa7684c4157f19dca617f6e23c0",
-        "resolved-ref": "fc6264fa2b3d7fa7684c4157f19dca617f6e23c0",
+        "ref": "HEAD",
+        "resolved-ref": "42ec9fb971ea00a765a5ba6212fa3f0db977e85f",
         "url": "https://github.com/ross96D/config.dart",
-        "sha256": "sha256-6G3I9pEtWjXNGJen3Ck2UV7Z0Q5YVppGxKBDz+pQHr8="
+        "sha256": "sha256-A3psVe18+1kb8cxPMXgt1TJdppu1CynQYXNGzWBAL7Q="
       },
       "source": "git",
-      "version": "1.0.0"
+      "version": "0.0.1"
     },
     "config_gen": {
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "5c4eedbc99641256693a8cd3e2a2391f274a4dda",
-        "resolved-ref": "5c4eedbc99641256693a8cd3e2a2391f274a4dda",
+        "resolved-ref": "fb95c0d2283db33be861424d549af157b9a7856a",
+        "tag-pattern": "{{version}}",
         "url": "https://github.com/Wishmater/config_gen",
-        "sha256": "sha256-BrrrveoHH660SiVU6Irreilqk4EYJFZRBZUHSnKbjW4="
+        "sha256": "sha256-Ek/Na82hb9+VTH/T6LfChXKlo0bfQx0yN3xJydOCOtM="
       },
       "source": "git",
-      "version": "1.0.0"
+      "version": "0.0.2"
     },
     "convert": {
       "dependency": "transitive",
@@ -1256,7 +1256,7 @@
     }
   },
   "sdks": {
-    "dart": ">=3.8.1 <4.0.0",
+    "dart": ">=3.9.0 <4.0.0",
     "flutter": ">=3.29.0"
   }
 }

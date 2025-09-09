@@ -154,6 +154,7 @@ class WingedButton<T> extends StatefulWidget {
 
 class _WingedButtonState<T> extends State<WingedButton<T>> {
   late Future<T?> taskFuture = widget.initialFuture ?? Future.value(null);
+  final FocusNode focusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -170,13 +171,17 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
         }
 
         return InkResponse(
+          focusNode: focusNode,
           highlightShape: BoxShape.rectangle,
           // TODO: 2 remove default inkwell hover effect and implement our own (with blackjack and hookers)
           hoverDuration: Duration(milliseconds: 200),
+          // hoverColor: Colors.transparent,
+          // hoverDuration: Duration.zero,
           borderRadius: borderRadius,
           onTap: widget.onTap == null || snapshot.connectionState != ConnectionState.done
               ? null
               : () {
+                  focusNode.requestFocus();
                   final result = widget.onTap!();
                   if (result is Future<T>) {
                     setState(() {

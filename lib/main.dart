@@ -110,7 +110,7 @@ class App extends StatelessWidget {
                 builder: (context) {
                   return XdgIconTheme(
                     data: XdgIconThemeData(
-                      // TODO 2: get icon theme from gsettings
+                      // TODO: 2 get icon theme from gsettings
                       size: TextIcon.getIconEffectiveSize(context).round(),
                     ),
                     child: Scaffold(

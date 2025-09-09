@@ -21,6 +21,23 @@ mixin ThemeConfigI {
 }
 
 class ThemeConfig with ThemeConfigI, ThemeConfigBase {
+  static const TableSchema staticSchema = TableSchema(
+    fields: {
+      'mode': ThemeConfigBase._mode,
+      'fontFamily': ThemeConfigBase._fontFamily,
+      'primaryColor': ThemeConfigBase._primaryColor,
+      'secondaryColor': ThemeConfigBase._secondaryColor,
+      'tertiaryColor': ThemeConfigBase._tertiaryColor,
+      'errorColor': ThemeConfigBase._errorColor,
+      'backgroundColor': ThemeConfigBase._backgroundColor,
+      'foregroundColor': ThemeConfigBase._foregroundColor,
+      'backgroundOpacity': ThemeConfigBase._backgroundOpacity,
+      'shadows': ThemeConfigBase._shadows,
+    },
+  );
+
+  static TableSchema get schema => staticSchema;
+
   final ThemeMode mode;
   final String? fontFamily;
   final MyColor primaryColor;
@@ -62,21 +79,6 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       shadows: map['shadows'],
     );
   }
-
-  static TableSchema get schema => TableSchema(
-    fields: {
-      'mode': ThemeConfigBase._mode,
-      'fontFamily': ThemeConfigBase._fontFamily,
-      'primaryColor': ThemeConfigBase._primaryColor,
-      'secondaryColor': ThemeConfigBase._secondaryColor,
-      'tertiaryColor': ThemeConfigBase._tertiaryColor,
-      'errorColor': ThemeConfigBase._errorColor,
-      'backgroundColor': ThemeConfigBase._backgroundColor,
-      'foregroundColor': ThemeConfigBase._foregroundColor,
-      'backgroundOpacity': ThemeConfigBase._backgroundOpacity,
-      'shadows': ThemeConfigBase._shadows,
-    },
-  );
 
   @override
   String toString() {

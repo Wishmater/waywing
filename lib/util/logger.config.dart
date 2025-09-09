@@ -14,6 +14,16 @@ mixin LoggingConfigI {
 }
 
 class LoggingConfig with LoggingConfigI, LoggingConfigBase {
+  static const TableSchema staticSchema = TableSchema(
+    fields: {
+      'levelFilter': LoggingConfigBase._levelFilter,
+      'typeLevelFilters': LoggingConfigBase._typeLevelFilters,
+      'output': LoggingConfigBase._output,
+    },
+  );
+
+  static TableSchema get schema => staticSchema;
+
   final Level levelFilter;
   final Map<String, Level> typeLevelFilters;
   final String? output;
@@ -32,14 +42,6 @@ class LoggingConfig with LoggingConfigI, LoggingConfigBase {
       output: map['output'],
     );
   }
-
-  static TableSchema get schema => TableSchema(
-    fields: {
-      'levelFilter': LoggingConfigBase._levelFilter,
-      'typeLevelFilters': LoggingConfigBase._typeLevelFilters,
-      'output': LoggingConfigBase._output,
-    },
-  );
 
   @override
   String toString() {

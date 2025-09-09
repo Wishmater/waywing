@@ -18,6 +18,27 @@ mixin MainConfigI {
 }
 
 class MainConfig with MainConfigI, MainConfigBase {
+  static const TableSchema staticSchema = TableSchema(
+    tables: MainConfigBase._staticSchemaTables,
+    fields: {
+      'monitor': MainConfigBase._monitor,
+      'wings': MainConfigBase._wings,
+      'socket': MainConfigBase._socket,
+      'animationSpeed': MainConfigBase._animationSpeed,
+      'animationDamping': MainConfigBase._animationDamping,
+      'animationFitting': MainConfigBase._animationFitting,
+      'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
+    },
+  );
+
+  static TableSchema get schema => TableSchema(
+    tables: {
+      ...staticSchema.tables,
+      ...MainConfigBase._getDynamicSchemaTables(),
+    },
+    fields: staticSchema.fields,
+  );
+
   final int monitor;
   final List<Wing<dynamic>> wings;
   final String? socket;
@@ -25,6 +46,9 @@ class MainConfig with MainConfigI, MainConfigBase {
   final double animationDamping;
   final AnimationFitting animationFitting;
   final bool requestKeyboardFocus;
+
+  final LoggingConfig logging;
+  final ThemeConfig theme;
 
   MainConfig({
     int? monitor,
@@ -34,6 +58,8 @@ class MainConfig with MainConfigI, MainConfigBase {
     double? animationDamping,
     AnimationFitting? animationFitting,
     bool? requestKeyboardFocus,
+    required this.logging,
+    required this.theme,
   }) : monitor = monitor ?? 0,
        wings = wings ?? <Wing>[],
        animationSpeed = animationSpeed ?? 1,
@@ -50,21 +76,10 @@ class MainConfig with MainConfigI, MainConfigBase {
       animationDamping: map['animationDamping'],
       animationFitting: map['animationFitting'],
       requestKeyboardFocus: map['requestKeyboardFocus'],
+      logging: LoggingConfig.fromMap(map['Logging']),
+      theme: ThemeConfig.fromMap(map['Theme']),
     );
   }
-
-  static TableSchema get schema => TableSchema(
-    tables: MainConfigBase._getSchemaTables(),
-    fields: {
-      'monitor': MainConfigBase._monitor,
-      'wings': MainConfigBase._wings,
-      'socket': MainConfigBase._socket,
-      'animationSpeed': MainConfigBase._animationSpeed,
-      'animationDamping': MainConfigBase._animationDamping,
-      'animationFitting': MainConfigBase._animationFitting,
-      'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
-    },
-  );
 
   @override
   String toString() {

@@ -195,9 +195,9 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
   @override
   Widget build(BuildContext context) {
     final shape = this.shape?.value ?? shapeManual?.value;
-    final offset = widget.shadowOffset * widget.elevation;
+    final elevation = widget.elevation * mainConfig.theme.shadows;
+    final offset = widget.shadowOffset * elevation;
     final color = Theme.of(context).shadowColor.withValues(alpha: 0.66);
-    // final elevation = widget.elevation * mainConfig.style.elevation;
     return InputRegion(
       child: Stack(
         clipBehavior: Clip.none,

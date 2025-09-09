@@ -30,6 +30,32 @@ mixin BarConfigI {
 }
 
 class BarConfig with BarConfigI, BarConfigBase {
+  static const TableSchema staticSchema = TableSchema(
+    fields: {
+      'side': BarConfigBase._side,
+      'size': BarConfigBase._size,
+      'marginLeft': BarConfigBase._marginLeft,
+      'marginRight': BarConfigBase._marginRight,
+      'marginTop': BarConfigBase._marginTop,
+      'marginBottom': BarConfigBase._marginBottom,
+      'exclusiveSizeLeft': BarConfigBase.__exclusiveSizeLeft,
+      'exclusiveSizeRight': BarConfigBase.__exclusiveSizeRight,
+      'exclusiveSizeTop': BarConfigBase.__exclusiveSizeTop,
+      'exclusiveSizeBottom': BarConfigBase.__exclusiveSizeBottom,
+      'radiusInCross': BarConfigBase._radiusInCross,
+      'radiusInMain': BarConfigBase._radiusInMain,
+      'radiusOutCross': BarConfigBase._radiusOutCross,
+      'radiusOutMain': BarConfigBase._radiusOutMain,
+      'indicatorMinSize': BarConfigBase.__indicatorMinSize,
+      'indicatorPadding': BarConfigBase.__indicatorPadding,
+      'startFeathers': BarConfigBase._startFeathers,
+      'centerFeathers': BarConfigBase._centerFeathers,
+      'endFeathers': BarConfigBase._endFeathers,
+    },
+  );
+
+  static TableSchema get schema => staticSchema;
+
   final ScreenEdge side;
   final int size;
   final double marginLeft;
@@ -111,30 +137,6 @@ class BarConfig with BarConfigI, BarConfigBase {
       endFeathers: map['endFeathers'],
     );
   }
-
-  static TableSchema get schema => TableSchema(
-    fields: {
-      'side': BarConfigBase._side,
-      'size': BarConfigBase._size,
-      'marginLeft': BarConfigBase._marginLeft,
-      'marginRight': BarConfigBase._marginRight,
-      'marginTop': BarConfigBase._marginTop,
-      'marginBottom': BarConfigBase._marginBottom,
-      'exclusiveSizeLeft': BarConfigBase.__exclusiveSizeLeft,
-      'exclusiveSizeRight': BarConfigBase.__exclusiveSizeRight,
-      'exclusiveSizeTop': BarConfigBase.__exclusiveSizeTop,
-      'exclusiveSizeBottom': BarConfigBase.__exclusiveSizeBottom,
-      'radiusInCross': BarConfigBase._radiusInCross,
-      'radiusInMain': BarConfigBase._radiusInMain,
-      'radiusOutCross': BarConfigBase._radiusOutCross,
-      'radiusOutMain': BarConfigBase._radiusOutMain,
-      'indicatorMinSize': BarConfigBase.__indicatorMinSize,
-      'indicatorPadding': BarConfigBase.__indicatorPadding,
-      'startFeathers': BarConfigBase._startFeathers,
-      'centerFeathers': BarConfigBase._centerFeathers,
-      'endFeathers': BarConfigBase._endFeathers,
-    },
-  );
 
   @override
   String toString() {

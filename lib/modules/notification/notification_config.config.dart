@@ -16,6 +16,18 @@ mixin NotificationsConfigI {
 }
 
 class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
+  static const TableSchema staticSchema = TableSchema(
+    fields: {
+      'alignment': NotificationsConfigBase._alignment,
+      'marginLeft': NotificationsConfigBase._marginLeft,
+      'marginRight': NotificationsConfigBase._marginRight,
+      'marginTop': NotificationsConfigBase._marginTop,
+      'marginBottom': NotificationsConfigBase._marginBottom,
+    },
+  );
+
+  static TableSchema get schema => staticSchema;
+
   final Alignment alignment;
   final double marginLeft;
   final double marginRight;
@@ -43,16 +55,6 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
       marginBottom: map['marginBottom'],
     );
   }
-
-  static TableSchema get schema => TableSchema(
-    fields: {
-      'alignment': NotificationsConfigBase._alignment,
-      'marginLeft': NotificationsConfigBase._marginLeft,
-      'marginRight': NotificationsConfigBase._marginRight,
-      'marginTop': NotificationsConfigBase._marginTop,
-      'marginBottom': NotificationsConfigBase._marginBottom,
-    },
-  );
 
   @override
   String toString() {

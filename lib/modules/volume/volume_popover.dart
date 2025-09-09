@@ -187,10 +187,11 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
     const appIconSize = 24;
     return Row(
       children: [
-        SizedBox(width: 16),
+        if (onDefaultSelected == null) //
+          SizedBox(width: 16),
         if (onDefaultSelected != null)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: 4, left: 12),
             child: Radio(
               value: model,
               groupValue: defaultModel,

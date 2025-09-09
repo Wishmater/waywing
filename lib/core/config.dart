@@ -35,6 +35,8 @@ final _logger = mainLogger.clone(properties: [LogType("Config")]);
 MainConfig get mainConfig => _config;
 late MainConfig _config;
 
+/// This should only be used by featherRegistry and serviceRegistry, because they need to
+/// dynamically add config schemas, which can't be added in a type safe way.
 Map<String, dynamic> get rawMainConfig => _rawMainConfig;
 late Map<String, dynamic> _rawMainConfig;
 
@@ -98,11 +100,12 @@ mixin MainConfigBase on MainConfigI {
   // Add config tables defined in other files
   //===========================================================================
 
-  static Map<String, TableSchema> _getSchemaTables() => {
-    // TODO: 2 config_gen should add these (at least the static ones) as fields on the resulting config
-    // so we can do something like mainConfig.theme and we don't have to manually parse it.
-    "Logging": LoggingConfig.schema,
-    "Theme": ThemeConfig.schema,
+  static const _staticSchemaTables = {
+    "Logging": LoggingConfig.staticSchema,
+    "Theme": ThemeConfig.staticSchema,
+  };
+
+  static Map<String, TableSchema> _getDynamicSchemaTables() => {
     ...featherRegistry.getSchemaTables(),
     ...serviceRegistry.getSchemaTables(),
   };

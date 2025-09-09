@@ -76,8 +76,7 @@ class App extends StatelessWidget {
     return InputRegion.negative(
       child: ConfigChangeWatcher(
         builder: (context) {
-          final themeConfig = ThemeConfig.fromMap(rawMainConfig["Theme"]);
-          final waywingTheme = WaywingTheme(themeConfig);
+          final waywingTheme = WaywingTheme(mainConfig.theme);
           final wingWidgets = <Widget>[];
           for (int i = 0; i < mainConfig.wings.length; i++) {
             final wing = mainConfig.wings[i];
@@ -118,7 +117,7 @@ class App extends StatelessWidget {
             child: MaterialApp(
               title: "WayWing",
               debugShowCheckedModeBanner: false,
-              themeMode: themeConfig.mode,
+              themeMode: mainConfig.theme.mode,
               theme: waywingTheme.themeLight,
               darkTheme: waywingTheme.themeDark,
               home: Builder(

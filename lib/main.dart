@@ -2,6 +2,7 @@ import "dart:io";
 
 import "package:args/args.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:path/path.dart";
@@ -50,7 +51,20 @@ void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await setupMainWindow();
 
-  mainLogger.log(Level.debug, "Done setting initial window config, running app...");
+  mainLogger.debug("Done setting initial window config, running app...");
+
+  FlutterError.onError = (details) {
+    if (kReleaseMode) {
+      mainLogger.error(
+        "${details.context?.toDescription()} ${details.summary.toDescription()}",
+        error: details.exception,
+        stackTrace: details.stack,
+      );
+      exit(1);
+    } else {
+      FlutterError.presentError(details);
+    }
+  };
   runApp(App());
 }
 

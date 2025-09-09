@@ -132,7 +132,7 @@ class SplashPulse extends StatefulWidget {
 
 class _SplashPulseState extends State<SplashPulse> {
   late final List<InteractiveInkFeature> _splashes = [];
-  late Timer splashTimer;
+  Timer? splashTimer;
 
   @override
   void initState() {
@@ -149,7 +149,7 @@ class _SplashPulseState extends State<SplashPulse> {
       if (widget.pulsing) {
         _init();
       } else {
-        splashTimer.cancel();
+        splashTimer?.cancel();
         for (final splash in _splashes) {
           splash.cancel();
         }
@@ -179,11 +179,17 @@ class _SplashPulseState extends State<SplashPulse> {
 
   @override
   void deactivate() {
-    splashTimer.cancel();
+    splashTimer?.cancel();
     for (var splash in List.from(_splashes)) {
       splash.dispose();
     }
     super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _initTimer();
   }
 
   @override

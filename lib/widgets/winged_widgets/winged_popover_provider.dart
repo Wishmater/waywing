@@ -37,7 +37,10 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   final Map<WingedPopoverState, bool> removedHosts = {};
 
   void showHost(WingedPopoverState host) {
-    assert(host.widget.popoverParams != null, "Trying to show popover for a host that doesn't specify popoverParams");
+    assert(
+      host.widget.popoverParams != null,
+      "Trying to show popover for a host that doesn't specify popoverParams",
+    );
     if (activeHosts.contains(host)) {
       _logger.log(Level.error, "Trying to register a host that already exists to PopoverProvider.");
       return;
@@ -167,16 +170,18 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   }
 
   void _removeHost(WingedPopoverState host) {
-    assert(
-      activeHosts.contains(host) || removedHosts.containsKey(host) || tooltipHosts.containsKey(host),
-      "Trying to remove a host that doesn't exist in PopoverProvider.",
-    );
-    activeHosts.remove(host);
-    removedHosts.remove(host);
-    tooltipHosts.remove(host);
+    // assert(
+    //   activeHosts.contains(host) || removedHosts.containsKey(host) || tooltipHosts.containsKey(host),
+    //   "Trying to remove a host that doesn't exist in PopoverProvider.",
+    // );
+    var removed = activeHosts.remove(host);
+    removed = removedHosts.remove(host) != null || removed;
+    removed = tooltipHosts.remove(host) != null || removed;
     host.isPopoverShown = false;
     host.isTooltipShown = false;
-    setState(() {});
+    if (removed) {
+      setState(() {});
+    }
   }
 
   void toggleHost(WingedPopoverState host) {
@@ -329,6 +334,12 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       converter: OffsetMotionConverter(),
       initialValue: initialOffset,
     );
+    if (!widget.isTooltip) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        focusNode.requestFocus();
+      });
+    }
   }
 
   @override

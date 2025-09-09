@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
@@ -58,40 +59,49 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                   );
                 },
                 closedContainerBuilder: (context, controller, child) {
-                  return WingedContainer(
+                  return MotionOpacity(
                     motion: motion,
-                    clipBehavior: Clip.hardEdge,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(0))),
-                    color: Colors.transparent,
-                    child: Stack(
-                      children: [
-                        MotionPositioned(
-                          motion: motion,
-                          left: -12,
-                          top: 0,
-                          bottom: 0,
-                          child: child,
-                        ),
-                      ],
+                    opacity: 0,
+                    child: WingedContainer(
+                      motion: motion,
+                      clipBehavior: Clip.hardEdge,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(0))),
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      child: Stack(
+                        children: [
+                          MotionPositioned(
+                            motion: motion,
+                            left: -12,
+                            top: 0,
+                            bottom: 0,
+                            child: child,
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
                 containerBuilder: (context, controller, child) {
-                  return WingedContainer(
+                  return MotionOpacity(
                     motion: motion,
-                    clipBehavior: Clip.hardEdge,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(12))),
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    child: Stack(
-                      children: [
-                        MotionPositioned(
-                          motion: motion,
-                          left: -0,
-                          top: 0,
-                          bottom: 0,
-                          child: child,
-                        ),
-                      ],
+                    opacity: 1,
+                    child: WingedContainer(
+                      motion: motion,
+                      clipBehavior: Clip.hardEdge,
+                      // TODO 2 STYLE should this use global borders theme somehow?
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(12))),
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      child: Stack(
+                        children: [
+                          MotionPositioned(
+                            motion: motion,
+                            left: -0,
+                            top: 0,
+                            bottom: 0,
+                            child: child,
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },

@@ -113,78 +113,80 @@ class _BarState extends State<Bar> {
             left: left?.coerceAtLeast(0) ?? 0,
             right: right?.coerceAtLeast(0) ?? 0,
           ),
-          child: PositioningNotifierMonitor(
-            controller: barPositioningController,
-            child: WingedContainer(
-              // animationDuration: config.animationDuration * 1.5,
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              elevation: 6, // TODO: 2 expose bar elevation theme option to user
-              shape: shape,
-              // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
-              // this should also solve the issue of widgets being disposed when switching vertical
-              // to horizontal bar (or viceversa) because we switched Row / Column
-              child: Padding(
-                padding: shape.dimensions,
-                child: Theme(
-                  data: Theme.of(context).copyWith(
-                    buttonTheme: Theme.of(context).buttonTheme.copyWith(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: !widget.config.isVertical ? widget.config.indicatorPadding : 0,
-                        vertical: widget.config.isVertical ? widget.config.indicatorPadding : 0,
+          child: FocusScope(
+            child: PositioningNotifierMonitor(
+              controller: barPositioningController,
+              child: WingedContainer(
+                // animationDuration: config.animationDuration * 1.5,
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                elevation: 6, // TODO: 2 expose bar elevation theme option to user
+                shape: shape,
+                // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
+                // this should also solve the issue of widgets being disposed when switching vertical
+                // to horizontal bar (or viceversa) because we switched Row / Column
+                child: Padding(
+                  padding: shape.dimensions,
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      buttonTheme: Theme.of(context).buttonTheme.copyWith(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: !widget.config.isVertical ? widget.config.indicatorPadding : 0,
+                          vertical: widget.config.isVertical ? widget.config.indicatorPadding : 0,
+                        ),
                       ),
                     ),
-                  ),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    fit: StackFit.expand,
-                    children: [
-                      Container(
-                        alignment: endAlignment,
-                        padding: EdgeInsets.only(
-                          right: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                          bottom: widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                        ),
-                        child: buildLayoutWidget(
-                          context,
-                          buildFeatherWidgets(
-                            context: context,
-                            feathers: widget.config.endFeathers,
-                            feathersCount: feathersCount,
-                            barShape: shape,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      fit: StackFit.expand,
+                      children: [
+                        Container(
+                          alignment: endAlignment,
+                          padding: EdgeInsets.only(
+                            right: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                            bottom: widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                          ),
+                          child: buildLayoutWidget(
+                            context,
+                            buildFeatherWidgets(
+                              context: context,
+                              feathers: widget.config.endFeathers,
+                              feathersCount: feathersCount,
+                              barShape: shape,
+                            ),
                           ),
                         ),
-                      ),
 
-                      Align(
-                        alignment: Alignment.center,
-                        child: buildLayoutWidget(
-                          context,
-                          buildFeatherWidgets(
-                            context: context,
-                            feathers: widget.config.centerFeathers,
-                            feathersCount: feathersCount,
-                            barShape: shape,
+                        Align(
+                          alignment: Alignment.center,
+                          child: buildLayoutWidget(
+                            context,
+                            buildFeatherWidgets(
+                              context: context,
+                              feathers: widget.config.centerFeathers,
+                              feathersCount: feathersCount,
+                              barShape: shape,
+                            ),
                           ),
                         ),
-                      ),
 
-                      Container(
-                        alignment: startAlignment,
-                        padding: EdgeInsets.only(
-                          left: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                          top: widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                        ),
-                        child: buildLayoutWidget(
-                          context,
-                          buildFeatherWidgets(
-                            context: context,
-                            feathers: widget.config.startFeathers,
-                            feathersCount: feathersCount,
-                            barShape: shape,
+                        Container(
+                          alignment: startAlignment,
+                          padding: EdgeInsets.only(
+                            left: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                            top: widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                          ),
+                          child: buildLayoutWidget(
+                            context,
+                            buildFeatherWidgets(
+                              context: context,
+                              feathers: widget.config.startFeathers,
+                              feathersCount: feathersCount,
+                              barShape: shape,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -484,7 +486,9 @@ class _BarState extends State<Bar> {
       elevation: 4, // TODO: 2 expose popover elevation theme option to user
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shape: shape,
-      color: isTooltip ? Theme.of(context).colorScheme.surfaceContainerHigh : null,
+      color: isTooltip
+          ? Theme.of(context).colorScheme.surfaceContainerLow
+          : Theme.of(context).colorScheme.surfaceContainerLowest,
       child: child,
     );
   }

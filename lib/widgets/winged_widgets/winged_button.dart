@@ -154,6 +154,14 @@ class WingedButton<T> extends StatefulWidget {
 
 class _WingedButtonState<T> extends State<WingedButton<T>> {
   late Future<T?> taskFuture = widget.initialFuture ?? Future.value(null);
+  final FocusNode focusNode = FocusNode();
+
+  void maybeRequestFocus() {
+    final focusScope = FocusScope.of(context, createDependency: false);
+    if (focusScope.hasFocus && !focusScope.hasPrimaryFocus) {
+      focusNode.requestFocus();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -170,13 +178,17 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
         }
 
         return InkResponse(
+          focusNode: focusNode,
           highlightShape: BoxShape.rectangle,
           // TODO: 2 remove default inkwell hover effect and implement our own (with blackjack and hookers)
           hoverDuration: Duration(milliseconds: 200),
+          // hoverColor: Colors.transparent,
+          // hoverDuration: Duration.zero,
           borderRadius: borderRadius,
           onTap: widget.onTap == null || snapshot.connectionState != ConnectionState.done
               ? null
               : () {
+                  maybeRequestFocus();
                   final result = widget.onTap!();
                   if (result is Future<T>) {
                     setState(() {
@@ -199,16 +211,27 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
           onTapDown: widget.onTapDown,
           onTapUp: widget.onTapUp,
           onTapCancel: widget.onTapCancel,
-          onDoubleTap: widget.onDoubleTap,
-          onLongPress: widget.onLongPress,
-          onSecondaryTap: widget.onSecondaryTap,
+          onDoubleTap: widget.onDoubleTap == null
+              ? null
+              : () {
+                  maybeRequestFocus();
+                  widget.onDoubleTap!();
+                },
+          onLongPress: widget.onLongPress == null
+              ? null
+              : () {
+                  maybeRequestFocus();
+                  widget.onLongPress!();
+                },
+          onSecondaryTap: widget.onSecondaryTap == null
+              ? null
+              : () {
+                  maybeRequestFocus();
+                  widget.onSecondaryTap!();
+                },
           onSecondaryTapUp: widget.onSecondaryTapUp,
           onSecondaryTapDown: widget.onSecondaryTapDown,
           onSecondaryTapCancel: widget.onSecondaryTapCancel,
-          onHover: widget.onHover,
-          mouseCursor: widget.mouseCursor,
-          containedInkWell: widget.containedInkWell,
-          radius: widget.radius,
         );
       },
     );

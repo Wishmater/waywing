@@ -2,7 +2,9 @@ import "dart:io";
 
 import "package:args/args.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:path/path.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
@@ -49,7 +51,20 @@ void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await setupMainWindow();
 
-  mainLogger.log(Level.debug, "Done setting initial window config, running app...");
+  mainLogger.debug("Done setting initial window config, running app...");
+
+  FlutterError.onError = (details) {
+    if (kReleaseMode) {
+      mainLogger.error(
+        "${details.context?.toDescription()} ${details.summary.toDescription()}",
+        error: details.exception,
+        stackTrace: details.stack,
+      );
+      exit(1);
+    } else {
+      FlutterError.presentError(details);
+    }
+  };
   runApp(App());
 }
 
@@ -110,15 +125,25 @@ class App extends StatelessWidget {
                 builder: (context) {
                   return XdgIconTheme(
                     data: XdgIconThemeData(
-                      // TODO 2: get icon theme from gsettings
+                      // TODO: 2 get icon theme from gsettings
                       size: TextIcon.getIconEffectiveSize(context).round(),
                     ),
                     child: Scaffold(
                       backgroundColor: Colors.transparent,
-                      body: WingedPopoverProvider(
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: wingWidgets,
+                      body: CallbackShortcuts(
+                        bindings: {
+                          const SingleActivator(LogicalKeyboardKey.escape): () {
+                            FocusScope.of(context).requestScopeFocus();
+                          },
+                        },
+                        child: WingedPopoverProvider(
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              ...wingWidgets,
+                              Positioned.fill(child: MouseFocusListener()),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -129,6 +154,42 @@ class App extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class MouseFocusListener extends StatefulWidget {
+  const MouseFocusListener({super.key});
+
+  @override
+  State<MouseFocusListener> createState() => _MouseFocusListenerState();
+}
+
+class _MouseFocusListenerState extends State<MouseFocusListener> {
+  bool hasMouseFocus = false;
+  bool hadFocus = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      opaque: false,
+      onEnter: (_) {
+        final focusScope = FocusScope.of(context, createDependency: false);
+        if (hadFocus) {
+          focusScope.requestFocus();
+        } else {
+          focusScope.requestScopeFocus();
+        }
+        hasMouseFocus = true;
+      },
+      onExit: (_) {
+        final focusScope = FocusScope.of(context, createDependency: false);
+        hadFocus = !focusScope.hasPrimaryFocus;
+        if (focusScope.hasFocus) {
+          focusScope.unfocus();
+        }
+        hasMouseFocus = false;
+      },
     );
   }
 }

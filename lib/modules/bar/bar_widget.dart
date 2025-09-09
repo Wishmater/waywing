@@ -486,7 +486,9 @@ class _BarState extends State<Bar> {
       elevation: 4, // TODO: 2 expose popover elevation theme option to user
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shape: shape,
-      color: isTooltip ? Theme.of(context).colorScheme.surfaceContainerHigh : null,
+      color: isTooltip
+          ? Theme.of(context).colorScheme.surfaceContainerLow
+          : Theme.of(context).colorScheme.surfaceContainerLowest,
       child: child,
     );
   }

@@ -66,7 +66,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                       motion: motion,
                       clipBehavior: Clip.hardEdge,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.all(Radius.circular(0))),
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
                       child: Stack(
                         children: [
                           MotionPositioned(

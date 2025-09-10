@@ -208,6 +208,10 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
             child: child,
           ),
           // properties just passed to InkResponse as-is
+          containedInkWell: widget.containedInkWell,
+          onHover: widget.onHover,
+          mouseCursor: widget.mouseCursor,
+          radius: widget.radius,
           onTapDown: widget.onTapDown,
           onTapUp: widget.onTapUp,
           onTapCancel: widget.onTapCancel,

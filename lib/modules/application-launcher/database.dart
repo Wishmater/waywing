@@ -2,7 +2,7 @@ import "dart:io";
 
 import "package:tronco/tronco.dart";
 import "package:sembast/sembast_io.dart";
-import "package:waywing/modules/application-launcher/models/application.dart";
+import "package:waywing/modules/application-launcher/application.dart";
 import "package:path/path.dart" as path;
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/xdg_dirs.dart";
@@ -100,11 +100,6 @@ List<Application> loadApplicationsFromDisk(Map<String, Application> old, Logger 
         // check try exec
         if (app.tryExec != null && !tryExec(app.tryExec!)) {
           continue;
-        }
-        if (app.icon != null) {
-          // futures.add(
-          //   managerSearchIcon.run(app.icon!).then((value) => app.iconPath = value),
-          // );
         }
         response.add(app);
       } on DesktopEntryInvalidStateException catch (e) {

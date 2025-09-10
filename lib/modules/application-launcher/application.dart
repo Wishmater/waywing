@@ -2,7 +2,6 @@ import "dart:io";
 
 import "package:dbus/dbus.dart";
 import "package:path/path.dart" as path;
-// import 'package:icon_lookup/icon_lookup.dart' as icon_lookup;
 import "package:json_annotation/json_annotation.dart";
 import "package:waywing/modules/application-launcher/packages/freedesktop_entry/freedesktop_entry.dart";
 
@@ -338,27 +337,6 @@ class DesktopEntryInvalidStateException {
     return state.toString();
   }
 }
-
-// /// cache for searchIcon
-// Map<String, (String?,)> _searchIconCache = {};
-
-// String? searchIcon(String iconpath) {
-//   if (path.isAbsolute(iconpath)) {
-//     return iconpath;
-//   }
-//   final cached = _searchIconCache[iconpath];
-//   if (cached != null) {
-//     return cached.$1;
-//   }
-//   final result = icon_lookup.iconLookup(iconpath);
-//   if (result == null) {
-//     _searchIconCache[iconpath] = (null,);
-//     return null;
-//   } else {
-//     _searchIconCache[iconpath] = (result.value,);
-//     return result.value;
-//   }
-// }
 
 /// Filters out filesystem entities that don't exist.
 Iterable<T> whereExists<T extends FileSystemEntity>(Iterable<T> entities) sync* {

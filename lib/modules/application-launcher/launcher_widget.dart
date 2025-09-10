@@ -1,8 +1,10 @@
+import "dart:io";
+
 import "package:flutter/material.dart";
 import "package:waywing/modules/application-launcher/application_service.dart";
-import "package:waywing/modules/application-launcher/models/application.dart";
-import "./widgets/option_widgets/list_tile_option_widget.dart";
-import "package:waywing/modules/application-launcher/widgets/searchopts.dart";
+import "package:waywing/modules/application-launcher/application.dart";
+import "package:waywing/widgets/searchopts/searchopts.dart";
+import "package:xdg_icons/xdg_icons.dart";
 
 class LauncherWidget extends StatefulWidget {
   final List<Application> applications;
@@ -11,13 +13,12 @@ class LauncherWidget extends StatefulWidget {
   const LauncherWidget({super.key, required this.service, required this.applications});
 
   @override
-  State<LauncherWidget> createState() => LauncherState();
+  State<LauncherWidget> createState() => _LauncherWidgetState();
 }
 
-class LauncherState extends State<LauncherWidget> {
+class _LauncherWidgetState extends State<LauncherWidget> {
   @override
   Widget build(BuildContext context) {
-    // return Container(color: Colors.blue, height: 400, width: 400, child: TextFormField());
     return SearchOptions(
       options: Option.from(widget.applications, ApplicationOption.from),
       renderOption: _renderOption,
@@ -34,7 +35,6 @@ class LauncherState extends State<LauncherWidget> {
   }
 }
 
-
 class ApplicationOption extends Option<Application> {
   final Application app;
   const ApplicationOption(this.app);
@@ -50,25 +50,56 @@ class ApplicationOption extends Option<Application> {
   }
 }
 
-class SearchApplication extends StatelessWidget {
-  final List<Application> apps;
-  final ApplicationService service;
-  const SearchApplication({super.key, required this.service, required this.apps});
+class ListTileOptionWidget extends StatelessWidget {
+  final Application app;
+  final SearchOptionsRenderConfig config;
+  final VoidCallback onTap;
+
+  const ListTileOptionWidget({
+    required this.app,
+    required this.config,
+    required this.onTap,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SearchOptions(
-      options: Option.from(apps, ApplicationOption.from),
-      renderOption: _renderOption,
-      onSelected: service.run,
+    final theme = Theme.of(context);
+    return ListTile(
+      leading: app.icon != null
+          ? _RenderIcon(icon: app.icon!)
+          : SizedBox(width: 35), // TODO 1: correctly render full path icons
+      title: Text(
+        app.name,
+        style: theme.textTheme.bodyLarge,
+        softWrap: false,
+        overflow: TextOverflow.fade,
+      ),
+      onTap: onTap,
+      subtitle: app.comment != null
+          ? Text(
+              app.comment!,
+              softWrap: false,
+              overflow: TextOverflow.fade,
+              style: theme.textTheme.bodySmall,
+            )
+          : SizedBox.shrink(),
+      enabled: true,
+      tileColor: Colors.transparent,
     );
   }
+}
 
-  Widget _renderOption(BuildContext context, Application app, SearchOptionsRenderConfig config) {
-    return ListTileOptionWidget(
-      app: app,
-      config: config,
-      onTap:  () => service.run(app),
-    );
+class _RenderIcon extends StatelessWidget {
+  final String icon;
+  const _RenderIcon({required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    if (icon.startsWith("/")) {
+      final size = XdgIconTheme.of(context).size;
+      return Image.file(File(icon), height: size?.toDouble(), width: size?.toDouble());
+    }
+    return XdgIcon(name: icon);
   }
 }

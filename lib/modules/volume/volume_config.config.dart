@@ -15,6 +15,17 @@ mixin VolumeConfigI {
 }
 
 class VolumeConfig with VolumeConfigI, VolumeConfigBase {
+  static const TableSchema staticSchema = TableSchema(
+    fields: {
+      'showPercentageIndicator': VolumeConfigBase._showPercentageIndicator,
+      'showSeparateMicIndicator': VolumeConfigBase._showSeparateMicIndicator,
+      'maxVolume': VolumeConfigBase._maxVolume,
+      'volumeStep': VolumeConfigBase._volumeStep,
+    },
+  );
+
+  static TableSchema get schema => staticSchema;
+
   final bool showPercentageIndicator;
   final bool showSeparateMicIndicator;
   final int maxVolume;
@@ -38,15 +49,6 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
       volumeStep: map['volumeStep'],
     );
   }
-
-  static TableSchema get schema => TableSchema(
-    fields: {
-      'showPercentageIndicator': VolumeConfigBase._showPercentageIndicator,
-      'showSeparateMicIndicator': VolumeConfigBase._showSeparateMicIndicator,
-      'maxVolume': VolumeConfigBase._maxVolume,
-      'volumeStep': VolumeConfigBase._volumeStep,
-    },
-  );
 
   @override
   String toString() {

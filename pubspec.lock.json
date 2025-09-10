@@ -284,25 +284,25 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "fc6264fa2b3d7fa7684c4157f19dca617f6e23c0",
-        "resolved-ref": "fc6264fa2b3d7fa7684c4157f19dca617f6e23c0",
+        "ref": "HEAD",
+        "resolved-ref": "42ec9fb971ea00a765a5ba6212fa3f0db977e85f",
         "url": "https://github.com/ross96D/config.dart",
-        "sha256": "sha256-6G3I9pEtWjXNGJen3Ck2UV7Z0Q5YVppGxKBDz+pQHr8="
+        "sha256": "sha256-A3psVe18+1kb8cxPMXgt1TJdppu1CynQYXNGzWBAL7Q="
       },
       "source": "git",
-      "version": "1.0.0"
+      "version": "0.0.1"
     },
     "config_gen": {
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "5c4eedbc99641256693a8cd3e2a2391f274a4dda",
-        "resolved-ref": "5c4eedbc99641256693a8cd3e2a2391f274a4dda",
+        "ref": "HEAD",
+        "resolved-ref": "fb95c0d2283db33be861424d549af157b9a7856a",
         "url": "https://github.com/Wishmater/config_gen",
-        "sha256": "sha256-BrrrveoHH660SiVU6Irreilqk4EYJFZRBZUHSnKbjW4="
+        "sha256": "sha256-Ek/Na82hb9+VTH/T6LfChXKlo0bfQx0yN3xJydOCOtM="
       },
       "source": "git",
-      "version": "1.0.0"
+      "version": "0.0.2"
     },
     "convert": {
       "dependency": "transitive",
@@ -373,6 +373,16 @@
       },
       "source": "hosted",
       "version": "3.2.4"
+    },
+    "equatable": {
+      "dependency": "transitive",
+      "description": {
+        "name": "equatable",
+        "sha256": "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "2.0.7"
     },
     "fake_async": {
       "dependency": "transitive",
@@ -768,11 +778,11 @@
       "dependency": "direct main",
       "description": {
         "name": "motor",
-        "sha256": "8d8a4115f6ba8ea40d34dbe55404f809672bc3b851c4355a91553b41f9536fca",
+        "sha256": "cdad651858f1305f98e986841128abd23bb964289c1f9244ffc5b575963d6d8a",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.0.0-dev.4"
+      "version": "1.0.0-dev.9"
     },
     "mutex": {
       "dependency": "direct main",
@@ -1256,7 +1266,7 @@
     }
   },
   "sdks": {
-    "dart": ">=3.8.1 <4.0.0",
-    "flutter": ">=3.29.0"
+    "dart": ">=3.9.0 <4.0.0",
+    "flutter": ">=3.32.0"
   }
 }

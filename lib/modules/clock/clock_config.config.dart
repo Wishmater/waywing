@@ -12,6 +12,12 @@ mixin ClockConfigI {
 }
 
 class ClockConfig with ClockConfigI, ClockConfigBase {
+  static const TableSchema staticSchema = TableSchema(
+    fields: {'militar': ClockConfigBase._militar},
+  );
+
+  static TableSchema get schema => staticSchema;
+
   final bool militar;
 
   ClockConfig({bool? militar}) : militar = militar ?? false;
@@ -19,9 +25,6 @@ class ClockConfig with ClockConfigI, ClockConfigBase {
   factory ClockConfig.fromMap(Map<String, dynamic> map) {
     return ClockConfig(militar: map['militar']);
   }
-
-  static TableSchema get schema =>
-      TableSchema(fields: {'militar': ClockConfigBase._militar});
 
   @override
   String toString() {

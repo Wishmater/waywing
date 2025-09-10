@@ -5,7 +5,7 @@ publish_to: "none"
 version: 0.0.8
 
 environment:
-  sdk: ^3.8.0
+  sdk: ^3.9.0
 
 dependencies:
   flutter:
@@ -14,14 +14,16 @@ dependencies:
   # Configuration parser
   config:
     # path: ../config.dart
+    version: ^0.0.1
     git:
       url: https://github.com/ross96D/config.dart
-      ref: fc6264fa2b3d7fa7684c4157f19dca617f6e23c0
+      tag_pattern: "{{version}}"
   config_gen:
     # path: ../config_gen
+    version: ^0.0.2
     git:
       url: https://github.com/Wishmater/config_gen
-      ref: 5c4eedbc99641256693a8cd3e2a2391f274a4dda
+      tag_pattern: "{{version}}"
 
   # Logger
   tronco:
@@ -48,7 +50,7 @@ dependencies:
   animations: ^2.0.11
   auto_size_text: ^3.0.0
   implicitly_animated_list: ^2.3.0
-  motor: 1.0.0-dev.4
+  motor: ^1.0.0-dev.4
   # color scheme creation
   flex_seed_scheme: ^3.5.1
 

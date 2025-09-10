@@ -16,6 +16,19 @@ mixin NetworkManagerConfigI {
 
 class NetworkManagerConfig
     with NetworkManagerConfigI, NetworkManagerConfigBase {
+  static const TableSchema staticSchema = TableSchema(
+    fields: {
+      'showConnectionNameIndicator':
+          NetworkManagerConfigBase._showConnectionNameIndicator,
+      'showUploadIndicator': NetworkManagerConfigBase._showUploadIndicator,
+      'showDownloadIndicator': NetworkManagerConfigBase._showDownloadIndicator,
+      'showThroughputIndicator':
+          NetworkManagerConfigBase._showThroughputIndicator,
+    },
+  );
+
+  static TableSchema get schema => staticSchema;
+
   final bool showConnectionNameIndicator;
   final bool showUploadIndicator;
   final bool showDownloadIndicator;
@@ -39,17 +52,6 @@ class NetworkManagerConfig
       showThroughputIndicator: map['showThroughputIndicator'],
     );
   }
-
-  static TableSchema get schema => TableSchema(
-    fields: {
-      'showConnectionNameIndicator':
-          NetworkManagerConfigBase._showConnectionNameIndicator,
-      'showUploadIndicator': NetworkManagerConfigBase._showUploadIndicator,
-      'showDownloadIndicator': NetworkManagerConfigBase._showDownloadIndicator,
-      'showThroughputIndicator':
-          NetworkManagerConfigBase._showThroughputIndicator,
-    },
-  );
 
   @override
   String toString() {

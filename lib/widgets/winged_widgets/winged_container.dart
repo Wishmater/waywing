@@ -1,3 +1,5 @@
+import "dart:ui";
+
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
@@ -5,6 +7,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 import "package:waywing/widgets/shapes/docked_rounded_corners_shape.dart";
+import "package:waywing/widgets/shapes/shape_clipper.dart";
 
 class WingedContainer extends StatelessWidget {
   final Motion? motion;
@@ -16,6 +19,7 @@ class WingedContainer extends StatelessWidget {
   final ShapeBorder? fromShape;
 
   final double elevation;
+  final Offset shadowOffset;
   final Clip clipBehavior;
   final Color? color;
   final Widget? child;
@@ -27,6 +31,7 @@ class WingedContainer extends StatelessWidget {
     this.shape,
     this.fromShape,
     this.elevation = 0,
+    this.shadowOffset = const Offset(0.66, 1),
     this.clipBehavior = Clip.none,
     this.color,
     this.child,
@@ -42,6 +47,7 @@ class WingedContainer extends StatelessWidget {
       shape: shape,
       fromShape: fromShape,
       elevation: elevation,
+      shadowOffset: shadowOffset,
       clipBehavior: clipBehavior,
       color: color,
       child: child,
@@ -59,6 +65,7 @@ class _WingedContainer extends StatefulWidget {
   final ShapeBorder? fromShape;
 
   final double elevation;
+  final Offset shadowOffset;
   final Clip clipBehavior;
   final Color? color;
   final Widget? child;
@@ -70,6 +77,7 @@ class _WingedContainer extends StatefulWidget {
     required this.shape,
     required this.fromShape,
     required this.elevation,
+    required this.shadowOffset,
     required this.clipBehavior,
     required this.color,
     required this.child,
@@ -186,14 +194,54 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
 
   @override
   Widget build(BuildContext context) {
+    final shape = this.shape?.value ?? shapeManual?.value;
+    final elevation = widget.elevation * mainConfig.theme.shadows;
+    final offset = widget.shadowOffset * elevation;
+    final color = Theme.of(context).shadowColor.withValues(alpha: 0.66);
     return InputRegion(
-      child: Material(
-        shape: shape?.value ?? shapeManual?.value,
-        elevation: widget.elevation,
-        clipBehavior: widget.clipBehavior,
-        color: widget.color,
-        animationDuration: Duration.zero,
-        child: widget.child,
+      child: Stack(
+        clipBehavior: Clip.none,
+        fit: StackFit.passthrough,
+        children: [
+          Material(
+            shape: shape,
+            elevation: widget.elevation,
+            clipBehavior: widget.clipBehavior,
+            color: widget.color,
+            animationDuration: Duration.zero,
+            child: widget.child,
+          ),
+          if (shape != null && widget.elevation > 0)
+            Positioned.fill(
+              child: ClipPath(
+                clipper: ShapeClipper(
+                  shape: shape,
+                  contain: false,
+                ),
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: widget.elevation,
+                    sigmaY: widget.elevation,
+                  ),
+                  child: ClipPath(
+                    clipper: ShapeShadowClipper(
+                      shape: shape,
+                      offset: offset,
+                    ),
+                    child: ColoredBox(
+                      color: color,
+                      child: Transform.translate(
+                        offset: offset,
+                        child: ColoredBox(
+                          color: color,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

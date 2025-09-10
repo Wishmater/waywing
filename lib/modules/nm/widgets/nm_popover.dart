@@ -132,7 +132,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                                     padding: const EdgeInsets.symmetric(vertical: 8),
                                     child: MotionColumn(
                                       motion: mainConfig.motions.standard.spatial.normal,
-                                      // TODO: 1 equality  seem to not be working correctly, causing the animations
+                                      // TODO: 1 equality seem to not be working correctly, causing the animations
                                       // to be wonky when APs are refreshed
                                       data: [
                                         if (activeAccessPoint != null) activeAccessPoint,
@@ -326,6 +326,7 @@ class _APWidgetState extends State<APWidget> {
           ]);
         }
 
+        // TODO: 2 this shoud use WingedButton
         return InkWell(
           onTap: isSelected
               ? null

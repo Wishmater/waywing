@@ -25,7 +25,7 @@ final String _dataHome = dataHomeDir;
 Directory? _mainDataHomeDir;
 Directory get mainDataHomeDir {
   if (_mainDataHomeDir == null) {
-    _mainDataHomeDir = Directory(path.join(_dataHome, "waywing "));
+    _mainDataHomeDir = Directory(path.join(_dataHome, "waywing"));
     _mainDataHomeDir!.createSync();
   }
   return _mainDataHomeDir!;
@@ -144,7 +144,6 @@ String getConfigurationFilePath() {
   if (customConfigPath != null) {
     return customConfigPath!;
   } else {
-    final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
     return path.joinAll([configDir, "waywing", "config"]);
   }
 }
@@ -155,7 +154,6 @@ String getConfigurationDirectoryPath() {
       return File(customConfigPath!).parent.path;
     } catch (_) {}
   }
-  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
   return path.joinAll([configDir, "waywing"]);
 }
 
@@ -184,16 +182,6 @@ const String defaultConfig = '''
   barEndFeathers = [ "Volume", "NetworkManager", "SystemTray", "Clock" ]
 ''';
 
-// Only if the dollar sign does not have a backslash before it.
-final _unescapedVariables = RegExp(r"(?<!\\)\$([a-zA-Z_]+[a-zA-Z0-9_]*)");
-
-/// Resolves environment variables. Replaces all $VARS with their value.
-String expandEnvironmentVariables(String path) {
-  return path.replaceAllMapped(_unescapedVariables, (Match match) {
-    String env = match[1]!;
-    return Platform.environment[env] ?? "";
-  });
-}
 
 dynamic _toPrettyJson(dynamic values) {
   const encoder = JsonEncoder.withIndent("  ");

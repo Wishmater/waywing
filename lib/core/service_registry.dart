@@ -2,6 +2,7 @@ import "package:config/config.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/service.dart";
+import "package:waywing/modules/application-launcher/application_service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/modules/kb_layout/kb_layout_service.dart";
@@ -153,6 +154,7 @@ class ServiceRegistry {
     OsInfoService.registerService(registerService);
     NotificationsService.registerService(registerService);
     KeyboardLayoutService.registerService(registerService);
+    ApplicationService.registerService(registerService);
   }
 }
 

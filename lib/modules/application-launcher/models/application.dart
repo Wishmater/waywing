@@ -27,7 +27,7 @@ class Application {
   /// [Icon Theme Specification](https://specifications.freedesktop.org/icon-theme-spec/latest/)
   /// will be used to locate the icon
   final String? icon;
-  String? iconPath;
+  // String? iconPath;
 
   /// A list of strings identifying the desktop environments that
   /// should display/not display a given desktop entry.
@@ -103,21 +103,21 @@ class Application {
     File file,
   ) {
     if (entries[Key.dBusActivatable.string] == null && entries[Key.exec.string] == null) {
-      throw DesktopEntryInvalidState(InvalidStateEnum.missingExecAndDBusActivatable);
+      throw DesktopEntryInvalidStateException(InvalidStateEnum.missingExecAndDBusActivatable);
     }
 
     final name = entries[Key.name.string];
     if (name == null) {
-      throw const DesktopEntryInvalidState(InvalidStateEnum.missingName);
+      throw const DesktopEntryInvalidStateException(InvalidStateEnum.missingName);
     }
 
     final hidden = entries[Key.hidden.string];
     if (hidden?.toLowerCase() == "true") {
-      throw const DesktopEntryInvalidState(InvalidStateEnum.hidden);
+      throw const DesktopEntryInvalidStateException(InvalidStateEnum.hidden);
     }
     final noDisplay = entries[Key.noDisplay.string];
     if (noDisplay?.toLowerCase() == "true") {
-      throw const DesktopEntryInvalidState(InvalidStateEnum.hidden);
+      throw const DesktopEntryInvalidStateException(InvalidStateEnum.hidden);
     }
 
     final categories = Categories.fromList(entries[Key.categories.string]?.split(";"));
@@ -141,12 +141,7 @@ class Application {
 
   // throws ParseApplicationException
   static Application parseFromFile(File file) {
-    String contents;
-    try {
-      contents = file.readAsStringSync();
-    } on FileSystemException catch (e) {
-      return throw FileSystemError(e);
-    }
+    String contents = file.readAsStringSync();
 
     final desktopEntry = DesktopEntry.parse(contents);
     final local = localization();
@@ -187,11 +182,8 @@ class Application {
           DBusSignature.string,
           DBusSignature.variant,
           {
-            const DBusString("desktop-startup-id"): DBusVariant(
-              DBusString(Platform.environment["DESKTOP_STARTUP_ID"] ?? ""),
-            ),
             const DBusString("activation-token"): DBusVariant(
-              DBusString(Platform.environment["XDG_ACTIVATION_TOKEN"] ?? ""),
+              DBusString(Platform.environment["XDG_ACTIVATION_TOKEN"] ?? ""), // TODO 1: get activation token from user action
             ),
           },
         ),
@@ -211,7 +203,7 @@ class Application {
       final (cmd, args) = parseExec(exec!);
       if (terminal) {
         // TODO increase the list of terminals to launch and also make it configurable
-        await Process.start("alacritty", ["-e", cmd, ...args]);
+        await Process.start("alacritty", ["-e", cmd, ...args], mode: ProcessStartMode.detached);
       } else {
         await Process.start(cmd, args, mode: ProcessStartMode.detached);
       }
@@ -323,10 +315,6 @@ enum Categories {
   }
 }
 
-sealed class ParseApplicationException implements Exception {
-  const ParseApplicationException();
-}
-
 enum InvalidStateEnum {
   missingExecAndDBusActivatable("exec and dBusActivatable where missing"),
   missingName("name is missing"),
@@ -341,22 +329,14 @@ enum InvalidStateEnum {
   }
 }
 
-class DesktopEntryInvalidState extends ParseApplicationException {
+class DesktopEntryInvalidStateException {
   final InvalidStateEnum state;
-  const DesktopEntryInvalidState(this.state);
+  const DesktopEntryInvalidStateException(this.state);
 
   @override
   String toString() {
     return state.toString();
   }
-}
-
-class FileSystemError extends ParseApplicationException {
-  final FileSystemException err;
-  const FileSystemError(this.err);
-
-  @override
-  String toString() => err.toString();
 }
 
 // /// cache for searchIcon

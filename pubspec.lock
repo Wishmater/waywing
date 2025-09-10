@@ -419,6 +419,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  fuzzy_string:
+    dependency: "direct main"
+    description:
+      name: fuzzy_string
+      sha256: cfd307a71abc320bb02fe6dfb0354d1b88714b9e6dbfa706f0883dac7ca8b73b
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   glob:
     dependency: transitive
     description:

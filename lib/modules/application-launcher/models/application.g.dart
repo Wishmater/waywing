@@ -29,14 +29,13 @@ Application _$ApplicationFromJson(Map<String, dynamic> json) => Application(
   timesExec: (json['timesExec'] as num?)?.toInt() ?? 0,
   lastModified: DateTime.parse(json['lastModified'] as String),
   filepath: json['filepath'] as String,
-)..iconPath = json['iconPath'] as String?;
+);
 
 Map<String, dynamic> _$ApplicationToJson(Application instance) =>
     <String, dynamic>{
       'name': instance.name,
       'comment': instance.comment,
       'icon': instance.icon,
-      'iconPath': instance.iconPath,
       'onlyShownIn': instance.onlyShownIn,
       'notShownIn': instance.notShownIn,
       'dBusActivatable': instance.dBusActivatable,

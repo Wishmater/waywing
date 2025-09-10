@@ -86,6 +86,7 @@ dependencies:
   freezed_annotation: ^3.1.0
   collection: ^1.19.1
   json_annotation: ^4.9.0
+  fuzzy_string: ^1.0.0
 
 dev_dependencies:
   flutter_test:

@@ -17,3 +17,5 @@ Iterable<String> get pathDirectories sync* {
   }
   yield* Platform.environment["PATH"]!.split(":");
 }
+
+String get configDir => Platform.environment["XDG_CONFIG_HOME"] ?? path.join(Platform.environment["HOME"]!, ".config");

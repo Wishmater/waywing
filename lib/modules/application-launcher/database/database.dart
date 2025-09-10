@@ -1,22 +1,25 @@
 import "dart:io";
 
 import "package:tronco/tronco.dart";
-import "package:sembast/sembast.dart";
 import "package:sembast/sembast_io.dart";
 import "package:waywing/modules/application-launcher/models/application.dart";
 import "package:path/path.dart" as path;
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/xdg_dirs.dart";
 
-class MDatabase {
+class LauncherDatabase {
   Database db;
   StoreRef<String, Map<String, Object?>> store;
 
-  MDatabase._(this.db, this.store);
+  LauncherDatabase._(this.db, this.store);
 
-  static Future<MDatabase> open(String path) async {
+  Future<void> close() async {
+    await db.close();
+  }
+
+  static Future<LauncherDatabase> open(String path) async {
     final db = await databaseFactoryIo.openDatabase(path);
-    return MDatabase._(db, stringMapStoreFactory.store());
+    return LauncherDatabase._(db, stringMapStoreFactory.store());
   }
 
   Future<List<Application>> getAll() async {
@@ -48,11 +51,8 @@ class MDatabase {
   }
 }
 
-Future<List<Application>> loadApplicationsFromDisk(Map<String, Application> old, Logger logger) async {
+List<Application> loadApplicationsFromDisk(Map<String, Application> old, Logger logger) {
   final response = <Application>{};
-  final futures = <Future>[];
-  // final managerSearchIcon = IsolateManager(searchIcon);
-  // await managerSearchIcon.init();
 
   for (final dirPath in applicationDirectories) {
     final dir = Directory(dirPath);
@@ -67,7 +67,7 @@ Future<List<Application>> loadApplicationsFromDisk(Map<String, Application> old,
       if (path.extension(entry.path) != ".desktop") {
         continue;
       }
-      logger.log(Level.trace, "found possible app ${entry.absolute.path}");
+      logger.trace("found possible app ${entry.absolute.path}");
       final oldApp = old[entry.absolute.path];
 
       /// if in cache check for lastModified. If lastModified is equal to file is a cache hit
@@ -107,28 +107,23 @@ Future<List<Application>> loadApplicationsFromDisk(Map<String, Application> old,
           // );
         }
         response.add(app);
-      } on ParseApplicationException catch (e) {
-        switch (e) {
-          case DesktopEntryInvalidState e:
-            if (e.state == InvalidStateEnum.hidden) {
-              logger.trace("desktop entry at ${entry.absolute.path} is hidden");
-            } else {
-              logger.warning("invalid desktop entry at ${entry.absolute.path}", error: e);
-            }
-          case FileSystemError e:
-            logger.warning("file system error while reading entry at ${entry.absolute.path}", error: e);
-            throw UnimplementedError();
+      } on DesktopEntryInvalidStateException catch (e) {
+        if (e.state == InvalidStateEnum.hidden) {
+          logger.trace("desktop entry at ${entry.absolute.path} is hidden");
+        } else {
+          logger.warning("invalid desktop entry at ${entry.absolute.path}", error: e);
         }
+      } on FileSystemException catch (e) {
+        logger.error("file system error while reading entry at ${entry.absolute.path}", error: e);
       } catch (e, st) {
         logger.error("Exception while loading ${entry.absolute.path}", error: e, stackTrace: st);
       }
     }
   }
-  await Future.wait(futures);
   return response.toList();
 }
 
-Future<List<Application>> loadApplications(MDatabase db, Logger logger) async {
+Future<List<Application>> loadApplications(LauncherDatabase db, Logger logger) async {
   final List<Application> list = await db.getAll();
 
   final aggreateLogger = logger.create(Level.trace, "Applications loaded from database");
@@ -140,7 +135,7 @@ Future<List<Application>> loadApplications(MDatabase db, Logger logger) async {
   }
 
   final map = Map.fromEntries(list.map((e) => MapEntry(e.filepath, e)));
-  final apps = await loadApplicationsFromDisk(map, logger);
+  final apps = loadApplicationsFromDisk(map, logger);
   for (final app in apps) {
     final old = map[app.filepath];
     if (old != null && old.lastModified == app.lastModified) {

@@ -13,13 +13,11 @@ dependencies:
 
   # Configuration parser
   config:
-    # path: ../config.dart
-    version: ^0.0.1
+    version: ^0.0.2
     git:
       url: https://github.com/ross96D/config.dart
       tag_pattern: "{{version}}"
   config_gen:
-    # path: ../config_gen
     version: ^0.0.2
     git:
       url: https://github.com/Wishmater/config_gen
@@ -66,6 +64,7 @@ dependencies:
   nm: ^0.5.0
   # render icons from string as defined in xdg icons spec
   xdg_icons: ^0.1.2
+  flutter_svg: ^2.2.1
   # battery and other power options
   upower: ^0.7.0
   # Linux window / shellLayer manager
@@ -101,3 +100,7 @@ flutter:
 
 dependency_overrides:
   intl: ^0.20.2
+  # config:
+  #   path: ../config.dart
+  # config_gen:
+  #   path: ../config_gen

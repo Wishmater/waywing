@@ -14,6 +14,7 @@ mixin MainConfigI {
   double get animationSpeed;
   double get animationDamping;
   AnimationFitting get animationFitting;
+  AnimationSwitching get animationSwitching;
   bool get requestKeyboardFocus;
 }
 
@@ -27,6 +28,7 @@ class MainConfig with MainConfigI, MainConfigBase {
       'animationSpeed': MainConfigBase._animationSpeed,
       'animationDamping': MainConfigBase._animationDamping,
       'animationFitting': MainConfigBase._animationFitting,
+      'animationSwitching': MainConfigBase._animationSwitching,
       'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
     },
   );
@@ -45,6 +47,7 @@ class MainConfig with MainConfigI, MainConfigBase {
   final double animationSpeed;
   final double animationDamping;
   final AnimationFitting animationFitting;
+  final AnimationSwitching animationSwitching;
   final bool requestKeyboardFocus;
 
   final LoggingConfig logging;
@@ -57,6 +60,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     double? animationSpeed,
     double? animationDamping,
     AnimationFitting? animationFitting,
+    AnimationSwitching? animationSwitching,
     bool? requestKeyboardFocus,
     required this.logging,
     required this.theme,
@@ -65,6 +69,8 @@ class MainConfig with MainConfigI, MainConfigBase {
        animationSpeed = animationSpeed ?? 1,
        animationDamping = animationDamping ?? 1,
        animationFitting = animationFitting ?? AnimationFitting.clip,
+       animationSwitching =
+           animationSwitching ?? AnimationSwitching.fadeThrough,
        requestKeyboardFocus = requestKeyboardFocus ?? false;
 
   factory MainConfig.fromMap(Map<String, dynamic> map) {
@@ -75,6 +81,7 @@ class MainConfig with MainConfigI, MainConfigBase {
       animationSpeed: map['animationSpeed'],
       animationDamping: map['animationDamping'],
       animationFitting: map['animationFitting'],
+      animationSwitching: map['animationSwitching'],
       requestKeyboardFocus: map['requestKeyboardFocus'],
       logging: LoggingConfig.fromMap(map['Logging']),
       theme: ThemeConfig.fromMap(map['Theme']),
@@ -83,7 +90,7 @@ class MainConfig with MainConfigI, MainConfigBase {
 
   @override
   String toString() {
-    return 'MainConfigmonitor = $monitor, wings = $wings, socket = $socket, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, requestKeyboardFocus = $requestKeyboardFocus';
+    return 'MainConfigmonitor = $monitor, wings = $wings, socket = $socket, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus';
   }
 
   @override
@@ -94,6 +101,7 @@ class MainConfig with MainConfigI, MainConfigBase {
         animationSpeed == other.animationSpeed &&
         animationDamping == other.animationDamping &&
         animationFitting == other.animationFitting &&
+        animationSwitching == other.animationSwitching &&
         requestKeyboardFocus == other.requestKeyboardFocus;
   }
 
@@ -105,6 +113,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     animationSpeed,
     animationDamping,
     animationFitting,
+    animationSwitching,
     requestKeyboardFocus,
   ]);
 }

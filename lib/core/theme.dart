@@ -1,8 +1,10 @@
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
+import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
 import "package:flex_seed_scheme/flex_seed_scheme.dart";
 import "package:waywing/util/config_fields.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 part "theme.config.dart";
 
@@ -11,6 +13,32 @@ mixin ThemeConfigBase on ThemeConfigI {
   static const _mode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
 
   static const _fontFamily = StringField(nullable: true);
+
+  static const _iconPriority = ListField(
+    EnumField(IconType.values),
+    defaultTo: [
+      IconType.flutter,
+      IconType.direct,
+      IconType.linux,
+      IconType.nerdFont,
+    ],
+    validator: _iconPriorityValidator,
+  );
+  static ValidatorResult<List<IconType>> _iconPriorityValidator(List<IconType> value) {
+    if (value.isEmpty) {
+      return ValidatorError(
+        MyValError("At least one icon type must be specified in iconPriority list, but received an empty list"),
+      );
+    }
+    for (final e in value) {
+      if (value.count((f) => e == f) > 1) {
+        return ValidatorError(
+          MyValError("The same icon type can't be repeated more than once in iconPriority list, but $e was repeated"),
+        );
+      }
+    }
+    return ValidatorSuccess();
+  }
 
   static const _primaryColor = ColorField(defaultTo: MyColor(0xFF2196F3));
   static const _secondaryColor = ColorField(nullable: true);
@@ -23,7 +51,7 @@ mixin ThemeConfigBase on ThemeConfigI {
     defaultTo: 1.0,
     validator: _backgroundOpacityValidator,
   );
-  static ValidatorResult<double> _backgroundOpacityValidator(value) {
+  static ValidatorResult<double> _backgroundOpacityValidator(double value) {
     if (value >= 0 && value <= 1) {
       return ValidatorSuccess();
     } else {
@@ -35,7 +63,7 @@ mixin ThemeConfigBase on ThemeConfigI {
     defaultTo: 1.0,
     validator: _shadowsValidator,
   );
-  static ValidatorResult<double> _shadowsValidator(value) {
+  static ValidatorResult<double> _shadowsValidator(double value) {
     if (value >= 0) {
       return ValidatorSuccess();
     } else {

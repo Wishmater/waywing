@@ -10,6 +10,7 @@ part of 'theme.dart';
 mixin ThemeConfigI {
   ThemeMode get mode;
   String? get fontFamily;
+  List<IconType> get iconPriority;
   MyColor get primaryColor;
   MyColor? get secondaryColor;
   MyColor? get tertiaryColor;
@@ -25,6 +26,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     fields: {
       'mode': ThemeConfigBase._mode,
       'fontFamily': ThemeConfigBase._fontFamily,
+      'iconPriority': ThemeConfigBase._iconPriority,
       'primaryColor': ThemeConfigBase._primaryColor,
       'secondaryColor': ThemeConfigBase._secondaryColor,
       'tertiaryColor': ThemeConfigBase._tertiaryColor,
@@ -40,6 +42,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
 
   final ThemeMode mode;
   final String? fontFamily;
+  final List<IconType> iconPriority;
   final MyColor primaryColor;
   final MyColor? secondaryColor;
   final MyColor? tertiaryColor;
@@ -52,6 +55,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   ThemeConfig({
     ThemeMode? mode,
     this.fontFamily,
+    List<IconType>? iconPriority,
     MyColor? primaryColor,
     this.secondaryColor,
     this.tertiaryColor,
@@ -61,6 +65,14 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     double? backgroundOpacity,
     double? shadows,
   }) : mode = mode ?? ThemeMode.system,
+       iconPriority =
+           iconPriority ??
+           [
+             IconType.flutter,
+             IconType.direct,
+             IconType.linux,
+             IconType.nerdFont,
+           ],
        primaryColor = primaryColor ?? MyColor(0xFF2196F3),
        backgroundOpacity = backgroundOpacity ?? 1.0,
        shadows = shadows ?? 1.0;
@@ -69,6 +81,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     return ThemeConfig(
       mode: map['mode'],
       fontFamily: map['fontFamily'],
+      iconPriority: map['iconPriority'],
       primaryColor: map['primaryColor'],
       secondaryColor: map['secondaryColor'],
       tertiaryColor: map['tertiaryColor'],
@@ -82,13 +95,14 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
 
   @override
   String toString() {
-    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows';
+    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, iconPriority = $iconPriority, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows';
   }
 
   @override
   bool operator ==(covariant ThemeConfig other) {
     return mode == other.mode &&
         fontFamily == other.fontFamily &&
+        iconPriority == other.iconPriority &&
         primaryColor == other.primaryColor &&
         secondaryColor == other.secondaryColor &&
         tertiaryColor == other.tertiaryColor &&
@@ -103,6 +117,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   int get hashCode => Object.hashAll([
     mode,
     fontFamily,
+    iconPriority,
     primaryColor,
     secondaryColor,
     tertiaryColor,

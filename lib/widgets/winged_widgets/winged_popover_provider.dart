@@ -5,6 +5,7 @@ import "package:flutter/services.dart";
 import "package:motor/motor.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/math_utils.dart";
 import "package:waywing/util/popup_utils.dart";
@@ -403,8 +404,26 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
         minAbs(targetContentOffset.dx, maxContentOffset.dx),
         minAbs(targetContentOffset.dy, maxContentOffset.dy),
       );
+      if (mainConfig.animationSwitching == AnimationSwitching.slide) {
+        final minChildSize = oldChildSize > newChildSize ? newChildSize : oldChildSize;
+        final horizontalDiffPerc = (targetContentOffset.dx / minChildSize.width).abs();
+        final verticalDiffPerc = (targetContentOffset.dy / minChildSize.height).abs();
+        if (horizontalDiffPerc < 1 && verticalDiffPerc < 1) {
+          if (horizontalDiffPerc > verticalDiffPerc) {
+            targetContentOffset = Offset(minChildSize.width * targetContentOffset.dx.sign, targetContentOffset.dy);
+          } else {
+            targetContentOffset = Offset(targetContentOffset.dx, minChildSize.height * targetContentOffset.dy.sign);
+          }
+        }
+      }
     }
 
+    // make the outgoing opacity animation faster, so it doesn't interfere with
+    // user reading the incoming content
+    final currentMotion = contentOpacityMotionController.motion;
+    if (currentMotion is MaterialSpringMotion) {
+      contentOpacityMotionController.motion = currentMotion.copyWith(stiffness: currentMotion.stiffness * 2);
+    }
     final outgoingChild = _OutgoingChild(
       widget: _lastContent,
       opacityMotionController: contentOpacityMotionController,

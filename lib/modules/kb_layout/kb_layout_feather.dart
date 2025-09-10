@@ -9,7 +9,9 @@ import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/widgets/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class KeyboardLayoutFeather extends Feather {
   late final KeyboardLayoutService service;
@@ -69,10 +71,18 @@ class KeyboardLayoutIndicator extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   // final isVertical = constraints.maxHeight > constraints.maxWidth;
-                  final icon = Icon(
-                    MaterialCommunityIcons.keyboard_variant,
+                  final icon = WingedIcon(
+                    flutterIcon: MaterialCommunityIcons.keyboard_variant,
+                    iconNames: ["input-keyboard-cirtual-off", "input-keyboard"],
+                    textIcon: "󰌓", // nf-md-keyboard_variant
                     size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
                     color: theme.textTheme.bodyMedium!.color,
+                    textIconBuilder: (context) => TextIcon(
+                      text: "󰌓", // nf-md-keyboard_variant
+                      alignment: Alignment(-0.66, 0),
+                      size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
+                      color: theme.textTheme.bodyMedium!.color,
+                    ),
                   );
                   final Widget content;
                   if (constraints.maxHeight >= 40) {

@@ -3,6 +3,8 @@ import "package:motor/motor.dart";
 
 enum AnimationFitting { clip, stretch }
 
+enum AnimationSwitching { fadeThrough, slide }
+
 class MultipliedAnimation extends Animation<double> {
   final Animation<double> first;
   final Animation<double> second;

@@ -22,7 +22,7 @@ abstract class Feather<Conf> {
   /// Feathear directory where any kind of runtime data can be set
   Directory get dataDir {
     if (_dataDir == null) {
-      _dataDir = Directory(path.join(mainDataDir.path, "feather", name));
+      _dataDir = Directory(path.join(mainDataHomeDir.path, "feather", name));
       _dataDir!.createSync(recursive: true);
     }
     return _dataDir!;

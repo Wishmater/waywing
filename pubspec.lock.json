@@ -296,8 +296,8 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
+        "ref": "HEAD",
         "resolved-ref": "fb95c0d2283db33be861424d549af157b9a7856a",
-        "tag-pattern": "{{version}}",
         "url": "https://github.com/Wishmater/config_gen",
         "sha256": "sha256-Ek/Na82hb9+VTH/T6LfChXKlo0bfQx0yN3xJydOCOtM="
       },
@@ -373,6 +373,16 @@
       },
       "source": "hosted",
       "version": "3.2.4"
+    },
+    "equatable": {
+      "dependency": "transitive",
+      "description": {
+        "name": "equatable",
+        "sha256": "567c64b3cb4cf82397aac55f4f0cbd3ca20d77c6c03bedbc4ceaddc08904aef7",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "2.0.7"
     },
     "fake_async": {
       "dependency": "transitive",
@@ -768,11 +778,11 @@
       "dependency": "direct main",
       "description": {
         "name": "motor",
-        "sha256": "8d8a4115f6ba8ea40d34dbe55404f809672bc3b851c4355a91553b41f9536fca",
+        "sha256": "cdad651858f1305f98e986841128abd23bb964289c1f9244ffc5b575963d6d8a",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.0.0-dev.4"
+      "version": "1.0.0-dev.9"
     },
     "mutex": {
       "dependency": "direct main",
@@ -1257,6 +1267,6 @@
   },
   "sdks": {
     "dart": ">=3.9.0 <4.0.0",
-    "flutter": ">=3.29.0"
+    "flutter": ">=3.32.0"
   }
 }

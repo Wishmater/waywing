@@ -361,8 +361,6 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     }
   }
 
-  // TODO: 1 ignore pointer and focus for outgoing clients
-
   late Widget _lastContent;
   void _triggerContentAnimation(WingedPopoverState oldHost) {
     Offset? targetContentOffset;
@@ -502,7 +500,13 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               ),
             ),
           ),
-        currentContent,
+        IgnorePointer(
+          ignoring: widget.isRemoved,
+          child: ExcludeFocus(
+            excluding: widget.isRemoved,
+            child: currentContent,
+          ),
+        ),
       ],
     );
 

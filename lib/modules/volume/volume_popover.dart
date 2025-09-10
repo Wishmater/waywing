@@ -194,7 +194,9 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
             padding: const EdgeInsets.only(top: 4, left: 12),
             child: Radio(
               value: model,
+              // ignore: deprecated_member_use
               groupValue: defaultModel,
+              // ignore: deprecated_member_use
               onChanged: (value) {
                 onDefaultSelected!(value!);
               },

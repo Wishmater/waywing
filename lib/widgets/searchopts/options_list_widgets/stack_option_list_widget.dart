@@ -17,6 +17,7 @@ class StackOptionsListWidget<T extends Object> extends StatefulWidget {
   final Widget? prototypeItem;
   final ValueNotifier<int> highlighted;
   final double availableHeight;
+  final bool showScrollBar;
 
   const StackOptionsListWidget({
     required this.options,
@@ -26,6 +27,7 @@ class StackOptionsListWidget<T extends Object> extends StatefulWidget {
     required this.prototypeItem,
     required this.highlighted,
     required this.availableHeight,
+    required this.showScrollBar,
     super.key,
   });
 
@@ -137,7 +139,7 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
     }
     final areAllItemsVisible = widget.filtered.length <= focusableItemCount;
     const scrollbarWidth = 3.0;
-    final scrollbar = switch (true) { // TODO 1: (Get.instance.get<Configuration>().showScrollBar) {
+    final scrollbar = switch (widget.showScrollBar) {
       true => AnimatedPositioned(
         duration: animationDuration * 0.66,
         curve: Curves.easeOutCubic,

@@ -6,10 +6,11 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/modules/application-launcher/application_service.dart";
+import "package:waywing/modules/application-launcher/launcher_config.dart";
 import "package:waywing/modules/application-launcher/launcher_widget.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 
-class AppLauncherWing extends Wing {
+class AppLauncherWing extends Wing<LauncherConfig> {
   late ApplicationService service;
 
   AppLauncherWing._();
@@ -19,6 +20,8 @@ class AppLauncherWing extends Wing {
       "AppLauncher",
       FeatherRegistration(
         constructor: AppLauncherWing._,
+        schemaBuilder: () => LauncherConfig.schema,
+        configBuilder: LauncherConfig.fromMap,
         actions: {
           "activate": (params, feather) {
             final self = (feather as AppLauncherWing);
@@ -45,8 +48,8 @@ class AppLauncherWing extends Wing {
   Widget buildWing(EdgeInsets rerservedSpace) {
     return Center(
       child: SizedBox(
-        width: 400, // TODO 1: get value from configuration
-        height: 400, // TODO 1: get value from configuration
+        width: config.width.toDouble(),
+        height: config.height.toDouble(),
         child: ValueListenableBuilder(
           valueListenable: showLauncher,
           builder: (contex, show, _) {
@@ -64,7 +67,11 @@ class AppLauncherWing extends Wing {
                       future: service.applications(),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
-                          return LauncherWidget(service: service, applications: snapshot.data!);
+                          return LauncherWidget(
+                            service: service,
+                            applications: snapshot.data!,
+                            config: config,
+                          );
                         } else {
                           return const Center(
                             child: SizedBox(

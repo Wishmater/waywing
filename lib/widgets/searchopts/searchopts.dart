@@ -61,6 +61,9 @@ class SearchOptions<T extends Object> extends StatefulWidget {
     required this.options,
     required this.renderOption,
     required this.onSelected,
+    required this.width,
+    required this.height,
+    this.showScrollBar = true,
     this.previousOptionActivator = const SingleActivator(LogicalKeyboardKey.arrowUp),
     this.nextOptionActivator = const SingleActivator(LogicalKeyboardKey.arrowDown),
     this.selectOptionActivator = const SingleActivator(LogicalKeyboardKey.enter),
@@ -87,6 +90,12 @@ class SearchOptions<T extends Object> extends StatefulWidget {
 
   /// fuzzy matching alghorithm used to filter
   final FuzzyStringMatcher matcher;
+
+  final bool showScrollBar;
+
+  final double width;
+
+  final double height;
 
   @override
   State<SearchOptions<T>> createState() => _SearchOptionsState<T>();
@@ -202,10 +211,10 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
   @override
   Widget build(BuildContext context) {
     const textFieldHeight = 64.0;
-    const itemHeight = 64.0; // TODO: this should be reported by the same that gives renderOption
+    const itemHeight = 64.0; // TODO 3: this should be reported by the same that gives renderOption
 
-    final height = 400.0; // TODO 1: get this value from the configuration
-    final width = 400.0; // TODO 1: get this value from the configuration
+    final height = widget.height;
+    final width = widget.width;
 
     final contentHeight = height - textFieldHeight;
     final focusableItemCount = (contentHeight / itemHeight).floor();
@@ -220,6 +229,7 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
       filtered: filtered,
       highlighted: highlighted,
       availableHeight: contentHeight,
+      showScrollBar: widget.showScrollBar,
     );
 
     return Shortcuts(

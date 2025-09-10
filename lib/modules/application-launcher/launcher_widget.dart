@@ -3,14 +3,21 @@ import "dart:io";
 import "package:flutter/material.dart";
 import "package:waywing/modules/application-launcher/application_service.dart";
 import "package:waywing/modules/application-launcher/application.dart";
+import "package:waywing/modules/application-launcher/launcher_config.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
 class LauncherWidget extends StatefulWidget {
   final List<Application> applications;
   final ApplicationService service;
+  final LauncherConfig config;
 
-  const LauncherWidget({super.key, required this.service, required this.applications});
+  const LauncherWidget({
+    super.key,
+    required this.service,
+    required this.applications,
+    required this.config,
+  });
 
   @override
   State<LauncherWidget> createState() => _LauncherWidgetState();
@@ -23,6 +30,9 @@ class _LauncherWidgetState extends State<LauncherWidget> {
       options: Option.from(widget.applications, ApplicationOption.from),
       renderOption: _renderOption,
       onSelected: widget.service.run,
+      showScrollBar: widget.config.showScrollBar,
+      height: widget.config.height.toDouble(),
+      width: widget.config.width.toDouble(),
     );
   }
 
@@ -30,7 +40,7 @@ class _LauncherWidgetState extends State<LauncherWidget> {
     return ListTileOptionWidget(
       app: app,
       config: config,
-      onTap:  () => widget.service.run(app),
+      onTap: () => widget.service.run(app),
     );
   }
 }
@@ -66,9 +76,7 @@ class ListTileOptionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ListTile(
-      leading: app.icon != null
-          ? _RenderIcon(icon: app.icon!)
-          : SizedBox(width: 35), // TODO 1: correctly render full path icons
+      leading: app.icon != null ? _RenderIcon(icon: app.icon!) : SizedBox(width: 35),
       title: Text(
         app.name,
         style: theme.textTheme.bodyLarge,

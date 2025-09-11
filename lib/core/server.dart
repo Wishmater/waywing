@@ -47,6 +47,7 @@ class WaywingServer {
           final uri = Uri.parse(line);
           socket.add(router.enroute(uri));
           socket.add("\n".codeUnits);
+          socket.close();
         }
       });
     }

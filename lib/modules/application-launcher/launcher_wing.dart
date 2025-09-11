@@ -46,52 +46,57 @@ class AppLauncherWing extends Wing<LauncherConfig> {
 
   @override
   Widget buildWing(EdgeInsets rerservedSpace) {
-    return Center(
-      child: SizedBox(
-        width: config.width.toDouble(),
-        height: config.height.toDouble(),
-        child: ValueListenableBuilder(
-          valueListenable: showLauncher,
-          builder: (contex, show, _) {
-            if (show) {
-              return InputRegion(
-                child: KeyboardFocus(
-                  mode: KeyboardFocusMode.exclusive,
-                  child: CallbackShortcuts(
-                    bindings: {
-                      const SingleActivator(LogicalKeyboardKey.escape): () {
-                        showLauncher.value = false;
-                      },
-                    },
-                    child: FutureBuilder(
-                      future: service.applications(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return LauncherWidget(
-                            service: service,
-                            applications: snapshot.data!,
-                            config: config,
-                          );
-                        } else {
-                          return const Center(
-                            child: SizedBox(
-                              height: 35,
-                              width: 35,
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        }
-                      },
+    return ValueListenableBuilder(
+      valueListenable: showLauncher,
+      builder: (contex, show, _) {
+        if (show) {
+          return InputRegion(
+            child: KeyboardFocus(
+              mode: KeyboardFocusMode.exclusive,
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.escape): () {
+                    showLauncher.value = false;
+                  },
+                },
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.blue.withAlpha(30),
+                  child: Center(
+                    child: SizedBox(
+                      width: config.width.toDouble(),
+                      height: config.height.toDouble(),
+                      child: FutureBuilder(
+                        future: service.applications(),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return LauncherWidget(
+                              service: service,
+                              applications: snapshot.data!,
+                              config: config,
+                            );
+                          } else {
+                            return const Center(
+                              child: SizedBox(
+                                height: 35,
+                                width: 35,
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                        },
+                      ),
                     ),
                   ),
                 ),
-              );
-            } else {
-              return SizedBox.shrink();
-            }
-          },
-        ),
-      ),
+              ),
+            ),
+          );
+        } else {
+          return SizedBox.shrink();
+        }
+      },
     );
   }
 }

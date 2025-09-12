@@ -33,6 +33,7 @@ class _LauncherWidgetState extends State<LauncherWidget> {
     super.initState();
 
     focusNode = FocusNode(debugLabel: "launcher");
+    focusNode.requestFocus();
     focusNode.addListener(() {
       if (!focusNode.hasFocus) {
         focusNode.requestFocus();

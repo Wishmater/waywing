@@ -292,7 +292,7 @@ class OrgKdeStatusNotifierItemValues {
         v,
       ) {
         final obj = ComCanonicalDbusmenu(statusNotifierItem.client, statusNotifierItem.name, path: v);
-        dbusmenu = DBusMenuValues(obj);
+        dbusmenu = DBusMenuValues(obj, _logger);
       }),
     ];
     _initialized = futures.wait.timeout(Duration(milliseconds: 200)).then((v) {

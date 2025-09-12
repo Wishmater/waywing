@@ -50,10 +50,13 @@ pub fn main() !void {
         return;
     }
     const response = try client.sendCmd(std.heap.smp_allocator, arg);
-    if (response.status > 400) {
+    if (response.status >= 400) {
         printOut("bad status code {d}\n", .{response.status});
     }
     printOut("{s}", .{response.body});
+    if (response.status >= 400) {
+        std.process.exit(1);
+    }
 }
 
 fn advance(iter: *std.process.ArgIterator) [:0]const u8 {

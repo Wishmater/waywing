@@ -419,6 +419,8 @@ class NotificationHints {
   }
 
   factory NotificationHints(DBusClient client, Map<String, DBusValue> hints) {
+    print("--------------${hints["urgency"]} ---- ${_parseValue<int>(hints["urgency"])}");
+    print(NotificationUrgency.from(_parseValue<int>(hints["urgency"]) ?? 1));
     return NotificationHints._(
       dbusClient: client,
       actionIcons: _parseValue<bool>(hints["action-icons"]) ?? false,
@@ -426,7 +428,7 @@ class NotificationHints {
       soundName: _parseValue<String>(hints["sound-name"]),
       suppressSound: _parseValue<bool>(hints["suppress-sound"]),
       transient: _parseValue<bool>(hints["transient"]),
-      urgency: NotificationUrgency.from(_parseValue<int>(hints["transient"]) ?? 1),
+      urgency: NotificationUrgency.from(_parseValue<int>(hints["urgency"]) ?? 1),
       resident: _parseValue<bool>(hints["resident"]) ?? false,
       desktopEntry: _parseDesktopEntry(_parseValue<String>(hints["desktop-entry"])),
       category: NotificationCategories.fromString(_parseValue<String>(hints["category"])),
@@ -450,6 +452,7 @@ class NotificationHints {
       const (String) => [DBusSignature.string],
       const (bool) => [DBusSignature.boolean],
       const (int) => [
+        DBusSignature.byte,
         DBusSignature.int16,
         DBusSignature.int32,
         DBusSignature.int64,
@@ -467,6 +470,7 @@ class NotificationHints {
       const (bool) => hint.asBoolean() as T,
       const (int) =>
         switch (hint.signature) {
+              DBusSignature.byte => hint.asByte(),
               DBusSignature.int16 => hint.asInt16(),
               DBusSignature.int32 => hint.asInt32(),
               DBusSignature.int64 => hint.asInt64(),

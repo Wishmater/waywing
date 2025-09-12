@@ -139,10 +139,20 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
   @override
   Widget build(BuildContext context) {
     final service = NotificationServiceInheritedWidget.of(context);
+    final theme = Theme.of(context);
     return ValueListenableBuilder(
       valueListenable: widget.notification,
       builder: (context, notification, _) {
         final timer = service.server.getTimer(widget.notification.value);
+        final urgencyColor = switch (notification.urgency) {
+          NotificationUrgency.low => theme.colorScheme.surfaceBright,
+          NotificationUrgency.normal => theme.colorScheme.primary,
+          NotificationUrgency.critical => theme.colorScheme.onError,
+        };
+        final surfaceColor = switch (notification.urgency) {
+          NotificationUrgency.normal => theme.colorScheme.surface,
+          _ => Color.lerp(theme.colorScheme.surface, urgencyColor, 0.1),
+        };
         return FocusTraversalGroup(
           child: KeyboardFocus(
             mode: KeyboardFocusMode.onDemand,
@@ -156,6 +166,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                 isHovered.value = false;
               },
               child: WingedContainer(
+                color: surfaceColor,
                 shape: RoundedRectangleBorder(
                   // TODO: 2 STYLE this should take the border radius from theme, oncesthat is decided
                   borderRadius: BorderRadius.circular(12),
@@ -180,6 +191,21 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (timer != null)
+                          ListenableBuilder(
+                            listenable: timer,
+                            builder: (context, _) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 10),
+                                child: LinearProgressIndicator(
+                                  backgroundColor: theme.colorScheme.surface,
+                                  color: urgencyColor,
+                                  value: timer.percentageCompleted,
+                                  borderRadius: BorderRadius.all(Radius.circular(10)),
+                                ),
+                              );
+                            },
+                          ),
                         _NotificationTitle(
                           notification,
                           isHovered,
@@ -236,7 +262,6 @@ class _AnimatedNotificationContent extends StatelessWidget {
     );
   }
 }
-
 
 class _NotificationTitle extends StatelessWidget {
   final Notification notification;

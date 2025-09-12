@@ -1,9 +1,9 @@
 import "dart:io";
 
 import "package:flutter/material.dart";
-import "package:waywing/modules/application-launcher/application_service.dart";
-import "package:waywing/modules/application-launcher/application.dart";
-import "package:waywing/modules/application-launcher/launcher_config.dart";
+import "package:waywing/modules/app_launcher/service/application_service.dart";
+import "package:waywing/modules/app_launcher/service/application.dart";
+import "package:waywing/modules/app_launcher/launcher_config.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
 import "package:xdg_icons/xdg_icons.dart";
 

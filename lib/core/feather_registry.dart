@@ -6,7 +6,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
-import "package:waywing/modules/application-launcher/launcher_wing.dart";
+import "package:waywing/modules/app_launcher/launcher_wing.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";

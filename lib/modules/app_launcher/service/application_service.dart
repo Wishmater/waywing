@@ -1,7 +1,7 @@
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
-import "package:waywing/modules/application-launcher/database.dart";
-import "package:waywing/modules/application-launcher/application.dart";
+import "package:waywing/modules/app_launcher/service/database.dart";
+import "package:waywing/modules/app_launcher/service/application.dart";
 
 class ApplicationService extends Service {
   ApplicationService._();

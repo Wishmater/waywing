@@ -5,9 +5,9 @@ import "package:path/path.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/wing.dart";
-import "package:waywing/modules/application-launcher/application_service.dart";
-import "package:waywing/modules/application-launcher/launcher_config.dart";
-import "package:waywing/modules/application-launcher/launcher_widget.dart";
+import "package:waywing/modules/app_launcher/service/application_service.dart";
+import "package:waywing/modules/app_launcher/launcher_config.dart";
+import "package:waywing/modules/app_launcher/launcher_widget.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 
 class AppLauncherWing extends Wing<LauncherConfig> {

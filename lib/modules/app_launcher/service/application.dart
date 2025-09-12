@@ -3,7 +3,7 @@ import "dart:io";
 import "package:dbus/dbus.dart";
 import "package:path/path.dart" as path;
 import "package:json_annotation/json_annotation.dart";
-import "package:waywing/modules/application-launcher/packages/freedesktop_entry/freedesktop_entry.dart";
+import "package:waywing/modules/app_launcher/packages/freedesktop_entry/freedesktop_entry.dart";
 
 part "application.g.dart";
 

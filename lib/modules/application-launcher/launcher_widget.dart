@@ -58,7 +58,7 @@ class _LauncherWidgetState extends State<LauncherWidget> {
       app: app,
       config: config,
       iconSize: widget.config.iconSize,
-      onTap: () => _run,
+      onTap: () => _run(app),
     );
   }
 

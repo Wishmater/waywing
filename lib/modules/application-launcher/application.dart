@@ -182,13 +182,16 @@ class Application {
           DBusSignature.variant,
           {
             const DBusString("activation-token"): DBusVariant(
-              DBusString(Platform.environment["XDG_ACTIVATION_TOKEN"] ?? ""), // TODO 1: get activation token from user action
+              DBusString(
+                // TODO 1: get activation token from user action
+                Platform.environment["XDG_ACTIVATION_TOKEN"] ?? "",
+              ),
             ),
           },
         ),
       ];
       try {
-        await remoteObject.callMethod("org.freedesktop.Application", "Activate", params);
+        await remoteObject.callMethod("org.freedesktop.Application", "Activate", params, noReplyExpected: true);
       } on DBusMethodResponseException catch (e) {
         if (e is DBusServiceUnknownException) {
           return run(forceExec: true);
@@ -354,7 +357,6 @@ Iterable<T> whereExists<T extends FileSystemEntity>(Iterable<T> entities) sync* 
   }
   return (localization[0], localization[1]);
 }
-
 
 bool isPrintableAndNotSpace(String char) {
   assert(char.isNotEmpty);

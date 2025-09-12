@@ -19,16 +19,10 @@ class AppLauncherWing extends Wing<LauncherConfig> {
   static void registerFeather(RegisterFeatherCallback<AppLauncherWing, LauncherConfig> registerFeather) {
     registerFeather(
       "AppLauncher",
-      FeatherRegistration(
+      FeatherRegistration<AppLauncherWing, LauncherConfig>(
         constructor: AppLauncherWing._,
         schemaBuilder: () => LauncherConfig.schema,
         configBuilder: LauncherConfig.fromMap,
-        actions: {
-          "activate": (params, instance) {
-            instance.showLauncher.value = true;
-            return Response.ok();
-          },
-        },
       ),
     );
   }
@@ -41,6 +35,14 @@ class AppLauncherWing extends Wing<LauncherConfig> {
 
   @override
   String get name => "AppLauncher";
+
+  @override
+  late final Map<String, WaywingRouteCallback>? actions = {
+    "activate": (params) {
+      showLauncher.value = true;
+      return Response.ok();
+    },
+  };
 
   ValueNotifier<bool> showLauncher = ValueNotifier(false);
 

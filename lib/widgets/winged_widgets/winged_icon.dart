@@ -12,6 +12,9 @@ enum IconType {
   nerdFont,
 }
 
+// TODO: 2 ICONS migrate modules to use WingedIcon: nm, tray, notifications
+// TODO: 3 is there a way to use nerdFonts from their "class" name, so we can use them for apps, OS, and such dynamically
+
 class WingedIcon extends StatelessWidget {
   final ImageData? directImageData;
   final IconData? flutterIcon;

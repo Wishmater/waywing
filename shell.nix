@@ -54,6 +54,9 @@ in pkgs.mkShell {
     elfutils
     orc
 
+    # required by waywingcli
+    unstablepkgs.zig_0_15
+
   ];
 
   shellHook = ''

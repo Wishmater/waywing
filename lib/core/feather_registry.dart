@@ -24,19 +24,15 @@ final featherRegistry = FeatherRegistry._();
 
 typedef FeatherConstructor<T extends Feather> = T Function();
 
-typedef FeatherRouteCallback<T extends Feather> = Response Function(Map<String, String> params, T feather);
-
 class FeatherRegistration<T extends Feather<Conf>, Conf> {
   final FeatherConstructor<T> constructor;
   final SchemaBuilder? schemaBuilder;
-  final ConfigBuilder? configBuilder;
-  final Map<String, FeatherRouteCallback<T>> actions;
+  final ConfigBuilder<Conf>? configBuilder;
 
   FeatherRegistration({
     required this.constructor,
     this.schemaBuilder,
     this.configBuilder,
-    this.actions = const {},
   }) : assert(schemaBuilder == null && configBuilder == null || schemaBuilder != null && configBuilder != null);
 }
 
@@ -52,7 +48,10 @@ class FeatherRegistry {
   final Map<String, Feather> _instancedFeathers = {};
   final Map<Feather, Future<void>> _initializedFeathers = {};
 
-  void registerFeather<T extends Feather<Conf>, Conf>(String name, FeatherRegistration<T, Conf> registration) {
+  void registerFeather<T extends Feather<Conf>, Conf>(
+    String name,
+    FeatherRegistration<T, Conf> registration,
+  ) {
     assert(!_registeredFeathers.containsKey(name), "Trying to register a Feather that already exists: $name");
     _registeredFeathers[name] = registration;
   }
@@ -140,18 +139,17 @@ class FeatherRegistry {
   /// Adds the feather to the provided inner list, and to the all likst, and runs init() on it.
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
-    assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already in Feathers.all");
-    // ignore: invalid_use_of_protected_member
-    feather.logger = mainLogger.clone(properties: [LogType(feather.name)]);
+    assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already initialized");
+    feather.logger = mainLogger.clone(properties: [LogType(feather.name)]); // ignore: invalid_use_of_protected_member
     final registration = _registeredFeathers[feather.name]!;
     if (registration.configBuilder != null) {
       feather.config = registration.configBuilder!(rawMainConfig[feather.name]);
     }
-    // add feather rotues actions
-    for (final entry in registration.actions.entries) {
-      WaywingServer.instance.router.register(join(feather.name, entry.key), (params) {
-        return entry.value(params, feather);
-      });
+    // add feather routes actions
+    if (feather.actions case final actions?) {
+      for (final entry in actions.entries) {
+        WaywingServer.instance.router.register(join(feather.name, entry.key), entry.value);
+      }
     }
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
@@ -163,10 +161,11 @@ class FeatherRegistry {
   Future<void> _disposeFeather(Feather feather) async {
     assert(_initializedFeathers.containsKey(feather), "Trying to remove a feather that is not in Feathers.all");
     _initializedFeathers.remove(feather);
-    final registration = _registeredFeathers[feather.name]!;
     // remove feather routes
-    for (final entry in registration.actions.entries) {
-      WaywingServer.instance.router.unregister(join(feather.name, entry.key));
+    if (feather.actions case final actions?) {
+      for (final entry in actions.entries) {
+        WaywingServer.instance.router.unregister(join(feather.name, entry.key));
+      }
     }
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
     featherRegistry._dereferenceFeather(feather.name);

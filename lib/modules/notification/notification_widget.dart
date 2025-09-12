@@ -60,7 +60,7 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
                     data: List<ValueNotifier<Notification>>.from(notifications),
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     itemBuilder: (context, noti) {
-                      Widget result = _NotificationWidget(noti);
+                      Widget result = _NotificationWidget(noti, widget.config);
                       // TODO: 2 should we enable variable notif width, at least as an option ?
                       // result = Align(
                       //   alignment: widget.config.alignment,
@@ -92,7 +92,8 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
 
 class _NotificationWidget extends StatefulWidget {
   final ValueNotifier<Notification> notification;
-  const _NotificationWidget(this.notification);
+  final NotificationsConfig config;
+  const _NotificationWidget(this.notification, this.config);
 
   @override
   State<StatefulWidget> createState() => _NotificationWidgetState();
@@ -191,14 +192,14 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (timer != null)
+                        if (timer != null && widget.config.showProgressBar)
                           ListenableBuilder(
                             listenable: timer,
                             builder: (context, _) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 10),
                                 child: LinearProgressIndicator(
-                                  backgroundColor: theme.colorScheme.surface,
+                                  backgroundColor: surfaceColor,
                                   color: urgencyColor,
                                   value: timer.percentageCompleted,
                                   borderRadius: BorderRadius.all(Radius.circular(10)),

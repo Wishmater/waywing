@@ -13,6 +13,7 @@ mixin NotificationsConfigI {
   double get marginRight;
   double get marginTop;
   double get marginBottom;
+  bool get showProgressBar;
 }
 
 class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
@@ -23,6 +24,7 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
       'marginRight': NotificationsConfigBase._marginRight,
       'marginTop': NotificationsConfigBase._marginTop,
       'marginBottom': NotificationsConfigBase._marginBottom,
+      'showProgressBar': NotificationsConfigBase._showProgressBar,
     },
   );
 
@@ -33,6 +35,7 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
   final double marginRight;
   final double marginTop;
   final double marginBottom;
+  final bool showProgressBar;
 
   NotificationsConfig({
     Alignment? alignment,
@@ -40,11 +43,13 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
     double? marginRight,
     double? marginTop,
     double? marginBottom,
+    bool? showProgressBar,
   }) : alignment = alignment ?? Alignment.topLeft,
        marginLeft = marginLeft ?? 32,
        marginRight = marginRight ?? 32,
        marginTop = marginTop ?? 32,
-       marginBottom = marginBottom ?? 32;
+       marginBottom = marginBottom ?? 32,
+       showProgressBar = showProgressBar ?? false;
 
   factory NotificationsConfig.fromMap(Map<String, dynamic> map) {
     return NotificationsConfig(
@@ -53,12 +58,13 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
       marginRight: map['marginRight'],
       marginTop: map['marginTop'],
       marginBottom: map['marginBottom'],
+      showProgressBar: map['showProgressBar'],
     );
   }
 
   @override
   String toString() {
-    return 'NotificationsConfigalignment = $alignment, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom';
+    return 'NotificationsConfigalignment = $alignment, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, showProgressBar = $showProgressBar';
   }
 
   @override
@@ -67,7 +73,8 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
         marginLeft == other.marginLeft &&
         marginRight == other.marginRight &&
         marginTop == other.marginTop &&
-        marginBottom == other.marginBottom;
+        marginBottom == other.marginBottom &&
+        showProgressBar == other.showProgressBar;
   }
 
   @override
@@ -77,5 +84,6 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
     marginRight,
     marginTop,
     marginBottom,
+    showProgressBar,
   ]);
 }

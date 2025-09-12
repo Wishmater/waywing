@@ -41,6 +41,10 @@ dependencies:
   mutex: ^3.1.0
   # render notifications html subset
   flutter_html: ^3.0.0
+  # used in the embeded third party package used in the AppLauncher freedesktop_entry
+  collection: ^1.19.1
+  # string matching algorithms
+  fuzzy_string: ^1.0.0
 
   # Widgets / UI
   sliver_tools: ^0.2.12
@@ -82,10 +86,10 @@ dependencies:
   # plays audio in notifications
   audioplayers: ^6.5.0
   sembast: ^3.8.5+1
+
+  # code generation package
   freezed_annotation: ^3.1.0
-  collection: ^1.19.1
   json_annotation: ^4.9.0
-  fuzzy_string: ^1.0.0
 
 dev_dependencies:
   flutter_test:

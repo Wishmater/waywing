@@ -90,21 +90,6 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
   }
 }
 
-class NotificationInheritedWidget extends InheritedWidget {
-  final Notification notification;
-
-  const NotificationInheritedWidget(this.notification, {super.key, required super.child});
-
-  static Notification of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<NotificationInheritedWidget>()!.notification;
-  }
-
-  @override
-  bool updateShouldNotify(covariant NotificationInheritedWidget oldWidget) {
-    return oldWidget.notification != notification;
-  }
-}
-
 class _NotificationWidget extends StatefulWidget {
   final ValueNotifier<Notification> notification;
   const _NotificationWidget(this.notification);
@@ -135,37 +120,34 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
                 timer?.start();
                 isHovered.value = false;
               },
-              child: NotificationInheritedWidget(
-                notification,
-                child: WingedContainer(
-                  shape: RoundedRectangleBorder(
-                    // TODO: 2 STYLE this should take the border radius from theme, oncesthat is decided
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Stack(
-                    children: [
-                      // TODO: 2 STYLE should this also use WingedButton? or maybe separate WingedInkWell and use that?
-                      Positioned.fill(
-                        child: InkWell(
-                          hoverColor: Colors.transparent,
-                          highlightColor: Colors.transparent,
-                          onTap: () async {
-                            await service.emitActivationToken(notification);
-                            await service.closeNotification(notification);
-                          },
-                        ),
+              child: WingedContainer(
+                shape: RoundedRectangleBorder(
+                  // TODO: 2 STYLE this should take the border radius from theme, oncesthat is decided
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Stack(
+                  children: [
+                    // TODO: 2 STYLE should this also use WingedButton? or maybe separate WingedInkWell and use that?
+                    Positioned.fill(
+                      child: InkWell(
+                        hoverColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        onTap: () async {
+                          await service.emitActivationToken(notification);
+                          await service.closeNotification(notification);
+                        },
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _NotificationTitle(notification, isHovered),
-                          SizedBox(height: 4),
-                          _NotificationBody(notification),
-                          _NotificationActions(notification.actions, notification),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _NotificationTitle(notification, isHovered),
+                        SizedBox(height: 4),
+                        _NotificationBody(notification),
+                        _NotificationActions(notification.actions, notification),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -397,9 +379,9 @@ class _NotificationActions extends StatelessWidget {
                 runAlignment: WrapAlignment.end,
                 children: [
                   if (actions.defaultAction != null) //
-                    _NotificationAction(actions.defaultAction!, false),
+                    _NotificationAction(notification, actions.defaultAction!, false),
                   for (final action in actions.actions) //
-                    _NotificationAction(action, identifierAreIcons),
+                    _NotificationAction(notification, action, identifierAreIcons),
                 ],
               ),
             ),
@@ -446,23 +428,26 @@ class _NotificationInlineReply extends StatelessWidget {
 
 class _NotificationAction extends StatelessWidget {
   final Action action;
+  final Notification notification;
   final bool identifierAreIcons;
-  const _NotificationAction(this.action, this.identifierAreIcons);
+  const _NotificationAction(this.notification, this.action, this.identifierAreIcons);
 
   @override
   Widget build(BuildContext context) {
     final service = NotificationServiceInheritedWidget.of(context);
-    final notification = NotificationInheritedWidget.of(context);
+    final size = Theme.of(context).textTheme.bodyMedium?.fontSize ?? kDefaultFontSize;
     if (identifierAreIcons) {
       // TODO: 2 STYLE this should use WingedButton
       return TextButton(
         onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
         child: Row(
           mainAxisSize: MainAxisSize.min,
+          spacing: 2,
           children: [
             XdgIcon(
               name: action.key,
               iconNotFoundBuilder: () => SizedBox.shrink(),
+              size: size.toInt(),
             ),
             Text(action.value),
           ],

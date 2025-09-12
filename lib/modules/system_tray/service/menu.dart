@@ -244,6 +244,9 @@ class DBusMenuItem extends ChangeNotifier implements DisposableListener {
 
   @override
   void dispose() {
+    if (_isDisposed) {
+      return;
+    }
     _isDisposed = true;
     for (final child in submenu) {
       child.dispose();
@@ -321,6 +324,11 @@ class DBusMenuValues {
           -1,
           DBusMenuItemProperties.propertyNames,
         );
+      } on DBusServiceUnknownException catch (_) {
+        // If we recieve this exception it means that the app left the dbus name
+        // so we dispose the object
+        dispose();
+        return;
       } catch (e) {
         if (parentId != 0) {
           parentId = 0;

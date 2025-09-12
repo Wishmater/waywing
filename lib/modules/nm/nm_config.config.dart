@@ -12,6 +12,7 @@ mixin NetworkManagerConfigI {
   bool get showUploadIndicator;
   bool get showDownloadIndicator;
   bool get showThroughputIndicator;
+  List<String> get deviceTypeFilter;
 }
 
 class NetworkManagerConfig
@@ -24,6 +25,7 @@ class NetworkManagerConfig
       'showDownloadIndicator': NetworkManagerConfigBase._showDownloadIndicator,
       'showThroughputIndicator':
           NetworkManagerConfigBase._showThroughputIndicator,
+      'deviceTypeFilter': NetworkManagerConfigBase._deviceTypeFilter,
     },
   );
 
@@ -33,16 +35,19 @@ class NetworkManagerConfig
   final bool showUploadIndicator;
   final bool showDownloadIndicator;
   final bool showThroughputIndicator;
+  final List<String> deviceTypeFilter;
 
   NetworkManagerConfig({
     bool? showConnectionNameIndicator,
     bool? showUploadIndicator,
     bool? showDownloadIndicator,
     bool? showThroughputIndicator,
+    List<String>? deviceTypeFilter,
   }) : showConnectionNameIndicator = showConnectionNameIndicator ?? false,
        showUploadIndicator = showUploadIndicator ?? false,
        showDownloadIndicator = showDownloadIndicator ?? false,
-       showThroughputIndicator = showThroughputIndicator ?? true;
+       showThroughputIndicator = showThroughputIndicator ?? true,
+       deviceTypeFilter = deviceTypeFilter ?? <String>[];
 
   factory NetworkManagerConfig.fromMap(Map<String, dynamic> map) {
     return NetworkManagerConfig(
@@ -50,12 +55,13 @@ class NetworkManagerConfig
       showUploadIndicator: map['showUploadIndicator'],
       showDownloadIndicator: map['showDownloadIndicator'],
       showThroughputIndicator: map['showThroughputIndicator'],
+      deviceTypeFilter: map['deviceTypeFilter'],
     );
   }
 
   @override
   String toString() {
-    return 'NetworkManagerConfigshowConnectionNameIndicator = $showConnectionNameIndicator, showUploadIndicator = $showUploadIndicator, showDownloadIndicator = $showDownloadIndicator, showThroughputIndicator = $showThroughputIndicator';
+    return 'NetworkManagerConfigshowConnectionNameIndicator = $showConnectionNameIndicator, showUploadIndicator = $showUploadIndicator, showDownloadIndicator = $showDownloadIndicator, showThroughputIndicator = $showThroughputIndicator, deviceTypeFilter = $deviceTypeFilter';
   }
 
   @override
@@ -63,7 +69,8 @@ class NetworkManagerConfig
     return showConnectionNameIndicator == other.showConnectionNameIndicator &&
         showUploadIndicator == other.showUploadIndicator &&
         showDownloadIndicator == other.showDownloadIndicator &&
-        showThroughputIndicator == other.showThroughputIndicator;
+        showThroughputIndicator == other.showThroughputIndicator &&
+        deviceTypeFilter == other.deviceTypeFilter;
   }
 
   @override
@@ -72,5 +79,6 @@ class NetworkManagerConfig
     showUploadIndicator,
     showDownloadIndicator,
     showThroughputIndicator,
+    deviceTypeFilter,
   ]);
 }

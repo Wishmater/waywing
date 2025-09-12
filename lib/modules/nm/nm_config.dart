@@ -9,4 +9,5 @@ mixin NetworkManagerConfigBase on NetworkManagerConfigI {
   static const _showUploadIndicator = BooleanField(defaultTo: false);
   static const _showDownloadIndicator = BooleanField(defaultTo: false);
   static const _showThroughputIndicator = BooleanField(defaultTo: true);
+  static const _deviceTypeFilter = ListField(StringField(), defaultTo: <String>[]);
 }

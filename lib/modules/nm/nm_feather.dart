@@ -41,6 +41,9 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
     derive: () {
       final result = <FeatherComponent>[];
       for (final device in service.devices.value) {
+        if (config.deviceTypeFilter.contains(device.deviceType.name)) {
+          continue;
+        }
         result.add(
           FeatherComponent(
             isIndicatorVisible: device.deviceType == NetworkManagerDeviceType.wifi

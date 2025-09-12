@@ -34,6 +34,11 @@ class DBusProperyValueNotifier<T> extends ChangeNotifier implements ValueListena
     }
   }
 
+  void triggerCallback() {
+    _value = _callback();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();

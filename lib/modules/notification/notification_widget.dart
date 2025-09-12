@@ -98,8 +98,43 @@ class _NotificationWidget extends StatefulWidget {
   State<StatefulWidget> createState() => _NotificationWidgetState();
 }
 
-class _NotificationWidgetState extends State<_NotificationWidget> {
+class _NotificationWidgetState extends State<_NotificationWidget> with SingleTickerProviderStateMixin {
   ValueNotifier<bool> isHovered = ValueNotifier(false);
+
+  bool isExpanded = false;
+  late AnimationController _animationController;
+  late Animation<double> _heightAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+
+    _heightAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _toggleExpansion() {
+    setState(() {
+      isExpanded = !isExpanded;
+      if (isExpanded) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -133,18 +168,31 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
                         hoverColor: Colors.transparent,
                         highlightColor: Colors.transparent,
                         onTap: () async {
-                          await service.emitActivationToken(notification);
-                          await service.closeNotification(notification);
+                          if (isExpanded) {
+                            await service.emitActivationToken(notification);
+                            await service.closeNotification(notification);
+                          } else {
+                            _toggleExpansion();
+                          }
                         },
                       ),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _NotificationTitle(notification, isHovered),
+                        _NotificationTitle(
+                          notification,
+                          isHovered,
+                          isExpanded,
+                          onToggleExpand: _toggleExpansion,
+                        ),
                         SizedBox(height: 4),
-                        _NotificationBody(notification),
-                        _NotificationActions(notification.actions, notification),
+                        _AnimatedNotificationContent(
+                          animation: _heightAnimation,
+                          fadeAnimation: _fadeAnimation,
+                          notification: notification,
+                          isExpanded: isExpanded,
+                        ),
                       ],
                     ),
                   ],
@@ -158,10 +206,50 @@ class _NotificationWidgetState extends State<_NotificationWidget> {
   }
 }
 
+class _AnimatedNotificationContent extends StatelessWidget {
+  final Animation<double> animation;
+  final Animation<double> fadeAnimation;
+  final Notification notification;
+  final bool isExpanded;
+
+  const _AnimatedNotificationContent({
+    required this.animation,
+    required this.fadeAnimation,
+    required this.notification,
+    required this.isExpanded,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizeTransition(
+      sizeFactor: animation,
+      child: FadeTransition(
+        opacity: fadeAnimation,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _NotificationBody(notification),
+            _NotificationActions(notification.actions, notification),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
 class _NotificationTitle extends StatelessWidget {
   final Notification notification;
   final ValueNotifier<bool> isHovered;
-  const _NotificationTitle(this.notification, this.isHovered);
+  final bool isExpanded;
+  final VoidCallback onToggleExpand;
+
+  const _NotificationTitle(
+    this.notification,
+    this.isHovered,
+    this.isExpanded, {
+    required this.onToggleExpand,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -185,14 +273,15 @@ class _NotificationTitle extends StatelessWidget {
       padding: EdgeInsets.only(top: 8),
       child: IntrinsicHeight(
         child: Row(
+          spacing: 8,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(width: 12),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.only(top: 4, left: 16),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 8,
                   children: [
                     if (notification.appIcon.isNotEmpty)
                       Padding(
@@ -225,7 +314,6 @@ class _NotificationTitle extends StatelessWidget {
                           },
                         ),
                       ),
-                    SizedBox(width: 8),
                     Expanded(
                       child: IgnorePointer(
                         child: Container(
@@ -261,7 +349,6 @@ class _NotificationTitle extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: 8),
             ValueListenableBuilder(
               valueListenable: isHovered,
               builder: (context, isHovered, child) {
@@ -279,23 +366,44 @@ class _NotificationTitle extends StatelessWidget {
                   child: child!,
                 );
               },
-              child: ExcludeFocusTraversal(
-                child: WingedButton(
-                  padding: EdgeInsets.zero,
-                  constraints: BoxConstraints.tightFor(
-                    width: effectiveIconSize * 1.33,
-                    height: effectiveIconSize * 1.33,
+              child: Row(
+                spacing: 2,
+                children: [
+                  if (notification.body.isNotEmpty || notification.actions.actions.isNotEmpty)
+                    ExcludeFocusTraversal(
+                      child: WingedButton(
+                        padding: EdgeInsets.zero,
+                        constraints: BoxConstraints.tightFor(
+                          width: effectiveIconSize * 1.33,
+                          height: effectiveIconSize * 1.33,
+                        ),
+                        onTap: onToggleExpand,
+                        child: Icon(
+                          isExpanded ? Icons.expand_less : Icons.expand_more,
+                          size: effectiveIconSize * 0.8,
+                          color: Theme.of(context).textTheme.bodyMedium!.color,
+                        ),
+                      ),
+                    ),
+                  ExcludeFocusTraversal(
+                    child: WingedButton(
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints.tightFor(
+                        width: effectiveIconSize * 1.33,
+                        height: effectiveIconSize * 1.33,
+                      ),
+                      onTap: () => service.closeNotification(notification),
+                      child: Icon(
+                        Icons.close,
+                        size: effectiveIconSize * 0.8,
+                        color: Theme.of(context).textTheme.bodyMedium!.color,
+                      ),
+                    ),
                   ),
-                  child: Icon(
-                    Icons.close,
-                    size: effectiveIconSize * 0.8,
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  ),
-                  onTap: () => service.closeNotification(notification),
-                ),
+                ],
               ),
             ),
-            SizedBox(width: 8),
+            SizedBox(width: 2),
           ],
         ),
       ),

@@ -11,12 +11,14 @@ class LauncherWidget extends StatefulWidget {
   final List<Application> applications;
   final ApplicationService service;
   final LauncherConfig config;
+  final void Function() close;
 
   const LauncherWidget({
     super.key,
     required this.service,
     required this.applications,
     required this.config,
+    required this.close,
   });
 
   @override
@@ -24,15 +26,30 @@ class LauncherWidget extends StatefulWidget {
 }
 
 class _LauncherWidgetState extends State<LauncherWidget> {
+  late final FocusNode focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+
+    focusNode = FocusNode(debugLabel: "launcher");
+    focusNode.addListener(() {
+      if (!focusNode.hasFocus) {
+        focusNode.requestFocus();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SearchOptions(
       options: Option.from(widget.applications, ApplicationOption.from),
       renderOption: _renderOption,
-      onSelected: widget.service.run,
+      onSelected: _run,
       showScrollBar: widget.config.showScrollBar,
       height: widget.config.height.toDouble(),
       width: widget.config.width.toDouble(),
+      focusNode: focusNode,
     );
   }
 
@@ -41,8 +58,16 @@ class _LauncherWidgetState extends State<LauncherWidget> {
       app: app,
       config: config,
       iconSize: widget.config.iconSize,
-      onTap: () => widget.service.run(app),
+      onTap: () => _run,
     );
+  }
+
+  void _run(Application app) async {
+    try {
+      await widget.service.run(app);
+    } finally {
+      widget.close();
+    }
   }
 }
 

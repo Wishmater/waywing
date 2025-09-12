@@ -63,6 +63,7 @@ class SearchOptions<T extends Object> extends StatefulWidget {
     required this.onSelected,
     required this.width,
     required this.height,
+    this.focusNode,
     this.showScrollBar = true,
     this.previousOptionActivator = const SingleActivator(LogicalKeyboardKey.arrowUp),
     this.nextOptionActivator = const SingleActivator(LogicalKeyboardKey.arrowDown),
@@ -90,6 +91,8 @@ class SearchOptions<T extends Object> extends StatefulWidget {
 
   /// fuzzy matching alghorithm used to filter
   final FuzzyStringMatcher matcher;
+
+  final FocusNode? focusNode;
 
   final bool showScrollBar;
 
@@ -245,6 +248,7 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
                 child: Material(
                   child: TextFormField(
                     autofocus: true,
+                    focusNode: widget.focusNode,
                     decoration: const InputDecoration(
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 32,

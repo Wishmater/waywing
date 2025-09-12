@@ -59,10 +59,9 @@ class AppLauncherWing extends Wing<LauncherConfig> {
                     showLauncher.value = false;
                   },
                 },
-                child: Container(
+                child: SizedBox(
                   width: double.infinity,
                   height: double.infinity,
-                  color: Colors.blue.withAlpha(30),
                   child: Center(
                     child: SizedBox(
                       width: config.width.toDouble(),
@@ -75,6 +74,7 @@ class AppLauncherWing extends Wing<LauncherConfig> {
                               service: service,
                               applications: snapshot.data!,
                               config: config,
+                              close: () => showLauncher.value = false,
                             );
                           } else {
                             return const Center(

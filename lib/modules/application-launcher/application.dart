@@ -174,7 +174,7 @@ class Application {
         dbusname = dbusname.substring(0, dbusname.length - ".desktop".length);
       }
       final client = DBusClient.session();
-      final pathObject = DBusObjectPath("/${dbusname.replaceAll(".", "/")}");
+      final pathObject = DBusObjectPath("/${dbusname.replaceAll('.', '/').replaceAll('-', '_')}");
       final remoteObject = DBusRemoteObject(client, name: dbusname, path: pathObject);
       final params = [
         DBusDict(

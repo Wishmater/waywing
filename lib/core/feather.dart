@@ -47,7 +47,7 @@ abstract class Feather<Conf> {
 
   ValueListenable<List<FeatherComponent>> get components;
 
-  onConfigUpdated(Conf oldConfig) {}
+  void onConfigUpdated(Conf oldConfig) {}
 }
 
 @immutable

@@ -39,14 +39,26 @@ in unstablepkgs.flutter.buildFlutterApplication rec {
     elfutils
     orc
 
+    # required by waywingcli
+    unstablepkgs.zig_0_15
+
   ];
 
-  # env variables accessible to the built app at runtime
-  # runtimeEnvironment = { LD_LIBRARY_PATH = "${pkgs.pulseaudio.out}/lib"; };
+  # we have to do the zig stuff in postBuild and postInstall so they don't override
+  # default buildFlutterApplication phases
+  postBuild = ''
+    (cd tools/waywingctl && zig build -Doptimize=ReleaseSmall)
+  '';
+
   postInstall = ''
+    mv tools/waywingctl/zig-out/bin/waywingctl $out/bin/waywingctl
+    # add runtime environment variables to waywing
     wrapProgram "$out/bin/waywing" \
       --set LD_LIBRARY_PATH ${pkgs.pulseaudio.out}/lib
   '';
+
+  # # env variables accessible to the built app at runtime, this doesn't seem to work...
+  # runtimeEnvironment = { LD_LIBRARY_PATH = "${pkgs.pulseaudio.out}/lib"; };
 }
 
 # # USAGE

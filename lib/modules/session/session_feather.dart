@@ -16,7 +16,7 @@ class SessionFeather extends Feather {
 
   SessionFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<SessionFeather, void> registerFeather) {
     registerFeather(
       "Session",
       FeatherRegistration(constructor: SessionFeather._),

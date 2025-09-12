@@ -16,7 +16,7 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
 
   NetworkManagerFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<NetworkManagerFeather, NetworkManagerConfig> registerFeather) {
     registerFeather(
       "NetworkManager",
       FeatherRegistration(

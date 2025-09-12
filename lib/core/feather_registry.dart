@@ -24,13 +24,13 @@ final featherRegistry = FeatherRegistry._();
 
 typedef FeatherConstructor<T extends Feather> = T Function();
 
-typedef FeatherRouteCallback = (int, List<int>) Function(Map<String, String> params, Feather feather);
+typedef FeatherRouteCallback<T extends Feather> = Response Function(Map<String, String> params, T feather);
 
 class FeatherRegistration<T extends Feather<Conf>, Conf> {
   final FeatherConstructor<T> constructor;
   final SchemaBuilder? schemaBuilder;
   final ConfigBuilder? configBuilder;
-  final Map<String, FeatherRouteCallback> actions;
+  final Map<String, FeatherRouteCallback<T>> actions;
 
   FeatherRegistration({
     required this.constructor,
@@ -199,4 +199,5 @@ class FeatherRegistry {
   }
 }
 
-typedef RegisterFeatherCallback = void Function(String name, FeatherRegistration registration);
+typedef RegisterFeatherCallback<T extends Feather<Conf>, Conf> =
+    void Function(String name, FeatherRegistration<T, Conf> registration);

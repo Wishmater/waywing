@@ -54,14 +54,23 @@ class WaywingServer {
   }
 }
 
-typedef WaywingRouteCallback = (int, List<int>) Function(Map<String, String> params);
+typedef WaywingRouteCallback = Response Function(Map<String, String> params);
+
+class Response {
+  final int code;
+  final String body;
+
+  const Response(this.code, this.body);
+
+  const Response.ok([this.body = ""]) : code = 200;
+}
 
 class WaywingRouter {
   final Map<String, WaywingRouteCallback> _routes;
 
   WaywingRouter() : _routes = {} {
     _routes["list-actions"] = (_) {
-      return (200, _routes.keys.join("\n").codeUnits);
+      return Response(200, _routes.keys.join("\n"));
     };
   }
 
@@ -78,8 +87,8 @@ class WaywingRouter {
     final result = _routes[url.path]?.call(url.queryParameters);
     if (result != null) {
       final response = <int>[];
-      response.addAll("${result.$1}\n".codeUnits);
-      response.addAll(result.$2);
+      response.addAll("${result.code}\n".codeUnits);
+      response.addAll(result.body.codeUnits);
       return response;
     } else {
       return _notFound;

@@ -9,7 +9,7 @@ import "package:waywing/modules/bar/bar_widget.dart";
 class BarWing extends Wing<BarConfig> {
   BarWing._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<BarWing, BarConfig> registerFeather) {
     registerFeather(
       "Bar",
       FeatherRegistration(

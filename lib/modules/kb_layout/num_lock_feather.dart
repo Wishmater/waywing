@@ -14,7 +14,7 @@ class NumLockFeather extends Feather {
 
   NumLockFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<NumLockFeather, void> registerFeather) {
     registerFeather(
       "NumLock",
       FeatherRegistration(

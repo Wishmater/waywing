@@ -14,7 +14,7 @@ class CapsLockFeather extends Feather {
 
   CapsLockFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<CapsLockFeather, void> registerFeather) {
     registerFeather(
       "CapsLock",
       FeatherRegistration(

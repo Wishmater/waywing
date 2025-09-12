@@ -3,6 +3,7 @@ import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:path/path.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
@@ -15,7 +16,7 @@ class AppLauncherWing extends Wing<LauncherConfig> {
 
   AppLauncherWing._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<AppLauncherWing, LauncherConfig> registerFeather) {
     registerFeather(
       "AppLauncher",
       FeatherRegistration(
@@ -23,10 +24,9 @@ class AppLauncherWing extends Wing<LauncherConfig> {
         schemaBuilder: () => LauncherConfig.schema,
         configBuilder: LauncherConfig.fromMap,
         actions: {
-          "activate": (params, feather) {
-            final self = (feather as AppLauncherWing);
-            self.showLauncher.value = true;
-            return (200, "".codeUnits);
+          "activate": (params, instance) {
+            instance.showLauncher.value = true;
+            return Response.ok();
           },
         },
       ),

@@ -18,7 +18,7 @@ class KeyboardLayoutFeather extends Feather {
 
   KeyboardLayoutFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<KeyboardLayoutFeather, void> registerFeather) {
     registerFeather(
       "KeyboardLayout",
       FeatherRegistration(

@@ -16,7 +16,7 @@ class NotificationsWing extends Wing<NotificationsConfig> {
 
   NotificationsWing._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<NotificationsWing, NotificationsConfig> registerFeather) {
     registerFeather(
       "Notifications",
       FeatherRegistration(

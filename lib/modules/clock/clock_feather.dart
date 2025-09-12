@@ -17,7 +17,7 @@ class ClockFeather extends Feather<ClockConfig> {
 
   ClockFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<ClockFeather, ClockConfig> registerFeather) {
     registerFeather(
       "Clock",
       FeatherRegistration(

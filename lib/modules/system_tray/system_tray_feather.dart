@@ -14,7 +14,7 @@ import "package:waywing/util/derived_value_notifier.dart";
 class SystemTrayFeather extends Feather {
   SystemTrayFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<SystemTrayFeather, void> registerFeather) {
     registerFeather(
       "SystemTray",
       FeatherRegistration(

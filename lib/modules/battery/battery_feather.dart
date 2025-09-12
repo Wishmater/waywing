@@ -12,7 +12,7 @@ class BatteryFeather extends Feather {
 
   BatteryFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<BatteryFeather, void> registerFeather) {
     registerFeather(
       "Battery",
       FeatherRegistration(

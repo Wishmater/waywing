@@ -1,7 +1,7 @@
 {
   "config": "sha256-69vwYLfyJT64ishCuHHakMYk6SV5RL5+2nBNhN1q8eA=",
   "config_gen": "sha256-Ek/Na82hb9+VTH/T6LfChXKlo0bfQx0yN3xJydOCOtM=",
-  "fl_linux_window_manager": "sha256-7ipLP6UAwFf6QFkR60E+JGNfv8NaDJaOOUoYhqVuFFA=",
+  "fl_linux_window_manager": "sha256-SkWiXKaUngIC8vz186EvXCroNob/fOcZ/8HngEBzzPI=",
   "pulseaudio": "sha256-nzYZHP3SFZ6CGyy9jfs42bYFlnbgOVhWIvjH66aISpU=",
   "tronco": "sha256-PNN4mhrLF8p7Y6q+ch2GYlLyHXjbm110+BP0C1s4gaY="
 }

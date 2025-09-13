@@ -11,6 +11,7 @@ mixin MainConfigI {
   int get monitor;
   List<Wing<dynamic>> get wings;
   String? get socket;
+  bool get animationEnable;
   double get animationSpeed;
   double get animationDamping;
   AnimationFitting get animationFitting;
@@ -25,6 +26,7 @@ class MainConfig with MainConfigI, MainConfigBase {
       'monitor': MainConfigBase._monitor,
       'wings': MainConfigBase._wings,
       'socket': MainConfigBase._socket,
+      'animationEnable': MainConfigBase._animationEnable,
       'animationSpeed': MainConfigBase._animationSpeed,
       'animationDamping': MainConfigBase._animationDamping,
       'animationFitting': MainConfigBase._animationFitting,
@@ -44,6 +46,7 @@ class MainConfig with MainConfigI, MainConfigBase {
   final int monitor;
   final List<Wing<dynamic>> wings;
   final String? socket;
+  final bool animationEnable;
   final double animationSpeed;
   final double animationDamping;
   final AnimationFitting animationFitting;
@@ -57,6 +60,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     int? monitor,
     List<Wing<dynamic>>? wings,
     this.socket,
+    bool? animationEnable,
     double? animationSpeed,
     double? animationDamping,
     AnimationFitting? animationFitting,
@@ -66,6 +70,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     required this.theme,
   }) : monitor = monitor ?? 0,
        wings = wings ?? <Wing>[],
+       animationEnable = animationEnable ?? true,
        animationSpeed = animationSpeed ?? 1,
        animationDamping = animationDamping ?? 1,
        animationFitting = animationFitting ?? AnimationFitting.clip,
@@ -78,6 +83,7 @@ class MainConfig with MainConfigI, MainConfigBase {
       monitor: map['monitor'],
       wings: map['wings'],
       socket: map['socket'],
+      animationEnable: map['animationEnable'],
       animationSpeed: map['animationSpeed'],
       animationDamping: map['animationDamping'],
       animationFitting: map['animationFitting'],
@@ -90,7 +96,7 @@ class MainConfig with MainConfigI, MainConfigBase {
 
   @override
   String toString() {
-    return 'MainConfigmonitor = $monitor, wings = $wings, socket = $socket, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus';
+    return 'MainConfigmonitor = $monitor, wings = $wings, socket = $socket, animationEnable = $animationEnable, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus';
   }
 
   @override
@@ -98,6 +104,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     return monitor == other.monitor &&
         wings == other.wings &&
         socket == other.socket &&
+        animationEnable == other.animationEnable &&
         animationSpeed == other.animationSpeed &&
         animationDamping == other.animationDamping &&
         animationFitting == other.animationFitting &&
@@ -110,6 +117,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     monitor,
     wings,
     socket,
+    animationEnable,
     animationSpeed,
     animationDamping,
     animationFitting,

@@ -66,9 +66,10 @@ mixin MainConfigBase on MainConfigI {
   // Animations
   //===========================================================================
 
+  static const _animationEnable = BooleanField(defaultTo: true);
   static const _animationSpeed = DoubleNumberField(defaultTo: 1); // stiffness
   static const _animationDamping = DoubleNumberField(defaultTo: 1);
-  // TODO: 3 validate that these are >=0 and maybe an upper bound as well
+  // TODO: 3 validate that these (speed and damping) are >=0 and maybe an upper bound as well
 
   static const _animationFitting = EnumField(AnimationFitting.values, defaultTo: AnimationFitting.clip);
   static const _animationSwitching = EnumField(AnimationSwitching.values, defaultTo: AnimationSwitching.fadeThrough);
@@ -76,6 +77,7 @@ mixin MainConfigBase on MainConfigI {
   late final motions = MaterialSpringMotionValues(
     // increasing damping will still speed and decreasing dambing will increase speed,
     // multiplying stiffness by damping causes damping changes to not affect speed as much.
+    enableAnimations: animationEnable,
     stiffness: animationSpeed * animationDamping,
     damping: animationDamping,
   );
@@ -183,7 +185,6 @@ const String defaultConfig = '''
   barStartFeathers = [  ]
   barEndFeathers = [ "Volume", "NetworkManager", "SystemTray", "Clock" ]
 ''';
-
 
 dynamic _toPrettyJson(dynamic values) {
   const encoder = JsonEncoder.withIndent("  ");

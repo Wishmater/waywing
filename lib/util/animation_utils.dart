@@ -1,5 +1,7 @@
 import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
+// ignore: implementation_imports
+import 'package:motor/src/simulations/no_motion_simulation.dart';
 
 enum AnimationFitting { clip, stretch }
 
@@ -42,83 +44,96 @@ class MultipliedAnimation extends Animation<double> {
   }
 }
 
-extension MaterialSpringMotionMultiply on MaterialSpringMotion {
-  MaterialSpringMotion multiply({
-    double stiffness = 1,
-    double damping = 1,
-  }) {
-    return copyWith(
-      stiffness: this.stiffness * stiffness,
-      damping: this.damping * damping,
-    );
-  }
-}
-
 class MaterialSpringMotionValues {
   final MaterialSpringMotionExpressionValues expressive;
   final MaterialSpringMotionExpressionValues standard;
 
   MaterialSpringMotionValues({
+    bool enableAnimations = true,
     double stiffness = 1,
     double damping = 1,
   }) : standard = MaterialSpringMotionExpressionValues(
          spatial: MaterialSpringMotionSpeedValues(
-           fast: MaterialSpringMotion.standardSpatialFast(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
-           normal: MaterialSpringMotion.standardSpatialDefault(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
-           slow: MaterialSpringMotion.standardSpatialSlow(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
+           fast: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.standardSpatialFast(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
+           normal: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.standardSpatialDefault(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
+           slow: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.standardSpatialSlow(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
          ),
          effects: MaterialSpringMotionSpeedValues(
-           fast: MaterialSpringMotion.standardEffectsFast(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
-           normal: MaterialSpringMotion.standardEffectsDefault(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
-           slow: MaterialSpringMotion.standardEffectsSlow(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
+           fast: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.standardEffectsFast(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
+           normal: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.standardEffectsDefault(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
+           slow: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.standardEffectsSlow(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
          ),
        ),
        expressive = MaterialSpringMotionExpressionValues(
          spatial: MaterialSpringMotionSpeedValues(
-           fast: MaterialSpringMotion.expressiveSpatialFast(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
-           normal: MaterialSpringMotion.expressiveSpatialDefault(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
-           slow: MaterialSpringMotion.expressiveSpatialSlow(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
+           fast: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.expressiveSpatialFast(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
+           normal: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.expressiveSpatialDefault(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
+           slow: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.expressiveSpatialSlow(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
          ),
          effects: MaterialSpringMotionSpeedValues(
-           fast: MaterialSpringMotion.expressiveEffectsFast(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
-           normal: MaterialSpringMotion.expressiveEffectsDefault(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
-           slow: MaterialSpringMotion.expressiveEffectsSlow(snapToEnd: true).multiply(
-             stiffness: stiffness,
-             damping: damping,
-           ),
+           fast: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.expressiveEffectsFast(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
+           normal: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.expressiveEffectsDefault(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
+           slow: !enableAnimations
+               ? InstantMotion()
+               : MaterialSpringMotion.expressiveEffectsSlow(snapToEnd: true).multiply(
+                   stiffness: stiffness,
+                   damping: damping,
+                 ),
          ),
        );
 }
@@ -134,13 +149,55 @@ class MaterialSpringMotionExpressionValues {
 }
 
 class MaterialSpringMotionSpeedValues {
-  final MaterialSpringMotion fast;
-  final MaterialSpringMotion normal; // it cant be named default :)))))
-  final MaterialSpringMotion slow;
+  final Motion fast;
+  final Motion normal; // it cant be named default :)))))
+  final Motion slow;
 
   MaterialSpringMotionSpeedValues({
     required this.fast,
     required this.normal,
     required this.slow,
   });
+}
+
+extension MotionMultiplyable on Motion {
+  Motion multiplySpeed([double speed = 1]) {
+    return switch (this) {
+      MaterialSpringMotion motion => motion.multiply(stiffness: speed),
+      InstantMotion motion => motion,
+      _ => throw UnimplementedError("multiplySpeed not implemented for Motion implementation class: $runtimeType"),
+    };
+  }
+}
+
+extension MaterialSpringMotionMultiplyable on MaterialSpringMotion {
+  MaterialSpringMotion multiply({
+    double stiffness = 1,
+    double damping = 1,
+  }) {
+    return copyWith(
+      stiffness: this.stiffness * stiffness,
+      damping: this.damping * damping,
+    );
+  }
+}
+
+class InstantMotion extends NoMotion {
+  const InstantMotion([super.duration = Duration.zero]);
+
+  @override
+  String toString() => "InstantMotion($duration)";
+
+  @override
+  Simulation createSimulation({
+    double start = 0,
+    double end = 1,
+    double velocity = 0,
+  }) {
+    return NoMotionSimulation(
+      duration: duration,
+      value: end,
+      tolerance: tolerance,
+    );
+  }
 }

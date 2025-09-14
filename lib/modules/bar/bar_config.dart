@@ -74,8 +74,6 @@ mixin BarConfigBase on BarConfigI {
   static const __indicatorPadding = DoubleNumberField(nullable: true); // defaults to a fraction of barSize
   double get indicatorPadding => _indicatorPadding ?? size / 8;
 
-  static const _spacing = DoubleNumberField(defaultTo: 1);
-
   static const _startFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
   static const _centerFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
   static const _endFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);

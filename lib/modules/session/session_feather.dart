@@ -60,57 +60,104 @@ class SessionFeather extends Feather {
         ),
       ];
     },
-    buildPopover: (context) {
-      final children = <Widget>[];
-      if (service.canLock) {
-        children.add(
-          WingedButton(
-            child: WingedIcon(
-              flutterIcon: SymbolsVaried.lock,
-              iconNames: ["system-lock-screen"],
-              textIcon: "󰌾", // nf-md-lock
-            ),
-            onTap: () => service.lock(),
-          ),
-        );
-      }
-      if (service.canSleep.canDo) {
-        children.add(
-          WingedButton(
-            child: WingedIcon(
-              flutterIcon: SymbolsVaried.do_not_disturb_on,
-              iconNames: ["system-suspend"],
-              textIcon: "󰒲", // nf-md-sleep
-            ),
-            onTap: () => {}, // service.sleep(),
-          ),
-        );
-      }
-      if (service.canSuspend.canDo) {
-        children.add(
-          WingedButton(
-            child: WingedIcon(
-              flutterIcon: SymbolsVaried.mode_standby,
-              iconNames: ["system-suspend-hibernate"],
-              textIcon: "", // nf-fa-circle_dot
-            ),
-            onTap: () => {}, // service.suspend(),
-          ),
-        );
-      }
-      if (service.canPowerOff.canDo) {
-        children.add(
-          WingedButton(
-            child: WingedIcon(
-              flutterIcon: SymbolsVaried.mode_off_on,
-              iconNames: ["system-shutdown"],
-              textIcon: "󰐥", // nf-md-power
-            ),
-            onTap: () => {}, // service.powerOff(),
-          ),
-        );
-      }
-      return SizedBox(height: 200, width: 200, child: Column(children: children));
-    },
+    buildPopover: (context) => _SessionPopover(service),
   );
+}
+
+class _SessionPopover extends StatefulWidget {
+  final SessionService service;
+
+  const _SessionPopover(this.service);
+
+  @override
+  State<_SessionPopover> createState() => _SessionPopoverState();
+}
+
+class _SessionPopoverState extends State<_SessionPopover> {
+  SessionService get service => widget.service;
+
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[];
+    if (service.canLock) {
+      children.add(
+        WingedButton(
+          child: Row(
+            spacing: 2,
+            children: [
+              WingedIcon(
+                flutterIcon: SymbolsVaried.lock,
+                iconNames: ["system-lock-screen"],
+                textIcon: "󰌾", // nf-md-lock
+              ),
+              Text("lock"),
+            ],
+          ),
+          onTap: () => service.lock(),
+        ),
+      );
+    }
+    if (service.canSleep.canDo) {
+      children.add(
+        WingedButton(
+          onTap: service.sleep,
+          child: Row(
+            spacing: 2,
+            children: [
+              WingedIcon(
+                flutterIcon: SymbolsVaried.sleep,
+                iconNames: ["system-suspend"],
+                textIcon: "󰒲", // nf-md-sleep
+              ),
+              Text("sleep"),
+            ],
+          ),
+        ),
+      );
+    }
+    if (service.canReboot.canDo) {
+      children.add(
+        WingedButton(
+          onTap: service.reboot,
+          child: Row(
+            spacing: 2,
+            children: [
+              WingedIcon(
+                flutterIcon: SymbolsVaried.mode_off_on,
+                iconNames: ["system-reboot"],
+                textIcon: "󰐥", // nf-md-power
+              ),
+              Text("reboot"),
+            ],
+          ),
+        ),
+      );
+    }
+    if (service.canPowerOff.canDo) {
+      children.add(
+        WingedButton(
+          onTap: service.powerOff,
+          child: Row(
+            spacing: 2,
+            children: [
+              WingedIcon(
+                flutterIcon: SymbolsVaried.mode_off_on,
+                iconNames: ["system-shutdown"],
+                textIcon: "󰐥", // nf-md-power
+              ),
+              Text("shutdown"),
+            ],
+          ),
+        ),
+      );
+    }
+    return SizedBox(
+      height: 190,
+      width: 150,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: children),
+      ),
+    );
+  }
 }

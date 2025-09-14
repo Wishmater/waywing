@@ -35,17 +35,19 @@ class SystemTrayTooltip extends StatelessWidget {
                       children: [
                         if (tooltip.iconName.isNotEmpty || tooltip.iconData.icons.isNotEmpty)
                           RawSystemTrayIcon(path: tooltip.iconName, data: tooltip.iconData),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(title),
-                            if (tooltip.description.isNotEmpty)
-                              Text(
-                                tooltip.description,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(title),
+                              if (tooltip.description.isNotEmpty)
+                                Text(
+                                  tooltip.description,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

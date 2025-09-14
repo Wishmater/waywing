@@ -4,17 +4,28 @@ import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:flutter/material.dart" hide Notification;
 import "package:flutter/foundation.dart";
 import "package:waywing/core/service.dart";
+import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:tronco/tronco.dart" as tronco;
 import "package:waywing/util/search_sound.dart";
 
-class NotificationService extends Service {
+class NotificationsService extends Service {
+  NotificationsService._();
+
   late final OrgFreedesktopNotifications server;
   late final DBusClient client;
   late final NotificationsList notifications;
 
   static const String dbusName = "org.freedesktop.Notifications";
+
+  static registerService(RegisterServiceCallback registerService) {
+    registerService<NotificationsService, dynamic>(
+      ServiceRegistration(
+        constructor: NotificationsService._,
+      ),
+    );
+  }
 
   @override
   Future<void> init() async {
@@ -58,6 +69,10 @@ class NotificationService extends Service {
     await server.emitActivationToken(notification, token);
   }
 
+  Future<void> closeNotification(Notification notification) async {
+    await server.doCloseNotification(notification.id);
+  }
+
   Future<void> emitNotificationReplied(Notification notification, String text) async {
     await server.emitSignal("org.freedesktop.Notifications", "NotificationReplied", [
       DBusUint32(notification.id),
@@ -71,7 +86,7 @@ class NotificationsList {
 
   NotificationsList(OrgFreedesktopNotifications server) {
     notifications = ManualValueNotifier(
-      server.activeNotifications.values.map((e) => ValueNotifier(e)).toList(),
+      server.activeNotifications.values.map((e) => NotificationValueNotifier(e)).toList(),
     );
 
     server.notificationChanged.listen((id) {
@@ -83,7 +98,7 @@ class NotificationsList {
     });
 
     server.notificationCreated.listen((notification) {
-      notifications.value.add(ValueNotifier(notification));
+      notifications.value.add(NotificationValueNotifier(notification));
       (notifications as ManualValueNotifier).manualNotifyListeners();
 
       if (!(notification.hints.suppressSound ?? false)) {
@@ -134,16 +149,28 @@ class NotificationsList {
 }
 
 class NotificationServiceInheritedWidget extends InheritedWidget {
-  final NotificationService service;
+  final NotificationsService service;
 
   const NotificationServiceInheritedWidget({super.key, required super.child, required this.service});
 
-  static NotificationService of(BuildContext context) {
+  static NotificationsService of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<NotificationServiceInheritedWidget>()!.service;
   }
 
   @override
   bool updateShouldNotify(covariant NotificationServiceInheritedWidget oldWidget) {
     return oldWidget.service != service;
+  }
+}
+
+class NotificationValueNotifier extends ValueNotifier<Notification> {
+  NotificationValueNotifier(super.value);
+
+  @override
+  int get hashCode => value.id;
+  @override
+  bool operator ==(Object other) {
+    if (other is NotificationValueNotifier) return value.id == other.value.id;
+    return super == other;
   }
 }

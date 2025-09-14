@@ -1,5 +1,6 @@
 import "dart:async";
 
+import "package:fl_linux_window_manager/controller/input_region_controller.dart";
 import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:fl_linux_window_manager/models/keyboard_mode.dart";
 import "package:fl_linux_window_manager/models/layer.dart";
@@ -18,7 +19,7 @@ Future<void> setupMainWindow() async {
   _logger.log(Level.debug, "Setting main window title...");
   // we need to set monitor here as well, otherwise it flashes on the wrong monitor on startup
   await Future.wait([
-    FlLinuxWindowManager.instance.setMonitor(mainConfig.barMonitor),
+    FlLinuxWindowManager.instance.setMonitor(mainConfig.monitor),
     FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),
     FlLinuxWindowManager.instance.setTitle(title: "WayWings"),
   ]);
@@ -40,12 +41,16 @@ Future<void> setupMainWindow() async {
   );
   await Future.delayed(_delayDuration);
 
-  return updateWindows();
+  // Delay creating edge windows, because they depend on wings being initialized.
+  // updateWindows() will be called again by ConfigWatcher widget when it is initialized.
+  return updateWindows(onlyMainWindow: true);
 }
 
 Future<void>? _runningEdgeWindowsUpdate; // rudimentary safety mechanism to make sure updates don't run at the same time
 Future<void>? _waitingEdgeWindowsUpdate; // if another update is already waiting, this one is just not necessary
-Future<void> updateWindows() async {
+Future<void> updateWindows({
+  bool onlyMainWindow = false,
+}) async {
   final completer = Completer();
   if (_runningEdgeWindowsUpdate != null) {
     if (_waitingEdgeWindowsUpdate != null) {
@@ -58,12 +63,13 @@ Future<void> updateWindows() async {
   _runningEdgeWindowsUpdate = completer.future;
 
   Future.wait([
-    _updateEdgeWindows(),
+    if (!onlyMainWindow) _updateEdgeWindows(),
     _updateMainWindow(),
   ]);
 
   completer.complete();
   _runningEdgeWindowsUpdate = null;
+  InputRegionController.notifyConfigChange();
 }
 
 Future<void> _updateMainWindow() async {
@@ -74,7 +80,7 @@ Future<void> _updateMainWindow() async {
   // final monitors = await FlLinuxWindowManager.instance.listMonitors();
   // monitors.first.connector;
   await Future.wait([
-    FlLinuxWindowManager.instance.setMonitor(mainConfig.barMonitor),
+    FlLinuxWindowManager.instance.setMonitor(mainConfig.monitor),
     FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),
   ]);
 
@@ -135,7 +141,7 @@ Future<void> _updateEdgeWindow(ScreenEdge side, MainConfig config) async {
 
   _logger.log(Level.debug, "Setting window layer monitor for side $side...");
   await FlLinuxWindowManager.instance.setMonitor(
-    config.barMonitor,
+    config.monitor,
     windowId: windowId,
   );
   await Future.delayed(_delayDuration);

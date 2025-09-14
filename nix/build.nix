@@ -3,8 +3,8 @@
 let
   unstablenixpkgs = fetchTarball {
     url =
-      "https://github.com/NixOS/nixpkgs/archive/bf76d8af397b7a40586b4cbc89dc2e3d2370deaa.tar.gz";
-    sha256 = "0si14qvhc0z0ip14gm9x7fw3bma8z260zf34g2hf54r5jnlnj9r8";
+      "https://github.com/NixOS/nixpkgs/archive/34a26e5164c13b960cff8ea54ab3e4b5fec796a9.tar.gz";
+    sha256 = "0iap44a9f92hrbgqf80q2sr69ixc4p06qsvw755wi11m2m2p4hqf";
   };
   unstablepkgs = import unstablenixpkgs {
     config = { };
@@ -14,7 +14,7 @@ let
 in unstablepkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
-  version = "0.0.4";
+  version = "0.0.8";
 
   src = ./..;
 
@@ -22,18 +22,43 @@ in unstablepkgs.flutter.buildFlutterApplication rec {
   pubspecLock = pkgs.lib.importJSON (src + "/pubspec.lock.json");
   gitHashes = pkgs.lib.importJSON (src + "/pubspecGitHashes.json");
 
-  nativeBuildInputs = with pkgs;
-    [
-      gtk-layer-shell # fl_linux_window_manager dependency
-      # pulseaudio # pulseaudio.dart dependency
-    ];
+  nativeBuildInputs = with pkgs; [
 
-  # env variables accessible to the built app at runtime
-  # runtimeEnvironment = { LD_LIBRARY_PATH = "${pkgs.pulseaudio.out}/lib"; };
+    # required by gtk-layer-shell
+    gtk-layer-shell
+
+    # # required by pulseaudio
+    # pulseaudio 
+
+    # required by audioplayers
+    gst_all_1.gstreamer
+    gst_all_1.gst-plugins-base
+    gst_all_1.gst-plugins-good
+    gst_all_1.gst-libav
+    libunwind
+    elfutils
+    orc
+
+    # required by waywingcli
+    unstablepkgs.zig_0_15
+
+  ];
+
+  # we have to do the zig stuff in postBuild and postInstall so they don't override
+  # default buildFlutterApplication phases
+  postBuild = ''
+    (cd tools/waywingctl && zig build -Doptimize=ReleaseSmall)
+  '';
+
   postInstall = ''
+    mv tools/waywingctl/zig-out/bin/waywingctl $out/bin/waywingctl
+    # add runtime environment variables to waywing
     wrapProgram "$out/bin/waywing" \
       --set LD_LIBRARY_PATH ${pkgs.pulseaudio.out}/lib
   '';
+
+  # # env variables accessible to the built app at runtime, this doesn't seem to work...
+  # runtimeEnvironment = { LD_LIBRARY_PATH = "${pkgs.pulseaudio.out}/lib"; };
 }
 
 # # USAGE

@@ -13,10 +13,11 @@ import "package:waywing/util/derived_value_notifier.dart";
 
 class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
   late NetworkManagerService service;
+  late ManualNotifier configChangeNotifier;
 
   NetworkManagerFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<NetworkManagerFeather, NetworkManagerConfig> registerFeather) {
     registerFeather(
       "NetworkManager",
       FeatherRegistration(
@@ -32,21 +33,36 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
 
   @override
   Future<void> init(BuildContext context) async {
+    configChangeNotifier = ManualNotifier();
     service = await serviceRegistry.requestService<NetworkManagerService>(this);
   }
 
   @override
+  Future<void> dispose() async {
+    configChangeNotifier.dispose();
+    super.dispose();
+  }
+
+  @override
+  void onConfigUpdated(NetworkManagerConfig _) {
+    configChangeNotifier.manualNotifyListeners();
+  }
+
+  @override
   late final ValueListenable<List<FeatherComponent>> components = DerivedValueNotifier(
-    dependencies: [service.devices],
+    dependencies: [service.devices, configChangeNotifier],
     derive: () {
       final result = <FeatherComponent>[];
       for (final device in service.devices.value) {
+        if (config.deviceTypeFilter.contains(device.deviceType.name)) {
+          continue;
+        }
         result.add(
           FeatherComponent(
             isIndicatorVisible: device.deviceType == NetworkManagerDeviceType.wifi
                 ? DummyValueNotifier(true)
                 : device.isConnected,
-            buildIndicators: (context, popover, tooltip) {
+            buildIndicators: (context, popover) {
               return [
                 NetworkManagerIndicator(config: config, device: device, popover: popover),
               ];

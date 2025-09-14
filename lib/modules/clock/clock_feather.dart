@@ -17,7 +17,7 @@ class ClockFeather extends Feather<ClockConfig> {
 
   ClockFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<ClockFeather, ClockConfig> registerFeather) {
     registerFeather(
       "Clock",
       FeatherRegistration(
@@ -40,7 +40,7 @@ class ClockFeather extends Feather<ClockConfig> {
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([clockComponent]);
 
   late final clockComponent = FeatherComponent(
-    buildIndicators: (context, popover, tooltip) {
+    buildIndicators: (context, popover) {
       return [
         ClockIndicator(config: config, service: service, popover: popover!),
       ];

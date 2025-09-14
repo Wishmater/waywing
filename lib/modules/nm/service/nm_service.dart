@@ -89,6 +89,9 @@ class NMServiceDevice {
   ValueListenable<NetworkManagerActiveConnection?> get activeConnection => _activeConnection;
   late final ValueListenable<NetworkManagerActiveConnection?> _activeConnection;
 
+  ValueListenable<String?> get activeConnectionName => _activeConnectionName;
+  late final ValueListenable<String?> _activeConnectionName;
+
   ValueListenable<bool> get isConnected => _isConnected;
   late final DerivedValueNotifier<bool> _isConnected;
 
@@ -138,6 +141,7 @@ class NMServiceDevice {
       dependencies: [_activeConnection],
       derive: () => _activeConnection.value != null,
     );
+    initActiveConnectionName();
 
     // TODO: 3 can "Statistics" object change, which means we would need to re-init this (or update the stream in the notifier)
     _txBytes = DBusProperyValueNotifier(
@@ -176,6 +180,13 @@ class NMServiceDevice {
         if (refreshRateMs == null) return null;
         return (rxBytes - prevRxBytes) / (refreshRateMs / 1000);
       },
+    );
+  }
+
+  void initActiveConnectionName() {
+    _activeConnectionName = DerivedValueNotifier(
+      dependencies: [_activeConnection],
+      derive: () => _activeConnection.value?.id,
     );
   }
 
@@ -300,6 +311,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
         return result;
       },
     );
+    _initActiveConnectionName();
     // TODO: 3 is probably that there is a leak here because the previous NMServiceAccessPoint
     // did not dispose when changed (same in _activeAccessPoint)
     _accessPoints = DBusProperyValueNotifier(
@@ -326,6 +338,19 @@ class NMServiceWifiDevice extends NMServiceDevice {
       name: "WirelessEnabled",
       stream: _client.propertiesChanged,
       callback: () => _client.wirelessEnabled,
+    );
+  }
+
+  @override
+  void initActiveConnectionName() {}
+  void _initActiveConnectionName() {
+    // hack to manually run this at the END of init, because it depends on other notifiers
+    _activeConnectionName = DerivedValueNotifier(
+      dependencies: [_activeConnection, _activeAccessPoint],
+      derive: () {
+        if (_activeConnection.value == null) return null;
+        return _activeAccessPoint.value?.ssid ?? _activeConnection.value!.id;
+      },
     );
   }
 
@@ -542,6 +567,15 @@ class NMServiceAccessPoint {
 
   void dispose() {
     _strength.dispose();
+  }
+
+  @override
+  int get hashCode => ssid.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    if (other is NMServiceAccessPoint) other.ssid == ssid;
+    return super == other;
   }
 }
 

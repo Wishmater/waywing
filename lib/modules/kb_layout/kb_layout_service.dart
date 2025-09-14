@@ -1,0 +1,161 @@
+import "dart:async";
+import "dart:convert";
+import "dart:io";
+
+import "package:flutter/foundation.dart" hide StringProperty;
+import "package:path/path.dart";
+import "package:tronco/tronco.dart";
+import "package:waywing/core/service.dart";
+import "package:waywing/core/service_registry.dart";
+
+/// This only works on hyprland as it relies on hyprctl
+class KeyboardLayoutService extends Service {
+  KeyboardLayoutService._();
+  static void registerService(RegisterServiceCallback registerService) {
+    registerService<KeyboardLayoutService, dynamic>(
+      ServiceRegistration(
+        constructor: KeyboardLayoutService._,
+      ),
+    );
+  }
+
+  ValueNotifier<String> layout = ValueNotifier("");
+  ValueNotifier<List<String>> availableLayouts = ValueNotifier([]);
+  ValueNotifier<bool> capsLockActive = ValueNotifier(false);
+  ValueNotifier<bool> numsLockActive = ValueNotifier(false);
+
+  String _activeKeyboardName = "";
+  final Map<String, int> _layoutIndexes = {};
+
+  Future<void> changeLayout(String layout) async {
+    if (_activeKeyboardName == "") {
+      logger.error("active keyboard name was empty when changeLayout function was called");
+      return;
+    }
+    final index = _layoutIndexes[layout];
+    if (index == null) {
+      logger.error("invalid layout name expected one of ${_layoutIndexes.values} but was $layout");
+      return;
+    }
+    Process.run("hyprctl", ["switchxkblayout", _activeKeyboardName, "$index"]);
+  }
+
+  late Map<String, String> _layouts;
+  File _searchFile() {
+    final path = "X11/xkb/rules/evdev.lst";
+    final dirs = (Platform.environment["XDG_DATA_DIRS"] ?? "/usr/local/share:/usr/share").split(":");
+    for (final dir in dirs) {
+      final file = File(join(dir, path));
+      if (file.existsSync()) {
+        return file;
+      }
+    }
+    throw StateError("X11/xkb/rules/evdev.lst file not found");
+  }
+
+  Future<void> _createLayout() async {
+    _layouts = {};
+    final xkbdataLines = (await _searchFile().readAsString()).split("\n");
+    bool inLayout = false;
+    for (String line in xkbdataLines) {
+      line = line.trim();
+      if (!inLayout) {
+        if (line == "! layout") {
+          inLayout = true;
+        }
+      } else {
+        if (line == "") {
+          break;
+        }
+        final data = line.split(RegExp("\\s+"));
+        final layoutName = data[0];
+        final humanReadableName = line.substring(data[0].length).trim();
+        _layouts[layoutName] = humanReadableName;
+      }
+    }
+  }
+
+  late Timer _timer;
+
+  @override
+  Future<void> init() async {
+    await _createLayout();
+    await _update();
+    _timer = Timer.periodic(Duration(milliseconds: 300), (timer) async {
+      try {
+        await _update();
+      } catch (e, st) {
+        _timer.cancel();
+        logger.log(
+          Level.error,
+          "Error while processing scheduled update. Cancelling further updates.",
+          error: e,
+          stackTrace: st,
+        );
+      }
+    });
+  }
+
+  @override
+  Future<void> dispose() async {
+    _timer.cancel();
+    layout.dispose();
+  }
+
+  Future<void> _update() async {
+    final result = await Process.run(
+      "hyprctl",
+      ["devices", "-j"],
+      stdoutEncoding: Utf8Codec(allowMalformed: true),
+    );
+
+    if (result.exitCode != 0) {
+      throw Exception(
+        "Keyboard layout service stop. hyprctl devices -j returns non 0 exit code: ${result.exitCode}",
+        // properties: [StringProperty(result.stderr), StringProperty(result.stdout)],
+        // TODO: 2 implement a feature in logging lib that allows throwing an error with properties that
+        // will be added to the log when an error of that type is received
+      );
+    }
+
+    final data = json.decode(result.stdout) as Map<String, dynamic>;
+    final keyboards = (data["keyboards"] as List?)?.cast<Map<String, dynamic>>();
+    if (keyboards == null) {
+      throw Exception(
+        "Keyboard layout service stop. hyprctl devices -j no keyboards detected",
+        // properties: [StringProperty(result.stdout)],
+        // TODO: 2 implement a feature in logging lib that allows throwing an error with properties that
+        // will be added to the log when an error of that type is received
+      );
+    }
+
+    for (final keyboard in keyboards) {
+      assert(keyboard["main"] != null);
+      if (keyboard["main"] == true) {
+        capsLockActive.value = keyboard["capsLock"] as bool? ?? false;
+        numsLockActive.value = keyboard["numLock"] as bool? ?? false;
+
+        _activeKeyboardName = keyboard["name"];
+        final layouts = (keyboard["layout"] as String).split(",");
+        final humanReadableName = keyboard["active_keymap"] as String;
+        _layoutIndexes.clear();
+
+        int count = 0;
+        List<String> newLayouts = [];
+        for (final layout in layouts) {
+          _layoutIndexes[layout] = count;
+          count++;
+          newLayouts.add(layout);
+
+          if (_layouts[layout] == humanReadableName) {
+            this.layout.value = layout;
+          }
+        }
+        if (!listEquals(availableLayouts.value, newLayouts)) {
+          availableLayouts.value = newLayouts;
+        }
+        break;
+      }
+    }
+  }
+}

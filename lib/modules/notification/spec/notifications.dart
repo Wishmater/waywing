@@ -254,8 +254,10 @@ class OrgFreedesktopNotifications extends DBusObject {
     }
   }
 
-  NotificationTimer getTimer(Notification notification) {
-    return _timers[notification.id]!;
+  // return type has to be nullable because the UI can call this with
+  // a notification that was already removed (while animating the exit)
+  NotificationTimer? getTimer(Notification notification) {
+    return _timers[notification.id];
   }
 
   void removeNotification(int id, NotificationsCloseReason reason) {

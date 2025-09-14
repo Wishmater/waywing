@@ -1,8 +1,13 @@
+import "dart:io";
+
 import "package:flutter/foundation.dart";
 import "package:flutter/widgets.dart";
+import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 /// Every "component" added to waywing needs to implement this class.
 /// Here, it will define any services init/cleanup it needs
@@ -14,12 +19,25 @@ abstract class Feather<Conf> {
 
   String get name;
 
+  Directory? _dataDir;
+
+  /// Feathear directory where any kind of runtime data can be set
+  Directory get dataDir {
+    if (_dataDir == null) {
+      _dataDir = Directory(path.join(mainDataHomeDir.path, "feather", name));
+      _dataDir!.createSync(recursive: true);
+    }
+    return _dataDir!;
+  }
+
   @override
   bool operator ==(Object other) => other is Feather && name == other.name;
   @override
   int get hashCode => Object.hash(Feather, name);
   @override
   String toString() => "Feather($name)";
+
+  Map<String, WaywingAction>? get actions => null;
 
   /// Initialize all services/fields needed inside this function.
   /// Make sure the future doesn't return until initialization is done,
@@ -33,7 +51,7 @@ abstract class Feather<Conf> {
 
   ValueListenable<List<FeatherComponent>> get components;
 
-  onConfigUpdated(Conf oldConfig) {}
+  void onConfigUpdated(Conf oldConfig) {}
 }
 
 @immutable
@@ -67,5 +85,4 @@ typedef IndicatorsBuilder =
     List<Widget> Function(
       BuildContext context,
       WingedPopoverController? popover,
-      WingedPopoverController? tooltip,
     );

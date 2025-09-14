@@ -1,25 +1,47 @@
 import "package:flutter/widgets.dart";
 
+class Positioning {
+  final Offset offset;
+  final Size size;
+
+  const Positioning(this.offset, this.size);
+
+  @override
+  int get hashCode => Object.hash(offset, size);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is Positioning) {
+      return offset == other.offset && size == other.size;
+    }
+    return super == other;
+  }
+}
+
 mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {
-  (Offset, Size) getPositioning() {
+  Positioning getPositioning({
+    BuildContext? parentContext,
+  }) {
     try {
       RenderBox box = context.findRenderObject()! as RenderBox;
       final position = box.localToGlobal(
         Offset.zero,
-        // // this shouldn't be necessary since we always have a single provider at the root
-        // ancestor: _provider?.context.findRenderObject(), // hack to support UI scale
+        ancestor: parentContext?.findRenderObject(),
       );
-      _lastPositioning = (position, box.size);
+      if (position.dx.isNaN || position.dy.isNaN) {
+        return _lastPositioning;
+      }
+      _lastPositioning = Positioning(position, box.size);
     } catch (_) {}
     return _lastPositioning;
   }
 
   // cache last known positioning, to use it if queried after widget is dismounted
-  late (Offset, Size) _lastPositioning;
+  late Positioning _lastPositioning;
 }
 
 mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositioningMixin<T> {
-  late ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+  late ValueNotifier<Positioning?> positioningNotifier = ValueNotifier(null);
   late ValueNotifier<Offset?> offsetNotifier = ValueNotifier(null);
   late ValueNotifier<Size?> sizeNotifier = ValueNotifier(null);
 
@@ -37,14 +59,14 @@ mixin StatePositioningNotifierMixin<T extends StatefulWidget> on StatePositionin
     if (!mounted) return;
     final newPositioning = getPositioning();
     positioningNotifier.value = newPositioning;
-    offsetNotifier.value = newPositioning.$1;
-    sizeNotifier.value = newPositioning.$2;
+    offsetNotifier.value = newPositioning.offset;
+    sizeNotifier.value = newPositioning.size;
     scheduleCheckPositioningChange();
   }
 }
 
-typedef PositioningGetter = (Offset, Size) Function();
-typedef PositioningNullableGetter = (Offset, Size)? Function();
+typedef PositioningGetter = Positioning Function({BuildContext? parentContext});
+typedef PositioningNullableGetter = Positioning? Function({BuildContext? parentContext});
 
 class PositioningController {
   late PositioningGetter getPositioning;
@@ -100,7 +122,7 @@ mixin StatePositioningControllerMixin<T extends StatefulWidget> on StatePosition
 }
 
 class PositioningNotifierController extends PositioningController {
-  final ValueNotifier<(Offset, Size)?> positioningNotifier = ValueNotifier(null);
+  final ValueNotifier<Positioning?> positioningNotifier = ValueNotifier(null);
   final ValueNotifier<Offset?> offsetNotifier = ValueNotifier(null);
   final ValueNotifier<Size?> sizeNotifier = ValueNotifier(null);
 }

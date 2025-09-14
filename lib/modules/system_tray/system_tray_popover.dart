@@ -2,18 +2,20 @@ import "dart:typed_data";
 
 import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/system_tray/service/menu.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
-import "package:waywing/widgets/animated_divider.dart";
-import "package:waywing/widgets/animated_intrinsic_size.dart";
-import "package:waywing/widgets/animated_layout.dart";
+import "package:waywing/widgets/motion_layout/motion_column.dart";
+import "package:waywing/widgets/motion_widgets/motion_divider.dart";
+import "package:waywing/widgets/motion_widgets/motion_intrinsic_size.dart";
 import "package:waywing/widgets/disposable_builder.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
-import "package:waywing/widgets/winged_button.dart";
-import "package:waywing/widgets/winged_container.dart";
-import "package:waywing/widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_container.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
 class SystemTrayPopover extends StatelessWidget {
@@ -113,9 +115,8 @@ class _SystemTrayMenuState extends State<SystemTrayMenu> {
                 }
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: AnimatedColumn<WrappedDbusMenuItem>(
-                    duration: mainConfig.animationDuration,
-                    curve: mainConfig.animationCurve,
+                  child: MotionColumn<WrappedDbusMenuItem>(
+                    motion: mainConfig.motions.standard.spatial.normal,
                     addGlobalKeys: true,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     data: wrappedItems,
@@ -173,11 +174,13 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
           return SizedBox.shrink();
         }
         if (widget.item.properties.type == "separator") {
-          return AnimatedDivider(
-            duration: mainConfig.animationDuration,
-            curve: mainConfig.animationCurve,
+          // TODO: 2 remove separators when there are two in a row or first/last on the list
+          return MotionDivider.horizontal(
+            motion: mainConfig.motions.standard.spatial.normal,
             indent: widget.forceIconSpace ? 38 : 16,
             endIndent: 16,
+            thickness: 0.5,
+            radius: BorderRadius.circular(0.25),
           );
         }
         // // unused props that could be useful
@@ -187,12 +190,17 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
         // item.properties.disposition // always "normal" on all examples i've seen
         return IntrinsicWidth(
           child: IntrinsicHeight(
+            // TODO: 1 in nm-applet, when seeing available APs, when the available APs are refreshed,
+            // it will close an open AP submenu, presumably because this is re-initialized.
             child: WingedPopover(
               builder: (context, popover, _) {
                 return DefaultTextStyle(
-                  style: TextStyle(color: widget.item.properties.enabled ? null : Theme.of(context).disabledColor),
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    color: widget.item.properties.enabled ? null : Theme.of(context).disabledColor,
+                    height: 1.33,
+                  ),
                   child: WingedButton(
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 30),
                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     alignment: Alignment.centerLeft,
                     containedInkWell: true,
@@ -200,17 +208,17 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                         ? null
                         : widget.item.submenu.isNotEmpty
                         ? () {
-                          popover.togglePopover();
-                          if (popover.isPopoverShown) {
-                            widget.trayItem.dbusmenu!.aboutToShow(widget.item);
+                            popover.togglePopover();
+                            if (popover.isPopoverShown) {
+                              widget.trayItem.dbusmenu!.aboutToShow(widget.item);
+                            }
                           }
-                        }
+                        // TODO: 3 do we need to send events for the other event types? (hover, opened, closed, etc.)
                         : () => widget.trayItem.dbusmenu!.sendEvent(widget.item, DBusMenuEventType.clicked),
                     child: Row(
                       children: [
                         AnimatedIntrinsicSize(
-                          duration: mainConfig.animationDuration,
-                          curve: mainConfig.animationCurve,
+                          motion: mainConfig.motions.standard.spatial.normal,
                           child: SystemTrayMenuIcon(
                             item: widget.item,
                             forceIconSpace: widget.forceIconSpace,
@@ -263,8 +271,10 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                         if (widget.item.submenu.isNotEmpty)
                           Transform.translate(
                             offset: Offset(4, 0),
-                            child: Icon(
-                              Icons.chevron_right,
+                            child: WingedIcon(
+                              flutterIcon: SymbolsVaried.chevron_right,
+                              iconNames: ["arrow-right"],
+                              textIcon: "󰅂", // nf-md-chevron_right
                               size: Theme.of(context).textTheme.bodyLarge!.fontSize! * 1.33,
                             ),
                           ),
@@ -275,7 +285,12 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
               },
               // TODO: 1 handle menu overflowing when too close to the right
               // TODO: 1 this should be a tooltip (opening on hover), not a popover
+              // this requires implementing the chain of depndant popovers, so we can keep
+              // parents alive while children are hovered, and also so we can instatly close
+              // children when parents are closed (instead of waiting for the end of parent
+              // animation to close child, which looks really weird)
               popoverParams: PopoverParams(
+                motion: mainConfig.motions.standard.spatial.normal,
                 enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
                 anchorAlignment: Alignment.topRight,
                 popupAlignment: Alignment.bottomRight,
@@ -283,6 +298,8 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                 // -10 is the zIndex of Bar popups, it's not ideal to have it hardcoded here, but whatever
                 zIndex: -10 - 1 - widget.depth,
                 containerId: widget.uniqueID,
+                extraOffset: Offset(0, -8),
+                stickToHost: true,
                 builder: (context, _, _) {
                   return SystemTrayMenu(
                     // make sure the state is dispose when switching to another popover
@@ -297,11 +314,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                   return WingedContainer(
                     clipBehavior: Clip.hardEdge,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(12),
-                        bottomRight: Radius.circular(12),
-                        bottomLeft: Radius.circular(12),
-                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     child: child,
                   );
@@ -371,6 +384,7 @@ class _SystemTrayMenuIconState extends State<SystemTrayMenuIcon> {
       }
     }
     Widget result;
+    // TODO: 1 migrate to WingedIcon
     if (widget.data.isNotEmpty) {
       imageProvider ??= getImageProvider();
       result = SizedBox(

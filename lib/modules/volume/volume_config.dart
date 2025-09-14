@@ -1,7 +1,7 @@
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 
-part "volume_config.g.dart";
+part "volume_config.config.dart";
 
 @Config()
 mixin VolumeConfigBase on VolumeConfigI {

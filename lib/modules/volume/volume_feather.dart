@@ -13,7 +13,7 @@ class VolumeFeather extends Feather<VolumeConfig> {
   late VolumeService service;
   VolumeFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<VolumeFeather, VolumeConfig> registerFeather) {
     registerFeather(
       "Volume",
       FeatherRegistration(
@@ -58,7 +58,7 @@ class VolumeFeather extends Feather<VolumeConfig> {
 
   FeatherComponent _buildComponent(VolumeIndicatorType type) {
     return FeatherComponent(
-      buildIndicators: (context, popover, tooltip) {
+      buildIndicators: (context, popover) {
         return [
           VolumeIndicator(
             config: config,

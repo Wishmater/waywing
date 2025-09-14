@@ -5,22 +5,39 @@ import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
-import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/core/theme.dart";
+import "package:waywing/core/wing.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/config_fields.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
+import "package:waywing/util/xdg_dirs.dart";
 
-part "config.g.dart";
+part "config.config.dart";
+
+final String _dataHome = dataHomeDir;
+Directory? _mainDataHomeDir;
+Directory get mainDataHomeDir {
+  if (_mainDataHomeDir == null) {
+    _mainDataHomeDir = Directory(path.join(_dataHome, "waywing"));
+    _mainDataHomeDir!.createSync();
+  }
+  return _mainDataHomeDir!;
+}
 
 final _logger = mainLogger.clone(properties: [LogType("Config")]);
 
 MainConfig get mainConfig => _config;
 late MainConfig _config;
 
+/// This should only be used by featherRegistry and serviceRegistry, because they need to
+/// dynamically add config schemas, which can't be added in a type safe way.
 Map<String, dynamic> get rawMainConfig => _rawMainConfig;
 late Map<String, dynamic> _rawMainConfig;
 
@@ -29,21 +46,41 @@ typedef ConfigBuilder<Conf> = Conf Function(Map<String, dynamic> map);
 
 @Config()
 mixin MainConfigBase on MainConfigI {
+  // TODO: 2 each wing should declare its monitor, instead of having it here globally
+  // This requires a big refactor in window_utils
+  static const _monitor = IntegerNumberField(defaultTo: 0);
+  static const _wings = ListField(WingField(), defaultTo: <Wing>[]);
+  static const _socket = StringField(nullable: true);
+
+  // TODO: 3 validate that at least 1 wing is added (at least warn, prefer hard error)
+
   //===========================================================================
   // Theme / styling
   //===========================================================================
 
-  static const _themeMode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
-  static const _seedColor = ColorField();
-  static const _surfaceColor = ColorField(nullable: true);
+  // TODO: 2 remove this once mainConfig.style.xxx is easily accesible
+  late final double buttonRadiusX = 12;
+  late final double buttonRadiusY = 12;
 
   //===========================================================================
   // Animations
   //===========================================================================
 
-  static const _animationDuration = DurationField(defaultTo: Duration(milliseconds: 250));
-  static const _animationCurve = CurveField(defaultTo: Curves.easeOutCubic);
-  // TODO: 2 we probably want to set different animation "types" and then the user can set duration and curve for each of them
+  static const _animationEnable = BooleanField(defaultTo: true);
+  static const _animationSpeed = DoubleNumberField(defaultTo: 1); // stiffness
+  static const _animationDamping = DoubleNumberField(defaultTo: 1);
+  // TODO: 3 validate that these () are >=0 and maybe an upper bound as well
+
+  static const _animationFitting = EnumField(AnimationFitting.values, defaultTo: AnimationFitting.clip);
+  static const _animationSwitching = EnumField(AnimationSwitching.values, defaultTo: AnimationSwitching.fadeThrough);
+
+  late final motions = MaterialSpringMotionValues(
+    // increasing damping will still speed and decreasing dambing will increase speed,
+    // multiplying stiffness by damping causes damping changes to not affect speed as much.
+    enableAnimations: animationEnable,
+    stiffness: animationSpeed * animationDamping,
+    damping: animationDamping,
+  );
 
   //===========================================================================
   // Layer settings
@@ -51,77 +88,29 @@ mixin MainConfigBase on MainConfigI {
 
   static const _requestKeyboardFocus = BooleanField(defaultTo: false);
 
-  static const __exclusiveSizeLeft = DoubleNumberField(nullable: true);
-  double get exclusiveSizeLeft => _exclusiveSizeLeft ?? (barSide == ScreenEdge.left ? barSize.toDouble() : 0);
-  static const __exclusiveSizeRight = DoubleNumberField(nullable: true);
-  double get exclusiveSizeRight => _exclusiveSizeRight ?? (barSide == ScreenEdge.right ? barSize.toDouble() : 0);
-  static const __exclusiveSizeTop = DoubleNumberField(nullable: true);
-  double get exclusiveSizeTop => _exclusiveSizeTop ?? (barSide == ScreenEdge.top ? barSize.toDouble() : 0);
-  static const __exclusiveSizeBottom = DoubleNumberField(nullable: true);
-  double get exclusiveSizeBottom => _exclusiveSizeBottom ?? (barSide == ScreenEdge.bottom ? barSize.toDouble() : 0);
-
-  // Note (add to readme when it exists): explicitly set exclusiveSice will have priority over Bar size.
-  // Set exclusiveSize to zero on same side bar is on to remove autoExclusiveSize on Bar.
+  late final ValueListenable<EdgeInsets> exclusiveSize = DerivedValueNotifier(
+    dependencies: wings.map((e) => e.exclusiveSize).toList(),
+    derive: () => wings.map((e) => e.exclusiveSize.value).fold(EdgeInsets.zero, (a, b) => a + b),
+  );
   double? getExclusiveSizeForSide(ScreenEdge side) {
     return switch (side) {
-      ScreenEdge.left => exclusiveSizeLeft,
-      ScreenEdge.right => exclusiveSizeRight,
-      ScreenEdge.top => exclusiveSizeTop,
-      ScreenEdge.bottom => exclusiveSizeBottom,
+      ScreenEdge.left => exclusiveSize.value.left,
+      ScreenEdge.right => exclusiveSize.value.right,
+      ScreenEdge.top => exclusiveSize.value.top,
+      ScreenEdge.bottom => exclusiveSize.value.bottom,
     };
   }
-
-  //===========================================================================
-  // Bar positioning / sizing
-  //===========================================================================
-
-  static const _barMonitor = IntegerNumberField(defaultTo: 0);
-  static const _barSide = EnumField(ScreenEdge.values);
-  static const _barSize = IntegerNumberField(); // in pixels
-  // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barMarginLeft = DoubleNumberField(defaultTo: 0);
-  static const _barMarginRight = DoubleNumberField(defaultTo: 0);
-  static const _barMarginTop = DoubleNumberField(defaultTo: 0);
-  static const _barMarginBottom = DoubleNumberField(defaultTo: 0);
-  static const __barIndicatorMinSize = DoubleNumberField(nullable: true); // defaults to barSize
-  double get barIndicatorMinSize => _barIndicatorMinSize ?? barSize.toDouble();
-  static const __barIndicatorPadding = DoubleNumberField(nullable: true); // defaults to a fraction of barSize
-  double get barIndicatorPadding => _barIndicatorPadding ?? barSize.toDouble();
-
-  // Derived
-  late final bool isBarVertical = mainConfig.barSide == ScreenEdge.left || mainConfig.barSide == ScreenEdge.right;
-  // TODO: 3 validate that mainSize is not <=0 after deducting margins
-  // TODO: 3 validate that you can't add margin on sides that conflict with barSide selected
-
-  //===========================================================================
-  // Bar border radius
-  //===========================================================================
-
-  // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _barRadiusInCross = DoubleNumberField(defaultTo: 0);
-  static const _barRadiusInMain = DoubleNumberField(defaultTo: 0);
-  static const _barRadiusOutCross = DoubleNumberField(defaultTo: 0);
-  static const _barRadiusOutMain = DoubleNumberField(defaultTo: 0);
-  // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
-
-  // Derived
-  late final double buttonRadiusX = 0.5 * (isBarVertical ? barRadiusInCross : barRadiusInMain);
-  late final double buttonRadiusY = 0.5 * (isBarVertical ? barRadiusInMain : barRadiusInCross);
-
-  //===========================================================================
-  // Bar feathers (components)
-  //===========================================================================
-
-  static const _barStartFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
-  static const _barCenterFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
-  static const _barEndFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
 
   //===========================================================================
   // Add config tables defined in other files
   //===========================================================================
 
-  static Map<String, TableSchema> _getSchemaTables() => {
-    "Logging": LoggingConfig.schema,
+  static const _staticSchemaTables = {
+    "Logging": LoggingConfig.staticSchema,
+    "Theme": ThemeConfig.staticSchema,
+  };
+
+  static Map<String, TableSchema> _getDynamicSchemaTables() => {
     ...featherRegistry.getSchemaTables(),
     ...serviceRegistry.getSchemaTables(),
   };
@@ -159,7 +148,6 @@ String getConfigurationFilePath() {
   if (customConfigPath != null) {
     return customConfigPath!;
   } else {
-    final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
     return path.joinAll([configDir, "waywing", "config"]);
   }
 }
@@ -170,7 +158,6 @@ String getConfigurationDirectoryPath() {
       return File(customConfigPath!).parent.path;
     } catch (_) {}
   }
-  final configDir = Platform.environment["XDG_CONFIG_HOME"] ?? expandEnvironmentVariables(r"$HOME/.config");
   return path.joinAll([configDir, "waywing"]);
 }
 
@@ -183,6 +170,7 @@ Future<String> getConfigurationString() async {
   }
 }
 
+// TODO: 2 RELEASE update the defalut config
 const String defaultConfig = '''
   seedColor = "#0000ff"
   animationDuration = 250ms
@@ -197,17 +185,6 @@ const String defaultConfig = '''
   barStartFeathers = [  ]
   barEndFeathers = [ "Volume", "NetworkManager", "SystemTray", "Clock" ]
 ''';
-
-// Only if the dollar sign does not have a backslash before it.
-final _unescapedVariables = RegExp(r"(?<!\\)\$([a-zA-Z_]+[a-zA-Z0-9_]*)");
-
-/// Resolves environment variables. Replaces all $VARS with their value.
-String expandEnvironmentVariables(String path) {
-  return path.replaceAllMapped(_unescapedVariables, (Match match) {
-    String env = match[1]!;
-    return Platform.environment[env] ?? "";
-  });
-}
 
 dynamic _toPrettyJson(dynamic values) {
   const encoder = JsonEncoder.withIndent("  ");

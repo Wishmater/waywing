@@ -89,6 +89,11 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
       await itemValues.initFields();
     } catch(e, st) {
       logger.error("initFields failed", error: e, stackTrace: st);
+      return;
+    }
+    if (itemValues.failed) {
+      logger.warning("initFields failed");
+      return;
     }
     items.value.add(itemValues);
     _dBusWatcher.registerWatch(destination, (_, newOwner) {

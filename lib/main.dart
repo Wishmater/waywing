@@ -1,21 +1,24 @@
-// ignore_for_file: prefer_single_quotes
+import "dart:io";
 
 import "package:args/args.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
+import "package:path/path.dart";
 import "package:tronco/tronco.dart";
-import "package:waywing/core/bar.dart";
 import "package:waywing/core/config.dart";
-import "package:waywing/modules/notification/notification_service.dart";
-import "package:waywing/modules/notification/notification_widget.dart";
+import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/server.dart";
+import "package:waywing/core/theme.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/widgets/config_changes_watcher.dart";
 import "package:waywing/util/window_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
-import "package:waywing/widgets/winged_popover_provider.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 import "package:xdg_icons/xdg_icons.dart";
-
-final notificationService = NotificationService();
 
 void main(List<String> args) async {
   final cliparser = ArgParser()
@@ -36,17 +39,33 @@ void main(List<String> args) async {
   }
   customConfigPath = results["config"];
 
-  initializeLogger();
+  await initializeLogger();
   await reloadConfig(await getConfigurationString());
+
+  WaywingServer.create(
+    mainConfig.socket ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "waywing.sock"),
+    mainLogger.clone(properties: [LogType("WaywingServer")]),
+  );
+  WaywingServer.instance.init();
+
   WidgetsFlutterBinding.ensureInitialized();
   await setupMainWindow();
 
-  // TODO 1: remove when notification is correctly setted as a feather
-  notificationService.logger = mainLogger.clone(properties: [LogType("Notifications")]);
-  await notificationService.init();
+  mainLogger.debug("Done setting initial window config, running app...");
 
-  mainLogger.log(Level.debug, "Done setting initial window config, running app...");
-  runApp(const App());
+  FlutterError.onError = (details) {
+    if (kReleaseMode) {
+      mainLogger.error(
+        "${details.context?.toDescription()} ${details.summary.toDescription()}",
+        error: details.exception,
+        stackTrace: details.stack,
+      );
+      exit(1);
+    } else {
+      FlutterError.presentError(details);
+    }
+  };
+  runApp(App());
 }
 
 class App extends StatelessWidget {
@@ -57,59 +76,75 @@ class App extends StatelessWidget {
     return InputRegion.negative(
       child: ConfigChangeWatcher(
         builder: (context) {
+          final waywingTheme = WaywingTheme(mainConfig.theme);
+          final wingWidgets = <Widget>[];
+          for (int i = 0; i < mainConfig.wings.length; i++) {
+            final wing = mainConfig.wings[i];
+            final previousWings = mainConfig.wings.sublist(0, i);
+            final reservedSpace = DerivedValueNotifier(
+              dependencies: previousWings.map((e) => e.exclusiveSize).toList(),
+              derive: () => previousWings.map((e) => e.exclusiveSize.value).fold(EdgeInsets.zero, (a, b) => a + b),
+            );
+            wingWidgets.add(
+              FutureBuilder(
+                future: featherRegistry.awaitInitialization(wing),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    // TODO: 1 Implement proper error handling in featherRegistry and remove this
+                    mainLogger.log(
+                      Level.error,
+                      "Error caught when initializing wing ${wing.name}",
+                      error: snapshot.error,
+                      stackTrace: snapshot.stackTrace,
+                    );
+                    return SizedBox.shrink();
+                  }
+                  if (snapshot.connectionState != ConnectionState.done) {
+                    return SizedBox.shrink();
+                  }
+                  return ValueListenableBuilder(
+                    valueListenable: reservedSpace,
+                    builder: (context, rerservedSpace, _) {
+                      return wing.buildWing(rerservedSpace);
+                    },
+                  );
+                },
+              ),
+            );
+          }
           return KeyboardFocusProvider(
             keyboardService: KeyboardFocusService(),
             child: MaterialApp(
               title: "WayWing",
               debugShowCheckedModeBanner: false,
-              themeMode: mainConfig.themeMode,
-              theme: ThemeData(
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: mainConfig.seedColor,
-                  surface: mainConfig.surfaceColor,
-                ),
-                buttonTheme: ButtonThemeData(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                ),
-                splashFactory: InkSparkle.splashFactory,
-              ),
-              darkTheme: ThemeData(
-                brightness: Brightness.dark,
-                colorScheme: ColorScheme.fromSeed(
-                  brightness: Brightness.dark,
-                  seedColor: mainConfig.seedColor,
-                  surface: mainConfig.surfaceColor,
-                ),
-                buttonTheme: ButtonThemeData(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                ),
-                splashFactory: InkSparkle.splashFactory,
-                dividerTheme: DividerThemeData(
-                  color: Colors.grey.shade400.withValues(alpha: 0.66),
-                ),
-              ),
+              themeMode: mainConfig.theme.mode,
+              theme: waywingTheme.themeLight,
+              darkTheme: waywingTheme.themeDark,
+              themeAnimationStyle: mainConfig.animationEnable ? null : AnimationStyle.noAnimation,
+              themeAnimationDuration: Duration(milliseconds: 1000),
+              themeAnimationCurve: Curves.easeOutCubic,
               home: Builder(
                 builder: (context) {
                   return XdgIconTheme(
                     data: XdgIconThemeData(
-                      // TODO 2: get icon theme from gsettings
-                      size: (Theme.of(context).iconTheme.size ?? kDefaultFontSize).round(),
+                      size: TextIcon.getIconEffectiveSize(context).round(),
                     ),
                     child: Scaffold(
                       backgroundColor: Colors.transparent,
-                      body: WingedPopoverProvider(
-                        // TODO: 3 add animation when showing / hiding Bar and maybe other wings as well. Should this be global or should each Wing handle it?
-                        child: Stack(
-                          children: [
-                            Bar(),
-                            Positioned(
-                              width: 300,
-                              left: 10,
-                              top: 30,
-                              child: NotificationsWidget(service: notificationService),
-                            ),
-                            // TODO: 2 implement Wings
-                          ],
+                      body: CallbackShortcuts(
+                        bindings: {
+                          const SingleActivator(LogicalKeyboardKey.escape): () {
+                            FocusScope.of(context).requestScopeFocus();
+                          },
+                        },
+                        child: WingedPopoverProvider(
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              ...wingWidgets,
+                              Positioned.fill(child: MouseFocusListener()),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -120,6 +155,42 @@ class App extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class MouseFocusListener extends StatefulWidget {
+  const MouseFocusListener({super.key});
+
+  @override
+  State<MouseFocusListener> createState() => _MouseFocusListenerState();
+}
+
+class _MouseFocusListenerState extends State<MouseFocusListener> {
+  bool hasMouseFocus = false;
+  bool hadFocus = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      opaque: false,
+      onEnter: (_) {
+        final focusScope = FocusScope.of(context, createDependency: false);
+        if (hadFocus) {
+          focusScope.requestFocus();
+        } else {
+          focusScope.requestScopeFocus();
+        }
+        hasMouseFocus = true;
+      },
+      onExit: (_) {
+        final focusScope = FocusScope.of(context, createDependency: false);
+        hadFocus = !focusScope.hasPrimaryFocus;
+        if (focusScope.hasFocus) {
+          focusScope.unfocus();
+        }
+        hasMouseFocus = false;
+      },
     );
   }
 }

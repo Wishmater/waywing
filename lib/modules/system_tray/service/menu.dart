@@ -4,6 +4,7 @@ import "dart:async";
 
 import "package:dbus/dbus.dart";
 import "package:flutter/cupertino.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/modules/system_tray/service/spec/idbus_menu.dart";
 import "package:waywing/widgets/disposable_builder.dart";
 
@@ -244,6 +245,9 @@ class DBusMenuItem extends ChangeNotifier implements DisposableListener {
 
   @override
   void dispose() {
+    if (_isDisposed) {
+      return;
+    }
     _isDisposed = true;
     for (final child in submenu) {
       child.dispose();
@@ -292,7 +296,7 @@ class DBusMenuValues {
   /// DBus object implementing the com.canonical.dbusmenu
   final ComCanonicalDbusmenu canonicalDbusmenu;
 
-  DBusMenuValues(this.canonicalDbusmenu) : layout = DBusMenuItem.empty() {
+  DBusMenuValues(this.canonicalDbusmenu, Logger logger) : layout = DBusMenuItem.empty() {
     canonicalDbusmenu.callGetLayout(0, -1, DBusMenuItemProperties.propertyNames).then((response) {
       _revision = response[0].asUint32();
       final newSubMenu = DBusMenuItem.fromDBus(response[1].asStruct());
@@ -321,7 +325,7 @@ class DBusMenuValues {
           -1,
           DBusMenuItemProperties.propertyNames,
         );
-      } catch (e) {
+      } catch (e, st) {
         if (parentId != 0) {
           parentId = 0;
           response = await canonicalDbusmenu.callGetLayout(
@@ -330,7 +334,13 @@ class DBusMenuValues {
             DBusMenuItemProperties.propertyNames,
           );
         } else {
-          rethrow;
+          logger.error(
+            "canonicalDbusmenu.callGetLayout($parentId, -1, ${DBusMenuItemProperties.propertyNames}) failed. disposing menu",
+            error: e,
+            stackTrace: st,
+          );
+          dispose();
+          return;
         }
       }
       final newRevision = response[0].asUint32();

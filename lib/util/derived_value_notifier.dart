@@ -42,3 +42,9 @@ class ManualValueNotifier<T> extends DummyValueNotifier<T> {
     notifyListeners();
   }
 }
+
+class ManualNotifier extends ChangeNotifier {
+  void manualNotifyListeners() {
+    notifyListeners();
+  }
+}

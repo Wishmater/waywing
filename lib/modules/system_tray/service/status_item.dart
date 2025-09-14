@@ -194,6 +194,8 @@ class OrgKdeStatusNotifierItemValues {
   final OrgKdeStatusNotifierItem statusNotifierItem;
 
   Future<void>? _initialized;
+  bool? _initializationFailed;
+  bool get failed => _initializationFailed ?? false;
 
   final Logger _logger;
 
@@ -290,11 +292,15 @@ class OrgKdeStatusNotifierItemValues {
         v,
       ) {
         final obj = ComCanonicalDbusmenu(statusNotifierItem.client, statusNotifierItem.name, path: v);
-        dbusmenu = DBusMenuValues(obj);
+        dbusmenu = DBusMenuValues(obj, _logger);
       }),
     ];
-    _initialized = futures.wait.timeout(Duration(milliseconds: 200)).onError((e, st) {
+    _initialized = futures.wait.timeout(Duration(milliseconds: 200)).then((v) {
+      _initializationFailed = false;
+      return v;
+    }).onError((e, st) {
       _logger.error("initialization failed", error: e, stackTrace: st);
+      _initializationFailed = true;
       return [];
     });
   }

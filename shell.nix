@@ -3,8 +3,8 @@
 let
   unstablenixpkgs = fetchTarball {
     url =
-      "https://github.com/NixOS/nixpkgs/archive/bf76d8af397b7a40586b4cbc89dc2e3d2370deaa.tar.gz";
-    sha256 = "0si14qvhc0z0ip14gm9x7fw3bma8z260zf34g2hf54r5jnlnj9r8";
+      "https://github.com/NixOS/nixpkgs/archive/34a26e5164c13b960cff8ea54ab3e4b5fec796a9.tar.gz";
+    sha256 = "0iap44a9f92hrbgqf80q2sr69ixc4p06qsvw755wi11m2m2p4hqf";
   };
   unstablepkgs = import unstablenixpkgs {
     config = { };
@@ -38,10 +38,24 @@ in pkgs.mkShell {
     libepoxy
     xorg.libXtst
 
+    # required by gtk-layer-shell
     ninja
     gtk-layer-shell
 
+    # required by pulseaudio
     pulseaudio
+
+    # required by audioplayers
+    gst_all_1.gstreamer
+    gst_all_1.gst-plugins-base
+    gst_all_1.gst-plugins-good
+    gst_all_1.gst-libav
+    libunwind
+    elfutils
+    orc
+
+    # required by waywingcli
+    unstablepkgs.zig_0_15
 
   ];
 

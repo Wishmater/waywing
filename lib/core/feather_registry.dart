@@ -1,11 +1,20 @@
 import "package:config/config.dart";
+import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
+import "package:path/path.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/app_launcher/launcher_wing.dart";
+import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
+import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
+import "package:waywing/modules/kb_layout/kb_layout_feather.dart";
+import "package:waywing/modules/kb_layout/num_lock_feather.dart";
 import "package:waywing/modules/nm/nm_feather.dart";
+import "package:waywing/modules/notification/notification_wing.dart";
 import "package:waywing/modules/session/session_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_feather.dart";
 import "package:waywing/modules/volume/volume_feather.dart";
@@ -18,7 +27,7 @@ typedef FeatherConstructor<T extends Feather> = T Function();
 class FeatherRegistration<T extends Feather<Conf>, Conf> {
   final FeatherConstructor<T> constructor;
   final SchemaBuilder? schemaBuilder;
-  final ConfigBuilder? configBuilder;
+  final ConfigBuilder<Conf>? configBuilder;
 
   FeatherRegistration({
     required this.constructor,
@@ -39,12 +48,15 @@ class FeatherRegistry {
   final Map<String, Feather> _instancedFeathers = {};
   final Map<Feather, Future<void>> _initializedFeathers = {};
 
-  void registerFeather<T extends Feather<Conf>, Conf>(String name, FeatherRegistration<T, Conf> registration) {
+  void registerFeather<T extends Feather<Conf>, Conf>(
+    String name,
+    FeatherRegistration<T, Conf> registration,
+  ) {
     assert(!_registeredFeathers.containsKey(name), "Trying to register a Feather that already exists: $name");
     _registeredFeathers[name] = registration;
   }
 
-  // TODO: 3 only Config should be able to access this
+  // TODO: 3 SCOPING only Config should be able to access this
   Feather getFeatherByName(String name) {
     var feather = _instancedFeathers[name];
     if (feather == null) {
@@ -60,15 +72,16 @@ class FeatherRegistry {
     return feather;
   }
 
-  // TODO: 3 only ConfigWatcher should be able to call this
+  // TODO: 3 SCOPING only ConfigWatcher should be able to call this
   /// Check all feathers currently in config against those already registered in this servcice.
   /// Dispose and remove those no longer in config; add and initialize new ones.
   void onConfigUpdated(BuildContext context) {
-    // TODO: 2 this should crawl around config and get all feathers (somehow)
+    // this is redundant, but we need to initialize wings first,
+    // so they can then give us their list of feathers.
+    _addNewFeathersNotInOldConfig(context, mainConfig.wings);
     final configFeathers = <Feather>{
-      ...mainConfig.barStartFeathers,
-      ...mainConfig.barCenterFeathers,
-      ...mainConfig.barEndFeathers,
+      ...mainConfig.wings,
+      ...mainConfig.wings.map((e) => e.getFeathers()).flatten(),
     };
     _updateFeathers(context, configFeathers);
   }
@@ -123,20 +136,20 @@ class FeatherRegistry {
     }
   }
 
-  // TODO: 2 find a modular way to have multiple "containers" (Wings?).
-  // Bar is an example of a Wing, there could be others like a Widgets panel or an OSD.
-  // Each Wing needs to manage its Feathers and its config (somehow).
-  // Feathers probably also need to still be added to the global Feathers service for init/dispose control.
-
   /// Adds the feather to the provided inner list, and to the all likst, and runs init() on it.
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
-    assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already in Feathers.all");
-    // ignore: invalid_use_of_protected_member
-    feather.logger = mainLogger.clone(properties: [LogType(feather.name)]);
+    assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already initialized");
+    feather.logger = mainLogger.clone(properties: [LogType(feather.name)]); // ignore: invalid_use_of_protected_member
     final registration = _registeredFeathers[feather.name]!;
     if (registration.configBuilder != null) {
       feather.config = registration.configBuilder!(rawMainConfig[feather.name]);
+    }
+    // add feather routes actions
+    if (feather.actions case final actions?) {
+      for (final entry in actions.entries) {
+        WaywingServer.instance.router.register(join(feather.name, entry.key), entry.value);
+      }
     }
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
@@ -148,6 +161,12 @@ class FeatherRegistry {
   Future<void> _disposeFeather(Feather feather) async {
     assert(_initializedFeathers.containsKey(feather), "Trying to remove a feather that is not in Feathers.all");
     _initializedFeathers.remove(feather);
+    // remove feather routes
+    if (feather.actions case final actions?) {
+      for (final entry in actions.entries) {
+        WaywingServer.instance.router.unregister(join(feather.name, entry.key));
+      }
+    }
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
     featherRegistry._dereferenceFeather(feather.name);
     await feather.dispose();
@@ -162,13 +181,22 @@ class FeatherRegistry {
   }
 
   void _registerDefaultFeathers() {
+    // Wings
+    BarWing.registerFeather(registerFeather);
+    NotificationsWing.registerFeather(registerFeather);
+    AppLauncherWing.registerFeather(registerFeather);
+    // Feathers
     ClockFeather.registerFeather(registerFeather);
     SystemTrayFeather.registerFeather(registerFeather);
     NetworkManagerFeather.registerFeather(registerFeather);
     BatteryFeather.registerFeather(registerFeather);
     VolumeFeather.registerFeather(registerFeather);
     SessionFeather.registerFeather(registerFeather);
+    KeyboardLayoutFeather.registerFeather(registerFeather);
+    CapsLockFeather.registerFeather(registerFeather);
+    NumLockFeather.registerFeather(registerFeather);
   }
 }
 
-typedef RegisterFeatherCallback = void Function(String name, FeatherRegistration registration);
+typedef RegisterFeatherCallback<T extends Feather<Conf>, Conf> =
+    void Function(String name, FeatherRegistration<T, Conf> registration);

@@ -2,13 +2,14 @@ import "package:config/config.dart";
 import "package:flutter/widgets.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/wing.dart";
 
 // Hack because Color class breaks codegen for some reason :)))
 class MyColor extends Color {
-  MyColor(super.value);
-  MyColor.from({required super.alpha, required super.red, required super.green, required super.blue}) : super.from();
-  MyColor.fromARGB(super.a, super.r, super.g, super.b) : super.fromARGB();
-  MyColor.fromRGBO(super.r, super.g, super.b, super.opacity) : super.fromRGBO();
+  const MyColor(super.value);
+  const MyColor.from({required super.alpha, required super.red, required super.green, required super.blue}) : super.from();
+  const MyColor.fromARGB(super.a, super.r, super.g, super.b) : super.fromARGB();
+  const MyColor.fromRGBO(super.r, super.g, super.b, super.opacity) : super.fromRGBO();
 }
 
 class ColorField extends StringFieldBase<MyColor> {
@@ -52,18 +53,40 @@ class ColorField extends StringFieldBase<MyColor> {
   }
 }
 
-class CurveField extends StringFieldBase<Curve> {
-  const CurveField({
+// class CurveField extends StringFieldBase<Curve> {
+//   const CurveField({
+//     super.defaultTo,
+//     super.nullable,
+//   }) : super(validator: transform);
+//
+//   static ValidatorResult<Curve> transform(String value) {
+//     return switch (value) {
+//       "linear" => ValidatorTransform(Curves.linear),
+//       "easeOutCubic" => ValidatorTransform(Curves.easeOutCubic),
+//       // TODO: 2 add rest of the curves
+//       _ => ValidatorError(MyValError("Unknown curve: $value")),
+//     };
+//   }
+// }
+
+class AlignmentField extends StringFieldBase<Alignment> {
+  const AlignmentField({
     super.defaultTo,
     super.nullable,
   }) : super(validator: transform);
 
-  static ValidatorResult<Curve> transform(String value) {
+  static ValidatorResult<Alignment> transform(String value) {
     return switch (value) {
-      "linear" => ValidatorTransform(Curves.linear),
-      "easeOutCubic" => ValidatorTransform(Curves.easeOutCubic),
-      // TODO: 2 add rest of the curves
-      _ => ValidatorError(MyValError("Unknown curve: $value")),
+      "topLeft" => ValidatorTransform(Alignment.topLeft),
+      "topCenter" => ValidatorTransform(Alignment.topCenter),
+      "topRight" => ValidatorTransform(Alignment.topRight),
+      "centerLeft" => ValidatorTransform(Alignment.centerLeft),
+      "center" => ValidatorTransform(Alignment.center),
+      "centerRight" => ValidatorTransform(Alignment.centerRight),
+      "bottomLeft" => ValidatorTransform(Alignment.bottomLeft),
+      "bottomCenter" => ValidatorTransform(Alignment.bottomCenter),
+      "bottomRight" => ValidatorTransform(Alignment.bottomRight),
+      _ => ValidatorError(MyValError("Unknown alignment: $value")),
     };
   }
 }
@@ -77,6 +100,25 @@ class FeatherField extends StringFieldBase<Feather> {
   static ValidatorResult<Feather> transform(String value) {
     try {
       return ValidatorTransform(featherRegistry.getFeatherByName(value));
+    } catch (_) {
+      return ValidatorError(MyValError("Unknown feather: $value"));
+    }
+  }
+}
+
+class WingField extends StringFieldBase<Wing> {
+  const WingField({
+    super.defaultTo,
+    super.nullable,
+  }) : super(validator: transform);
+
+  static ValidatorResult<Wing> transform(String value) {
+    try {
+      final result = featherRegistry.getFeatherByName(value);
+      if (result is! Wing) {
+        return ValidatorError(MyValError("Feather: $value is not a Wing"));
+      }
+      return ValidatorTransform(result);
     } catch (_) {
       return ValidatorError(MyValError("Unknown feather: $value"));
     }

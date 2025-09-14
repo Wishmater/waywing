@@ -112,13 +112,6 @@ class VolumeService extends Service {
       }
       final index = _inputs.value.indexWhere((e) => e._source.index == source.index);
       if (index == -1) {
-        // TODO 3: remove this assert after fixing the bug of repeated sources
-        assert(
-          _inputs.value.any((e) => e._source.name != source.name),
-          "Repeated sources with differnet indexes? "
-          "old: ${_inputs.value.firstWhere((e) => e._source.name == source.name)._source} "
-          "new: $source",
-        );
         final input = VolumeInputInterface(_client, source);
         await input.init();
         _inputs.value.add(input);
@@ -207,8 +200,34 @@ class VolumeService extends Service {
   void _updateDefaultOutput(PulseAudioServerInfo serverInfo) {
     if (serverInfo.defaultSinkName == _defaultOutput.value?._sink.name) return;
     final result = _getDefaultOutput(serverInfo);
-    // if (result == null) return; // this should never happen after init() is successful
-    _defaultOutput.value = result!;
+    if (result == null) {
+      _defaultOutput.value = null;
+      // this should never happen after init() is successful
+      // but is in fact happening.
+      // When i close the laptop lid, after opening again i get duplicated inputs (output throw but i dont get duplicated)
+      // This is a bad state so I will just reset it
+      _client.getSinkList().then((sinks) {
+        // if for some reason you think this code is ugly and should be using async await
+        // instead of callbacks then test this code.
+        //
+        // This code was necessary due to a bug that happens after the pc wakes up from suspende
+        final outputs = sinks.map((sink) => VolumeOutputInterface(_client, sink));
+        Future.wait(
+          outputs.map((e) async {
+            await e.init();
+            return e;
+          }),
+        ).then((outputs) async {
+          _outputs.value.clear();
+          _outputs.value.addAll(outputs);
+          final serverInfo = await _client.getServerInfo();
+          _outputs.manualNotifyListeners();
+          _updateDefaultOutput(serverInfo);
+        });
+      });
+      return;
+    }
+    _defaultOutput.value = result;
   }
 
   VolumeOutputInterface? _getDefaultOutput(PulseAudioServerInfo serverInfo) {
@@ -218,8 +237,34 @@ class VolumeService extends Service {
   void _updateDefaultInput(PulseAudioServerInfo serverInfo) {
     if (serverInfo.defaultSourceName == _defaultInput.value?._source.name) return;
     final result = _getDefaultInput(serverInfo);
-    // if (result == null) return; // this should never happen after init() is successful
-    _defaultInput.value = result!;
+    if (result == null) {
+      _defaultInput.value = null;
+      // this should never happen after init() is successful
+      // but is in fact happening, see _updateDefaultOutput above
+      _client.getSourceList().then((sources) {
+        // if for some reason you think this code is ugly and should be using async await
+        // instead of callbacks then test this code.
+        //
+        // This code was necessary due to a bug that happens after the pc wakes up from suspende
+        final inputs = sources
+            .where((e) => e.monitorOfSink == null)
+            .map((source) => VolumeInputInterface(_client, source));
+        Future.wait(
+          inputs.map((e) async {
+            await e.init();
+            return e;
+          }),
+        ).then((inputs) async {
+          _inputs.value.clear();
+          _inputs.value.addAll(inputs);
+          final serverInfo = await _client.getServerInfo();
+          _updateDefaultInput(serverInfo);
+          _inputs.manualNotifyListeners();
+        });
+      });
+      return;
+    }
+    _defaultInput.value = result;
   }
 
   VolumeInputInterface? _getDefaultInput(PulseAudioServerInfo serverInfo) {

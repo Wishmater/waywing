@@ -1,5 +1,9 @@
+import "dart:io";
+
 import "package:flutter/foundation.dart";
 import "package:tronco/tronco.dart";
+import "package:path/path.dart" as path;
+import "package:waywing/core/config.dart";
 
 /// A Service provides utility / protocol / API functions needed by Feathers.
 /// Can be used by one or more feathers, serviceas are initialized and disposed
@@ -8,6 +12,16 @@ abstract class Service<Conf> {
   @protected
   late Logger logger;
   late Conf config;
+
+  Directory? _dataDir;
+  /// Service directory where any kind of runtime data can be set
+  Directory get dataDir {
+    if (_dataDir == null) {
+      _dataDir = Directory(path.join(mainDataHomeDir.path, "service", runtimeType.toString()));
+      _dataDir!.createSync(recursive: true);
+    }
+    return _dataDir!;
+  }
 
   Future<void> init();
 

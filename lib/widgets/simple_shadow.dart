@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import "package:flutter/material.dart";
 
 class SimpleShadowPainter extends CustomPainter {
@@ -68,6 +66,7 @@ class SimpleShadowPainter extends CustomPainter {
         )
         ..fillType = PathFillType.evenOdd,
       Paint()
+        // ignore: deprecated_member_use
         ..color = color.withOpacity(shadowOpacity)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, convertRadiusToSigma(spread)),
     );

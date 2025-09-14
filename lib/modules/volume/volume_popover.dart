@@ -4,9 +4,10 @@ import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/modules/volume/volume_tooltip.dart";
-import "package:waywing/widgets/animated_layout.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
+import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
-import "package:xdg_icons/xdg_icons.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class VolumePopover extends StatelessWidget {
   final VolumeConfig config;
@@ -153,10 +154,8 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
                   // TODO: 2 add animations to list
                   child: Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: AnimatedColumn(
-                      duration: mainConfig.animationDuration,
-                      curve: mainConfig.animationCurve,
-                      addGlobalKeys: true,
+                    child: MotionColumn(
+                      motion: mainConfig.motions.standard.spatial.normal,
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       data: [
@@ -186,37 +185,40 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
   }
 
   Widget buildVolumeSlider(BuildContext context, T model) {
-    const appIconSize = 24;
     return Row(
       children: [
-        SizedBox(width: 16),
+        if (onDefaultSelected == null) //
+          SizedBox(width: 16),
         if (onDefaultSelected != null)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: 4, left: 12),
             child: Radio(
               value: model,
+              // ignore: deprecated_member_use
               groupValue: defaultModel,
+              // ignore: deprecated_member_use
               onChanged: (value) {
                 onDefaultSelected!(value!);
               },
             ),
           ),
         if (model is VolumeAppInterface)
+          // TODO: 2 don't leave space if none of the apps have resolved icon
           Padding(
             padding: EdgeInsets.only(right: 6),
-            child: SizedBox(
-              height: appIconSize.toDouble(),
-              width: appIconSize.toDouble(),
-              child: ValueListenableBuilder(
-                valueListenable: ((model as VolumeAppInterface).iconName),
-                builder: (context, iconName, child) {
-                  if (iconName == null) return SizedBox.shrink();
-                  return XdgIcon(
-                    name: iconName,
-                    size: appIconSize,
-                  );
-                },
-              ),
+            child: ValueListenableBuilder(
+              valueListenable: ((model as VolumeAppInterface).iconName),
+              builder: (context, iconName, child) {
+                if (iconName == null) {
+                  return SizedBox.square(dimension: TextIcon.getIconEffectiveSize(context));
+                }
+                return WingedIcon(
+                  iconNames: [iconName],
+                  notFoundBuilder: (context) {
+                    return SizedBox.square(dimension: TextIcon.getIconEffectiveSize(context));
+                  },
+                );
+              },
             ),
           ),
         Expanded(

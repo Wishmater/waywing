@@ -14,7 +14,7 @@ import "package:waywing/util/derived_value_notifier.dart";
 class SystemTrayFeather extends Feather {
   SystemTrayFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<SystemTrayFeather, void> registerFeather) {
     registerFeather(
       "SystemTray",
       FeatherRegistration(
@@ -43,7 +43,7 @@ class SystemTrayFeather extends Feather {
           // TODO: 2 implement reordering system tray icons
           // TODO: 2 implement overflow menu for hidden tray icons
           FeatherComponent(
-            buildIndicators: (context, popover, tooltip) {
+            buildIndicators: (context, popover) {
               return [
                 SystemTrayIndicator(
                   service: service,

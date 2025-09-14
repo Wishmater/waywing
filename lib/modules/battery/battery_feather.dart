@@ -15,7 +15,7 @@ class BatteryFeather extends Feather {
 
   BatteryFeather._();
 
-  static void registerFeather(RegisterFeatherCallback registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<BatteryFeather, void> registerFeather) {
     registerFeather(
       "Battery",
       FeatherRegistration(
@@ -36,7 +36,7 @@ class BatteryFeather extends Feather {
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([batteryComponent]);
 
   late final batteryComponent = FeatherComponent(
-    buildIndicators: (context, popover, tooltip) {
+    buildIndicators: (context, popover) {
       return [
         WingedButton(
           onTap: () => popover!.togglePopover(),

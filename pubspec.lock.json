@@ -1239,11 +1239,13 @@
     "upower": {
       "dependency": "direct main",
       "description": {
-        "name": "upower",
-        "sha256": "cf042403154751180affa1d15614db7fa50234bc2373cd21c3db666c38543ebf",
-        "url": "https://pub.dev"
+        "path": ".",
+        "ref": "51c34fbc6c593a8c0d0c2b5d64d718feae43f094",
+        "resolved-ref": "51c34fbc6c593a8c0d0c2b5d64d718feae43f094",
+        "url": "https://github.com/ross96D/upower.dart",
+        "sha256": "sha256-7mIrELuo/QO+aPaO/fFiX/hfKsDCqx6nBcpoac7M7Y8="
       },
-      "source": "hosted",
+      "source": "git",
       "version": "0.7.0"
     },
     "uuid": {

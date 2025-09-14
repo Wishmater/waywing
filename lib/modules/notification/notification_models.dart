@@ -419,8 +419,6 @@ class NotificationHints {
   }
 
   factory NotificationHints(DBusClient client, Map<String, DBusValue> hints) {
-    print("--------------${hints["urgency"]} ---- ${_parseValue<int>(hints["urgency"])}");
-    print(NotificationUrgency.from(_parseValue<int>(hints["urgency"]) ?? 1));
     return NotificationHints._(
       dbusClient: client,
       actionIcons: _parseValue<bool>(hints["action-icons"]) ?? false,

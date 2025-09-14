@@ -328,7 +328,7 @@ class _BarState extends State<Bar> {
     return result;
   }
 
-  Motion get motion => mainConfig.motions.expressive.spatial.slow;
+  Motion get motion => mainConfig.motions.expressive.spatial.normal;
 
   Widget buildPopover({
     required BuildContext context,

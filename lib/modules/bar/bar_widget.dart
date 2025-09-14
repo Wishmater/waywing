@@ -420,10 +420,10 @@ class _BarState extends State<Bar> {
                         );
                       },
                       containerBuilder: (context, controller, child) {
-                        return buildPopoverContainer(context, child, popoverShape, isTooltip: false);
+                        return buildPopoverContainer(context, child, popoverShape, isTooltip: false, isClosed: false);
                       },
                       closedContainerBuilder: (context, controller, child) {
-                        return buildPopoverContainer(context, child, buttonShape, isTooltip: false);
+                        return buildPopoverContainer(context, child, buttonShape, isTooltip: false, isClosed: true);
                       },
                     ),
               tooltipParams: component.buildTooltip == null
@@ -462,14 +462,14 @@ class _BarState extends State<Bar> {
                         return MotionOpacity(
                           motion: motion,
                           opacity: 1,
-                          child: buildPopoverContainer(context, child, tooltipShape, isTooltip: true),
+                          child: buildPopoverContainer(context, child, tooltipShape, isTooltip: true, isClosed: false),
                         );
                       },
                       closedContainerBuilder: (context, controller, child) {
                         return MotionOpacity(
                           motion: motion,
                           opacity: 0,
-                          child: buildPopoverContainer(context, child, buttonShape, isTooltip: true),
+                          child: buildPopoverContainer(context, child, buttonShape, isTooltip: true, isClosed: true),
                         );
                       },
                     ),
@@ -485,10 +485,11 @@ class _BarState extends State<Bar> {
     Widget child,
     ShapeBorder shape, {
     required isTooltip,
+    required isClosed,
   }) {
     return WingedContainer(
       motion: motion,
-      elevation: 3.5,
+      elevation: isClosed ? 0 : 3.5,
       shadowOffset: getShadowOffset(),
       clipBehavior: Clip.antiAliasWithSaveLayer,
       shape: shape,

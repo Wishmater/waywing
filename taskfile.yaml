@@ -3,7 +3,7 @@ version: "3"
 tasks:
   run:
     cmds:
-      - flutter run --pid-file /tmp/flutter.pid --dart-entrypoint-args "--config=./config"
+      - flutter run --pid-file /tmp/flutter.pid {{.CLI_ARGS}} --dart-entrypoint-args "--config=./config"
   gen:
     cmds:
       - flutter pub run build_runner build

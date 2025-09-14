@@ -37,7 +37,7 @@ abstract class Feather<Conf> {
   @override
   String toString() => "Feather($name)";
 
-  Map<String, WaywingRouteCallback>? get actions => null;
+  Map<String, WaywingAction>? get actions => null;
 
   /// Initialize all services/fields needed inside this function.
   /// Make sure the future doesn't return until initialization is done,

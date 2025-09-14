@@ -37,11 +37,14 @@ class AppLauncherWing extends Wing<LauncherConfig> {
   String get name => "AppLauncher";
 
   @override
-  late final Map<String, WaywingRouteCallback>? actions = {
-    "activate": (params) {
-      showLauncher.value = true;
-      return Response.ok();
-    },
+  late final Map<String, WaywingAction>? actions = {
+    "activate": WaywingAction(
+      "Show the application launcher",
+      (params) {
+        showLauncher.value = true;
+        return Response.ok();
+      },
+    ),
   };
 
   ValueNotifier<bool> showLauncher = ValueNotifier(false);

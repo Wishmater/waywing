@@ -54,7 +54,35 @@ class WaywingServer {
   }
 }
 
-typedef WaywingRouteCallback = Response Function(Map<String, String> params);
+typedef TypeRouteCb = Response Function(Map<String, String> params);
+
+abstract class WaywingAction {
+  /// callback to invoke when this action get activated
+  TypeRouteCb get route;
+
+  /// One line description of the action
+  String get description;
+
+  factory WaywingAction(String description, TypeRouteCb route) => _WaywingAction(description, route);
+}
+
+class _WaywingAction implements WaywingAction {
+  @override
+  final TypeRouteCb route;
+  @override
+  final String description;
+  _WaywingAction(this.description, this.route);
+}
+
+class WaywingActionCallback implements WaywingAction {
+  @override
+  String get description => "";
+
+  @override
+  final TypeRouteCb route;
+
+  const WaywingActionCallback(this.route);
+}
 
 class Response {
   final int code;
@@ -66,15 +94,15 @@ class Response {
 }
 
 class WaywingRouter {
-  final Map<String, WaywingRouteCallback> _routes;
+  final Map<String, WaywingAction> _routes;
 
   WaywingRouter() : _routes = {} {
-    _routes["list-actions"] = (_) {
-      return Response(200, _routes.keys.join("\n"));
-    };
+    _routes["list-actions"] = WaywingAction("List available actions", (_) {
+      return Response(200, _routes.keys.map((k) => "$k\t\t${_routes[k]!.description}").join("\n"));
+    });
   }
 
-  void register(String path, WaywingRouteCallback callback) {
+  void register(String path, WaywingAction callback) {
     assert(!_routes.containsKey(path), "trying to register an already register path: $path");
     _routes[path] = callback;
   }
@@ -84,7 +112,7 @@ class WaywingRouter {
   }
 
   List<int> enroute(Uri url) {
-    final result = _routes[url.path]?.call(url.queryParameters);
+    final result = _routes[url.path]?.route(url.queryParameters);
     if (result != null) {
       final response = <int>[];
       response.addAll("${result.code}\n".codeUnits);

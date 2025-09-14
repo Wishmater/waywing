@@ -78,7 +78,10 @@ dependencies:
   xdg_icons: ^0.1.2
   flutter_svg: ^2.2.1
   # battery and other power options
-  upower: ^0.7.0
+  upower: # battery and other power options
+    git:
+      url: https://github.com/ross96D/upower.dart
+      ref: 51c34fbc6c593a8c0d0c2b5d64d718feae43f094
   # Linux window / shellLayer manager
   fl_linux_window_manager:
     version: "^2.0.0"

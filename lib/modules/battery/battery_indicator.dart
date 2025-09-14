@@ -3,17 +3,17 @@ import "package:upower/upower.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
-class BatteryWidget extends StatefulWidget {
-  final BatteryValues values;
+class BatteryIndicator extends StatefulWidget {
+  final BatteryValues battery;
 
-  const BatteryWidget({super.key, required this.values});
+  const BatteryIndicator({super.key, required this.battery});
 
   @override
-  State<BatteryWidget> createState() => BatteryWidgetState();
+  State<BatteryIndicator> createState() => BatteryIndicatorState();
 }
 
-class BatteryWidgetState extends State<BatteryWidget> {
-  BatteryValues get values => widget.values;
+class BatteryIndicatorState extends State<BatteryIndicator> {
+  BatteryValues get values => widget.battery;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +29,7 @@ class BatteryWidgetState extends State<BatteryWidget> {
           derive: () => (values.energy.value / values.energyFull.value) * 100,
         ),
         builder: (context, energy, _) {
-          return BatteryIndicator(
+          return _BatteryIndicator(
             batteryLevel: energy,
             isCharging:
                 values.state.value == UPowerDeviceState.charging ||
@@ -48,7 +48,7 @@ class BatteryWidgetState extends State<BatteryWidget> {
   }
 }
 
-class BatteryIndicator extends StatelessWidget {
+class _BatteryIndicator extends StatelessWidget {
   final double batteryLevel; // Value from 0 to 100
   final bool isCharging;
   final Color outlineColor;
@@ -57,8 +57,7 @@ class BatteryIndicator extends StatelessWidget {
   final Color warningColor;
   final Color criticalColor;
 
-  const BatteryIndicator({
-    super.key,
+  const _BatteryIndicator({
     required this.outlineColor,
     required this.batteryLevel,
     required this.isCharging,

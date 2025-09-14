@@ -1,9 +1,12 @@
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
-import "package:flutter_font_icons/flutter_font_icons.dart";
+import "package:flutter_mdi_icons/flutter_mdi_icons.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_service.dart";
+import "package:waywing/widgets/icons/composed_icon.dart";
+import "package:waywing/widgets/icons/symbol_icon.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/motion_widgets/motion_fractionally_sized_box.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -42,13 +45,13 @@ class VolumeIndicator extends StatelessWidget {
             if (defaultOutput == null) {
               if (type == VolumeIndicatorType.input) {
                 result = WingedIcon(
-                  flutterIcon: MaterialCommunityIcons.microphone_off,
+                  flutterIcon: SymbolsVaried.mic_off,
                   iconNames: ["audio-input-microphone-muted", "audio-input-microphone"],
                   textIcon: "", // nf-fa-microphone_lines_slash
                 );
               } else {
                 result = WingedIcon(
-                  flutterIcon: MaterialCommunityIcons.volume_variant_off,
+                  flutterIcon: SymbolsVaried.volume_off,
                   iconNames: ["audio-volume-off", "audio-volume-muted"],
                   textIcon: "󰸈", // nf-md-volume_variant_off
                 );
@@ -60,13 +63,19 @@ class VolumeIndicator extends StatelessWidget {
                   if (isMuted) {
                     if (type == VolumeIndicatorType.input) {
                       return WingedIcon(
-                        flutterIcon: MaterialCommunityIcons.microphone_outline,
+                        flutterIcon: SymbolsVaried.mic,
                         iconNames: ["audio-input-microphone-low", "audio-input-microphone"],
                         textIcon: "󰍮", // nf-md-microphone_outline
+                        flutterBuilder: (context) => ComposedIcon(
+                          subicon: SymbolIcon(SymbolsVaried.close),
+                          subiconSize: 0.6,
+                          subiconAlignment: Alignment.centerRight,
+                          child: SymbolIcon(SymbolsVaried.mic),
+                        ),
                       );
                     } else {
                       return WingedIcon(
-                        flutterIcon: MaterialCommunityIcons.volume_mute,
+                        flutterIcon: SymbolsVaried.no_sound,
                         iconNames: ["audio-volume-muted"],
                         textIcon: "󰝟", // nf-md-volume_mute
                       );
@@ -90,35 +99,35 @@ class VolumeIndicator extends StatelessWidget {
                         if (type == VolumeIndicatorType.input) {
                           // TODO: 2 find better icons for mic low/med/high volume (or implement a better continuous clipper (similar to wifi) that works for both)
                           icon = WingedIcon(
-                            flutterIcon: MaterialCommunityIcons.microphone,
+                            flutterIcon: SymbolsVaried.mic,
                             iconNames: ["audio-input-microphone-high", "audio-input-microphone"],
                             textIcon: "", // nf-fa-microphone_lines
                           );
                         } else {
                           if (volume == 0) {
                             icon = WingedIcon(
-                              flutterIcon: MaterialCommunityIcons.volume_low,
+                              flutterIcon: SymbolsVaried.volume_mute,
                               iconNames: ["audio-volume-low"],
                               textIcon: "󰕿", // nf-md-volume_low
                               flutterBuilder: (context) => FractionalTranslation(
                                 translation: Offset(-0.08, 0),
-                                child: Icon(MaterialCommunityIcons.volume_low),
+                                child: SymbolIcon(Mdi.volumeLow),
                               ),
                             );
                           } else if (volume <= 0.5) {
                             icon = WingedIcon(
-                              flutterIcon: MaterialCommunityIcons.volume_medium,
+                              flutterIcon: SymbolsVaried.volume_down,
                               iconNames: ["audio-volume-medium"],
                               textIcon: "󰖀", // nf-md-volume_medium
                             );
                           } else {
                             icon = WingedIcon(
-                              flutterIcon: MaterialCommunityIcons.volume_high,
+                              flutterIcon: SymbolsVaried.volume_up,
                               iconNames: ["audio-volume-high"],
                               textIcon: "󰕾", // nf-md-volume_high
                               flutterBuilder: (context) => FractionalTranslation(
                                 translation: Offset(0.08, 0),
-                                child: Icon(MaterialCommunityIcons.volume_high),
+                                child: SymbolIcon(SymbolsVaried.volume_up),
                               ),
                             );
                           }

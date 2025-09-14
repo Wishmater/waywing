@@ -1,13 +1,17 @@
 import "package:flutter/material.dart";
-import "package:flutter_font_icons/flutter_font_icons.dart";
+import "package:flutter_mdi_icons/flutter_mdi_icons.dart";
 import "package:human_file_size/human_file_size.dart";
 import "package:intl/intl.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:nm/nm.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/util/human_readable_bytes.dart";
+import "package:waywing/widgets/icons/composed_icon.dart";
+import "package:waywing/widgets/icons/symbol_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class NetworkManagerIndicator extends StatelessWidget {
   final NetworkManagerConfig config;
@@ -143,11 +147,41 @@ class NetworkIcon extends StatelessWidget {
 
     // TODO: 3 implement icons for other network types
     Widget result = switch (type) {
-      NetworkManagerDeviceType.ethernet => Icon(MaterialCommunityIcons.ethernet),
-      NetworkManagerDeviceType.bluetooth => Icon(Icons.bluetooth_connected),
-      NetworkManagerDeviceType.vlan => Icon(Icons.lan),
-      NetworkManagerDeviceType.bridge => Icon(MaterialCommunityIcons.network_outline),
-      _ => Icon(Icons.question_mark),
+      NetworkManagerDeviceType.ethernet => WingedIcon(
+        flutterIcon: SymbolsVaried.cable,
+        iconNames: ["network-wired"],
+        textIcon: "󰈀", // nf-md-ethernet
+      ),
+      NetworkManagerDeviceType.bluetooth => WingedIcon(
+        flutterIcon: SymbolsVaried.bluetooth_connected,
+        iconNames: ["network-bluetooth-active", "bluetooth-active", "network-bluetooth", "bluetooth"],
+        textIcon: "󰂱", // nf-md-bluetooth_connect
+      ),
+      NetworkManagerDeviceType.vlan => WingedIcon(
+        flutterIcon: SymbolsVaried.lan,
+        // TODO: 3 set linux and nerdFont icons
+        flutterBuilder: (context) => ComposedIcon(
+          child: ComposedIcon(
+            subicon: SymbolIcon(SymbolsVaried.open_jam),
+            child: SymbolIcon(SymbolsVaried.lan),
+          ),
+        ),
+      ),
+      NetworkManagerDeviceType.bridge => WingedIcon(
+        flutterIcon: SymbolsVaried.lan,
+        // TODO: 3 set linux and nerdFont icons
+      ),
+      _ => WingedIcon(
+        flutterIcon: SymbolsVaried.question_mark,
+        iconNames: ["dialog-question"],
+        textIcon: "", // nf-fa-question
+        flutterBuilder: (context) => ComposedIcon(
+          child: ComposedIcon(
+            subicon: SymbolIcon(SymbolsVaried.question_mark),
+            child: SymbolIcon(SymbolsVaried.lan),
+          ),
+        ),
+      ),
     };
 
     if (isConnected && showTxRxIndicators) {
@@ -199,28 +233,46 @@ class WifiIcon extends StatelessWidget {
   Widget buildWithAp(BuildContext context, NMServiceAccessPoint? ap) {
     if (ap != null) {
       final color = this.color ?? Theme.of(context).iconTheme.color!;
-      return Stack(
-        children: [
-          Icon(Icons.wifi, color: color.withValues(alpha: 0.25)),
-          Positioned.fill(
-            child: ValueListenableBuilder(
-              valueListenable: ap.strength,
-              builder: (context, strength, child) {
-                // TODO: 2 animate changes in strength
-                return ClipPath(
-                  clipper: WifiStrengthClipper(strength),
-                  child: Icon(Icons.wifi, color: color),
-                );
-              },
-            ),
-          ),
-        ],
+      // TODO: 2 implement wifi signal strength at breakpoints for linux and nerdFont icons
+      return WingedIcon(
+        flutterIcon: SymbolsVaried.wifi,
+        iconNames: ["network-wireless"],
+        textIcon: "", // nf-fa-wifi
+        flutterBuilder: (context) {
+          return Stack(
+            children: [
+              SymbolIcon(SymbolsVaried.wifi, color: color.withValues(alpha: 0.25)),
+              Positioned.fill(
+                child: ValueListenableBuilder(
+                  valueListenable: ap.strength,
+                  builder: (context, strength, child) {
+                    // TODO: 2 animate changes in strength
+                    return ClipPath(
+                      clipper: WifiStrengthClipper(strength),
+                      child: SymbolIcon(SymbolsVaried.wifi, color: color),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       );
     }
     if (isConnected) {
-      return Icon(Icons.wifi, color: color);
+      return WingedIcon(
+        flutterIcon: SymbolsVaried.wifi,
+        iconNames: ["network-wireless"],
+        textIcon: "󰖩", // nf-md-wifi
+        color: color,
+      );
     }
-    return Icon(Icons.wifi_off, color: color);
+    return WingedIcon(
+      flutterIcon: SymbolsVaried.wifi_off,
+      iconNames: ["network-wireless-off", "network-wireless"],
+      textIcon: "󰖪", // nf-md-wifi_off
+      color: color,
+    );
   }
 }
 
@@ -304,6 +356,9 @@ class TxRxIndicatorOverlay extends StatelessWidget {
             if (extraIcon == null) {
               return child!;
             } else {
+              // TODO: 3 maybe it's better to use ComposedIcon for this ? (more consistent)
+              // also consider using Material Symbols instead of Mdi icons, need to test
+              // well that it works with such small icons on all settings
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -329,25 +384,25 @@ class TxRxIndicatorOverlay extends StatelessWidget {
     );
   }
 
-  Icon buildUpDownIcon(BuildContext context) {
-    return Icon(
-      MaterialCommunityIcons.swap_vertical_bold,
+  Widget buildUpDownIcon(BuildContext context) {
+    return WingedIcon(
+      flutterIcon: Mdi.swapVerticalBold,
       size: 12,
       color: Theme.of(context).textTheme.bodyMedium!.color,
     );
   }
 
-  Icon buildUpIcon(BuildContext context) {
-    return Icon(
-      MaterialCommunityIcons.arrow_up_bold,
+  Widget buildUpIcon(BuildContext context) {
+    return WingedIcon(
+      flutterIcon: Mdi.arrowUpBold,
       size: 10,
       color: Theme.of(context).textTheme.bodyMedium!.color,
     );
   }
 
-  Icon buildDownIcon(BuildContext context) {
-    return Icon(
-      MaterialCommunityIcons.arrow_down_bold,
+  Widget buildDownIcon(BuildContext context) {
+    return WingedIcon(
+      flutterIcon: Mdi.arrowDownBold,
       size: 10,
       color: Theme.of(context).textTheme.bodyMedium!.color,
     );
@@ -400,8 +455,10 @@ class ThroughputRateWidget extends StatelessWidget {
     if (showIcon) {
       icon = Padding(
         padding: const EdgeInsets.only(right: 1),
-        child: Icon(
-          MaterialCommunityIcons.swap_vertical_bold,
+        child: WingedIcon(
+          flutterIcon: SymbolsVaried.swap_vert,
+          // TODO: 3 ICONS set a linux icon for this
+          textIcon: "󰯎", // nf-md-swap_vertical_bold
           size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 4,
           color: Theme.of(context).textTheme.bodyMedium!.color,
         ),
@@ -483,8 +540,10 @@ class TxRateWidget extends StatelessWidget {
           padding: padding,
           child: Row(
             children: [
-              Icon(
-                MaterialCommunityIcons.arrow_up_bold,
+              WingedIcon(
+                flutterIcon: SymbolsVaried.arrow_upward,
+                // TODO: 3 ICONS set a linux icon for this
+                textIcon: "󰁝", // nf-md-arrow_up
                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
                 color: Theme.of(context).textTheme.bodyMedium!.color,
               ),
@@ -527,8 +586,10 @@ class RxRateWidget extends StatelessWidget {
           padding: padding,
           child: Row(
             children: [
-              Icon(
-                MaterialCommunityIcons.arrow_down_bold,
+              WingedIcon(
+                flutterIcon: SymbolsVaried.arrow_downward,
+                // TODO: 3 ICONS set a linux icon for this
+                textIcon: "󰁅", // nf-md-arrow_down
                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
                 color: Theme.of(context).textTheme.bodyMedium!.color,
               ),

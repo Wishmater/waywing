@@ -16,7 +16,7 @@ import "package:waywing/util/logger.dart";
 import "package:waywing/widgets/config_changes_watcher.dart";
 import "package:waywing/util/window_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
-import "package:waywing/widgets/text_icon.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
@@ -120,11 +120,13 @@ class App extends StatelessWidget {
               themeMode: mainConfig.theme.mode,
               theme: waywingTheme.themeLight,
               darkTheme: waywingTheme.themeDark,
+              themeAnimationStyle: mainConfig.animationEnable ? null : AnimationStyle.noAnimation,
+              themeAnimationDuration: Duration(milliseconds: 1000),
+              themeAnimationCurve: Curves.easeOutCubic,
               home: Builder(
                 builder: (context) {
                   return XdgIconTheme(
                     data: XdgIconThemeData(
-                      // TODO: 2 get icon theme from gsettings
                       size: TextIcon.getIconEffectiveSize(context).round(),
                     ),
                     child: Scaffold(

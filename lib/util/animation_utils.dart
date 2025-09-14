@@ -1,7 +1,7 @@
 import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
 // ignore: implementation_imports
-import 'package:motor/src/simulations/no_motion_simulation.dart';
+import "package:motor/src/simulations/no_motion_simulation.dart";
 
 enum AnimationFitting { clip, stretch }
 

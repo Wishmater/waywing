@@ -2,7 +2,8 @@ import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:waywing/core/config.dart";
-import "package:waywing/widgets/text_icon.dart";
+import "package:waywing/widgets/icons/symbol_icon.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
 enum IconType {
@@ -87,7 +88,11 @@ class WingedIcon extends StatelessWidget {
           if (flutterBuilder != null) {
             return flutterBuilder!(context);
           } else {
-            return Icon(flutterIcon!);
+            return SymbolIcon(
+              flutterIcon!,
+              size: size,
+              color: color,
+            );
           }
 
         case IconType.linux:

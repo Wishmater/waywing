@@ -4,6 +4,7 @@ import "package:dartx/dartx_io.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:motor/motor.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -16,6 +17,7 @@ import "package:waywing/widgets/shapes/docked_rounded_corners_shape.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class Bar extends StatefulWidget {
@@ -239,8 +241,10 @@ class _BarState extends State<Bar> {
               return SizedBox(
                 height: widget.config.isVertical ? widget.config.indicatorMinSize : null,
                 width: !widget.config.isVertical ? widget.config.indicatorMinSize : null,
-                child: Icon(
-                  Icons.error,
+                child: WingedIcon(
+                  flutterIcon: SymbolsVaried.error,
+                  iconNames: ["dialog-error"],
+                  textIcon: "󰗖", // nf-md-alert_circle_outline
                   color: Theme.of(context).colorScheme.error,
                 ),
               );

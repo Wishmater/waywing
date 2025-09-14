@@ -2,6 +2,7 @@ import "dart:io";
 
 import "package:flutter/material.dart" hide Notification, Action, Actions;
 import "package:intl/intl.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/notification/notification_config.dart";
@@ -11,9 +12,10 @@ import "package:waywing/modules/notification/notification_models.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
-import "package:waywing/widgets/text_icon.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:xdg_icons/xdg_icons.dart";
 import "package:flutter_html/flutter_html.dart";
 
@@ -309,6 +311,7 @@ class _NotificationTitle extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 8,
                   children: [
+                    // TODO: 1 migrate to WingedIcon
                     if (notification.appIcon.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
@@ -426,7 +429,15 @@ class _NotificationTitle extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
+                  child: WingedIcon(
+                    flutterIcon: SymbolsVaried.close,
+                    iconNames: ["window-close"],
+                    textIcon: "󰖭", // nf-md-window_close
+                    size: effectiveIconSize * 0.8,
+                    color: Theme.of(context).textTheme.bodyMedium!.color,
+                  ),
+                  onTap: () => service.closeNotification(notification),
+                ),
               ),
             ),
             SizedBox(width: 2),
@@ -569,7 +580,6 @@ class _NotificationAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final service = NotificationServiceInheritedWidget.of(context);
-    final size = Theme.of(context).textTheme.bodyMedium?.fontSize ?? kDefaultFontSize;
     if (identifierAreIcons) {
       // TODO: 2 STYLE this should use WingedButton
       return TextButton(
@@ -578,11 +588,7 @@ class _NotificationAction extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           spacing: 2,
           children: [
-            XdgIcon(
-              name: action.key,
-              iconNotFoundBuilder: () => SizedBox.shrink(),
-              size: size.toInt(),
-            ),
+            WingedIcon(iconNames: [action.key]),
             Text(action.value),
           ],
         ),

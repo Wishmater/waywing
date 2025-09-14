@@ -1,11 +1,12 @@
 import "package:flutter/material.dart";
-import "package:flutter_font_icons/flutter_font_icons.dart";
 import "package:human_file_size/human_file_size.dart";
 import "package:intl/intl.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/widgets/nm_indicator.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/util/human_readable_bytes.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class NetworkManagerTooltip extends StatelessWidget {
   final NetworkManagerConfig config;
@@ -102,9 +103,11 @@ class ThroughputTotalWidget extends StatelessWidget {
               padding: padding,
               child: Row(
                 children: [
-                  Icon(
-                    MaterialCommunityIcons.swap_vertical_circle,
-                    size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 6,
+                  WingedIcon(
+                    flutterIcon: SymbolsVaried.swap_vertical_circle,
+                    // TODO: 3 ICONS set a linux icon for this
+                    textIcon: "󰿣", // nf-md-swap_vertical_circle
+                    size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
                     color: Theme.of(context).textTheme.bodyMedium!.color,
                   ),
                   SizedBox(width: 1),
@@ -148,9 +151,11 @@ class TxTotalWidget extends StatelessWidget {
           padding: padding,
           child: Row(
             children: [
-              Icon(
-                MaterialCommunityIcons.arrow_up_circle,
-                size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 3,
+              WingedIcon(
+                flutterIcon: SymbolsVaried.arrow_circle_up,
+                // TODO: 3 ICONS set a linux icon for this
+                textIcon: "󰳡", // nf-md-arrow_up_circle
+                size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
                 color: Theme.of(context).textTheme.bodyMedium!.color,
               ),
               SizedBox(width: 2),
@@ -192,9 +197,11 @@ class RxTotalWidget extends StatelessWidget {
           padding: padding,
           child: Row(
             children: [
-              Icon(
-                MaterialCommunityIcons.arrow_down_circle,
-                size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 3,
+              WingedIcon(
+                flutterIcon: SymbolsVaried.arrow_circle_down,
+                // TODO: 3 ICONS set a linux icon for this
+                textIcon: "󰳛", // nf-md-arrow_down_circle
+                size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
                 color: Theme.of(context).textTheme.bodyMedium!.color,
               ),
               SizedBox(width: 2),

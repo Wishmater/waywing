@@ -5,7 +5,7 @@ import "package:flutter/material.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "package:waywing/widgets/argb_32_image_renderer.dart";
-import "package:waywing/widgets/text_icon.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:xdg_icons/xdg_icons.dart";
@@ -116,6 +116,7 @@ class SystemTrayIcon extends StatelessWidget {
   }
 }
 
+// TODO: 1 migrate to WingedIcon
 class RawSystemTrayIcon extends StatelessWidget {
   final String path;
   final PixmapIcons data;

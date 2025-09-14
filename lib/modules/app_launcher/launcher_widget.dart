@@ -134,6 +134,7 @@ class _RenderIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: 1 migrate to WingedIcon
     final size = iconSize ?? XdgIconTheme.of(context).size;
     if (icon.startsWith("/")) {
       return Image.file(File(icon), height: size?.toDouble(), width: size?.toDouble());

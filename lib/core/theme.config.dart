@@ -11,6 +11,10 @@ mixin ThemeConfigI {
   ThemeMode get mode;
   String? get fontFamily;
   List<IconType> get iconPriority;
+  ConfigIconVariation get iconFlutterVariation;
+  bool get iconFlutterTwoTone;
+  double get iconFlutterFill;
+  double get iconFlutterWeight;
   MyColor get primaryColor;
   MyColor? get secondaryColor;
   MyColor? get tertiaryColor;
@@ -27,6 +31,10 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       'mode': ThemeConfigBase._mode,
       'fontFamily': ThemeConfigBase._fontFamily,
       'iconPriority': ThemeConfigBase._iconPriority,
+      'iconFlutterVariation': ThemeConfigBase._iconFlutterVariation,
+      'iconFlutterTwoTone': ThemeConfigBase._iconFlutterTwoTone,
+      'iconFlutterFill': ThemeConfigBase._iconFlutterFill,
+      'iconFlutterWeight': ThemeConfigBase._iconFlutterWeight,
       'primaryColor': ThemeConfigBase._primaryColor,
       'secondaryColor': ThemeConfigBase._secondaryColor,
       'tertiaryColor': ThemeConfigBase._tertiaryColor,
@@ -43,6 +51,10 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   final ThemeMode mode;
   final String? fontFamily;
   final List<IconType> iconPriority;
+  final ConfigIconVariation iconFlutterVariation;
+  final bool iconFlutterTwoTone;
+  final double iconFlutterFill;
+  final double iconFlutterWeight;
   final MyColor primaryColor;
   final MyColor? secondaryColor;
   final MyColor? tertiaryColor;
@@ -56,6 +68,10 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     ThemeMode? mode,
     this.fontFamily,
     List<IconType>? iconPriority,
+    ConfigIconVariation? iconFlutterVariation,
+    bool? iconFlutterTwoTone,
+    double? iconFlutterFill,
+    double? iconFlutterWeight,
     MyColor? primaryColor,
     this.secondaryColor,
     this.tertiaryColor,
@@ -73,6 +89,11 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
              IconType.linux,
              IconType.nerdFont,
            ],
+       iconFlutterVariation =
+           iconFlutterVariation ?? ConfigIconVariation.normal,
+       iconFlutterTwoTone = iconFlutterTwoTone ?? false,
+       iconFlutterFill = iconFlutterFill ?? 0,
+       iconFlutterWeight = iconFlutterWeight ?? 400,
        primaryColor = primaryColor ?? MyColor(0xFF2196F3),
        backgroundOpacity = backgroundOpacity ?? 1.0,
        shadows = shadows ?? 1.0;
@@ -82,6 +103,10 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       mode: map['mode'],
       fontFamily: map['fontFamily'],
       iconPriority: map['iconPriority'],
+      iconFlutterVariation: map['iconFlutterVariation'],
+      iconFlutterTwoTone: map['iconFlutterTwoTone'],
+      iconFlutterFill: map['iconFlutterFill'],
+      iconFlutterWeight: map['iconFlutterWeight'],
       primaryColor: map['primaryColor'],
       secondaryColor: map['secondaryColor'],
       tertiaryColor: map['tertiaryColor'],
@@ -95,7 +120,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
 
   @override
   String toString() {
-    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, iconPriority = $iconPriority, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows';
+    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, iconPriority = $iconPriority, iconFlutterVariation = $iconFlutterVariation, iconFlutterTwoTone = $iconFlutterTwoTone, iconFlutterFill = $iconFlutterFill, iconFlutterWeight = $iconFlutterWeight, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows';
   }
 
   @override
@@ -103,6 +128,10 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     return mode == other.mode &&
         fontFamily == other.fontFamily &&
         iconPriority == other.iconPriority &&
+        iconFlutterVariation == other.iconFlutterVariation &&
+        iconFlutterTwoTone == other.iconFlutterTwoTone &&
+        iconFlutterFill == other.iconFlutterFill &&
+        iconFlutterWeight == other.iconFlutterWeight &&
         primaryColor == other.primaryColor &&
         secondaryColor == other.secondaryColor &&
         tertiaryColor == other.tertiaryColor &&
@@ -118,6 +147,10 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     mode,
     fontFamily,
     iconPriority,
+    iconFlutterVariation,
+    iconFlutterTwoTone,
+    iconFlutterFill,
+    iconFlutterWeight,
     primaryColor,
     secondaryColor,
     tertiaryColor,

@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:flutter_font_icons/flutter_font_icons.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
@@ -7,6 +7,7 @@ import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/text_tooltip_on_overflow.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class VolumeTooltip extends StatelessWidget {
   final VolumeConfig config;
@@ -110,16 +111,22 @@ class VolumeSlider extends StatelessWidget {
                     SizedBox(width: 6),
                     // WingedButton(
                     //   padding: EdgeInsets.zero,
-                    //   child: Icon(MaterialCommunityIcons.volume_minus),
+                    //   child: ComposedIcon(
+                    //     subicon: SymbolIcon(SymbolsVaried.remove),
+                    //     child: SymbolIcon(SymbolsVaried.volume_down),
+                    //   ),
                     //   onTap: () {
-                    //     model.decreaseVolume();
+                    //     model.decreaseVolume(config.volumeStep / 100);
                     //   },
                     // ),
                     // WingedButton(
                     //   padding: EdgeInsets.zero,
-                    //   child: Icon(MaterialCommunityIcons.volume_plus),
+                    //   child: ComposedIcon(
+                    //     subicon: SymbolIcon(SymbolsVaried.add),
+                    //     child: SymbolIcon(SymbolsVaried.volume_up),
+                    //   ),
                     //   onTap: () {
-                    //     model.increaseVolume();
+                    //     model.increaseVolume(config.volumeStep / 100);
                     //   },
                     // ),
                     ValueListenableBuilder(
@@ -128,12 +135,15 @@ class VolumeSlider extends StatelessWidget {
                         return WingedButton(
                           padding: EdgeInsets.zero,
                           constraints: BoxConstraints(),
+                          clipBehavior: Clip.antiAlias,
                           child: MotionContainer(
                             motion: mainConfig.motions.expressive.effects.normal,
-                            color: isMuted ? Theme.of(context).dividerColor : Colors.transparent,
+                            color: isMuted ? Theme.of(context).colorScheme.errorContainer : Colors.transparent,
                             padding: const EdgeInsets.all(4),
-                            child: Icon(
-                              MaterialCommunityIcons.volume_mute,
+                            child: WingedIcon(
+                              flutterIcon: SymbolsVaried.no_sound,
+                              iconNames: ["audio-volume-muted"],
+                              textIcon: "󰝟", // nf-md-volume_mute
                               color: Theme.of(context).textTheme.bodyLarge!.color,
                             ),
                           ),

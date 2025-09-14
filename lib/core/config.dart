@@ -69,7 +69,7 @@ mixin MainConfigBase on MainConfigI {
   static const _animationEnable = BooleanField(defaultTo: true);
   static const _animationSpeed = DoubleNumberField(defaultTo: 1); // stiffness
   static const _animationDamping = DoubleNumberField(defaultTo: 1);
-  // TODO: 3 validate that these (speed and damping) are >=0 and maybe an upper bound as well
+  // TODO: 3 validate that these () are >=0 and maybe an upper bound as well
 
   static const _animationFitting = EnumField(AnimationFitting.values, defaultTo: AnimationFitting.clip);
   static const _animationSwitching = EnumField(AnimationSwitching.values, defaultTo: AnimationSwitching.fadeThrough);

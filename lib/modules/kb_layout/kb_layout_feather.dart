@@ -2,14 +2,15 @@ import "dart:async";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:flutter_font_icons/flutter_font_icons.dart" show MaterialCommunityIcons;
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/text_icon.dart";
+import "package:waywing/widgets/icons/symbol_icon.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
@@ -72,7 +73,7 @@ class KeyboardLayoutIndicator extends StatelessWidget {
                 builder: (context, constraints) {
                   // final isVertical = constraints.maxHeight > constraints.maxWidth;
                   final icon = WingedIcon(
-                    flutterIcon: MaterialCommunityIcons.keyboard_variant,
+                    flutterIcon: SymbolsVaried.keyboard,
                     iconNames: ["input-keyboard-cirtual-off", "input-keyboard"],
                     textIcon: "󰌓", // nf-md-keyboard_variant
                     size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
@@ -81,6 +82,13 @@ class KeyboardLayoutIndicator extends StatelessWidget {
                       text: "󰌓", // nf-md-keyboard_variant
                       alignment: Alignment(-0.66, 0),
                       size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
+                      color: theme.textTheme.bodyMedium!.color,
+                    ),
+                    flutterBuilder: (context) => SymbolIcon(
+                      SymbolsVaried.keyboard,
+                      fill: 0,
+                      opticalSize: 48,
+                      grade: -25,
                       color: theme.textTheme.bodyMedium!.color,
                     ),
                   );

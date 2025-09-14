@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/feather.dart";
@@ -114,17 +115,17 @@ class SplashPulse extends StatefulWidget {
   final Duration interval;
   final Color? color;
   final bool pulseInitially;
-  final bool pulsing;
+  late final bool pulsing;
   final Widget child;
 
-  const SplashPulse({
+  SplashPulse({
     this.interval = const Duration(milliseconds: 1000),
     this.color, // defaults to theme splashColor
     this.pulseInitially = true,
-    this.pulsing = true,
+    bool pulsing = true,
     required this.child,
     super.key,
-  });
+  }) : pulsing = !mainConfig.animationEnable ? false : pulsing;
 
   @override
   State<SplashPulse> createState() => _SplashPulseState();
@@ -179,22 +180,29 @@ class _SplashPulseState extends State<SplashPulse> {
 
   @override
   void deactivate() {
-    splashTimer?.cancel();
-    for (var splash in List.from(_splashes)) {
-      splash.dispose();
-    }
+    _disposeSplashes();
     super.deactivate();
   }
 
   @override
   void activate() {
     super.activate();
-    _initTimer();
+    if (widget.pulsing) {
+      _initTimer();
+    }
   }
 
   @override
   void dispose() {
+    _disposeSplashes();
     super.dispose();
+  }
+
+  void _disposeSplashes() {
+    splashTimer?.cancel();
+    for (var splash in List<InteractiveInkFeature>.from(_splashes)) {
+      splash.dispose();
+    }
   }
 
   @override

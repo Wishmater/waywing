@@ -123,6 +123,8 @@ class WingedButton<T> extends StatefulWidget {
   /// If this is null, it is interpreted as [BorderRadius.zero].
   final BorderRadius? borderRadius;
 
+  final Clip clipBehavior;
+
   const WingedButton({
     required this.child,
     this.builder,
@@ -145,6 +147,7 @@ class WingedButton<T> extends StatefulWidget {
     this.containedInkWell = false,
     this.radius,
     this.borderRadius,
+    this.clipBehavior = Clip.hardEdge,
     super.key,
   });
 
@@ -181,9 +184,8 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
           focusNode: focusNode,
           highlightShape: BoxShape.rectangle,
           // TODO: 2 remove default inkwell hover effect and implement our own (with blackjack and hookers)
-          hoverDuration: Duration(milliseconds: 200),
+          hoverDuration: mainConfig.animationEnable ? Duration(milliseconds: 200) : Duration.zero,
           // hoverColor: Colors.transparent,
-          // hoverDuration: Duration.zero,
           borderRadius: borderRadius,
           onTap: widget.onTap == null || snapshot.connectionState != ConnectionState.done
               ? null
@@ -201,7 +203,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
             padding: widget.padding ?? Theme.of(context).buttonTheme.padding,
             constraints: widget.constraints,
             alignment: widget.alignment,
-            clipBehavior: Clip.hardEdge,
+            clipBehavior: widget.clipBehavior,
             decoration: BoxDecoration(
               borderRadius: borderRadius,
             ),

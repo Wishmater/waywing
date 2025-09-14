@@ -2,6 +2,7 @@ import "dart:typed_data";
 
 import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/system_tray/service/menu.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
@@ -13,6 +14,7 @@ import "package:waywing/widgets/disposable_builder.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
@@ -269,8 +271,10 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                         if (widget.item.submenu.isNotEmpty)
                           Transform.translate(
                             offset: Offset(4, 0),
-                            child: Icon(
-                              Icons.chevron_right,
+                            child: WingedIcon(
+                              flutterIcon: SymbolsVaried.chevron_right,
+                              iconNames: ["arrow-right"],
+                              textIcon: "󰅂", // nf-md-chevron_right
                               size: Theme.of(context).textTheme.bodyLarge!.fontSize! * 1.33,
                             ),
                           ),
@@ -380,6 +384,7 @@ class _SystemTrayMenuIconState extends State<SystemTrayMenuIcon> {
       }
     }
     Widget result;
+    // TODO: 1 migrate to WingedIcon
     if (widget.data.isNotEmpty) {
       imageProvider ??= getImageProvider();
       result = SizedBox(

@@ -3,10 +3,21 @@ import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
 import "package:flex_seed_scheme/flex_seed_scheme.dart";
+import "package:material_symbols_icons/material_symbols_icons.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 part "theme.config.dart";
+
+enum ConfigIconVariation {
+  normal(IconVariation.outlined),
+  rounded(IconVariation.rounded),
+  sharp(IconVariation.sharp);
+
+  final IconVariation variation;
+  const ConfigIconVariation(this.variation);
+}
 
 @Config()
 mixin ThemeConfigBase on ThemeConfigI {
@@ -36,6 +47,32 @@ mixin ThemeConfigBase on ThemeConfigI {
           MyValError("The same icon type can't be repeated more than once in iconPriority list, but $e was repeated"),
         );
       }
+    }
+    return ValidatorSuccess();
+  }
+
+  static const _iconFlutterVariation = EnumField(ConfigIconVariation.values, defaultTo: ConfigIconVariation.normal);
+
+  static const _iconFlutterTwoTone = BooleanField(defaultTo: false);
+
+  static const _iconFlutterFill = DoubleNumberField(
+    defaultTo: 0,
+    validator: _iconFlutterFillValidator,
+  );
+  static ValidatorResult<double> _iconFlutterFillValidator(double value) {
+    if (value < 0 || value > 1) {
+      return ValidatorError(MyValError("Icon fill value should be between 0 and 1, but was $value"));
+    }
+    return ValidatorSuccess();
+  }
+
+  static const _iconFlutterWeight = DoubleNumberField(
+    defaultTo: 400,
+    validator: _iconFlutterWeightValidator,
+  );
+  static ValidatorResult<double> _iconFlutterWeightValidator(double value) {
+    if (value < 100 || value > 700) {
+      return ValidatorError(MyValError("Icon weight value should be between 100 and 700, but was $value"));
     }
     return ValidatorSuccess();
   }
@@ -225,9 +262,9 @@ class WaywingTheme {
     final result = ThemeData(
       colorScheme: colorScheme,
       fontFamily: config.fontFamily,
-      splashFactory: InkSparkle.splashFactory,
+      splashFactory: mainConfig.animationEnable ? InkSparkle.splashFactory : NoSplash.splashFactory,
       splashColor: colorScheme.primary.withValues(alpha: 0.25),
-      highlightColor: Colors.transparent,
+      highlightColor: mainConfig.animationEnable ? null : Colors.transparent,
       hoverColor: colorScheme.onSurface.withValues(alpha: 0.04),
       focusColor: colorScheme.onSurface.withValues(alpha: colorScheme.brightness == Brightness.light ? 0.12 : 0.08),
       buttonTheme: ButtonThemeData(
@@ -242,6 +279,7 @@ class WaywingTheme {
         color: config.foregroundColor == null
             ? result.iconTheme.color
             : Color.lerp(config.foregroundColor, result.iconTheme.color, 0.5),
+        fill: 0,
       ),
     );
   }

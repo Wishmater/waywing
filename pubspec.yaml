@@ -48,13 +48,21 @@ dependencies:
 
   # Widgets / UI
   sliver_tools: ^0.2.12
-  flutter_font_icons: ^2.2.7
   animations: ^2.0.11
   auto_size_text: ^3.0.0
   implicitly_animated_list: ^2.3.0
   motor: ^1.0.0-dev.4
   # color scheme creation
   flex_seed_scheme: ^3.5.1
+  # icons
+  material_symbols_icons: # ^4.0.0 # prefer using material symbols, that support parameters
+    version: ^4.2873.2
+    # path: ../material_symbols_icons
+    git:
+      url: https://github.com/Wishmater/material_symbols_icons
+      tag_pattern: "{{version}}"
+  flutter_mdi_icons: ^0.1.3 # Material Community Icons
+  lucide_icons_flutter: ^3.1.0 # Lucide Icons, for some spice (mostly unused)
 
   # Native plugins
   path: ^1.9.1

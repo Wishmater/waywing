@@ -1,6 +1,7 @@
 import "dart:math";
 
 import "package:flutter/material.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/nm/nm_config.dart";
@@ -13,6 +14,7 @@ import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/simple_shadow.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class NetworkManagerPopover extends StatefulWidget {
   final NetworkManagerConfig config;
@@ -68,15 +70,17 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                       Expanded(child: SizedBox.shrink()),
                       WingedButton(
                         builder: (context, snapshot, child) {
-                          return RefreshIcon(
-                            isRefreshing: snapshot.connectionState != ConnectionState.done,
+                          return SpinningWidget(
+                            isSpinning: snapshot.connectionState != ConnectionState.done,
                             child: child,
                           );
                         },
                         onTap: requestScan,
                         initialFuture: initialRefreshFuture,
-                        child: Icon(
-                          Icons.refresh,
+                        child: WingedIcon(
+                          flutterIcon: SymbolsVaried.refresh,
+                          iconNames: ["view-refresh"],
+                          textIcon: "󰑐", // nf-md-refresh
                           color: Theme.of(context).textTheme.bodyMedium!.color,
                         ),
                       ),
@@ -359,8 +363,10 @@ class _APWidgetState extends State<APWidget> {
                           if (widget.ap.isSecured)
                             Padding(
                               padding: const EdgeInsets.only(left: 4),
-                              child: Icon(
-                                Icons.lock,
+                              child: WingedIcon(
+                                flutterIcon: SymbolsVaried.lock,
+                                iconNames: ["system-lock-screen"],
+                                textIcon: "󰌾", // nf-md-lock
                                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! * 0.75,
                                 color: Theme.of(context).textTheme.bodyMedium!.color,
                               ),
@@ -384,21 +390,21 @@ class _APWidgetState extends State<APWidget> {
   }
 }
 
-class RefreshIcon extends StatefulWidget {
-  final bool isRefreshing;
+class SpinningWidget extends StatefulWidget {
+  final bool isSpinning;
   final Widget child;
 
-  const RefreshIcon({
-    required this.isRefreshing,
+  const SpinningWidget({
+    required this.isSpinning,
     required this.child,
     super.key,
   });
 
   @override
-  State<RefreshIcon> createState() => _RefreshIconState();
+  State<SpinningWidget> createState() => _SpinningWidgetState();
 }
 
-class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin {
+class _SpinningWidgetState extends State<SpinningWidget> with TickerProviderStateMixin {
   late final SingleMotionController motionController;
 
   void _onControllerTick() => setState(() {});
@@ -409,14 +415,12 @@ class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin
   void initState() {
     super.initState();
     motionController = SingleMotionController(
-      motion: mainConfig.motions.expressive.spatial.slow.multiply(
-        stiffness: 0.033, // make it a bit slower
-      ),
+      motion: mainConfig.motions.expressive.spatial.slow.multiplySpeed(0.03), // make it a bit slower
       vsync: this,
       initialValue: 0,
     )..addListener(_onControllerTick);
     motionController.addListener(() {
-      if (widget.isRefreshing && motionController.value % 1 > 0.33) {
+      if (widget.isSpinning && motionController.value % 1 > 0.33) {
         motionController.animateTo(nextValue + 1);
       }
     });
@@ -430,14 +434,14 @@ class _RefreshIconState extends State<RefreshIcon> with TickerProviderStateMixin
   }
 
   @override
-  void didUpdateWidget(covariant RefreshIcon oldWidget) {
+  void didUpdateWidget(covariant SpinningWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    updateAnimation(oldWidget.isRefreshing);
+    updateAnimation(oldWidget.isSpinning);
   }
 
   void updateAnimation(bool? previousRefreshing) {
-    if (previousRefreshing != null && previousRefreshing == widget.isRefreshing) return;
-    if (widget.isRefreshing) {
+    if (previousRefreshing != null && previousRefreshing == widget.isSpinning) return;
+    if (widget.isSpinning) {
       motionController.animateTo(nextValue.toDouble());
     }
   }

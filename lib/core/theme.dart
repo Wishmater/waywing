@@ -278,7 +278,7 @@ class WaywingTheme {
       iconTheme: result.iconTheme.copyWith(
         color: config.foregroundColor == null
             ? result.iconTheme.color
-            : Color.lerp(config.foregroundColor, result.iconTheme.color, 0.5),
+            : Color.lerp(config.primaryColor, result.iconTheme.color, 0.5),
         fill: 0,
       ),
     );

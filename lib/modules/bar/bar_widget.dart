@@ -204,12 +204,14 @@ class _BarState extends State<Bar> {
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: widget.config.spacing,
         children: children,
       );
     } else {
       return Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: widget.config.spacing,
         children: children,
       );
     }

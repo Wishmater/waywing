@@ -24,6 +24,7 @@ mixin BarConfigI {
   double get radiusOutMain;
   double? get _indicatorMinSize;
   double? get _indicatorPadding;
+  double get spacing;
   List<Feather<dynamic>> get startFeathers;
   List<Feather<dynamic>> get centerFeathers;
   List<Feather<dynamic>> get endFeathers;
@@ -48,6 +49,7 @@ class BarConfig with BarConfigI, BarConfigBase {
       'radiusOutMain': BarConfigBase._radiusOutMain,
       'indicatorMinSize': BarConfigBase.__indicatorMinSize,
       'indicatorPadding': BarConfigBase.__indicatorPadding,
+      'spacing': BarConfigBase._spacing,
       'startFeathers': BarConfigBase._startFeathers,
       'centerFeathers': BarConfigBase._centerFeathers,
       'endFeathers': BarConfigBase._endFeathers,
@@ -72,6 +74,7 @@ class BarConfig with BarConfigI, BarConfigBase {
   final double radiusOutMain;
   final double? _indicatorMinSize;
   final double? _indicatorPadding;
+  final double spacing;
   final List<Feather<dynamic>> startFeathers;
   final List<Feather<dynamic>> centerFeathers;
   final List<Feather<dynamic>> endFeathers;
@@ -93,6 +96,7 @@ class BarConfig with BarConfigI, BarConfigBase {
     double? radiusOutMain,
     double? indicatorMinSize,
     double? indicatorPadding,
+    double? spacing,
     List<Feather<dynamic>>? startFeathers,
     List<Feather<dynamic>>? centerFeathers,
     List<Feather<dynamic>>? endFeathers,
@@ -110,6 +114,7 @@ class BarConfig with BarConfigI, BarConfigBase {
        radiusOutMain = radiusOutMain ?? 0,
        _indicatorMinSize = indicatorMinSize,
        _indicatorPadding = indicatorPadding,
+       spacing = spacing ?? 0,
        startFeathers = startFeathers ?? <Feather>[],
        centerFeathers = centerFeathers ?? <Feather>[],
        endFeathers = endFeathers ?? <Feather>[];
@@ -132,6 +137,7 @@ class BarConfig with BarConfigI, BarConfigBase {
       radiusOutMain: map['radiusOutMain'],
       indicatorMinSize: map['indicatorMinSize'],
       indicatorPadding: map['indicatorPadding'],
+      spacing: map['spacing'],
       startFeathers: map['startFeathers'],
       centerFeathers: map['centerFeathers'],
       endFeathers: map['endFeathers'],
@@ -140,7 +146,7 @@ class BarConfig with BarConfigI, BarConfigBase {
 
   @override
   String toString() {
-    return 'BarConfigside = $side, size = $size, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, _exclusiveSizeLeft = $_exclusiveSizeLeft, _exclusiveSizeRight = $_exclusiveSizeRight, _exclusiveSizeTop = $_exclusiveSizeTop, _exclusiveSizeBottom = $_exclusiveSizeBottom, radiusInCross = $radiusInCross, radiusInMain = $radiusInMain, radiusOutCross = $radiusOutCross, radiusOutMain = $radiusOutMain, _indicatorMinSize = $_indicatorMinSize, _indicatorPadding = $_indicatorPadding, startFeathers = $startFeathers, centerFeathers = $centerFeathers, endFeathers = $endFeathers';
+    return 'BarConfigside = $side, size = $size, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, _exclusiveSizeLeft = $_exclusiveSizeLeft, _exclusiveSizeRight = $_exclusiveSizeRight, _exclusiveSizeTop = $_exclusiveSizeTop, _exclusiveSizeBottom = $_exclusiveSizeBottom, radiusInCross = $radiusInCross, radiusInMain = $radiusInMain, radiusOutCross = $radiusOutCross, radiusOutMain = $radiusOutMain, _indicatorMinSize = $_indicatorMinSize, _indicatorPadding = $_indicatorPadding, spacing = $spacing, startFeathers = $startFeathers, centerFeathers = $centerFeathers, endFeathers = $endFeathers';
   }
 
   @override
@@ -161,6 +167,7 @@ class BarConfig with BarConfigI, BarConfigBase {
         radiusOutMain == other.radiusOutMain &&
         _indicatorMinSize == other._indicatorMinSize &&
         _indicatorPadding == other._indicatorPadding &&
+        spacing == other.spacing &&
         startFeathers == other.startFeathers &&
         centerFeathers == other.centerFeathers &&
         endFeathers == other.endFeathers;
@@ -184,6 +191,7 @@ class BarConfig with BarConfigI, BarConfigBase {
     radiusOutMain,
     _indicatorMinSize,
     _indicatorPadding,
+    spacing,
     startFeathers,
     centerFeathers,
     endFeathers,

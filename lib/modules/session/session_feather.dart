@@ -28,15 +28,21 @@ class SessionFeather extends Feather {
   }
 
   @override
-  late final Map<String, WaywingRouteCallback>? actions = {
-    "sleep": (_) {
-      Future.delayed(Duration.zero, () => service.sleep());
-      return Response.ok();
-    },
-    "lock": (_) {
-      Future.delayed(Duration.zero, () => service.lock());
-      return Response.ok();
-    },
+  late final Map<String, WaywingAction>? actions = {
+    "sleep": WaywingAction(
+      "Put the computer/laptop to sleep",
+      (_) {
+        Future.delayed(Duration.zero, () => service.sleep());
+        return Response.ok();
+      },
+    ),
+    "lock": WaywingAction(
+      "Activate screen lock",
+      (_) {
+        Future.delayed(Duration.zero, () => service.lock());
+        return Response.ok();
+      },
+    ),
   };
 
   @override

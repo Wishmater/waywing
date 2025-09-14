@@ -104,7 +104,9 @@ class _NotificationWidget extends StatefulWidget {
 class _NotificationWidgetState extends State<_NotificationWidget> with SingleTickerProviderStateMixin {
   ValueNotifier<bool> isHovered = ValueNotifier(false);
 
+  // TODO: 1 if notification has no body and no actions, it should not be expandable (disable functionality entirely)
   bool isExpanded = false;
+  // TODO: 1 migrate to MotionController
   late AnimationController _animationController;
   late Animation<double> _heightAnimation;
   late Animation<double> _fadeAnimation;
@@ -250,18 +252,28 @@ class _AnimatedNotificationContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizeTransition(
-      sizeFactor: animation,
-      child: FadeTransition(
-        opacity: fadeAnimation,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _NotificationBody(notification),
-            _NotificationActions(notification.actions, notification),
-          ],
+    return Column(
+      children: [
+        SizeTransition(
+          sizeFactor: ReverseAnimation(animation),
+          child: SizedBox(
+            height: 8,
+          ),
         ),
-      ),
+        SizeTransition(
+          sizeFactor: animation,
+          child: FadeTransition(
+            opacity: fadeAnimation,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _NotificationBody(notification),
+                _NotificationActions(notification.actions, notification),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -395,48 +407,42 @@ class _NotificationTitle extends StatelessWidget {
                   child: child!,
                 );
               },
-              child: Row(
-                spacing: 2,
-                children: [
-                  if (notification.body.isNotEmpty || notification.actions.actions.isNotEmpty)
-                    ExcludeFocusTraversal(
-                      child: WingedButton(
+              child: ExcludeFocusTraversal(
+                child: Row(
+                  spacing: 2,
+                  children: [
+                    if (notification.body.isNotEmpty || notification.actions.actions.isNotEmpty)
+                      WingedButton(
                         padding: EdgeInsets.zero,
                         constraints: BoxConstraints.tightFor(
                           width: effectiveIconSize * 1.33,
                           height: effectiveIconSize * 1.33,
                         ),
                         onTap: onToggleExpand,
-                        child: Icon(
-                          isExpanded ? Icons.expand_less : Icons.expand_more,
+                        child: WingedIcon(
+                          // TODO: 2 ANIMATIONS for flutter icon (or maybe all) implement turning around animation
+                          flutterIcon: isExpanded ? SymbolsVaried.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          // TODO: 3 add linux and nerdFont icons
                           size: effectiveIconSize * 0.8,
                           color: Theme.of(context).textTheme.bodyMedium!.color,
                         ),
                       ),
-                    ),
-                  ExcludeFocusTraversal(
-                    child: WingedButton(
+                    WingedButton(
                       padding: EdgeInsets.zero,
                       constraints: BoxConstraints.tightFor(
                         width: effectiveIconSize * 1.33,
                         height: effectiveIconSize * 1.33,
                       ),
                       onTap: () => service.closeNotification(notification),
-                      child: Icon(
-                        Icons.close,
+                      child: WingedIcon(
+                        flutterIcon: SymbolsVaried.close,
+                        iconNames: ["window-close"],
+                        textIcon: "󰖭", // nf-md-window_close
                         size: effectiveIconSize * 0.8,
                         color: Theme.of(context).textTheme.bodyMedium!.color,
                       ),
                     ),
-                  ),
-                  child: WingedIcon(
-                    flutterIcon: SymbolsVaried.close,
-                    iconNames: ["window-close"],
-                    textIcon: "󰖭", // nf-md-window_close
-                    size: effectiveIconSize * 0.8,
-                    color: Theme.of(context).textTheme.bodyMedium!.color,
-                  ),
-                  onTap: () => service.closeNotification(notification),
+                  ],
                 ),
               ),
             ),

@@ -13,6 +13,7 @@ mixin NotificationsConfigI {
   double get marginRight;
   double get marginTop;
   double get marginBottom;
+  bool get autoExpand;
   bool get showProgressBar;
 }
 
@@ -24,6 +25,7 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
       'marginRight': NotificationsConfigBase._marginRight,
       'marginTop': NotificationsConfigBase._marginTop,
       'marginBottom': NotificationsConfigBase._marginBottom,
+      'autoExpand': NotificationsConfigBase._autoExpand,
       'showProgressBar': NotificationsConfigBase._showProgressBar,
     },
   );
@@ -35,6 +37,7 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
   final double marginRight;
   final double marginTop;
   final double marginBottom;
+  final bool autoExpand;
   final bool showProgressBar;
 
   NotificationsConfig({
@@ -43,12 +46,14 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
     double? marginRight,
     double? marginTop,
     double? marginBottom,
+    bool? autoExpand,
     bool? showProgressBar,
   }) : alignment = alignment ?? Alignment.topLeft,
        marginLeft = marginLeft ?? 32,
        marginRight = marginRight ?? 32,
        marginTop = marginTop ?? 32,
        marginBottom = marginBottom ?? 32,
+       autoExpand = autoExpand ?? false,
        showProgressBar = showProgressBar ?? false;
 
   factory NotificationsConfig.fromMap(Map<String, dynamic> map) {
@@ -58,13 +63,14 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
       marginRight: map['marginRight'],
       marginTop: map['marginTop'],
       marginBottom: map['marginBottom'],
+      autoExpand: map['autoExpand'],
       showProgressBar: map['showProgressBar'],
     );
   }
 
   @override
   String toString() {
-    return 'NotificationsConfigalignment = $alignment, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, showProgressBar = $showProgressBar';
+    return 'NotificationsConfigalignment = $alignment, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, autoExpand = $autoExpand, showProgressBar = $showProgressBar';
   }
 
   @override
@@ -74,6 +80,7 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
         marginRight == other.marginRight &&
         marginTop == other.marginTop &&
         marginBottom == other.marginBottom &&
+        autoExpand == other.autoExpand &&
         showProgressBar == other.showProgressBar;
   }
 
@@ -84,6 +91,7 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
     marginRight,
     marginTop,
     marginBottom,
+    autoExpand,
     showProgressBar,
   ]);
 }

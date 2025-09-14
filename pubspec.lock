@@ -639,8 +639,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: c4216651083542667d53c58a96f8e86d25a1521a
-      tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/material_symbols_icons"
     source: git
     version: "4.2873.2"

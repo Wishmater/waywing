@@ -20,5 +20,6 @@ mixin NotificationsConfigBase on NotificationsConfigI {
   static const _marginBottom = DoubleNumberField(defaultTo: 32);
   late final EdgeInsets margin = EdgeInsets.fromLTRB(marginLeft, marginTop, marginRight, marginBottom);
 
+  static const _autoExpand = BooleanField(defaultTo: false);
   static const _showProgressBar = BooleanField(defaultTo: false);
 }

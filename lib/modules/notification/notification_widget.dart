@@ -105,7 +105,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
   ValueNotifier<bool> isHovered = ValueNotifier(false);
 
   // TODO: 1 if notification has no body and no actions, it should not be expandable (disable functionality entirely)
-  bool isExpanded = false;
+  late bool isExpanded = widget.config.autoExpand;
   // TODO: 1 migrate to MotionController
   late AnimationController _animationController;
   late Animation<double> _heightAnimation;
@@ -117,6 +117,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 100),
       vsync: this,
+      value: isExpanded ? 1 : 0,
     );
 
     _heightAnimation = CurvedAnimation(
@@ -170,6 +171,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                 timer?.start();
                 isHovered.value = false;
               },
+              // TODO: 1 add shadows, test that it plays nicely with implicit enter/exit animation
               child: WingedContainer(
                 color: surfaceColor,
                 shape: RoundedRectangleBorder(
@@ -178,6 +180,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                 ),
                 child: Stack(
                   children: [
+                    // TODO: 1 make this clip to the same shape as Container
                     // TODO: 2 STYLE should this also use WingedButton? or maybe separate WingedInkWell and use that?
                     Positioned.fill(
                       child: InkWell(
@@ -200,6 +203,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                           ListenableBuilder(
                             listenable: timer,
                             builder: (context, _) {
+                              // TODO: 1 position progress bar better, probably with a stack, remove padding, test clipping
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 10),
                                 child: LinearProgressIndicator(

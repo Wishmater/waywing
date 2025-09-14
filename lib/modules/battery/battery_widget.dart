@@ -58,7 +58,7 @@ class BatteryIndicator extends StatelessWidget {
   final Color criticalColor;
 
   const BatteryIndicator({
-    Key? key,
+    super.key,
     required this.outlineColor,
     required this.batteryLevel,
     required this.isCharging,
@@ -66,7 +66,7 @@ class BatteryIndicator extends StatelessWidget {
     required this.dischargingColor,
     required this.warningColor,
     required this.criticalColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +166,13 @@ class _BatteryPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return true;
+  bool shouldRepaint(covariant _BatteryPainter oldDelegate) {
+    return batteryLevel != oldDelegate.batteryLevel ||
+        isCharging != oldDelegate.isCharging ||
+        outlineColor != oldDelegate.outlineColor ||
+        chargingColor != oldDelegate.chargingColor ||
+        dischargingColor != oldDelegate.dischargingColor ||
+        warningColor != oldDelegate.warningColor ||
+        criticalColor != oldDelegate.criticalColor;
   }
 }

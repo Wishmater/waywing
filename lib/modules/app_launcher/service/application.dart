@@ -10,7 +10,7 @@ part "application.g.dart";
 typedef Key = DesktopEntryKey;
 
 @JsonSerializable()
-class Application {
+class Application implements Comparable<Application> {
   Map<String, dynamic> toJson() => _$ApplicationToJson(this);
   factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
 
@@ -210,6 +210,11 @@ class Application {
         await Process.start(cmd, args, mode: ProcessStartMode.detached);
       }
     }
+  }
+
+  @override
+  int compareTo(Application other) {
+    return name.compareTo(other.name) + other.timesExec - timesExec;
   }
 }
 

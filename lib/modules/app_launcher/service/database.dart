@@ -139,39 +139,8 @@ Future<List<Application>> loadApplications(LauncherDatabase db, Logger logger) a
     logger.log(Level.trace, "new application found $app");
     db.upsert(app);
   }
-  return _orderApps(apps, logger);
-}
-
-List<Application> _orderApps(List<Application> apps, Logger logger) {
-  Map<String, Application> seenBefore = {};
-  List<Application> response = [];
-
-  int searchIndex(int timesExec) {
-    int index = 0;
-    for (final responseApp in response) {
-      if (timesExec > responseApp.timesExec) {
-        return index;
-      }
-      index++;
-    }
-    return -1;
-  }
-
-  for (final app in apps) {
-    if (seenBefore.containsKey(app.name)) {
-      logger.error("duplicated application error ${seenBefore[app.name]} - $app");
-    } else {
-      seenBefore[app.name] = app;
-    }
-
-    final index = searchIndex(app.timesExec);
-    if (index == -1) {
-      response.add(app);
-    } else {
-      response.insert(index, app);
-    }
-  }
-  return response;
+  apps.sort();
+  return apps;
 }
 
 bool tryExec(String tryExec) {

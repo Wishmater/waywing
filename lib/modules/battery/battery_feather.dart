@@ -1,4 +1,3 @@
-import "package:flutter/cupertino.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:upower/upower.dart";
@@ -8,7 +7,7 @@ import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/battery/battery_indicator.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
 
 class BatteryFeather extends Feather {
   late BatteryService service;
@@ -38,9 +37,10 @@ class BatteryFeather extends Feather {
   late final batteryComponent = FeatherComponent(
     buildIndicators: (context, popover) {
       return [
+        BatteryIndicator(battery: service.battery),
         WingedButton(
           onTap: () => popover!.togglePopover(),
-          child: BatteryIndicator(battery: service.battery, profile: service.profile),
+          child: BatteryIndicator(battery: service.battery),
         ),
       ];
     },

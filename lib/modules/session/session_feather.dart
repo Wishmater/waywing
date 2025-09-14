@@ -4,6 +4,7 @@ import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/session/os_info_service.dart";
 import "package:waywing/modules/session/session_service.dart";
@@ -20,9 +21,23 @@ class SessionFeather extends Feather {
   static void registerFeather(RegisterFeatherCallback<SessionFeather, void> registerFeather) {
     registerFeather(
       "Session",
-      FeatherRegistration(constructor: SessionFeather._),
+      FeatherRegistration(
+        constructor: SessionFeather._,
+      ),
     );
   }
+
+  @override
+  late final Map<String, WaywingRouteCallback>? actions = {
+    "sleep": (_) {
+      Future.delayed(Duration.zero, () => service.sleep());
+      return Response.ok();
+    },
+    "lock": (_) {
+      Future.delayed(Duration.zero, () => service.lock());
+      return Response.ok();
+    }
+  };
 
   @override
   String get name => "Session";

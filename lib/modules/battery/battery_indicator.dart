@@ -21,29 +21,33 @@ class BatteryIndicatorState extends State<BatteryIndicator> {
       return SizedBox.shrink();
     }
     final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsetsGeometry.only(left: 2, right: 2, top: 10, bottom: 10),
-      child: ValueListenableBuilder(
-        valueListenable: DerivedValueNotifier(
-          dependencies: [values.energy, values.energyFull, values.state],
-          derive: () => (values.energy.value / values.energyFull.value) * 100,
-        ),
-        builder: (context, energy, _) {
-          return _BatteryIndicator(
-            batteryLevel: energy,
-            isCharging:
-                values.state.value == UPowerDeviceState.charging ||
-                values.state.value == UPowerDeviceState.fullyCharged,
-            outlineColor: theme.colorScheme.primaryFixedDim,
-            chargingColor: theme.colorScheme.primary,
-            dischargingColor: theme.brightness == Brightness.light
-                ? theme.colorScheme.surfaceDim
-                : theme.colorScheme.surfaceBright,
-            warningColor: theme.colorScheme.tertiary,
-            criticalColor: theme.colorScheme.error,
-          );
-        },
-      ),
+    return LayoutBuilder(
+      builder: (context, constrains) {
+        final width = 35.0.clamp(constrains.minWidth, constrains.maxWidth);
+        final height = (15.0 * width/35).clamp(constrains.minHeight, constrains.maxHeight);
+        return ValueListenableBuilder(
+          valueListenable: DerivedValueNotifier(
+            dependencies: [values.energy, values.energyFull, values.state],
+            derive: () => (values.energy.value / values.energyFull.value) * 100,
+          ),
+          builder: (context, energy, _) {
+            return _BatteryIndicator(
+              size: Size(width, height),
+              batteryLevel: 100,
+              isCharging:
+                  values.state.value == UPowerDeviceState.charging ||
+                  values.state.value == UPowerDeviceState.fullyCharged,
+              outlineColor: theme.colorScheme.primaryFixedDim,
+              chargingColor: theme.colorScheme.primary,
+              dischargingColor: theme.brightness == Brightness.light
+                  ? theme.colorScheme.surfaceDim
+                  : theme.colorScheme.surfaceBright,
+              warningColor: theme.colorScheme.tertiary,
+              criticalColor: theme.colorScheme.error,
+            );
+          },
+        );
+      }
     );
   }
 }
@@ -56,6 +60,7 @@ class _BatteryIndicator extends StatelessWidget {
   final Color dischargingColor;
   final Color warningColor;
   final Color criticalColor;
+  final Size size;
 
   const _BatteryIndicator({
     required this.outlineColor,
@@ -65,19 +70,27 @@ class _BatteryIndicator extends StatelessWidget {
     required this.dischargingColor,
     required this.warningColor,
     required this.criticalColor,
+    required this.size,
   });
 
   @override
   Widget build(BuildContext context) {
+    Color fillColor;
+    if (isCharging) {
+      fillColor = chargingColor;
+    } else if (batteryLevel > 50) {
+      fillColor = dischargingColor;
+    } else if (batteryLevel > 20) {
+      fillColor = warningColor;
+    } else {
+      fillColor = criticalColor;
+    }
     return CustomPaint(
+      size: size,
       painter: _BatteryPainter(
         batteryLevel: batteryLevel,
-        isCharging: isCharging,
+        fillColor: fillColor,
         outlineColor: outlineColor,
-        chargingColor: chargingColor,
-        dischargingColor: dischargingColor,
-        warningColor: warningColor,
-        criticalColor: criticalColor,
       ),
     );
   }
@@ -85,21 +98,13 @@ class _BatteryIndicator extends StatelessWidget {
 
 class _BatteryPainter extends CustomPainter {
   final double batteryLevel;
-  final bool isCharging;
+  final Color fillColor;
   final Color outlineColor;
-  final Color chargingColor;
-  final Color dischargingColor;
-  final Color warningColor;
-  final Color criticalColor;
 
   const _BatteryPainter({
     required this.outlineColor,
     required this.batteryLevel,
-    required this.isCharging,
-    required this.chargingColor,
-    required this.dischargingColor,
-    required this.warningColor,
-    required this.criticalColor,
+    required this.fillColor,
   });
 
   @override
@@ -115,16 +120,7 @@ class _BatteryPainter extends CustomPainter {
 
     final Paint fillPaint = Paint()..style = PaintingStyle.fill;
 
-    // Determine battery color based on level
-    if (isCharging) {
-      fillPaint.color = chargingColor;
-    } else if (batteryLevel > 50) {
-      fillPaint.color = dischargingColor;
-    } else if (batteryLevel > 20) {
-      fillPaint.color = warningColor;
-    } else {
-      fillPaint.color = criticalColor;
-    }
+    fillPaint.color = fillColor;
 
     // Draw battery body
     final double bodyWidth = size.width * 0.9;
@@ -167,11 +163,7 @@ class _BatteryPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BatteryPainter oldDelegate) {
     return batteryLevel != oldDelegate.batteryLevel ||
-        isCharging != oldDelegate.isCharging ||
         outlineColor != oldDelegate.outlineColor ||
-        chargingColor != oldDelegate.chargingColor ||
-        dischargingColor != oldDelegate.dischargingColor ||
-        warningColor != oldDelegate.warningColor ||
-        criticalColor != oldDelegate.criticalColor;
+        fillColor != oldDelegate.fillColor;
   }
 }

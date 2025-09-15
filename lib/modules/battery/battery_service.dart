@@ -9,10 +9,10 @@ class BatteryService extends Service {
 
   final DBusClient _bus;
   late final UPowerClient _client;
-  late final UPowerProfile _profile;
+  UPowerProfile? _profile;
 
   late final BatteryValues battery;
-  late final ProfileValues profile;
+  late final ProfileValues? profile;
 
   static registerService(RegisterServiceCallback registerService) {
     registerService<BatteryService, dynamic>(
@@ -25,15 +25,23 @@ class BatteryService extends Service {
   @override
   Future<void> init() async {
     _client = UPowerClient(bus: _bus);
+    await _client.connect();
     _profile = UPowerProfile(bus: _bus);
-    await Future.wait([_client.connect(), _profile.connect()]);
+    try {
+      await _profile!.connect();
+    } catch (_) {
+      _profile = null;
+    }
+    await Future.wait([
+      _client.connect(),
+    ]);
     battery = BatteryValues(_client.displayDevice);
-    profile = ProfileValues(_profile);
+    profile = _profile != null ? ProfileValues(_profile!) : null;
   }
 
   @override
   Future<void> dispose() async {
-    await Future.wait([_client.close(), _profile.close()]);
+    await Future.wait([_client.close(), ?_profile?.close()]);
     await _bus.close();
   }
 

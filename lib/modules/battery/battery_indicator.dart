@@ -33,7 +33,7 @@ class BatteryIndicatorState extends State<BatteryIndicator> {
           builder: (context, energy, _) {
             return _BatteryIndicator(
               size: Size(width, height),
-              batteryLevel: 100,
+              batteryLevel: energy,
               isCharging:
                   values.state.value == UPowerDeviceState.charging ||
                   values.state.value == UPowerDeviceState.fullyCharged,

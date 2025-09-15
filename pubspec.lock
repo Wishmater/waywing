@@ -238,11 +238,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: fb95c0d2283db33be861424d549af157b9a7856a
+      resolved-ref: "4190f48d34e4edafd10e9254cbbf700657a96b75"
+      tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/config_gen"
     source: git
-    version: "0.0.2"
+    version: "0.0.3"
   convert:
     dependency: transitive
     description:
@@ -991,8 +991,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: "6b7aa8aa467aa013ea2ed090be5851b3897e2fb5"
-      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/upower.dart"
     source: git
     version: "0.7.1"

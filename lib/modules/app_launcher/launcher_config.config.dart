@@ -26,9 +26,13 @@ class LauncherConfig with LauncherConfigI, LauncherConfigBase {
 
   static TableSchema get schema => staticSchema;
 
+  @override
   final int width;
+  @override
   final int height;
+  @override
   final int? iconSize;
+  @override
   final bool showScrollBar;
 
   LauncherConfig({int? width, int? height, this.iconSize, bool? showScrollBar})
@@ -47,7 +51,7 @@ class LauncherConfig with LauncherConfigI, LauncherConfigBase {
 
   @override
   String toString() {
-    return 'LauncherConfigwidth = $width, height = $height, iconSize = $iconSize, showScrollBar = $showScrollBar';
+    return 'LauncherConfig(width = $width, height = $height, iconSize = $iconSize, showScrollBar = $showScrollBar)';
   }
 
   @override

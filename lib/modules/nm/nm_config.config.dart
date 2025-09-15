@@ -31,10 +31,15 @@ class NetworkManagerConfig
 
   static TableSchema get schema => staticSchema;
 
+  @override
   final bool showConnectionNameIndicator;
+  @override
   final bool showUploadIndicator;
+  @override
   final bool showDownloadIndicator;
+  @override
   final bool showThroughputIndicator;
+  @override
   final List<String> deviceTypeFilter;
 
   NetworkManagerConfig({
@@ -61,7 +66,7 @@ class NetworkManagerConfig
 
   @override
   String toString() {
-    return 'NetworkManagerConfigshowConnectionNameIndicator = $showConnectionNameIndicator, showUploadIndicator = $showUploadIndicator, showDownloadIndicator = $showDownloadIndicator, showThroughputIndicator = $showThroughputIndicator, deviceTypeFilter = $deviceTypeFilter';
+    return 'NetworkManagerConfig(showConnectionNameIndicator = $showConnectionNameIndicator, showUploadIndicator = $showUploadIndicator, showDownloadIndicator = $showDownloadIndicator, showThroughputIndicator = $showThroughputIndicator, deviceTypeFilter = $deviceTypeFilter)';
   }
 
   @override

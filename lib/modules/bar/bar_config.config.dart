@@ -56,24 +56,43 @@ class BarConfig with BarConfigI, BarConfigBase {
 
   static TableSchema get schema => staticSchema;
 
+  @override
   final ScreenEdge side;
+  @override
   final int size;
+  @override
   final double marginLeft;
+  @override
   final double marginRight;
+  @override
   final double marginTop;
+  @override
   final double marginBottom;
+  @override
   final double? _exclusiveSizeLeft;
+  @override
   final double? _exclusiveSizeRight;
+  @override
   final double? _exclusiveSizeTop;
+  @override
   final double? _exclusiveSizeBottom;
+  @override
   final double radiusInCross;
+  @override
   final double radiusInMain;
+  @override
   final double radiusOutCross;
+  @override
   final double radiusOutMain;
+  @override
   final double? _indicatorMinSize;
+  @override
   final double? _indicatorPadding;
+  @override
   final List<Feather<dynamic>> startFeathers;
+  @override
   final List<Feather<dynamic>> centerFeathers;
+  @override
   final List<Feather<dynamic>> endFeathers;
 
   BarConfig({
@@ -140,7 +159,7 @@ class BarConfig with BarConfigI, BarConfigBase {
 
   @override
   String toString() {
-    return 'BarConfigside = $side, size = $size, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, _exclusiveSizeLeft = $_exclusiveSizeLeft, _exclusiveSizeRight = $_exclusiveSizeRight, _exclusiveSizeTop = $_exclusiveSizeTop, _exclusiveSizeBottom = $_exclusiveSizeBottom, radiusInCross = $radiusInCross, radiusInMain = $radiusInMain, radiusOutCross = $radiusOutCross, radiusOutMain = $radiusOutMain, _indicatorMinSize = $_indicatorMinSize, _indicatorPadding = $_indicatorPadding, startFeathers = $startFeathers, centerFeathers = $centerFeathers, endFeathers = $endFeathers';
+    return 'BarConfig(side = $side, size = $size, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, _exclusiveSizeLeft = $_exclusiveSizeLeft, _exclusiveSizeRight = $_exclusiveSizeRight, _exclusiveSizeTop = $_exclusiveSizeTop, _exclusiveSizeBottom = $_exclusiveSizeBottom, radiusInCross = $radiusInCross, radiusInMain = $radiusInMain, radiusOutCross = $radiusOutCross, radiusOutMain = $radiusOutMain, _indicatorMinSize = $_indicatorMinSize, _indicatorPadding = $_indicatorPadding, startFeathers = $startFeathers, centerFeathers = $centerFeathers, endFeathers = $endFeathers)';
   }
 
   @override

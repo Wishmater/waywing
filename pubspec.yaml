@@ -18,7 +18,7 @@ dependencies:
       url: https://github.com/ross96D/config.dart
       tag_pattern: "{{version}}"
   config_gen:
-    version: ^0.0.2
+    version: ^0.0.3
     git:
       url: https://github.com/Wishmater/config_gen
       tag_pattern: "{{version}}"

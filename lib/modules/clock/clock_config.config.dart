@@ -18,6 +18,7 @@ class ClockConfig with ClockConfigI, ClockConfigBase {
 
   static TableSchema get schema => staticSchema;
 
+  @override
   final bool militar;
 
   ClockConfig({bool? militar}) : militar = militar ?? false;
@@ -28,7 +29,7 @@ class ClockConfig with ClockConfigI, ClockConfigBase {
 
   @override
   String toString() {
-    return 'ClockConfigmilitar = $militar';
+    return 'ClockConfig(militar = $militar)';
   }
 
   @override

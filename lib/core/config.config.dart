@@ -43,14 +43,23 @@ class MainConfig with MainConfigI, MainConfigBase {
     fields: staticSchema.fields,
   );
 
+  @override
   final int monitor;
+  @override
   final List<Wing<dynamic>> wings;
+  @override
   final String? socket;
+  @override
   final bool animationEnable;
+  @override
   final double animationSpeed;
+  @override
   final double animationDamping;
+  @override
   final AnimationFitting animationFitting;
+  @override
   final AnimationSwitching animationSwitching;
+  @override
   final bool requestKeyboardFocus;
 
   final LoggingConfig logging;
@@ -96,7 +105,7 @@ class MainConfig with MainConfigI, MainConfigBase {
 
   @override
   String toString() {
-    return 'MainConfigmonitor = $monitor, wings = $wings, socket = $socket, animationEnable = $animationEnable, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus';
+    return 'MainConfig(monitor = $monitor, wings = $wings, socket = $socket, animationEnable = $animationEnable, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus)';
   }
 
   @override

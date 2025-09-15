@@ -24,8 +24,11 @@ class LoggingConfig with LoggingConfigI, LoggingConfigBase {
 
   static TableSchema get schema => staticSchema;
 
+  @override
   final Level levelFilter;
+  @override
   final Map<String, Level> typeLevelFilters;
+  @override
   final String? output;
 
   LoggingConfig({
@@ -45,7 +48,7 @@ class LoggingConfig with LoggingConfigI, LoggingConfigBase {
 
   @override
   String toString() {
-    return 'LoggingConfiglevelFilter = $levelFilter, typeLevelFilters = $typeLevelFilters, output = $output';
+    return 'LoggingConfig(levelFilter = $levelFilter, typeLevelFilters = $typeLevelFilters, output = $output)';
   }
 
   @override

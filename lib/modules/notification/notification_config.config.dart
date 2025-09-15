@@ -32,12 +32,19 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
 
   static TableSchema get schema => staticSchema;
 
+  @override
   final Alignment alignment;
+  @override
   final double marginLeft;
+  @override
   final double marginRight;
+  @override
   final double marginTop;
+  @override
   final double marginBottom;
+  @override
   final bool autoExpand;
+  @override
   final bool showProgressBar;
 
   NotificationsConfig({
@@ -70,7 +77,7 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
 
   @override
   String toString() {
-    return 'NotificationsConfigalignment = $alignment, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, autoExpand = $autoExpand, showProgressBar = $showProgressBar';
+    return 'NotificationsConfig(alignment = $alignment, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, autoExpand = $autoExpand, showProgressBar = $showProgressBar)';
   }
 
   @override

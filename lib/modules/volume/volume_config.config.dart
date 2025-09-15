@@ -26,9 +26,13 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
 
   static TableSchema get schema => staticSchema;
 
+  @override
   final bool showPercentageIndicator;
+  @override
   final bool showSeparateMicIndicator;
+  @override
   final int maxVolume;
+  @override
   final int volumeStep;
 
   VolumeConfig({
@@ -52,7 +56,7 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
 
   @override
   String toString() {
-    return 'VolumeConfigshowPercentageIndicator = $showPercentageIndicator, showSeparateMicIndicator = $showSeparateMicIndicator, maxVolume = $maxVolume, volumeStep = $volumeStep';
+    return 'VolumeConfig(showPercentageIndicator = $showPercentageIndicator, showSeparateMicIndicator = $showSeparateMicIndicator, maxVolume = $maxVolume, volumeStep = $volumeStep)';
   }
 
   @override

@@ -3,14 +3,17 @@ import "package:flutter/material.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/battery/battery_config.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/battery/battery_indicator.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 
-class BatteryFeather extends Feather {
+class BatteryFeather extends Feather<BatteryConfig> {
   late BatteryService service;
+
+  ManualNotifier enableProfileChange = ManualNotifier();
 
   BatteryFeather._();
 
@@ -19,6 +22,8 @@ class BatteryFeather extends Feather {
       "Battery",
       FeatherRegistration(
         constructor: BatteryFeather._,
+        configBuilder: BatteryConfig.fromMap,
+        schemaBuilder: () => BatteryConfig.schema,
       ),
     );
   }
@@ -32,21 +37,38 @@ class BatteryFeather extends Feather {
   }
 
   @override
+  void onConfigUpdated(covariant BatteryConfig oldConfig) {
+    if (oldConfig.enableProfile != config.enableProfile) {
+      enableProfileChange.manualNotifyListeners();
+    }
+  }
+
+  @override
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([batteryComponent]);
 
   late final batteryComponent = FeatherComponent(
     buildIndicators: (context, popover) {
       return [
-        service.profile != null
-            ? WingedButton(
+        ListenableBuilder(
+          listenable: enableProfileChange,
+          builder: (context, _) {
+            if (service.profile != null && config.enableProfile) {
+              return WingedButton(
                 onTap: () => popover!.togglePopover(),
                 child: BatteryIndicator(battery: service.battery),
-              )
-            : BatteryIndicator(battery: service.battery),
+              );
+            } else {
+              return Padding(
+                padding: const EdgeInsets.only(top: 10, bottom: 10, left: 5, right: 5),
+                child: BatteryIndicator(battery: service.battery),
+              );
+            }
+          },
+        ),
       ];
     },
     buildPopover: (context) {
-      if (service.profile != null) {
+      if (service.profile != null && config.enableProfile) {
         return BatteryPopover(profile: service.profile!);
       } else {
         return SizedBox.shrink();

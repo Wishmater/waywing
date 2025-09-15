@@ -48,20 +48,35 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
 
   static TableSchema get schema => staticSchema;
 
+  @override
   final ThemeMode mode;
+  @override
   final String? fontFamily;
+  @override
   final List<IconType> iconPriority;
+  @override
   final ConfigIconVariation iconFlutterVariation;
+  @override
   final bool iconFlutterTwoTone;
+  @override
   final double iconFlutterFill;
+  @override
   final double iconFlutterWeight;
+  @override
   final MyColor primaryColor;
+  @override
   final MyColor? secondaryColor;
+  @override
   final MyColor? tertiaryColor;
+  @override
   final MyColor? errorColor;
+  @override
   final MyColor? backgroundColor;
+  @override
   final MyColor? foregroundColor;
+  @override
   final double backgroundOpacity;
+  @override
   final double shadows;
 
   ThemeConfig({
@@ -120,7 +135,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
 
   @override
   String toString() {
-    return 'ThemeConfigmode = $mode, fontFamily = $fontFamily, iconPriority = $iconPriority, iconFlutterVariation = $iconFlutterVariation, iconFlutterTwoTone = $iconFlutterTwoTone, iconFlutterFill = $iconFlutterFill, iconFlutterWeight = $iconFlutterWeight, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows';
+    return 'ThemeConfig(mode = $mode, fontFamily = $fontFamily, iconPriority = $iconPriority, iconFlutterVariation = $iconFlutterVariation, iconFlutterTwoTone = $iconFlutterTwoTone, iconFlutterFill = $iconFlutterFill, iconFlutterWeight = $iconFlutterWeight, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows)';
   }
 
   @override

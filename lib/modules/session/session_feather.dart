@@ -136,6 +136,24 @@ class _SessionPopoverState extends State<_SessionPopover> {
         ),
       );
     }
+    if (service.canSuspend.canDo) {
+      children.add(
+        WingedButton(
+          onTap: service.suspend,
+          child: Row(
+            spacing: 2,
+            children: [
+              WingedIcon(
+                flutterIcon: SymbolsVaried.sleep,
+                iconNames: ["system-suspend"],
+                textIcon: "󰒲", // nf-md-sleep
+              ),
+              Text("suspend"),
+            ],
+          ),
+        ),
+      );
+    }
     if (service.canReboot.canDo) {
       children.add(
         WingedButton(
@@ -172,12 +190,13 @@ class _SessionPopoverState extends State<_SessionPopover> {
         ),
       );
     }
-    return SizedBox(
-      height: 190,
-      width: 150,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: children),
+    return IntrinsicHeight(
+      child: SizedBox(
+        width: 150,
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: children),
+        ),
       ),
     );
   }

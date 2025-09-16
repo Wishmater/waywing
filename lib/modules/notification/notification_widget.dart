@@ -209,10 +209,10 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                   ),
                   child: Stack(
                     children: [
-                      // TODO: 1 make this clip to the same shape as Container
                       // TODO: 2 STYLE should this also use WingedButton? or maybe separate WingedInkWell and use that?
                       Positioned.fill(
                         child: InkWell(
+                          borderRadius: BorderRadius.circular(12),
                           hoverColor: Colors.transparent,
                           highlightColor: Colors.transparent,
                           onTap: () async {

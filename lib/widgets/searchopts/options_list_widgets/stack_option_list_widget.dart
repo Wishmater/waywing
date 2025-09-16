@@ -5,6 +5,9 @@ import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
+import "package:motor/motor.dart";
+import "package:waywing/core/config.dart";
+import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "../searchopts.dart";
 
 const animationDuration = Duration(milliseconds: 250);
@@ -91,9 +94,8 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
           key: e.globalKey,
           valueListenable: widget.highlighted,
           builder: (context, value, child) {
-            return AnimatedPositioned(
-              duration: animationDuration * 0.66,
-              curve: Curves.easeOutCubic,
+            return MotionPositioned(
+              motion: mainConfig.motions.expressive.spatial.normal,
               left: 0,
               right: 0,
               top: widget.itemHeight * (e.index - startingIndex),
@@ -234,7 +236,7 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
     }
 
     int newHighlight = widget.highlighted.value;
-    final multiplier = switch(HardwareKeyboard.instance.isControlPressed) {
+    final multiplier = switch (HardwareKeyboard.instance.isControlPressed) {
       true => 5,
       false => 1,
     };
@@ -300,30 +302,30 @@ class _ItemAnimation<T extends Object> extends StatefulWidget {
 }
 
 class _ItemAnimationState extends State<_ItemAnimation> with TickerProviderStateMixin {
-  late AnimationController opacityAnimationController;
-  late AnimationController translationAnimationController;
+  late SingleMotionController opacityAnimationController;
+  late SingleMotionController translationAnimationController;
   late Animation<Offset> translationAnimation;
 
   @override
   void initState() {
     super.initState();
-    opacityAnimationController = AnimationController(
+    opacityAnimationController = SingleMotionController(
+      motion: mainConfig.motions.expressive.effects.normal,
+      initialValue: 0,
       vsync: this,
-      duration: animationDuration,
-      value: 0,
     );
-    translationAnimationController = AnimationController(
+    translationAnimationController = SingleMotionController(
+      motion: mainConfig.motions.expressive.effects.normal,
+      initialValue: widget.isItemVisible ? 1 : 0.5,
       vsync: this,
-      duration: animationDuration,
-      value: widget.isItemVisible ? 1 : 0.5,
     );
     translationAnimation = Tween<Offset>(
       begin: Offset(-0.25, 0),
       end: Offset(0.25, 0),
     ).animate(translationAnimationController);
     if (widget.isItemVisible) {
-      opacityAnimationController.animateTo(1, curve: Curves.easeOutCubic);
-      translationAnimationController.animateTo(0.5, curve: Curves.easeOutCubic);
+      opacityAnimationController.animateTo(1);
+      translationAnimationController.animateTo(0.5);
     }
   }
 
@@ -331,20 +333,13 @@ class _ItemAnimationState extends State<_ItemAnimation> with TickerProviderState
   void didUpdateWidget(covariant _ItemAnimation<Object> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isItemVisible != oldWidget.isItemVisible) {
-      opacityAnimationController.animateTo(
-        widget.isItemVisible ? 1 : 0,
-        curve: Curves.easeOutCubic,
-        duration: widget.isItemVisible ? animationDuration : animationDuration * 0.66,
-      );
+      opacityAnimationController.animateTo(widget.isItemVisible ? 1 : 0);
     }
     if (widget.isItemRemoved != oldWidget.isItemRemoved) {
-      translationAnimationController.animateTo(
-        widget.isItemRemoved ? 0 : 0.5,
-        curve: Curves.easeOutCubic,
-      );
+      translationAnimationController.animateTo(widget.isItemRemoved ? 0 : 0.5);
     }
     if (widget.isItemRemoved && !oldWidget.isItemRemoved) {
-      translationAnimationController.animateTo(0, curve: Curves.easeOutCubic);
+      translationAnimationController.animateTo(0);
     }
   }
 

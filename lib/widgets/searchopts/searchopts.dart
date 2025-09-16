@@ -1,3 +1,5 @@
+import "dart:math";
+
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
@@ -23,7 +25,12 @@ class SearchSelectOptionIntent extends Intent {
 }
 
 abstract class Option<T extends Object> {
-  String get value;
+  int get identifier;
+
+  String get primaryValue;
+
+  String? get secondaryValue;
+
   T get object;
 
   const Option();
@@ -39,11 +46,20 @@ abstract class Option<T extends Object> {
 
 class _StringOption extends Option<String> {
   final String _value;
+
   _StringOption(this._value);
+
+  @override
+  int get identifier => _value.hashCode;
+
   @override
   String get object => _value;
+
   @override
-  String get value => _value;
+  String get primaryValue => _value;
+
+  @override
+  String? get secondaryValue => null;
 }
 
 class SearchOptionsRenderConfig {
@@ -196,13 +212,19 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
     widget.onSelected(filtered[highlighted.value].object);
   }
 
+  static double _getSimilarityScore<T extends Object>(Option<T> obj, String v, FuzzyStringMatcher matcher) {
+    final primaryScore = obj.primaryValue.similarityScoreTo(v, ignoreCase: true, matcher: matcher);
+    final secondaryScore = obj.secondaryValue?.similarityScoreTo(v, ignoreCase: true, matcher: matcher) ?? 0;
+    return max(primaryScore, secondaryScore * 0.75);
+  }
+
   void updateFilter(String v) {
     if (v.isEmpty) {
       setState(() => filtered = widget.options);
       return;
     }
     final scores = widget.options
-        .map((e) => (e, e.value.similarityScoreTo(v, ignoreCase: true, matcher: widget.matcher)))
+        .map((e) => (e, _getSimilarityScore(e, v, widget.matcher)))
         .where((e) => e.$2 > 0.5)
         .toList();
     scores.sort((a, b) => b.$2.compareTo(a.$2));

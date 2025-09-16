@@ -52,7 +52,7 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
         if (DateTime.now().difference(e.timeRemoved!) > animationDuration) {
           toRemove.add(e);
         }
-      } else if (!visibleItems.any((i) => e.option.value == i.value)) {
+      } else if (!visibleItems.any((i) => e.option.identifier == i.identifier)) {
         e.timeRemoved = DateTime.now();
       }
     }

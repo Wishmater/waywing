@@ -80,7 +80,13 @@ class ApplicationOption extends Option<Application> {
   Application get object => app;
 
   @override
-  String get value => app.name;
+  int get identifier => app.hashCode;
+
+  @override
+  String get primaryValue => app.name;
+
+  @override
+  String get secondaryValue => app.comment ?? "";
 
   factory ApplicationOption.from(Application app) {
     return ApplicationOption(app);

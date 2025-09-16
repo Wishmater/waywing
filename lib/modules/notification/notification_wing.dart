@@ -11,6 +11,9 @@ import "package:waywing/modules/notification/notification_widget.dart";
 import "package:waywing/widgets/motion_widgets/motion_align.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 
+// TODO 1: Create Notification manager center like the one in swaync. This implies persisting
+// notifications even after they are gone
+
 class NotificationsWing extends Wing<NotificationsConfig> {
   late NotificationsService service;
 

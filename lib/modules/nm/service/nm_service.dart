@@ -96,10 +96,10 @@ class NMServiceDevice {
   late final DerivedValueNotifier<bool> _isConnected;
 
   ValueListenable<int?> get txBytes => _txBytes;
-  late final DBusProperyValueNotifier<int?> _txBytes;
+  late final DBusPropertyValueNotifier<int?> _txBytes;
 
   ValueListenable<int?> get rxBytes => _rxBytes;
-  late final DBusProperyValueNotifier<int?> _rxBytes;
+  late final DBusPropertyValueNotifier<int?> _rxBytes;
 
   ValueListenable<double?> get txRate => _txRate;
   late final DerivedValueNotifier<double?> _txRate;
@@ -132,7 +132,7 @@ class NMServiceDevice {
       await _device.statistics!.setRefreshRateMs(1000);
     }
 
-    _activeConnection = DBusProperyValueNotifier(
+    _activeConnection = DBusPropertyValueNotifier(
       name: "ActiveConnection",
       stream: _device.propertiesChanged,
       callback: () => _device.activeConnection,
@@ -144,12 +144,12 @@ class NMServiceDevice {
     initActiveConnectionName();
 
     // TODO: 3 can "Statistics" object change, which means we would need to re-init this (or update the stream in the notifier)
-    _txBytes = DBusProperyValueNotifier(
+    _txBytes = DBusPropertyValueNotifier(
       name: "TxBytes",
       stream: _device.statistics?.propertiesChanged,
       callback: () => _device.statistics?.txBytes,
     );
-    _rxBytes = DBusProperyValueNotifier(
+    _rxBytes = DBusPropertyValueNotifier(
       name: "RxBytes",
       stream: _device.statistics?.propertiesChanged,
       callback: () => _device.statistics?.rxBytes,
@@ -285,23 +285,23 @@ class _RemoveDuplicatedElement {
 
 class NMServiceWifiDevice extends NMServiceDevice {
   ValueListenable<List<NMServiceAccessPoint>> get accessPoints => _accessPoints;
-  late final DBusProperyValueNotifier<List<NMServiceAccessPoint>> _accessPoints;
+  late final DBusPropertyValueNotifier<List<NMServiceAccessPoint>> _accessPoints;
 
   ValueListenable<NMServiceAccessPoint?> get activeAccessPoint => _activeAccessPoint;
-  late final DBusProperyValueNotifier<NMServiceAccessPoint?> _activeAccessPoint;
+  late final DBusPropertyValueNotifier<NMServiceAccessPoint?> _activeAccessPoint;
 
   ValueListenable<int> get lastScan => _lastScan;
-  late final DBusProperyValueNotifier<int> _lastScan;
+  late final DBusPropertyValueNotifier<int> _lastScan;
 
   ValueListenable<bool> get wirelessEnabled => _wirelessEnabled;
-  late final DBusProperyValueNotifier<bool> _wirelessEnabled;
+  late final DBusPropertyValueNotifier<bool> _wirelessEnabled;
 
   NMServiceWifiDevice(super._client, super._device, super._logger);
 
   @override
   Future<void> init() async {
     await super.init();
-    _activeAccessPoint = DBusProperyValueNotifier(
+    _activeAccessPoint = DBusPropertyValueNotifier(
       name: "ActiveAccessPoint",
       stream: _device.wireless!.propertiesChanged,
       callback: () {
@@ -314,7 +314,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
     _initActiveConnectionName();
     // TODO: 3 is probably that there is a leak here because the previous NMServiceAccessPoint
     // did not dispose when changed (same in _activeAccessPoint)
-    _accessPoints = DBusProperyValueNotifier(
+    _accessPoints = DBusPropertyValueNotifier(
       name: "AccessPoints",
       stream: _device.wireless!.propertiesChanged,
       callback: () => _device.wireless!.accessPoints
@@ -329,12 +329,12 @@ class NMServiceWifiDevice extends NMServiceDevice {
           .sortedByDescending((e) => e._accessPoint.strength)
           .toList(),
     );
-    _lastScan = DBusProperyValueNotifier(
+    _lastScan = DBusPropertyValueNotifier(
       name: "LastScan",
       stream: _device.wireless!.propertiesChanged,
       callback: () => _device.wireless!.lastScan,
     );
-    _wirelessEnabled = DBusProperyValueNotifier(
+    _wirelessEnabled = DBusPropertyValueNotifier(
       name: "WirelessEnabled",
       stream: _client.propertiesChanged,
       callback: () => _client.wirelessEnabled,
@@ -544,7 +544,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
 
 class NMServiceAccessPoint {
   ValueListenable<double> get strength => _strength;
-  late final DBusProperyValueNotifier<double> _strength;
+  late final DBusPropertyValueNotifier<double> _strength;
 
   late final String ssid = utf8.decode(_accessPoint.ssid);
 
@@ -558,7 +558,7 @@ class NMServiceAccessPoint {
   NMServiceAccessPoint(this._accessPoint);
 
   void init() {
-    _strength = DBusProperyValueNotifier(
+    _strength = DBusPropertyValueNotifier(
       name: "Strength",
       stream: _accessPoint.propertiesChanged,
       callback: () => _accessPoint.strength / 100,

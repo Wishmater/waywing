@@ -2,7 +2,7 @@ import "dart:async";
 
 import "package:flutter/foundation.dart";
 
-class DBusProperyValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
+class DBusPropertyValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
   final String _name;
   final T Function() _callback;
   T _value;
@@ -12,7 +12,7 @@ class DBusProperyValueNotifier<T> extends ChangeNotifier implements ValueListena
 
   StreamSubscription<List<String>>? _subscription;
 
-  DBusProperyValueNotifier({
+  DBusPropertyValueNotifier({
     required String name,
     required Stream<List<String>>? stream,
     required T Function() callback,

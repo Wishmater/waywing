@@ -9,6 +9,8 @@ import "package:waywing/modules/notification/notification_config.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
+import "package:waywing/widgets/simple_gesture_detector.dart";
+import "package:waywing/widgets/draggable.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
@@ -106,29 +108,23 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
 
   // TODO: 1 if notification has no body and no actions, it should not be expandable (disable functionality entirely)
   late bool isExpanded = widget.config.autoExpand;
-  // TODO: 1 migrate to MotionController
-  late AnimationController _animationController;
-  late Animation<double> _heightAnimation;
-  late Animation<double> _fadeAnimation;
+  late BoundedSingleMotionController _animationController;
+  bool isDragging = false;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 100),
+    _animationController = BoundedSingleMotionController(
+      motion: mainConfig.motions.expressive.spatial.normal,
       vsync: this,
-      value: isExpanded ? 1 : 0,
+      initialValue: isExpanded ? 1 : 0,
     );
+  }
 
-    _heightAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    );
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _toggleExpansion() {
@@ -140,6 +136,32 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
         _animationController.reverse();
       }
     });
+  }
+
+  static const _dxOffset = 250;
+  void _onSwipeEnd(SimpleGestureEndDetails details, NotificationsService service, Notification notification) {
+    final timer = service.server.getTimer(widget.notification.value);
+    isDragging = false;
+    if (!isHovered.value) {
+      timer?.start();
+    }
+
+    if (widget.config.alignment.x == -1) {
+      // swipe left
+      if (details.delta.dx < -_dxOffset) {
+        service.closeNotification(notification);
+      }
+    } else if (widget.config.alignment.x == 1) {
+      // swipe right
+      if (details.delta.dx > _dxOffset) {
+        service.closeNotification(notification);
+      }
+    } else {
+      // swipe in both sides
+      if (details.delta.dx.abs() > _dxOffset) {
+        service.closeNotification(notification);
+      }
+    }
   }
 
   @override
@@ -162,75 +184,83 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
         return FocusTraversalGroup(
           child: KeyboardFocus(
             mode: KeyboardFocusMode.onDemand,
-            child: MouseRegion(
-              onEnter: (_) {
+            child: DraggableWidget(
+              onSwipeStart: (details) {
+                isDragging = true;
                 timer?.stop();
-                isHovered.value = true;
               },
-              onExit: (_) {
-                timer?.start();
-                isHovered.value = false;
-              },
-              // TODO: 1 add shadows, test that it plays nicely with implicit enter/exit animation
-              child: WingedContainer(
-                color: surfaceColor,
-                shape: RoundedRectangleBorder(
-                  // TODO: 2 STYLE this should take the border radius from theme, oncesthat is decided
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Stack(
-                  children: [
-                    // TODO: 1 make this clip to the same shape as Container
-                    // TODO: 2 STYLE should this also use WingedButton? or maybe separate WingedInkWell and use that?
-                    Positioned.fill(
-                      child: InkWell(
-                        hoverColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        onTap: () async {
-                          if (isExpanded) {
-                            await service.emitActivationToken(notification);
-                            await service.closeNotification(notification);
-                          } else {
-                            _toggleExpansion();
-                          }
-                        },
+              onSwipeEnd: (details) => _onSwipeEnd(details, service, notification),
+              child: MouseRegion(
+                onEnter: (_) {
+                  timer?.stop();
+                  isHovered.value = true;
+                },
+                onExit: (_) {
+                  if (!isDragging) {
+                    timer?.start();
+                  }
+                  isHovered.value = false;
+                },
+                child: WingedContainer(
+                  color: surfaceColor,
+                  shape: RoundedRectangleBorder(
+                    // TODO: 2 STYLE this should take the border radius from theme, oncesthat is decided
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Stack(
+                    children: [
+                      // TODO: 1 make this clip to the same shape as Container
+                      // TODO: 2 STYLE should this also use WingedButton? or maybe separate WingedInkWell and use that?
+                      Positioned.fill(
+                        child: InkWell(
+                          hoverColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onTap: () async {
+                            if (isExpanded) {
+                              await service.emitActivationToken(notification);
+                              await service.closeNotification(notification);
+                            } else {
+                              _toggleExpansion();
+                            }
+                          },
+                        ),
                       ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (timer != null && widget.config.showProgressBar)
-                          ListenableBuilder(
-                            listenable: timer,
-                            builder: (context, _) {
-                              // TODO: 1 position progress bar better, probably with a stack, remove padding, test clipping
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 10),
-                                child: LinearProgressIndicator(
-                                  backgroundColor: surfaceColor,
-                                  color: urgencyColor,
-                                  value: timer.percentageCompleted,
-                                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                                ),
-                              );
-                            },
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (timer != null && widget.config.showProgressBar)
+                            ListenableBuilder(
+                              listenable: timer,
+                              builder: (context, _) {
+                                // TODO: 1 position progress bar better, probably with a stack, remove padding, test clipping
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                                  child: LinearProgressIndicator(
+                                    backgroundColor: surfaceColor,
+                                    color: urgencyColor,
+                                    value: timer.percentageCompleted,
+                                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                                  ),
+                                );
+                              },
+                            ),
+                          _NotificationTitle(
+                            notification,
+                            isHovered,
+                            isExpanded,
+                            onToggleExpand: _toggleExpansion,
                           ),
-                        _NotificationTitle(
-                          notification,
-                          isHovered,
-                          isExpanded,
-                          onToggleExpand: _toggleExpansion,
-                        ),
-                        SizedBox(height: 4),
-                        _AnimatedNotificationContent(
-                          animation: _heightAnimation,
-                          fadeAnimation: _fadeAnimation,
-                          notification: notification,
-                          isExpanded: isExpanded,
-                        ),
-                      ],
-                    ),
-                  ],
+                          SizedBox(height: 4),
+                          _AnimatedNotificationContent(
+                            animation: _animationController,
+                            fadeAnimation: _animationController,
+                            notification: notification,
+                            isExpanded: isExpanded,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

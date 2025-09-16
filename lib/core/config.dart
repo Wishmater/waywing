@@ -77,7 +77,7 @@ mixin MainConfigBase on MainConfigI {
   late final motions = MaterialSpringMotionValues(
     // increasing damping will still speed and decreasing dambing will increase speed,
     // multiplying stiffness by damping causes damping changes to not affect speed as much.
-    enableAnimations: animationEnable,
+    enableAnimations: animationEnable, // TODO: 1 This does not get affected by configuration changes. Fix it.
     stiffness: animationSpeed * animationDamping,
     damping: animationDamping,
   );

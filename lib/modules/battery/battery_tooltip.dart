@@ -13,30 +13,35 @@ class BatteryTooltip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
-      child: ValueListenableBuilder(
-        valueListenable: service.battery.state,
-        builder: (context, state, _) {
-          if (state == UPowerDeviceState.fullyCharged) {
-            return Text("charged");
-          }
-          if (state == UPowerDeviceState.charging) {
-            return ValueListenableBuilder(
-              valueListenable: service.battery.timeToFull,
-              builder: (context, timeToFull, _) {
-                return _SecondsWidget("charging:", timeToFull);
-              },
-            );
-          }
-          if (state == UPowerDeviceState.discharging) {
-            return ValueListenableBuilder(
-              valueListenable: service.battery.timeToEmpty,
-              builder: (context, timeToEmpty, _) {
-                return _SecondsWidget("discharging:", timeToEmpty);
-              },
-            );
-          }
-          return SizedBox.shrink();
-        },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ValueListenableBuilder(
+            valueListenable: service.battery.state,
+            builder: (context, state, _) {
+              if (state == UPowerDeviceState.fullyCharged) {
+                return Text("charged");
+              }
+              if (state == UPowerDeviceState.charging) {
+                return ValueListenableBuilder(
+                  valueListenable: service.battery.timeToFull,
+                  builder: (context, timeToFull, _) {
+                    return _SecondsWidget("charging:", timeToFull);
+                  },
+                );
+              }
+              if (state == UPowerDeviceState.discharging) {
+                return ValueListenableBuilder(
+                  valueListenable: service.battery.timeToEmpty,
+                  builder: (context, timeToEmpty, _) {
+                    return _SecondsWidget("discharging:", timeToEmpty);
+                  },
+                );
+              }
+              return SizedBox.shrink();
+            },
+          ),
+        ],
       ),
     );
   }

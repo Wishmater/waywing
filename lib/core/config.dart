@@ -106,8 +106,10 @@ mixin MainConfigBase on MainConfigI {
   //===========================================================================
 
   @SchemaFieldAnnot()
+  // ignore: constant_identifier_names
   static const _Logging = LoggingConfig.staticSchema;
   @SchemaFieldAnnot()
+  // ignore: constant_identifier_names
   static const _Theme = ThemeConfig.staticSchema;
 
   static Map<String, TableSchema> _getDynamicSchemaTables() => {

@@ -105,10 +105,10 @@ mixin MainConfigBase on MainConfigI {
   // Add config tables defined in other files
   //===========================================================================
 
-  static const _staticSchemaTables = {
-    "Logging": LoggingConfig.staticSchema,
-    "Theme": ThemeConfig.staticSchema,
-  };
+  @SchemaFieldAnnot()
+  static const _Logging = LoggingConfig.staticSchema;
+  @SchemaFieldAnnot()
+  static const _Theme = ThemeConfig.staticSchema;
 
   static Map<String, TableSchema> _getDynamicSchemaTables() => {
     ...featherRegistry.getSchemaTables(),

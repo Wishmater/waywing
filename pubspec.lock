@@ -230,19 +230,19 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: cb98ba1f4f0b8ced7e7897e223033514efcd81f7
+      resolved-ref: "85963911df5e17eff6a886611c112bf1212db4ca"
       url: "https://github.com/ross96D/config.dart"
     source: git
-    version: "0.0.2"
+    version: "0.0.5"
   config_gen:
     dependency: "direct main"
     description:
       path: "."
-      resolved-ref: "4190f48d34e4edafd10e9254cbbf700657a96b75"
+      resolved-ref: cecc32c38acb6d54bb94188ff8b87d0dec76eeca
       tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/config_gen"
     source: git
-    version: "0.0.3"
+    version: "0.0.7"
   convert:
     dependency: transitive
     description:

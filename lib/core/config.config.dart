@@ -17,11 +17,17 @@ mixin MainConfigI {
   AnimationFitting get animationFitting;
   AnimationSwitching get animationSwitching;
   bool get requestKeyboardFocus;
+  LoggingConfig get logging;
+  ThemeConfig get theme;
 }
 
 class MainConfig with MainConfigI, MainConfigBase {
   static const TableSchema staticSchema = TableSchema(
-    tables: MainConfigBase._staticSchemaTables,
+    tables: {
+      'Logging': MainConfigBase._Logging,
+      'Theme': MainConfigBase._Theme,
+    },
+    canBeMissingSchemas: {},
     fields: {
       'monitor': MainConfigBase._monitor,
       'wings': MainConfigBase._wings,
@@ -41,6 +47,9 @@ class MainConfig with MainConfigI, MainConfigBase {
       ...MainConfigBase._getDynamicSchemaTables(),
     },
     fields: staticSchema.fields,
+    validator: staticSchema.validator,
+    ignoreNotInSchema: staticSchema.ignoreNotInSchema,
+    canBeMissingSchemas: staticSchema.canBeMissingSchemas,
   );
 
   @override
@@ -62,7 +71,9 @@ class MainConfig with MainConfigI, MainConfigBase {
   @override
   final bool requestKeyboardFocus;
 
+  @override
   final LoggingConfig logging;
+  @override
   final ThemeConfig theme;
 
   MainConfig({
@@ -105,7 +116,7 @@ class MainConfig with MainConfigI, MainConfigBase {
 
   @override
   String toString() {
-    return 'MainConfig(monitor = $monitor, wings = $wings, socket = $socket, animationEnable = $animationEnable, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus)';
+    return 'MainConfig(monitor = $monitor, wings = $wings, socket = $socket, animationEnable = $animationEnable, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus, logging = $logging, theme = $theme)';
   }
 
   @override
@@ -118,7 +129,9 @@ class MainConfig with MainConfigI, MainConfigBase {
         animationDamping == other.animationDamping &&
         animationFitting == other.animationFitting &&
         animationSwitching == other.animationSwitching &&
-        requestKeyboardFocus == other.requestKeyboardFocus;
+        requestKeyboardFocus == other.requestKeyboardFocus &&
+        logging == other.logging &&
+        theme == other.theme;
   }
 
   @override
@@ -132,5 +145,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     animationFitting,
     animationSwitching,
     requestKeyboardFocus,
+    logging,
+    theme,
   ]);
 }

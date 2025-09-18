@@ -1,5 +1,4 @@
-import "package:flutter/src/painting/edge_insets.dart";
-import "package:flutter/src/widgets/framework.dart";
+import "package:flutter/widgets.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/wing.dart";
 

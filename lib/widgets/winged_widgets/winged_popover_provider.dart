@@ -185,13 +185,16 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WidgetsBinding.instance.scheduleFrame();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        hideTooltip(host);
+        _checkHideTooltip(host);
         _checkHideTooltipScheduledled.remove(host);
       });
     });
   }
 
   void _checkHideTooltip(WingedPopoverState host) {
+    if (activeHosts.contains(host)) {
+      return; // if popover is shown, ignore hideTooltip call
+    }
     final status = tooltipHosts[host];
     if (status != null && !_getEffectiveIsHovered(host, status)) {
       hideHost(host);
@@ -716,12 +719,6 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                 active: intrinsincAnimationsEnabled,
                 left: childPosition.dx,
                 top: childPosition.dy,
-                // TODO: 1 ANIMATIONS maybe we should stop animationg width/height changes when not animating
-                // in/out and just leave that as the content's responsibility to implement. If implemented in
-                // the content, animations can be more custom and exact, and if implemented both here and in
-                // content, it can have weird interactions (which happens now). We should also stop animationg
-                // position so it "sticks" to the host if the host moves
-                // (maybe leave both of tjese as separate options)
                 width: childSize.width,
                 height: childSize.height,
                 minLeft: minLeft,

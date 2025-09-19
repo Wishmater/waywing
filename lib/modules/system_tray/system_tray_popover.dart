@@ -289,7 +289,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
               // parents alive while children are hovered, and also so we can instatly close
               // children when parents are closed (instead of waiting for the end of parent
               // animation to close child, which looks really weird)
-              popoverParams: PopoverParams(
+              tooltipParams: PopoverParams(
                 motion: mainConfig.motions.standard.spatial.normal,
                 enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
                 anchorAlignment: Alignment.topRight,

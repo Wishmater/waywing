@@ -108,6 +108,8 @@ class WingedPopoverState extends State<WingedPopover>
 
   late final clientKey = GlobalKey<WingedPopoverClientState>();
 
+  late WingedPopoverClientState? parent;
+
   @override
   bool isPopoverShown = false;
   @override
@@ -127,6 +129,7 @@ class WingedPopoverState extends State<WingedPopover>
     // this fails to detect changes upstream in the tree to register a new provider,
     // but this shouldn't happen in our use case
     _provider = context.findAncestorStateOfType<WingedPopoverProviderState>()!;
+    parent = context.findAncestorStateOfType<WingedPopoverClientState>();
   }
 
   @override
@@ -161,6 +164,12 @@ class WingedPopoverState extends State<WingedPopover>
         clientState?.setState(() {});
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    parent = context.findAncestorStateOfType<WingedPopoverClientState>();
   }
 
   @override

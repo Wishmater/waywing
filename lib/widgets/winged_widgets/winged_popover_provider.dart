@@ -70,6 +70,12 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     }
     host.isPopoverShown = false;
     host.isTooltipShown = false;
+    // hide all children
+    for (final e in [...activeHosts, ...tooltipHosts.keys]) {
+      if (e.parent?.widget.host == host) {
+        hideHost(e);
+      }
+    }
     setState(() {});
   }
 
@@ -165,9 +171,20 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   void _checkHideTooltip(WingedPopoverState host) {
     final status = tooltipHosts[host];
-    if (status != null && !status.client && !status.host) {
+    if (status != null && !_getEffectiveIsHovered(host, status)) {
       hideHost(host);
     }
+  }
+
+  bool _getEffectiveIsHovered(WingedPopoverState host, TooltipHoverStatus? status) {
+    if (status == null) return false;
+    if (status.host || status.client) return true;
+    for (final e in tooltipHosts.entries) {
+      if (e.key.parent?.widget.host != host) continue;
+      final isChildHovered = _getEffectiveIsHovered(e.key, e.value);
+      if (isChildHovered) return true;
+    }
+    return false;
   }
 
   void _removeHost(WingedPopoverState host) {

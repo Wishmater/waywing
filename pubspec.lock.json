@@ -296,8 +296,8 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
+        "ref": "HEAD",
         "resolved-ref": "cecc32c38acb6d54bb94188ff8b87d0dec76eeca",
-        "tag-pattern": "{{version}}",
         "url": "https://github.com/Wishmater/config_gen",
         "sha256": "sha256-C5MoAcjdspxdz0sTbzDULToFVh9+aos+E8dgMLBLtWo="
       },

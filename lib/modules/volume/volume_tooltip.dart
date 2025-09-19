@@ -94,12 +94,15 @@ class VolumeSlider extends StatelessWidget {
                                   valueListenable: model.subtitle!,
                                   builder: (context, subtitle, child) {
                                     if (subtitle == null) return SizedBox.shrink();
-                                    return Text(
-                                      subtitle,
-                                      maxLines: 1,
-                                      softWrap: false,
-                                      overflow: TextOverflow.fade,
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                    return TextTooltipOnOverflow(
+                                      textSpan: TextSpan(text: subtitle, style: Theme.of(context).textTheme.bodySmall),
+                                      child: Text(
+                                        subtitle,
+                                        maxLines: 1,
+                                        softWrap: false,
+                                        overflow: TextOverflow.fade,
+                                        style: Theme.of(context).textTheme.bodySmall,
+                                      ),
                                     );
                                   },
                                 ),

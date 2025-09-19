@@ -24,6 +24,22 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
     with StatePositioningMixin, StatePositioningNotifierMixin {
   @override
   Widget build(BuildContext context) {
+    final passedStyle = widget.textSpan.style;
+    final contextStyle = DefaultTextStyle.of(context).style;
+    final style = passedStyle != null ? contextStyle.merge(passedStyle) : contextStyle;
+    final textSpan = TextSpan(
+      style: style,
+      text: widget.textSpan.text,
+      children: widget.textSpan.children,
+      semanticsLabel: widget.textSpan.semanticsLabel,
+      semanticsIdentifier: widget.textSpan.semanticsIdentifier,
+      onExit: widget.textSpan.onExit,
+      locale: widget.textSpan.locale,
+      onEnter: widget.textSpan.onEnter,
+      spellOut: widget.textSpan.spellOut,
+      recognizer: widget.textSpan.recognizer,
+      mouseCursor: widget.textSpan.mouseCursor,
+    );
     return ValueListenableBuilder(
       valueListenable: sizeNotifier,
       child: widget.child,
@@ -31,11 +47,12 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
         Widget result = child!;
         if (size != null) {
           final textPainter = TextPainter(
-            text: widget.textSpan,
-            maxLines: 1,
+            text: textSpan,
             textDirection: TextDirection.ltr,
-          )..layout(maxWidth: size.width);
-          final isOverflowing = textPainter.didExceedMaxLines;
+            // maxLines: 1,
+          )..layout(maxWidth: 200);
+          // final isOverflowing = textPainter.didExceedMaxLines;
+          final isOverflowing = textPainter.size.width > size.width || textPainter.size.height > size.height;
           if (isOverflowing) {
             // result = Tooltip(
             //   message: widget.textSpan.text,
@@ -46,6 +63,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
             result = WingedPopover(
               // TODO: 2 add wait duration, potentially more that the one the Bar indicators have
               tooltipParams: TooltipParams(
+                showDelay: Duration(seconds: 1), // TODO: 3 maybe use a percentage of declared config showDelay
                 motion: motion,
                 overflowAlignment: Alignment.centerLeft,
                 extraOffset: Offset(-12, 0),

@@ -82,8 +82,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   }
 
   void onMouseEnterHost(WingedPopoverState host) {
-    tooltipHosts[host]?.host = true;
-    showTooltip(host);
+    showTooltip(host, initialStatus: TooltipStatus(host: true));
   }
 
   void onMouseExitHost(WingedPopoverState host) {
@@ -109,7 +108,11 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     _scheduleCheckHideTooltip(client.widget.host);
   }
 
-  void showTooltip(WingedPopoverState host, {Duration? showDelay, Duration? hideAfter}) {
+  Future<void> showTooltip(
+    WingedPopoverState host, {
+    TooltipStatus? initialStatus,
+    Duration? showDelay,
+  }) async {
     if (tooltipHosts.containsKey(host)) {
       // _logger.log(Level.warning, "Trying to register a tooltip host that already exists to PopoverProvider.");
       final status = tooltipHosts[host]!;
@@ -128,11 +131,13 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
           (tooltipHosts.keys.any((e) => e.widget.tooltipParams!.containerId == containerId) ||
               removedHosts.entries.any((e) => e.value && e.key.widget.tooltipParams!.containerId == containerId));
       if (!isContainerShown) {
-        Timer(showDelay, () {
+        final completer = Completer<void>();
+        Timer(showDelay, () async {
           if (!host.mounted || !host.isHovered) return;
-          showTooltip(host, showDelay: Duration.zero, hideAfter: hideAfter);
+          await showTooltip(host, showDelay: Duration.zero);
+          completer.complete();
         });
-        return;
+        return completer.future;
       }
     }
     if (removedHosts.containsKey(host)) {
@@ -141,14 +146,10 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (host.widget.tooltipParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }
-    final status = TooltipStatus(host: true);
+    final status = initialStatus ?? TooltipStatus();
     tooltipHosts[host] = status;
     host.isTooltipShown = true;
     setState(() {});
-    if (hideAfter != null) {
-      assert(hideAfter > Duration.zero, "WTF");
-      hideTooltip(host, hideAfter: hideAfter);
-    }
   }
 
   void _removeAllWithContainerId(String containerId) {
@@ -231,23 +232,28 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     }
   }
 
-  void toggleTooltip(WingedPopoverState host, {Duration? showDelay, Duration? hideAfter}) {
+  Future<void> toggleTooltip(WingedPopoverState host, {Duration? showDelay, Duration? hideDelay}) {
     if (tooltipHosts.containsKey(host)) {
-      hideHost(host);
+      return hideTooltip(host, hideDelay: hideDelay);
     } else {
-      showTooltip(host, showDelay: showDelay, hideAfter: hideAfter);
+      return showTooltip(host, showDelay: showDelay);
     }
   }
 
-  void hideTooltip(WingedPopoverState host, {Duration? hideAfter}) {
-    hideAfter ??= host.widget.tooltipParams!.hideDelay;
+  Future<void> hideTooltip(WingedPopoverState host, {Duration? hideDelay}) async {
+    if (activeHosts.contains(host)) {
+      return; // if popover is shown, ignore hideTooltip call
+    }
+    hideDelay ??= host.widget.tooltipParams!.hideDelay;
     final status = tooltipHosts[host];
-    if (status != null && hideAfter > Duration.zero) {
+    if (status != null && hideDelay > Duration.zero) {
       status.hideTimer?.cancel();
-      status.hideTimer = Timer(hideAfter, () {
+      final completer = Completer<void>();
+      status.hideTimer = Timer(hideDelay, () {
         _checkHideTooltip(host);
+        completer.complete();
       });
-      return;
+      return completer.future;
     }
     hideHost(host);
   }

@@ -34,9 +34,9 @@ abstract class WingedPopoverController {
   void showPopover();
   void hidePopover();
   void togglePopover();
-  void showTooltip({Duration? showDelay, Duration? hideAfter});
-  void hideTooltip();
-  void toggleTooltip({Duration? showDelay, Duration? hideAfter});
+  Future<void> showTooltip({Duration? showDelay});
+  Future<void> hideTooltip({Duration? hideDelay});
+  Future<void> toggleTooltip({Duration? showDelay, Duration? hideDelay});
   StatePositioningNotifierMixin get hostState;
 }
 
@@ -210,15 +210,14 @@ class WingedPopoverState extends State<WingedPopover>
   void togglePopover() => _provider.toggleHost(this);
 
   @override
-  void showTooltip({Duration? showDelay, Duration? hideAfter}) =>
-      _provider.showTooltip(this, showDelay: showDelay, hideAfter: hideAfter);
+  Future<void> showTooltip({Duration? showDelay}) => _provider.showTooltip(this, showDelay: showDelay);
 
   @override
-  void hideTooltip() => _provider.hideHost(this);
+  Future<void> hideTooltip({Duration? hideDelay}) => _provider.hideTooltip(this, hideDelay: hideDelay);
 
   @override
-  void toggleTooltip({Duration? showDelay, Duration? hideAfter}) =>
-      _provider.toggleTooltip(this, showDelay: showDelay, hideAfter: hideAfter);
+  Future<void> toggleTooltip({Duration? showDelay, Duration? hideDelay}) =>
+      _provider.toggleTooltip(this, showDelay: showDelay, hideDelay: hideDelay);
 
   @override
   Widget build(BuildContext context) {

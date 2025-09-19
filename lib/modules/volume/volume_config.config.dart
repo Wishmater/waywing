@@ -12,6 +12,7 @@ mixin VolumeConfigI {
   bool get showSeparateMicIndicator;
   int get maxVolume;
   int get volumeStep;
+  bool get showTooltipOnVolumeChange;
 }
 
 class VolumeConfig with VolumeConfigI, VolumeConfigBase {
@@ -21,6 +22,7 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
       'showSeparateMicIndicator': VolumeConfigBase._showSeparateMicIndicator,
       'maxVolume': VolumeConfigBase._maxVolume,
       'volumeStep': VolumeConfigBase._volumeStep,
+      'showTooltipOnVolumeChange': VolumeConfigBase._showTooltipOnVolumeChange,
     },
   );
 
@@ -34,16 +36,20 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
   final int maxVolume;
   @override
   final int volumeStep;
+  @override
+  final bool showTooltipOnVolumeChange;
 
   VolumeConfig({
     bool? showPercentageIndicator,
     bool? showSeparateMicIndicator,
     int? maxVolume,
     int? volumeStep,
+    bool? showTooltipOnVolumeChange,
   }) : showPercentageIndicator = showPercentageIndicator ?? true,
        showSeparateMicIndicator = showSeparateMicIndicator ?? false,
        maxVolume = maxVolume ?? 100,
-       volumeStep = volumeStep ?? 5;
+       volumeStep = volumeStep ?? 5,
+       showTooltipOnVolumeChange = showTooltipOnVolumeChange ?? true;
 
   factory VolumeConfig.fromMap(Map<String, dynamic> map) {
     return VolumeConfig(
@@ -51,12 +57,13 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
       showSeparateMicIndicator: map['showSeparateMicIndicator'],
       maxVolume: map['maxVolume'],
       volumeStep: map['volumeStep'],
+      showTooltipOnVolumeChange: map['showTooltipOnVolumeChange'],
     );
   }
 
   @override
   String toString() {
-    return 'VolumeConfig(showPercentageIndicator = $showPercentageIndicator, showSeparateMicIndicator = $showSeparateMicIndicator, maxVolume = $maxVolume, volumeStep = $volumeStep)';
+    return 'VolumeConfig(showPercentageIndicator = $showPercentageIndicator, showSeparateMicIndicator = $showSeparateMicIndicator, maxVolume = $maxVolume, volumeStep = $volumeStep, showTooltipOnVolumeChange = $showTooltipOnVolumeChange)';
   }
 
   @override
@@ -64,7 +71,8 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
     return showPercentageIndicator == other.showPercentageIndicator &&
         showSeparateMicIndicator == other.showSeparateMicIndicator &&
         maxVolume == other.maxVolume &&
-        volumeStep == other.volumeStep;
+        volumeStep == other.volumeStep &&
+        showTooltipOnVolumeChange == other.showTooltipOnVolumeChange;
   }
 
   @override
@@ -73,5 +81,6 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
     showSeparateMicIndicator,
     maxVolume,
     volumeStep,
+    showTooltipOnVolumeChange,
   ]);
 }

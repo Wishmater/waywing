@@ -1,3 +1,4 @@
+import "package:flutter/foundation.dart";
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
 import "package:flutter_mdi_icons/flutter_mdi_icons.dart";
@@ -19,7 +20,7 @@ enum VolumeIndicatorType {
   input,
 }
 
-class VolumeIndicator extends StatelessWidget {
+class VolumeIndicator extends StatefulWidget {
   final VolumeConfig config;
   final VolumeService service;
   final WingedPopoverController popover;
@@ -34,16 +35,70 @@ class VolumeIndicator extends StatelessWidget {
   });
 
   @override
+  State<VolumeIndicator> createState() => _VolumeIndicatorState();
+}
+
+class _VolumeIndicatorState extends State<VolumeIndicator> {
+  ValueListenable<VolumeInterface?> get listenable => getListenable();
+
+  ValueListenable<VolumeInterface?> getListenable([VolumeIndicatorType? type]) {
+    type ??= widget.type;
+    if (type == VolumeIndicatorType.input) {
+      return widget.service.defaultInput;
+    } else {
+      return widget.service.defaultOutput;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    listenable.addListener(addVolumeListener);
+    addVolumeListener();
+    _previousDevice = listenable.value;
+  }
+
+  @override
+  void didUpdateWidget(covariant VolumeIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.type != widget.type) {
+      getListenable(oldWidget.type).removeListener(addVolumeListener);
+      listenable.addListener(addVolumeListener);
+    }
+  }
+
+  @override
+  void dispose() {
+    listenable.removeListener(addVolumeListener);
+    super.dispose();
+  }
+
+  VolumeInterface? _previousDevice;
+  void addVolumeListener() {
+    _previousDevice?.volume.removeListener(onVolumeChanged);
+    _previousDevice?.isMuted.removeListener(onVolumeChanged);
+    listenable.value?.volume.addListener(onVolumeChanged);
+    listenable.value?.isMuted.addListener(onVolumeChanged);
+  }
+
+  void onVolumeChanged() async {
+    if (widget.config.showTooltipOnVolumeChange) {
+      await widget.popover.showTooltip(showDelay: Duration.zero);
+      await widget.popover.hideTooltip(hideDelay: Duration(seconds: 1));
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isVertical = constraints.maxHeight > constraints.maxWidth;
         return ValueListenableBuilder(
-          valueListenable: type == VolumeIndicatorType.input ? service.defaultInput : service.defaultOutput,
+          valueListenable: listenable,
           builder: (context, defaultOutput, child) {
             Widget result;
             if (defaultOutput == null) {
-              if (type == VolumeIndicatorType.input) {
+              if (widget.type == VolumeIndicatorType.input) {
                 result = WingedIcon(
                   flutterIcon: SymbolsVaried.mic_off,
                   iconNames: ["audio-input-microphone-muted", "audio-input-microphone"],
@@ -61,7 +116,7 @@ class VolumeIndicator extends StatelessWidget {
                 valueListenable: defaultOutput.isMuted,
                 builder: (context, isMuted, child) {
                   if (isMuted) {
-                    if (type == VolumeIndicatorType.input) {
+                    if (widget.type == VolumeIndicatorType.input) {
                       return WingedIcon(
                         flutterIcon: SymbolsVaried.mic,
                         iconNames: ["audio-input-microphone-low", "audio-input-microphone"],
@@ -83,7 +138,7 @@ class VolumeIndicator extends StatelessWidget {
                   }
                   return VolumeScrollWhellListener(
                     model: defaultOutput,
-                    config: config,
+                    config: widget.config,
                     child: ValueListenableBuilder(
                       valueListenable: defaultOutput.volume,
                       builder: (context, volume, child) {
@@ -96,7 +151,7 @@ class VolumeIndicator extends StatelessWidget {
                           volValueColor = Theme.of(context).colorScheme.secondary;
                         }
                         // TODO: 2 add animation to icon change
-                        if (type == VolumeIndicatorType.input) {
+                        if (widget.type == VolumeIndicatorType.input) {
                           // TODO: 2 find better icons for mic low/med/high volume (or implement a better continuous clipper (similar to wifi) that works for both)
                           icon = WingedIcon(
                             flutterIcon: SymbolsVaried.mic,
@@ -196,7 +251,7 @@ class VolumeIndicator extends StatelessWidget {
                             ],
                           ),
                         );
-                        if (config.showPercentageIndicator && !isMuted) {
+                        if (widget.config.showPercentageIndicator && !isMuted) {
                           final text = Padding(
                             padding: EdgeInsets.only(left: 3),
                             // TODO: 2 add animation to text change ?
@@ -230,7 +285,7 @@ class VolumeIndicator extends StatelessWidget {
               );
             }
             return WingedButton(
-              onTap: () => popover.togglePopover(),
+              onTap: () => widget.popover.togglePopover(),
               onSecondaryTap: defaultOutput == null ? null : () => defaultOutput.setMuted(!defaultOutput.isMuted.value),
               child: result,
             );

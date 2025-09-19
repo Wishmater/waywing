@@ -343,11 +343,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "008e5815196cb44e108b36a20c3f8193465ed88c"
+      resolved-ref: aac1b0dcc2374d479f5a2626a34fe2de6560a0ad
+      tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/fl-linux-window-manager"
     source: git
-    version: "2.0.1"
+    version: "2.0.2"
   flex_seed_scheme:
     dependency: "direct main"
     description:

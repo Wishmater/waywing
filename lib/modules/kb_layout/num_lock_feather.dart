@@ -5,6 +5,7 @@ import "package:flutter/material.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/feather.dart";
+import "package:waywing/modules/hyprland/hyprland_service.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
@@ -28,6 +29,7 @@ class NumLockFeather extends Feather {
 
   @override
   Future<void> init(BuildContext context) async {
+    await serviceRegistry.requestService<HyprlandService>(this);
     service = await serviceRegistry.requestService<KeyboardLayoutService>(this);
   }
 

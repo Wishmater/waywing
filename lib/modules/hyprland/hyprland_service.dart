@@ -57,8 +57,8 @@ class HyprlandService extends Service {
 
   Future<List<HyprlandWorkspace>> workspaces() async {
     final data = await sendCommand("workspaces", flags: ["-j"]);
-    final List<Map<String, Object?>> decoded = json.decode(data);
-    return decoded.map((e) => HyprlandWorkspace.fromJson(e)).toList();
+    final List<dynamic> decoded = json.decode(data);
+    return decoded.map((e) => HyprlandWorkspace.fromJson(e as Map<String, Object?>)).toList();
   }
 
   Future<HyprlandWorkspace?> activeworkspace() async {
@@ -70,8 +70,8 @@ class HyprlandService extends Service {
 
   Future<List<HyprlandWindow>> windows() async {
     final data = await sendCommand("windows", flags: ["-j"]);
-    final List<Map<String, Object?>> decoded = json.decode(data);
-    return decoded.map((e) => HyprlandWindow.fromJson(e)).toList();
+    final List<dynamic> decoded = json.decode(data);
+    return decoded.map((e) => HyprlandWindow.fromJson(e as Map<String, Object?>)).toList();
   }
 
   Future<HyprlandWindow?> activewindow() async {
@@ -84,9 +84,9 @@ class HyprlandService extends Service {
   Future<List<HyprlandKeyboardDevice>> keyboards() async {
     final data = await sendCommand("devices", flags: ["-j"]);
     final Map<String, Object?> decoded = json.decode(data);
-    final List<Map<String, Object?>>? keyboards = decoded["keyboards"] as List<Map<String, Object?>>?;
+    final List<dynamic>? keyboards = decoded["keyboards"] as List<dynamic>?;
     if (keyboards == null) return [];
-    return keyboards.map((e) => HyprlandKeyboardDevice.fromJson(e)).toList();
+    return keyboards.map((e) => HyprlandKeyboardDevice.fromJson(e as Map<String, Object?>)).toList();
   }
 
   Future<HyprlandKeyboardDevice?> activeKeyboard() async {

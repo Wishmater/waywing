@@ -10,7 +10,7 @@ class HyprlandWorkspaceRef {
   const HyprlandWorkspaceRef({required this.id, required this.name});
 
   @override
-  bool operator==(covariant HyprlandWorkspaceRef other)  {
+  bool operator ==(covariant HyprlandWorkspaceRef other) {
     return id == other.id;
   }
 
@@ -50,7 +50,7 @@ class HyprlandWorkspace extends HyprlandWorkspaceRef {
       name: json["name"] as String,
       monitorName: json["monitor"] as String,
       monitorId: json["monitorID"] as int,
-      windows:json["windows"] as int,
+      windows: json["windows"] as int,
       lastWindowsAddr: json["lastwindow"] as String,
       hasFullscreen: json["hasfullscreen"] as bool,
     );
@@ -63,7 +63,7 @@ class HyprlandWindowRef {
   const HyprlandWindowRef({required this.address});
 
   @override
-  bool operator==(covariant HyprlandWindowRef other)  {
+  bool operator ==(covariant HyprlandWindowRef other) {
     return address == other.address;
   }
 
@@ -94,10 +94,10 @@ class HyprlandWindow extends HyprlandWindowRef {
   });
 
   factory HyprlandWindow.fromJson(Map<String, Object?> json) {
-    final size = json["address"] as List<int>;
+    final size = json["size"] as List<dynamic>;
     return HyprlandWindow(
       address: json["address"] as String,
-      size: Size(size[0].toDouble(), size[1].toDouble()),
+      size: Size((size[0] as int).toDouble(), (size[1] as int).toDouble()),
       floating: json["floating"] as bool,
       className: json["class"] as String,
       initialClassName: json["initialClass"] as String,
@@ -107,21 +107,32 @@ class HyprlandWindow extends HyprlandWindowRef {
       xwayland: json["xwayland"] as bool,
     );
   }
+
   /// TODO create equality
 }
 
 class HyprlandKeyboardDeviceRef {
   final String name;
+
   /// The current active keymap.. related to layout but not quite the same
   ///
   /// ej: English (US)
   final String activeKeymap;
 
   const HyprlandKeyboardDeviceRef({required this.name, required this.activeKeymap});
+
+  @override
+  bool operator ==(covariant HyprlandKeyboardDeviceRef other) {
+    return name == other.name && activeKeymap == other.activeKeymap;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([name, activeKeymap]);
 }
 
 class HyprlandKeyboardDevice extends HyprlandKeyboardDeviceRef {
   final String address;
+
   /// Layout list
   ///
   /// ej: ["us", "es"]
@@ -166,4 +177,23 @@ class HyprlandKeyboardDevice extends HyprlandKeyboardDeviceRef {
       activeKeymap: json["active_keymap"] as String,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is! HyprlandKeyboardDevice) {
+      return false;
+    }
+    return name == other.name &&
+        activeKeymap == other.activeKeymap &&
+        layouts == other.layouts &&
+        rules == other.rules &&
+        model == other.model &&
+        variant == other.variant &&
+        capsLock == other.capsLock &&
+        main == other.main &&
+        numLock == other.numLock;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([name, activeKeymap, layouts, rules, model, variant, capsLock, numLock, main]);
 }

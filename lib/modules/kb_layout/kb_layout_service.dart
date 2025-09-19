@@ -1,15 +1,18 @@
 import "dart:async";
-import "dart:convert";
 import "dart:io";
 
+import "package:dartx/dartx_io.dart";
 import "package:flutter/foundation.dart" hide StringProperty;
 import "package:path/path.dart";
-import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/hyprland/hyprland_service.dart";
+import "package:waywing/modules/hyprland/hyrpland_models.dart";
 
 /// This only works on hyprland as it relies on hyprctl
 class KeyboardLayoutService extends Service {
+  late HyprlandService _hyprlandService;
+
   KeyboardLayoutService._();
   static void registerService(RegisterServiceCallback registerService) {
     registerService<KeyboardLayoutService, dynamic>(
@@ -23,21 +26,15 @@ class KeyboardLayoutService extends Service {
   ValueNotifier<List<String>> availableLayouts = ValueNotifier([]);
   ValueNotifier<bool> capsLockActive = ValueNotifier(false);
   ValueNotifier<bool> numsLockActive = ValueNotifier(false);
-
-  String _activeKeyboardName = "";
-  final Map<String, int> _layoutIndexes = {};
+  late HyprlandKeyboardDevice currentKeyboard;
 
   Future<void> changeLayout(String layout) async {
-    if (_activeKeyboardName == "") {
-      logger.error("active keyboard name was empty when changeLayout function was called");
+    final index = currentKeyboard.layouts.indexOf(layout);
+    if (index == -1) {
+      logger.error("$layout not found in ${currentKeyboard.layouts}");
       return;
     }
-    final index = _layoutIndexes[layout];
-    if (index == null) {
-      logger.error("invalid layout name expected one of ${_layoutIndexes.values} but was $layout");
-      return;
-    }
-    Process.run("hyprctl", ["switchxkblayout", _activeKeyboardName, "$index"]);
+    await _hyprlandService.sendCommand("switchxkblayout", args: [currentKeyboard.name, "$index"]);
   }
 
   late Map<String, String> _layouts;
@@ -75,87 +72,55 @@ class KeyboardLayoutService extends Service {
     }
   }
 
-  late Timer _timer;
+  Future<HyprlandKeyboardDevice> _fromRef(HyprlandKeyboardDeviceRef ref) async {
+    if (ref is HyprlandKeyboardDevice) {
+      return ref;
+    }
+    final keyboards = await _hyprlandService.keyboards();
+    final keyboardNullable = keyboards.firstOrNullWhere((e) => e.name == ref.name);
+    if (keyboardNullable == null) {
+      throw StateError("keyboard ${ref.name} not found");
+    }
+    return keyboardNullable;
+  }
 
   @override
   Future<void> init() async {
     await _createLayout();
-    await _update();
-    _timer = Timer.periodic(Duration(milliseconds: 300), (timer) async {
-      try {
-        await _update();
-      } catch (e, st) {
-        _timer.cancel();
-        logger.log(
-          Level.error,
-          "Error while processing scheduled update. Cancelling further updates.",
-          error: e,
-          stackTrace: st,
-        );
+    _hyprlandService = await serviceRegistry.unsafeRequestService<HyprlandService>();
+
+    currentKeyboard = await _fromRef(_hyprlandService.values.currentKeyboardLayout.value);
+    layout.value = await _findLayout(currentKeyboard) ?? "";
+    _hyprlandService.values.currentKeyboardLayout.addListener(() async {
+      HyprlandKeyboardDeviceRef ref = _hyprlandService.values.currentKeyboardLayout.value;
+      final HyprlandKeyboardDevice keyboard = await _fromRef(ref);
+      currentKeyboard = keyboard;
+
+      final laoyutName = await _findLayout(keyboard) ?? "";
+      layout.value = laoyutName;
+      capsLockActive.value = keyboard.capsLock;
+      numsLockActive.value = keyboard.numLock;
+      if (!listEquals(availableLayouts.value, keyboard.layouts)) {
+        availableLayouts.value = keyboard.layouts;
       }
     });
   }
 
   @override
   Future<void> dispose() async {
-    _timer.cancel();
     layout.dispose();
+    capsLockActive.dispose();
+    numsLockActive.dispose();
+    availableLayouts.dispose();
   }
 
-  Future<void> _update() async {
-    final result = await Process.run(
-      "hyprctl",
-      ["devices", "-j"],
-      stdoutEncoding: Utf8Codec(allowMalformed: true),
-    );
-
-    if (result.exitCode != 0) {
-      throw Exception(
-        "Keyboard layout service stop. hyprctl devices -j returns non 0 exit code: ${result.exitCode}",
-        // properties: [StringProperty(result.stderr), StringProperty(result.stdout)],
-        // TODO: 2 implement a feature in logging lib that allows throwing an error with properties that
-        // will be added to the log when an error of that type is received
-      );
-    }
-
-    final data = json.decode(result.stdout) as Map<String, dynamic>;
-    final keyboards = (data["keyboards"] as List?)?.cast<Map<String, dynamic>>();
-    if (keyboards == null) {
-      throw Exception(
-        "Keyboard layout service stop. hyprctl devices -j no keyboards detected",
-        // properties: [StringProperty(result.stdout)],
-        // TODO: 2 implement a feature in logging lib that allows throwing an error with properties that
-        // will be added to the log when an error of that type is received
-      );
-    }
-
-    for (final keyboard in keyboards) {
-      assert(keyboard["main"] != null);
-      if (keyboard["main"] == true) {
-        capsLockActive.value = keyboard["capsLock"] as bool? ?? false;
-        numsLockActive.value = keyboard["numLock"] as bool? ?? false;
-
-        _activeKeyboardName = keyboard["name"];
-        final layouts = (keyboard["layout"] as String).split(",");
-        final humanReadableName = keyboard["active_keymap"] as String;
-        _layoutIndexes.clear();
-
-        int count = 0;
-        List<String> newLayouts = [];
-        for (final layout in layouts) {
-          _layoutIndexes[layout] = count;
-          count++;
-          newLayouts.add(layout);
-
-          if (_layouts[layout] == humanReadableName) {
-            this.layout.value = layout;
-          }
-        }
-        if (!listEquals(availableLayouts.value, newLayouts)) {
-          availableLayouts.value = newLayouts;
-        }
-        break;
+  Future<String?> _findLayout(HyprlandKeyboardDevice ref) async {
+    HyprlandKeyboardDevice? keyboard = ref;
+    for (final layout in keyboard.layouts) {
+      if (_layouts[layout] == keyboard.activeKeymap) {
+        return layout;
       }
     }
+    return null;
   }
 }

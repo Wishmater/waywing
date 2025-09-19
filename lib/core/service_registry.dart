@@ -5,6 +5,7 @@ import "package:waywing/core/service.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
+import "package:waywing/modules/hyprland/hyprland_service.dart";
 import "package:waywing/modules/kb_layout/kb_layout_service.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/modules/notification/notification_service.dart";
@@ -56,7 +57,8 @@ class ServiceRegistry {
   /// Feather widgets aren't built until the feather init() is done, so if the
   /// feather init() awaits services requests, it will then be safe to use the
   /// returned instances in the build methods.
-  Future<T> requestService<T extends Service>(Feather feather) async {
+  Future<T> requestService<T extends Service>(Feather feather) {
+    mainLogger.debug("Initializing service: $T");
     final serviceType = T;
     final existingService = _initializedServices[serviceType];
     if (existingService != null) {
@@ -70,6 +72,22 @@ class ServiceRegistry {
       _initializedServices[serviceType] = initFuture;
       return initFuture;
     }
+  }
+
+  /// Request a service and asumes initialization. The service can be released in any moment
+  /// so mantaining a reference is unsafe.
+  ///
+  /// The objective of this function is to workaround the missing functionality of a service
+  /// depending on other service.
+  ///
+  /// If service is not initilizalized this will throw StateError
+  Future<T> unsafeRequestService<T extends Service>() async {
+    final serviceType = T;
+    final existingService = _initializedServices[serviceType];
+    if (existingService == null) {
+      throw StateError("unsafeRequestService $serviceType not initialized");
+    }
+    return existingService as Future<T>;
   }
 
   Future<T> initializeService<T extends Service>() async {
@@ -155,6 +173,7 @@ class ServiceRegistry {
     NotificationsService.registerService(registerService);
     KeyboardLayoutService.registerService(registerService);
     ApplicationService.registerService(registerService);
+    HyprlandService.registerService(registerService);
   }
 }
 

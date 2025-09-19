@@ -45,7 +45,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
             final motion = mainConfig.motions.standard.spatial.fast;
             result = WingedPopover(
               // TODO: 2 add wait duration, potentially more that the one the Bar indicators have
-              tooltipParams: PopoverParams(
+              tooltipParams: TooltipParams(
                 motion: motion,
                 overflowAlignment: Alignment.centerLeft,
                 extraOffset: Offset(-12, 0),

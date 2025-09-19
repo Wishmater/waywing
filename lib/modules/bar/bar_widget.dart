@@ -428,7 +428,7 @@ class _BarState extends State<Bar> {
                     ),
               tooltipParams: component.buildTooltip == null
                   ? null
-                  : PopoverParams(
+                  : TooltipParams(
                       enabled: isTooltipEnabled,
                       containerId: "BarTooltip",
                       motion: motion,

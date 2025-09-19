@@ -193,6 +193,41 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
             // TODO: 1 in nm-applet, when seeing available APs, when the available APs are refreshed,
             // it will close an open AP submenu, presumably because this is re-initialized.
             child: WingedPopover(
+              // TODO: 1 handle menu overflowing when too close to the right, this requires making
+              // proper ContextMenu / Submenu widgets
+              // TODO: 1 clip this on the side that it should show (right/left), probably also requires ContextMenu widget
+              tooltipParams: TooltipParams(
+                motion: mainConfig.motions.standard.spatial.normal,
+                enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
+                anchorAlignment: Alignment.topRight,
+                popupAlignment: Alignment.bottomRight,
+                overflowAlignment: Alignment.topLeft,
+                // -10 is the zIndex of Bar popups, it's not ideal to have it hardcoded here, but whatever
+                zIndex: -10 - 1 - widget.depth,
+                containerId: widget.uniqueID,
+                extraOffset: Offset(0, -8),
+                stickToHost: true,
+                hideDelay: Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
+                builder: (context, _, _) {
+                  return SystemTrayMenu(
+                    // make sure the state is dispose when switching to another popover
+                    key: ValueKey("SystemTrayMenu-$hashCode"),
+                    service: widget.service,
+                    trayItem: widget.trayItem,
+                    layout: widget.item,
+                    depth: widget.depth + 1,
+                  );
+                },
+                containerBuilder: (context, _, child) {
+                  return WingedContainer(
+                    clipBehavior: Clip.hardEdge,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: child,
+                  );
+                },
+              ),
               builder: (context, popover, _) {
                 return DefaultTextStyle(
                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
@@ -208,7 +243,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                         ? null
                         : widget.item.submenu.isNotEmpty
                         ? () {
-                            popover.togglePopover();
+                            popover.showTooltip(showDelay: Duration.zero);
                             if (popover.isPopoverShown) {
                               widget.trayItem.dbusmenu!.aboutToShow(widget.item);
                             }
@@ -283,43 +318,6 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                   ),
                 );
               },
-              // TODO: 1 handle menu overflowing when too close to the right
-              // TODO: 1 this should be a tooltip (opening on hover), not a popover
-              // this requires implementing the chain of depndant popovers, so we can keep
-              // parents alive while children are hovered, and also so we can instatly close
-              // children when parents are closed (instead of waiting for the end of parent
-              // animation to close child, which looks really weird)
-              tooltipParams: PopoverParams(
-                motion: mainConfig.motions.standard.spatial.normal,
-                enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
-                anchorAlignment: Alignment.topRight,
-                popupAlignment: Alignment.bottomRight,
-                overflowAlignment: Alignment.topLeft,
-                // -10 is the zIndex of Bar popups, it's not ideal to have it hardcoded here, but whatever
-                zIndex: -10 - 1 - widget.depth,
-                containerId: widget.uniqueID,
-                extraOffset: Offset(0, -8),
-                stickToHost: true,
-                builder: (context, _, _) {
-                  return SystemTrayMenu(
-                    // make sure the state is dispose when switching to another popover
-                    key: ValueKey("SystemTrayMenu-$hashCode"),
-                    service: widget.service,
-                    trayItem: widget.trayItem,
-                    layout: widget.item,
-                    depth: widget.depth + 1,
-                  );
-                },
-                containerBuilder: (context, _, child) {
-                  return WingedContainer(
-                    clipBehavior: Clip.hardEdge,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: child,
-                  );
-                },
-              ),
             ),
           ),
         );

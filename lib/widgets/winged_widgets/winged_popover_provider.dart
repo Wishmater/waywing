@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
@@ -34,7 +36,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   final GlobalKey childGlobalKey = GlobalKey(); // to prevent child being rebuilt when adding/removing elements on stack
   final Map<String, GlobalKey<WingedPopoverClientState>> containerGlobalKeys = {};
   final Set<WingedPopoverState> activeHosts = {};
-  final Map<WingedPopoverState, TooltipHoverStatus> tooltipHosts = {};
+  final Map<WingedPopoverState, TooltipStatus> tooltipHosts = {};
   final Map<WingedPopoverState, bool> removedHosts = {};
 
   void showHost(WingedPopoverState host) {
@@ -61,7 +63,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     final isActive = activeHosts.remove(host);
     final isTooltip = tooltipHosts.remove(host) != null;
     if (!isActive && !isTooltip) {
-      _logger.log(Level.error, "Trying to hide a host that doesn't exist in PopoverProvider.");
+      // _logger.log(Level.warning, "Trying to hide a host that doesn't exist in PopoverProvider.");
       return;
     }
     if (host.clientState?.passedMeaningfulPaint ?? false) {
@@ -80,11 +82,8 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   }
 
   void onMouseEnterHost(WingedPopoverState host) {
-    if (!tooltipHosts.containsKey(host)) {
-      _showTooltip(host);
-    } else {
-      tooltipHosts[host]!.host = true;
-    }
+    tooltipHosts[host]?.host = true;
+    showTooltip(host);
   }
 
   void onMouseExitHost(WingedPopoverState host) {
@@ -110,24 +109,46 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     _scheduleCheckHideTooltip(client.widget.host);
   }
 
-  void _showTooltip(WingedPopoverState host) {
+  void showTooltip(WingedPopoverState host, {Duration? showDelay, Duration? hideAfter}) {
     if (tooltipHosts.containsKey(host)) {
-      _logger.log(Level.error, "Trying to register a tooltip host that already exists to PopoverProvider.");
+      // _logger.log(Level.warning, "Trying to register a tooltip host that already exists to PopoverProvider.");
+      final status = tooltipHosts[host]!;
+      status.hideTimer?.cancel();
+      status.hideTimer = null;
       return;
     }
     if (activeHosts.contains(host)) {
       return; // ignore tooltip calls if it's already manually shown
     }
+    showDelay ??= host.widget.tooltipParams!.showDelay;
+    if (showDelay > Duration.zero) {
+      final containerId = host.widget.tooltipParams!.containerId;
+      final isContainerShown =
+          containerId != null &&
+          (tooltipHosts.keys.any((e) => e.widget.tooltipParams!.containerId == containerId) ||
+              removedHosts.entries.any((e) => e.value && e.key.widget.tooltipParams!.containerId == containerId));
+      if (!isContainerShown) {
+        Timer(showDelay, () {
+          if (!host.mounted || !host.isHovered) return;
+          showTooltip(host, showDelay: Duration.zero, hideAfter: hideAfter);
+        });
+        return;
+      }
+    }
     if (removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    // TODO: 1 add delay to showing tooltip after entering host (param passed to the host)
     if (host.widget.tooltipParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }
-    tooltipHosts[host] = TooltipHoverStatus(host: true);
+    final status = TooltipStatus(host: true);
+    tooltipHosts[host] = status;
     host.isTooltipShown = true;
     setState(() {});
+    if (hideAfter != null) {
+      assert(hideAfter > Duration.zero, "WTF");
+      hideTooltip(host, hideAfter: hideAfter);
+    }
   }
 
   void _removeAllWithContainerId(String containerId) {
@@ -163,7 +184,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WidgetsBinding.instance.scheduleFrame();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkHideTooltip(host);
+        hideTooltip(host);
         _checkHideTooltipScheduledled.remove(host);
       });
     });
@@ -176,7 +197,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     }
   }
 
-  bool _getEffectiveIsHovered(WingedPopoverState host, TooltipHoverStatus? status) {
+  bool _getEffectiveIsHovered(WingedPopoverState host, TooltipStatus? status) {
     if (status == null) return false;
     if (status.host || status.client) return true;
     for (final e in tooltipHosts.entries) {
@@ -210,7 +231,26 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     }
   }
 
-  void onHostDidUpdateWidget(WingedPopoverState host) {}
+  void toggleTooltip(WingedPopoverState host, {Duration? showDelay, Duration? hideAfter}) {
+    if (tooltipHosts.containsKey(host)) {
+      hideHost(host);
+    } else {
+      showTooltip(host, showDelay: showDelay, hideAfter: hideAfter);
+    }
+  }
+
+  void hideTooltip(WingedPopoverState host, {Duration? hideAfter}) {
+    hideAfter ??= host.widget.tooltipParams!.hideDelay;
+    final status = tooltipHosts[host];
+    if (status != null && hideAfter > Duration.zero) {
+      status.hideTimer?.cancel();
+      status.hideTimer = Timer(hideAfter, () {
+        _checkHideTooltip(host);
+      });
+      return;
+    }
+    hideHost(host);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -720,12 +760,14 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
   }
 }
 
-class TooltipHoverStatus {
+class TooltipStatus {
   bool host;
   bool client;
-  TooltipHoverStatus({
+  Timer? hideTimer;
+  TooltipStatus({
     this.host = false,
     this.client = false,
+    this.hideTimer,
   });
 }
 

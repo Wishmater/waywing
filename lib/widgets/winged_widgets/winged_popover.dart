@@ -34,7 +34,9 @@ abstract class WingedPopoverController {
   void showPopover();
   void hidePopover();
   void togglePopover();
+  void showTooltip({Duration? showDelay, Duration? hideAfter});
   void hideTooltip();
+  void toggleTooltip({Duration? showDelay, Duration? hideAfter});
   StatePositioningNotifierMixin get hostState;
 }
 
@@ -81,11 +83,35 @@ class PopoverParams {
   });
 }
 
+class TooltipParams extends PopoverParams {
+  final Duration showDelay;
+  final Duration hideDelay;
+
+  const TooltipParams({
+    required super.builder,
+    required super.containerBuilder,
+    super.screenPadding = EdgeInsets.zero,
+    super.anchorAlignment = Alignment.center,
+    super.popupAlignment = Alignment.center,
+    super.overflowAlignment = Alignment.center,
+    super.containerId,
+    super.closedContainerBuilder,
+    super.zIndex = 10,
+    super.enabled = true,
+    super.extraOffset = Offset.zero,
+    super.extraPadding = EdgeInsets.zero,
+    super.motion,
+    super.stickToHost = false,
+    this.showDelay = const Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
+    this.hideDelay = Duration.zero, // TODO: 3 add tooltip delay to config
+  });
+}
+
 class WingedPopover extends StatefulWidget {
   final WingedPopoverChildNullableBuilder builder;
   final Widget? child;
   final PopoverParams? popoverParams;
-  final PopoverParams? tooltipParams;
+  final TooltipParams? tooltipParams;
   final List<(ShapeBorder, ValueNotifier<Positioning?>)> extraClientClippers;
 
   const WingedPopover({
@@ -105,6 +131,8 @@ class WingedPopoverState extends State<WingedPopover>
     with StatePositioningMixin, StatePositioningNotifierMixin
     implements WingedPopoverController {
   late final WingedPopoverProviderState _provider;
+
+  bool isHovered = false;
 
   late final clientKey = GlobalKey<WingedPopoverClientState>();
 
@@ -182,7 +210,15 @@ class WingedPopoverState extends State<WingedPopover>
   void togglePopover() => _provider.toggleHost(this);
 
   @override
+  void showTooltip({Duration? showDelay, Duration? hideAfter}) =>
+      _provider.showTooltip(this, showDelay: showDelay, hideAfter: hideAfter);
+
+  @override
   void hideTooltip() => _provider.hideHost(this);
+
+  @override
+  void toggleTooltip({Duration? showDelay, Duration? hideAfter}) =>
+      _provider.toggleTooltip(this, showDelay: showDelay, hideAfter: hideAfter);
 
   @override
   Widget build(BuildContext context) {
@@ -193,8 +229,14 @@ class WingedPopoverState extends State<WingedPopover>
     // I can't think of a situation where you would change the value of .showAsTooltip, so whatever...
     if (widget.tooltipParams?.enabled ?? false) {
       result = MouseRegion(
-        onEnter: (_) => _provider.onMouseEnterHost(this),
-        onExit: (_) => _provider.onMouseExitHost(this),
+        onEnter: (_) {
+          isHovered = true;
+          _provider.onMouseEnterHost(this);
+        },
+        onExit: (_) {
+          isHovered = false;
+          _provider.onMouseExitHost(this);
+        },
         child: result,
       );
     }

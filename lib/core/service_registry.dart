@@ -87,6 +87,9 @@ class ServiceRegistry {
     final serviceType = T;
     final registration = _registeredServices[serviceType]!;
     final service = registration.constructor() as T;
+    if (registration.configBuilder != null) {
+      service.config = registration.configBuilder!(rawMainConfig["$serviceType"]);
+    }
     // ignore: invalid_use_of_protected_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
     await service.init();

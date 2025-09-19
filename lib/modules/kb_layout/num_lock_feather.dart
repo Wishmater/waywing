@@ -31,6 +31,7 @@ class NumLockFeather extends Feather {
   Future<void> init(BuildContext context) async {
     await serviceRegistry.requestService<HyprlandService>(this);
     service = await serviceRegistry.requestService<KeyboardLayoutService>(this);
+    service.requestNumCapsPull();
   }
 
   @override

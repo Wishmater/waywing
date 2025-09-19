@@ -1,6 +1,8 @@
 import "dart:async";
 import "dart:io";
 
+import "package:config/config.dart";
+import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx_io.dart";
 import "package:flutter/foundation.dart" hide StringProperty;
 import "package:path/path.dart";
@@ -9,15 +11,19 @@ import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/hyprland/hyprland_service.dart";
 import "package:waywing/modules/hyprland/hyrpland_models.dart";
 
+part "kb_layout_service.config.dart";
+
 /// This only works on hyprland as it relies on hyprctl
-class KeyboardLayoutService extends Service {
+class KeyboardLayoutService extends Service<KbLayoutServiceConfig> {
   late HyprlandService _hyprlandService;
 
   KeyboardLayoutService._();
   static void registerService(RegisterServiceCallback registerService) {
-    registerService<KeyboardLayoutService, dynamic>(
+    registerService<KeyboardLayoutService, KbLayoutServiceConfig>(
       ServiceRegistration(
         constructor: KeyboardLayoutService._,
+        schemaBuilder: () => KbLayoutServiceConfig.schema,
+        configBuilder: KbLayoutServiceConfig.fromMap,
       ),
     );
   }
@@ -27,6 +33,8 @@ class KeyboardLayoutService extends Service {
   ValueNotifier<bool> capsLockActive = ValueNotifier(false);
   ValueNotifier<bool> numsLockActive = ValueNotifier(false);
   late HyprlandKeyboardDevice currentKeyboard;
+  bool _disposed = false;
+  bool _requestedNumCapsLockPull = false;
 
   Future<void> changeLayout(String layout) async {
     final index = currentKeyboard.layouts.indexOf(layout);
@@ -104,10 +112,38 @@ class KeyboardLayoutService extends Service {
         availableLayouts.value = keyboard.layouts;
       }
     });
+
+  }
+
+  void requestNumCapsPull() {
+    if (_requestedNumCapsLockPull) {
+      return;
+    }
+    // TODO 2: if feather gets removed this will continue. Needs fix
+    _pullNumCaps();
+    _requestedNumCapsLockPull = true;
+  }
+
+  Future<void> _pullNumCaps() async {
+    if (config.pullInterval < 0)  {
+      /// TODO 2: if config changes this wont reload. Needs fix
+      return;
+    }
+    while (!_disposed) {
+      logger.trace("request active keyboard");
+      final keyboard = await _hyprlandService.activeKeyboard();
+      logger.trace("request active keyboard $keyboard");
+      if (keyboard != null) {
+        capsLockActive.value = keyboard.capsLock;
+        numsLockActive.value = keyboard.numLock;
+      }
+      await Future.delayed(Duration(milliseconds: config.pullInterval));
+    }
   }
 
   @override
   Future<void> dispose() async {
+    _disposed = true;
     layout.dispose();
     capsLockActive.dispose();
     numsLockActive.dispose();
@@ -123,4 +159,11 @@ class KeyboardLayoutService extends Service {
     }
     return null;
   }
+}
+
+
+@Config()
+mixin KbLayoutServiceConfigBase {
+  /// pull interval in milliseconds
+  static const _pullInterval = IntegerNumberField(defaultTo: 500);
 }

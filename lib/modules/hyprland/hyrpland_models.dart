@@ -196,4 +196,9 @@ class HyprlandKeyboardDevice extends HyprlandKeyboardDeviceRef {
 
   @override
   int get hashCode => Object.hashAll([name, activeKeymap, layouts, rules, model, variant, capsLock, numLock, main]);
+
+  @override
+  String toString() {
+    return "HyprlandKeyboardDevice(name: $name, activeKeymap: $activeKeymap, layouts: $layouts, capsLock: $capsLock, numLock: $numLock, main: $main)";
+  }
 }

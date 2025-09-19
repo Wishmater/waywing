@@ -238,8 +238,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: cecc32c38acb6d54bb94188ff8b87d0dec76eeca
-      tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/config_gen"
     source: git
     version: "0.0.7"

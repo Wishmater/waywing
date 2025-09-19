@@ -87,7 +87,7 @@ class KeyboardLayoutService extends Service {
   @override
   Future<void> init() async {
     await _createLayout();
-    _hyprlandService = await serviceRegistry.unsafeRequestService<HyprlandService>();
+    _hyprlandService = await serviceRegistry.requestService<HyprlandService>(this);
 
     currentKeyboard = await _fromRef(_hyprlandService.values.currentKeyboardLayout.value);
     layout.value = await _findLayout(currentKeyboard) ?? "";

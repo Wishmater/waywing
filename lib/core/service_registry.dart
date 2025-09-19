@@ -31,6 +31,11 @@ class ServiceRegistration<T extends Service<Conf>, Conf> {
   }) : assert(schemaBuilder == null && configBuilder == null || schemaBuilder != null && configBuilder != null);
 }
 
+// TODO: 3 SCOPING only Feather and Service should be able to implement this
+abstract class ServiceConsumer {
+  // the only requirement is proper equals and hashCode implementation, but we can't enforce that
+}
+
 /// FeatherRegistry keeps track of all feather types and can map name strings to instances
 /// this also makes sure that only one instance of each Feather is constructed,
 /// and that it is de-referenced when disposing it
@@ -40,7 +45,7 @@ class ServiceRegistry {
   }
 
   final Map<Type, ServiceRegistration> _registeredServices = {};
-  final Map<Type, List<Feather>> _requestedServices = {};
+  final Map<Type, List<ServiceConsumer>> _requestedServices = {};
   final Map<Type, Future<Service>> _initializedServices = {};
 
   void registerService<T extends Service<Conf>, Conf>(ServiceRegistration<T, Conf> registration) {
@@ -57,40 +62,28 @@ class ServiceRegistry {
   /// Feather widgets aren't built until the feather init() is done, so if the
   /// feather init() awaits services requests, it will then be safe to use the
   /// returned instances in the build methods.
-  Future<T> requestService<T extends Service>(Feather feather) {
+  Future<T> requestService<T extends Service>(ServiceConsumer consumer) {
     mainLogger.debug("Initializing service: $T");
     final serviceType = T;
     final existingService = _initializedServices[serviceType];
     if (existingService != null) {
+      assert(_requestedServices.containsKey(serviceType));
+      _requestedServices[serviceType]!.add(consumer);
       return existingService as Future<T>;
     } else {
+      assert(!_requestedServices.containsKey(serviceType));
+      _requestedServices[serviceType] = [consumer];
       assert(
         _registeredServices.containsKey(serviceType),
         "Trying to request a Service that isn't registered: $serviceType",
       );
-      final initFuture = initializeService<T>();
+      final initFuture = _initializeService<T>();
       _initializedServices[serviceType] = initFuture;
       return initFuture;
     }
   }
 
-  /// Request a service and asumes initialization. The service can be released in any moment
-  /// so mantaining a reference is unsafe.
-  ///
-  /// The objective of this function is to workaround the missing functionality of a service
-  /// depending on other service.
-  ///
-  /// If service is not initilizalized this will throw StateError
-  Future<T> unsafeRequestService<T extends Service>() async {
-    final serviceType = T;
-    final existingService = _initializedServices[serviceType];
-    if (existingService == null) {
-      throw StateError("unsafeRequestService $serviceType not initialized");
-    }
-    return existingService as Future<T>;
-  }
-
-  Future<T> initializeService<T extends Service>() async {
+  Future<T> _initializeService<T extends Service>() async {
     final serviceType = T;
     final registration = _registeredServices[serviceType]!;
     final service = registration.constructor() as T;
@@ -104,40 +97,22 @@ class ServiceRegistry {
   /// are autommatically released of all requested services. The methot only exists
   /// for feathers that want to request/release services for a portion of the feather's
   /// lifetime, which should be rare.
-  Future<void> releaseService(Feather feather, Type serviceType) async {
+  Future<void> releaseService(ServiceConsumer consumer, Type serviceType) async {
     assert(
       _requestedServices.containsKey(serviceType),
-      "Trying to release a service that hasn't been requested by any feather: $serviceType $feather",
+      "Trying to release a service that hasn't been requested by any consumer: $serviceType $consumer",
     );
     assert(
-      _requestedServices[serviceType]!.contains(feather),
-      "Trying to release a service that hasn't been requested by this feather: $serviceType $feather",
+      _requestedServices[serviceType]!.contains(consumer),
+      "Trying to release a service that hasn't been requested by this consumer: $serviceType $consumer",
     );
-    return _releaseService(feather, serviceType);
+    return _releaseService(consumer, serviceType);
   }
 
-  Map<String, TableSchema> getSchemaTables() => {
-    for (final e in _registeredServices.entries)
-      if (e.value.schemaBuilder != null) e.key.toString(): e.value.schemaBuilder!(),
-  };
-
-  void onConfigUpdated() {
-    for (final e in _initializedServices.entries) {
-      final registration = _registeredServices[e.key]!;
-      if (registration.configBuilder == null) continue;
-      e.value.then((service) {
-        final oldConfig = service.config;
-        final newConfig = registration.configBuilder!(rawMainConfig[e.key.toString()]);
-        service.config = newConfig;
-        service.onConfigUpdated(oldConfig);
-      });
-    }
-  }
-
-  Future<void> _releaseService(Feather feather, Type serviceType) async {
-    final dependentFeathers = _requestedServices[serviceType]!;
-    final removed = dependentFeathers.remove(feather);
-    if (removed && dependentFeathers.isEmpty) {
+  Future<void> _releaseService(ServiceConsumer consumer, Type serviceType) async {
+    final dependentConsumers = _requestedServices[serviceType]!;
+    final removed = dependentConsumers.remove(consumer);
+    if (removed && dependentConsumers.isEmpty) {
       _disposeService(serviceType);
     }
   }
@@ -151,15 +126,39 @@ class ServiceRegistry {
     await service.dispose();
     // ignore: invalid_use_of_protected_member
     await service.logger.destroy();
+    await _onConsumerDereferenced(service);
   }
 
-  // TODO: 3 only FeatherRegistry should be able to access this
+  // TODO: 3 SCOPING only FeatherRegistry should be able to access this
   Future<void> onFeatherDereferenced(Feather feather) async {
+    return _onConsumerDereferenced(feather);
+  }
+
+  Future<void> _onConsumerDereferenced(ServiceConsumer consumer) async {
     final futures = <Future<void>>[];
     for (final service in _requestedServices.keys) {
-      futures.add(_releaseService(feather, service));
+      futures.add(_releaseService(consumer, service));
     }
     await Future.wait(futures);
+  }
+
+  Map<String, TableSchema> getSchemaTables() => {
+    for (final e in _registeredServices.entries)
+      if (e.value.schemaBuilder != null) e.key.toString(): e.value.schemaBuilder!(),
+  };
+
+  // TODO: 3 SCOPING only ConfigWatcher should be able to call this
+  void onConfigUpdated() {
+    for (final e in _initializedServices.entries) {
+      final registration = _registeredServices[e.key]!;
+      if (registration.configBuilder == null) continue;
+      e.value.then((service) {
+        final oldConfig = service.config;
+        final newConfig = registration.configBuilder!(rawMainConfig[e.key.toString()]);
+        service.config = newConfig;
+        service.onConfigUpdated(oldConfig);
+      });
+    }
   }
 
   void _registerDefaultServices() {

@@ -303,6 +303,7 @@ class _ItemAnimation<T extends Object> extends StatefulWidget {
 
 class _ItemAnimationState extends State<_ItemAnimation> with TickerProviderStateMixin {
   late SingleMotionController opacityAnimationController;
+  // TODO: 2 ANIMATIONS this should be a MotionController with a OffsetConverter
   late SingleMotionController translationAnimationController;
   late Animation<Offset> translationAnimation;
 

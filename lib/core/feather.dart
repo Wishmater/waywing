@@ -6,13 +6,14 @@ import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/server.dart";
+import "package:waywing/core/service_registry.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 /// Every "component" added to waywing needs to implement this class.
 /// Here, it will define any services init/cleanup it needs
 /// And also define the UI elements it provides
-abstract class Feather<Conf> {
+abstract class Feather<Conf> implements ServiceConsumer {
   @protected
   late Logger logger;
   late Conf config;

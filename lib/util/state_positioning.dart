@@ -6,6 +6,8 @@ class Positioning {
 
   const Positioning(this.offset, this.size);
 
+  Positioning.fromRect(Rect rect) : offset = Offset(rect.left, rect.top), size = rect.size;
+
   @override
   int get hashCode => Object.hash(offset, size);
 
@@ -16,6 +18,8 @@ class Positioning {
     }
     return super == other;
   }
+
+  Rect toRect() => Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
 }
 
 mixin StatePositioningMixin<T extends StatefulWidget> on State<T> {

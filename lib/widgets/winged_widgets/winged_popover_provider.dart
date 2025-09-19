@@ -351,6 +351,8 @@ class WingedPopoverClient extends StatefulWidget {
 
 class WingedPopoverClientState extends State<WingedPopoverClient> with TickerProviderStateMixin {
   final childPositioningController = PositioningNotifierController();
+  final childContainerPositioningController = PositioningNotifierController();
+  Positioning? targetChildContainerPositioning;
 
   // this means it passed the 2nd frame, where we can actually get child sizing
   bool passedMeaningfulPaint = false;
@@ -700,45 +702,49 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                 maxTop = hostPosition.dy + hostSize.height;
               }
             }
-            result = MotionPositioned(
-              // TODO: 2 ANIMATIONS ideally, we separate animation for the container and the content,
-              // so that the content doesn't "bounce around" like the container does.
-              // This seems hard to do, because the motion controller doesn't expose when the animation
-              // reached the target and is now "bouncing".
-              // An alternative is to add container and content as separate MotionPositioned widgets,
-              // but this is ugly and has risk of causing other bugs like desync and clipping issues.
-              motion: motion,
-              active: intrinsincAnimationsEnabled,
-              left: childPosition.dx,
-              top: childPosition.dy,
-              // TODO: 1 ANIMATIONS maybe we should stop animationg width/height changes when not animating
-              // in/out and just leave that as the content's responsibility to implement. If implemented in
-              // the content, animations can be more custom and exact, and if implemented both here and in
-              // content, it can have weird interactions (which happens now). We should also stop animationg
-              // position so it "sticks" to the host if the host moves
-              // (maybe leave both of tjese as separate options)
-              width: childSize.width,
-              height: childSize.height,
-              minLeft: minLeft,
-              maxLeft: maxLeft,
-              minTop: minTop,
-              maxTop: maxTop,
-              minRight: minRight,
-              maxRight: maxRight,
-              minBottom: minBottom,
-              maxBottom: maxBottom,
-              onAnimationStatusChanged: (status) {
-                if (!status.isAnimating) {
-                  if (widget.isRemoved) {
-                    provider._removeHost(widget.host);
-                  } else if (intrinsincAnimationsEnabled && !popoverParams.enableIntrinsicSizeAnimation) {
-                    setState(() {
-                      intrinsincAnimationsEnabled = false;
-                    });
+            targetChildContainerPositioning = Positioning(childPosition, childSize);
+            result = PositioningNotifierMonitor(
+              controller: childContainerPositioningController,
+              child: MotionPositioned(
+                // TODO: 2 ANIMATIONS ideally, we separate animation for the container and the content,
+                // so that the content doesn't "bounce around" like the container does.
+                // This seems hard to do, because the motion controller doesn't expose when the animation
+                // reached the target and is now "bouncing".
+                // An alternative is to add container and content as separate MotionPositioned widgets,
+                // but this is ugly and has risk of causing other bugs like desync and clipping issues.
+                motion: motion,
+                active: intrinsincAnimationsEnabled,
+                left: childPosition.dx,
+                top: childPosition.dy,
+                // TODO: 1 ANIMATIONS maybe we should stop animationg width/height changes when not animating
+                // in/out and just leave that as the content's responsibility to implement. If implemented in
+                // the content, animations can be more custom and exact, and if implemented both here and in
+                // content, it can have weird interactions (which happens now). We should also stop animationg
+                // position so it "sticks" to the host if the host moves
+                // (maybe leave both of tjese as separate options)
+                width: childSize.width,
+                height: childSize.height,
+                minLeft: minLeft,
+                maxLeft: maxLeft,
+                minTop: minTop,
+                maxTop: maxTop,
+                minRight: minRight,
+                maxRight: maxRight,
+                minBottom: minBottom,
+                maxBottom: maxBottom,
+                onAnimationStatusChanged: (status) {
+                  if (!status.isAnimating) {
+                    if (widget.isRemoved) {
+                      provider._removeHost(widget.host);
+                    } else if (intrinsincAnimationsEnabled && !popoverParams.enableIntrinsicSizeAnimation) {
+                      // setState(() {
+                      //   intrinsincAnimationsEnabled = false;
+                      // });
+                    }
                   }
-                }
-              },
-              child: result,
+                },
+                child: result,
+              ),
             );
 
             // add extra client clippers

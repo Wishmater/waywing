@@ -221,6 +221,35 @@ class WingedPopoverState extends State<WingedPopover>
   Future<void> toggleTooltip({Duration? showDelay, Duration? hideDelay}) =>
       _provider.toggleTooltip(this, showDelay: showDelay, hideDelay: hideDelay);
 
+  /// override getPositioning to further constraint positioning/size to that of the parent
+  /// if the parent is being removed
+  @override
+  Positioning getPositioning({BuildContext? parentContext}) {
+    final positioning = super.getPositioning(parentContext: parentContext);
+    final parent = this.parent;
+    if (parent == null || !parent.widget.isRemoved) return positioning;
+    final parentPositioning = parent.childContainerPositioningController.positioningNotifier.value;
+    if (parentPositioning == null) return positioning;
+    final rect = positioning.toRect();
+    final parentRect = parentPositioning.toRect();
+    var intersection = rect.intersect(parentRect);
+    if (intersection.height < 0) {
+      if ((parentRect.top - rect.top).abs() < (parentRect.bottom - rect.top).abs()) {
+        intersection = Rect.fromLTWH(intersection.left, parentRect.top, intersection.width, 0);
+      } else {
+        intersection = Rect.fromLTWH(intersection.left, parentRect.bottom, intersection.width, 0);
+      }
+    }
+    if (intersection.width < 0) {
+      if ((parentRect.left - rect.left).abs() < (parentRect.right - rect.left).abs()) {
+        intersection = Rect.fromLTWH(parentRect.left, intersection.top, 0, intersection.height);
+      } else {
+        intersection = Rect.fromLTWH(parentRect.right, intersection.top, 0, intersection.height);
+      }
+    }
+    return Positioning.fromRect(intersection);
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget result = widget.builder(context, this, widget.child);

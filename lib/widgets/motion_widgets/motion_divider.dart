@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
@@ -166,7 +167,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
   void initHeight({bool initial = false}) {
     size = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromSize ?? widget.size!) : widget.size!,
     )..pipe(registerController);
   }
@@ -174,7 +175,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
   void initThickness({bool initial = false}) {
     thickness = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromThickness ?? widget.thickness!) : widget.thickness!,
     )..pipe(registerController);
   }
@@ -182,7 +183,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
   void initIndent({bool initial = false}) {
     indent = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromIndent ?? widget.indent!) : widget.indent!,
     )..pipe(registerController);
   }
@@ -190,7 +191,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
   void initEndIndent({bool initial = false}) {
     endIndent = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromEndIndent ?? widget.endIndent!) : widget.endIndent!,
     )..pipe(registerController);
   }
@@ -198,7 +199,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
   void initRadius({bool initial = false}) {
     radius = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: BorderRadiusMotionConverter(),
       initialValue: initial ? (widget.fromRadius ?? widget.radius!) : widget.radius!,
     )..pipe(registerController);
@@ -207,7 +208,7 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
   void initColor({bool initial = false}) {
     color = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: ColorMotionConverter(),
       initialValue: initial ? (widget.fromColor ?? widget.color!) : widget.color!,
     )..pipe(registerController);
@@ -216,6 +217,23 @@ class _MotionDividerState extends State<MotionDivider> with TickerProviderStateM
   @override
   void didUpdateWidget(covariant MotionDivider oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      if (widget.active) {
+        size?.motion = widget.motion;
+        thickness?.motion = widget.motion;
+        indent?.motion = widget.motion;
+        endIndent?.motion = widget.motion;
+        radius?.motion = widget.motion;
+        color?.motion = widget.motion;
+      } else {
+        size?.motion = const InstantMotion();
+        thickness?.motion = const InstantMotion();
+        indent?.motion = const InstantMotion();
+        endIndent?.motion = const InstantMotion();
+        radius?.motion = const InstantMotion();
+        color?.motion = const InstantMotion();
+      }
+    }
     if (widget.size != oldWidget.size) {
       if (widget.size == null) {
         size!.dispose();

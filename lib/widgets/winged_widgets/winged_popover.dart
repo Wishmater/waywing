@@ -53,6 +53,7 @@ class PopoverParams {
   final Offset extraOffset;
   final EdgeInsets extraPadding;
   final Motion? motion;
+  final bool enableIntrinsicSizeAnimation;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -80,6 +81,7 @@ class PopoverParams {
     this.extraPadding = EdgeInsets.zero,
     this.motion,
     this.stickToHost = false,
+    this.enableIntrinsicSizeAnimation = false,
   });
 }
 

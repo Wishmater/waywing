@@ -1,10 +1,14 @@
 import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/state_positioning.dart";
 
 class AnimatedIntrinsicSize extends StatefulWidget {
   final Motion motion;
+  final bool active;
+  final ValueChanged<AnimationStatus>? onAnimationStatusChanged;
+
   final Widget child;
   final Alignment alignment;
   final Clip clipBehavior;
@@ -16,6 +20,8 @@ class AnimatedIntrinsicSize extends StatefulWidget {
   const AnimatedIntrinsicSize({
     required this.child,
     required this.motion,
+    this.active = true,
+    this.onAnimationStatusChanged,
     this.alignment = Alignment.topLeft,
     this.clipBehavior = Clip.none,
     this.animateWidth = true,
@@ -53,10 +59,11 @@ class _AnimatedIntrinsicSizeState extends State<AnimatedIntrinsicSize> {
               });
             }
             return MotionBuilder(
-              motion: widget.motion,
+              motion: widget.active ? widget.motion : const InstantMotion(),
               value: size ?? Size.zero,
-              active: isActive,
+              active: isActive && widget.active,
               converter: SizeMotionConverter(),
+              onAnimationStatusChanged: widget.onAnimationStatusChanged,
               builder: (context, size, child) {
                 return SizedBox(
                   width: widget.animateWidth && hasSize ? size.width.coerceAtLeast(0) : null,

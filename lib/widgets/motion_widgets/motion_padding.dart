@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
@@ -55,7 +56,7 @@ class _MotionPaddingState extends State<MotionPadding> with TickerProviderStateM
     super.initState();
     padding = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: EdgeInsetsMotionConverter(),
       initialValue: widget.fromPadding ?? widget.padding,
     )..pipe(registerController);
@@ -67,6 +68,13 @@ class _MotionPaddingState extends State<MotionPadding> with TickerProviderStateM
   @override
   void didUpdateWidget(covariant MotionPadding oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      if (widget.active) {
+        padding.motion = widget.motion;
+      } else {
+        padding.motion = const InstantMotion();
+      }
+    }
     if (widget.padding != oldWidget.padding) {
       padding.animateTo(widget.padding);
     }

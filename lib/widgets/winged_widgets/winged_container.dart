@@ -4,6 +4,7 @@ import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 import "package:waywing/widgets/shapes/docked_rounded_corners_shape.dart";
@@ -125,6 +126,15 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
   @override
   void didUpdateWidget(covariant _WingedContainer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      if (widget.active) {
+        shape?.motion = widget.motion;
+        shapeManualController?.motion = widget.motion;
+      } else {
+        shape?.motion = const InstantMotion();
+        shapeManualController?.motion = const InstantMotion();
+      }
+    }
     if (oldWidget.shape != widget.shape) {
       updateShape(oldWidget.shape);
     }
@@ -160,7 +170,7 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
       shapeManualController = null;
       shape ??= MotionController(
         vsync: this,
-        motion: widget.motion,
+        motion: widget.active ? widget.motion : const InstantMotion(),
         converter: converter,
         initialValue: oldShape ?? newShape,
       )..pipe(registerController);
@@ -172,7 +182,7 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
       shape = null;
       shapeManualController ??= BoundedSingleMotionController(
         vsync: this,
-        motion: widget.motion,
+        motion: widget.active ? widget.motion : const InstantMotion(),
         initialValue: oldShape != null ? 0 : 1,
       )..pipe(registerController);
       shapeManual = ShapeBorderTween(

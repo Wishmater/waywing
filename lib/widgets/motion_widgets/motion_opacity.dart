@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
 class MotionOpacity extends StatefulWidget {
@@ -54,7 +55,7 @@ class _MotionOpacityState extends State<MotionOpacity> with TickerProviderStateM
     super.initState();
     opacity = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: widget.fromOpacity ?? widget.opacity,
     )..pipe(registerController);
     if (widget.fromOpacity != null) {
@@ -65,6 +66,13 @@ class _MotionOpacityState extends State<MotionOpacity> with TickerProviderStateM
   @override
   void didUpdateWidget(covariant MotionOpacity oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      if (widget.active) {
+        opacity.motion = widget.motion;
+      } else {
+        opacity.motion = const InstantMotion();
+      }
+    }
     if (widget.opacity != oldWidget.opacity) {
       opacity.animateTo(widget.opacity);
     }

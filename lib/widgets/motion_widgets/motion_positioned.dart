@@ -1,6 +1,7 @@
 import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/math_utils.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
@@ -185,7 +186,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   void initLeft({bool initial = false}) {
     left = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromLeft ?? widget.left!) : widget.left!,
     )..pipe(registerController);
   }
@@ -193,7 +194,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   void initTop({bool initial = false}) {
     top = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromTop ?? widget.top!) : widget.top!,
     )..pipe(registerController);
   }
@@ -201,7 +202,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   void initRight({bool initial = false}) {
     right = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromRight ?? widget.right!) : widget.right!,
     )..pipe(registerController);
   }
@@ -209,7 +210,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   void initBottom({bool initial = false}) {
     bottom = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromBottom ?? widget.bottom!) : widget.bottom!,
     )..pipe(registerController);
   }
@@ -217,7 +218,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   void initWidth({bool initial = false}) {
     width = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromWidth ?? widget.width!) : widget.width!,
     )..pipe(registerController);
   }
@@ -225,7 +226,7 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   void initHeight({bool initial = false}) {
     height = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromHeight ?? widget.height!) : widget.height!,
     )..pipe(registerController);
   }
@@ -233,6 +234,23 @@ class _MotionPositionedState extends State<MotionPositioned> with TickerProvider
   @override
   void didUpdateWidget(covariant MotionPositioned oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      if (widget.active) {
+        left?.motion = widget.motion;
+        top?.motion = widget.motion;
+        right?.motion = widget.motion;
+        bottom?.motion = widget.motion;
+        width?.motion = widget.motion;
+        height?.motion = widget.motion;
+      } else {
+        left?.motion = const InstantMotion();
+        top?.motion = const InstantMotion();
+        right?.motion = const InstantMotion();
+        bottom?.motion = const InstantMotion();
+        width?.motion = const InstantMotion();
+        height?.motion = const InstantMotion();
+      }
+    }
     if (widget.left != oldWidget.left) {
       if (widget.left == null) {
         left!.dispose();

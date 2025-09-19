@@ -1,5 +1,6 @@
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
@@ -181,7 +182,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   void initAlignment({bool initial = false}) {
     alignment = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: AlignmentMotionConverter(),
       initialValue: initial ? (widget.fromAlignment ?? widget.alignment!) : widget.alignment!,
     )..pipe(registerController);
@@ -190,7 +191,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   void initPadding({bool initial = false}) {
     padding = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: EdgeInsetsMotionConverter(),
       initialValue: initial ? (widget.fromPadding ?? widget.padding!) : widget.padding!,
     )..pipe(registerController);
@@ -199,7 +200,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   void initDecoration({bool initial = false}) {
     decorationController = BoundedSingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: widget.fromDecoration != null ? 0 : 1,
     )..pipe(registerController);
     updateDecoration(initial: initial);
@@ -218,7 +219,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   void initForegroundDecoration({bool initial = false}) {
     foregroundDecorationController = BoundedSingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: widget.fromForegroundDecoration != null ? 0 : 1,
     )..pipe(registerController);
     updateForegroundDecoration(initial: initial);
@@ -237,7 +238,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   void initConstraints({bool initial = false}) {
     constraints = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: BoxConstraintsMotionConverter(),
       initialValue: initial ? (widget.fromConstraints ?? widget.constraints!) : widget.constraints!,
     )..pipe(registerController);
@@ -246,7 +247,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   void initMargin({bool initial = false}) {
     margin = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: EdgeInsetsMotionConverter(),
       initialValue: initial ? (widget.fromMargin ?? widget.margin!) : widget.margin!,
     )..pipe(registerController);
@@ -255,7 +256,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   void initTransform({bool initial = false}) {
     transform = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: Matrix4MotionConverter(),
       initialValue: initial ? (widget.fromTransform ?? widget.transform!) : widget.transform!,
     )..pipe(registerController);
@@ -264,7 +265,7 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   void initTransformAlignment({bool initial = false}) {
     transformAlignment = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: AlignmentMotionConverter(),
       initialValue: initial
           ? (widget.fromTransformAlignment ?? widget.transformAlignment!)
@@ -275,6 +276,27 @@ class _MotionContainerState extends State<MotionContainer> with TickerProviderSt
   @override
   void didUpdateWidget(covariant MotionContainer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      if (widget.active) {
+        alignment?.motion = widget.motion;
+        padding?.motion = widget.motion;
+        decorationController?.motion = widget.motion;
+        foregroundDecorationController?.motion = widget.motion;
+        constraints?.motion = widget.motion;
+        margin?.motion = widget.motion;
+        transform?.motion = widget.motion;
+        transformAlignment?.motion = widget.motion;
+      } else {
+        alignment?.motion = const InstantMotion();
+        padding?.motion = const InstantMotion();
+        decorationController?.motion = const InstantMotion();
+        foregroundDecorationController?.motion = const InstantMotion();
+        constraints?.motion = const InstantMotion();
+        margin?.motion = const InstantMotion();
+        transform?.motion = const InstantMotion();
+        transformAlignment?.motion = const InstantMotion();
+      }
+    }
     if (widget.alignment != oldWidget.alignment) {
       if (widget.alignment == null) {
         alignment!.dispose();

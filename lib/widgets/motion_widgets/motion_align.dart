@@ -1,6 +1,7 @@
 import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 
 class MotionAlign extends StatefulWidget {
@@ -67,7 +68,7 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
     super.initState();
     alignment = MotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       converter: AlignmentMotionConverter(),
       initialValue: widget.fromAlignment ?? widget.alignment,
     )..pipe(registerController);
@@ -91,7 +92,7 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
   void initWidthFactor({bool initial = false}) {
     widthFactor = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromWidthFactor ?? widget.widthFactor!) : widget.widthFactor!,
     )..pipe(registerController);
   }
@@ -99,7 +100,7 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
   void initHeightFactor({bool initial = false}) {
     heightFactor = SingleMotionController(
       vsync: this,
-      motion: widget.motion,
+      motion: widget.active ? widget.motion : const InstantMotion(),
       initialValue: initial ? (widget.fromHeightFactor ?? widget.heightFactor!) : widget.heightFactor!,
     )..pipe(registerController);
   }
@@ -107,6 +108,17 @@ class _MotionAlignState extends State<MotionAlign> with TickerProviderStateMixin
   @override
   void didUpdateWidget(covariant MotionAlign oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.active != oldWidget.active) {
+      if (widget.active) {
+        alignment.motion = widget.motion;
+        widthFactor?.motion = widget.motion;
+        heightFactor?.motion = widget.motion;
+      } else {
+        alignment.motion = const InstantMotion();
+        widthFactor?.motion = const InstantMotion();
+        heightFactor?.motion = const InstantMotion();
+      }
+    }
     if (widget.alignment != oldWidget.alignment) {
       alignment.animateTo(widget.alignment);
     }

@@ -368,6 +368,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
 
   Motion get motion => popoverParams.motion ?? mainConfig.motions.expressive.spatial.slow;
 
+  bool intrinsincAnimationsEnabled = true;
+
   @override
   void initState() {
     super.initState();
@@ -423,10 +425,14 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     if (widget.host != oldWidget.host || widget.isTooltip != oldWidget.isTooltip) {
       _triggerContentAnimation(oldWidget.host);
     }
+    if (widget.isRemoved) {
+      intrinsincAnimationsEnabled = true;
+    }
   }
 
   late Widget _lastContent;
   void _triggerContentAnimation(WingedPopoverState oldHost) {
+    intrinsincAnimationsEnabled = true;
     Offset? targetContentOffset;
     final newHostPositioning = widget.host.positioningNotifier.value;
     final oldChildPositioning = childPositioningController.positioningNotifier.value;
@@ -702,6 +708,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               // An alternative is to add container and content as separate MotionPositioned widgets,
               // but this is ugly and has risk of causing other bugs like desync and clipping issues.
               motion: motion,
+              active: intrinsincAnimationsEnabled,
               left: childPosition.dx,
               top: childPosition.dy,
               // TODO: 1 ANIMATIONS maybe we should stop animationg width/height changes when not animating
@@ -720,13 +727,17 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               maxRight: maxRight,
               minBottom: minBottom,
               maxBottom: maxBottom,
-              onAnimationStatusChanged: !widget.isRemoved
-                  ? null
-                  : (status) {
-                      if (!status.isAnimating) {
-                        provider._removeHost(widget.host);
-                      }
-                    },
+              onAnimationStatusChanged: (status) {
+                if (!status.isAnimating) {
+                  if (widget.isRemoved) {
+                    provider._removeHost(widget.host);
+                  } else if (intrinsincAnimationsEnabled && !popoverParams.enableIntrinsicSizeAnimation) {
+                    setState(() {
+                      intrinsincAnimationsEnabled = false;
+                    });
+                  }
+                }
+              },
               child: result,
             );
 

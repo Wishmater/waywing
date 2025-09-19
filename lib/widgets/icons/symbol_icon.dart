@@ -22,6 +22,7 @@ class SymbolIcon extends StatelessWidget {
     this.applyTextScaling,
     this.blendMode,
     this.fontWeight,
+    this.twoTone,
   });
 
   final IconData? icon;
@@ -37,21 +38,23 @@ class SymbolIcon extends StatelessWidget {
   final bool? applyTextScaling;
   final BlendMode? blendMode;
   final FontWeight? fontWeight;
+  final bool? twoTone;
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 1 ICONS Implement two-tone
     final size = this.size ?? TextIcon.getIconEffectiveSize(context);
     final opticalSize = this.opticalSize ?? size.clamp(20, 48);
+    final fill = this.fill ?? mainConfig.theme.iconFlutterFill;
+    final weight = this.weight ?? mainConfig.theme.iconFlutterWeight;
     var icon = this.icon;
     if (icon != null && icon is VariedIconData) {
       icon = icon.getVariation(mainConfig.theme.iconFlutterVariation.variation);
     }
-    return Icon(
+    final mainIcon = Icon(
       icon,
       size: size,
-      fill: fill ?? mainConfig.theme.iconFlutterFill,
-      weight: weight ?? mainConfig.theme.iconFlutterWeight,
+      fill: fill,
+      weight: weight,
       grade: grade,
       opticalSize: opticalSize,
       color: color,
@@ -62,5 +65,31 @@ class SymbolIcon extends StatelessWidget {
       blendMode: blendMode,
       fontWeight: fontWeight,
     );
+    // TODO: 1 ICONS Implement two-tone icons, requires better color declarations in theme
+
+    // if (!(twoTone ?? mainConfig.theme.iconFlutterTwoTone)) {
+    return mainIcon;
+    // }
+    // return Stack(
+    //   fit: StackFit.passthrough,
+    //   children: [
+    //     Icon(
+    //       icon,
+    //       size: size,
+    //       fill: 1 - fill,
+    //       weight: weight,
+    //       grade: grade,
+    //       opticalSize: opticalSize,
+    //       color: mainConfig.theme.errorColor!,
+    //       shadows: shadows,
+    //       semanticLabel: semanticLabel,
+    //       textDirection: textDirection,
+    //       applyTextScaling: applyTextScaling,
+    //       blendMode: blendMode,
+    //       fontWeight: fontWeight,
+    //     ),
+    //     mainIcon,
+    //   ],
+    // );
   }
 }

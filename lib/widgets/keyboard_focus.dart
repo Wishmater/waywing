@@ -3,6 +3,7 @@ import "package:fl_linux_window_manager/models/keyboard_mode.dart";
 import "package:flutter/material.dart";
 import "package:mutex/mutex.dart" as mut;
 import "package:waywing/core/config.dart";
+import "package:waywing/util/logger.dart";
 
 class KeyboardFocus extends StatefulWidget {
   final Widget child;
@@ -70,6 +71,7 @@ class _KeyboardFocusProviderState extends State<KeyboardFocusProvider> {
   void initState() {
     super.initState();
     widget.keyboardService.mutex.protect(() {
+      mainLogger.trace("Setting keyboard interactivity mode: ${widget.keyboardService._currentMode}");
       return FlLinuxWindowManager.instance.setKeyboardInteractivity(widget.keyboardService._currentMode);
     });
   }
@@ -175,6 +177,7 @@ class KeyboardFocusService {
       _modes[id] = mode;
       if (mode.kMode().isPriorityGreater(_currentMode)) {
         _currentId = id;
+        mainLogger.trace("Setting keyboard interactivity mode: ${mode.kMode()}");
         await FlLinuxWindowManager.instance.setKeyboardInteractivity(mode.kMode());
       }
       return id;
@@ -200,10 +203,12 @@ class KeyboardFocusService {
             "all KeyboardFocusMode KeyboardMode must be greater than KeyboardMode.none",
           );
           _currentId = null;
+          mainLogger.trace("Setting keyboard interactivity mode (id==-1): ${KeyboardMode.none}");
           await FlLinuxWindowManager.instance.setKeyboardInteractivity(KeyboardMode.none);
         } else {
           _currentId = id;
           if (prevMode.isPriorityGreater(_currentMode)) {
+            mainLogger.trace("Setting keyboard interactivity mode: $_currentMode");
             await FlLinuxWindowManager.instance.setKeyboardInteractivity(_currentMode);
           }
         }

@@ -221,7 +221,7 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
             animationDuration: Duration.zero,
             child: widget.child,
           ),
-          if (shape != null && widget.elevation > 0)
+          if (shape != null && elevation > 0)
             Positioned.fill(
               child: ClipPath(
                 clipper: ShapeClipper(
@@ -230,8 +230,8 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
                 ),
                 child: ImageFiltered(
                   imageFilter: ImageFilter.blur(
-                    sigmaX: widget.elevation,
-                    sigmaY: widget.elevation,
+                    sigmaX: elevation,
+                    sigmaY: elevation,
                   ),
                   child: ClipPath(
                     clipper: ShapeShadowClipper(

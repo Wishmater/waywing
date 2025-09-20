@@ -11,6 +11,7 @@ mixin MainConfigI {
   int get monitor;
   List<Wing<dynamic>> get wings;
   String? get socket;
+  bool get focusGrab;
   bool get animationEnable;
   double get animationSpeed;
   double get animationDamping;
@@ -32,6 +33,7 @@ class MainConfig with MainConfigI, MainConfigBase {
       'monitor': MainConfigBase._monitor,
       'wings': MainConfigBase._wings,
       'socket': MainConfigBase._socket,
+      'focusGrab': MainConfigBase._focusGrab,
       'animationEnable': MainConfigBase._animationEnable,
       'animationSpeed': MainConfigBase._animationSpeed,
       'animationDamping': MainConfigBase._animationDamping,
@@ -59,6 +61,8 @@ class MainConfig with MainConfigI, MainConfigBase {
   @override
   final String? socket;
   @override
+  final bool focusGrab;
+  @override
   final bool animationEnable;
   @override
   final double animationSpeed;
@@ -80,6 +84,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     int? monitor,
     List<Wing<dynamic>>? wings,
     this.socket,
+    bool? focusGrab,
     bool? animationEnable,
     double? animationSpeed,
     double? animationDamping,
@@ -90,6 +95,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     required this.theme,
   }) : monitor = monitor ?? 0,
        wings = wings ?? <Wing>[],
+       focusGrab = focusGrab ?? kReleaseMode,
        animationEnable = animationEnable ?? true,
        animationSpeed = animationSpeed ?? 1,
        animationDamping = animationDamping ?? 1,
@@ -103,6 +109,7 @@ class MainConfig with MainConfigI, MainConfigBase {
       monitor: map['monitor'],
       wings: map['wings'],
       socket: map['socket'],
+      focusGrab: map['focusGrab'],
       animationEnable: map['animationEnable'],
       animationSpeed: map['animationSpeed'],
       animationDamping: map['animationDamping'],
@@ -116,7 +123,7 @@ class MainConfig with MainConfigI, MainConfigBase {
 
   @override
   String toString() {
-    return 'MainConfig(monitor = $monitor, wings = $wings, socket = $socket, animationEnable = $animationEnable, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus, logging = $logging, theme = $theme)';
+    return 'MainConfig(monitor = $monitor, wings = $wings, socket = $socket, focusGrab = $focusGrab, animationEnable = $animationEnable, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus, logging = $logging, theme = $theme)';
   }
 
   @override
@@ -124,6 +131,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     return monitor == other.monitor &&
         wings == other.wings &&
         socket == other.socket &&
+        focusGrab == other.focusGrab &&
         animationEnable == other.animationEnable &&
         animationSpeed == other.animationSpeed &&
         animationDamping == other.animationDamping &&
@@ -139,6 +147,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     monitor,
     wings,
     socket,
+    focusGrab,
     animationEnable,
     animationSpeed,
     animationDamping,

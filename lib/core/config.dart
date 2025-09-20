@@ -51,6 +51,7 @@ mixin MainConfigBase on MainConfigI {
   static const _monitor = IntegerNumberField(defaultTo: 0);
   static const _wings = ListField(WingField(), defaultTo: <Wing>[]);
   static const _socket = StringField(nullable: true);
+  static const _focusGrab = BooleanField(defaultTo: kReleaseMode);
 
   // TODO: 3 validate that at least 1 wing is added (at least warn, prefer hard error)
 

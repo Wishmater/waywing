@@ -2,7 +2,7 @@ name: waywing
 description: "A wayland desktop shell made with flutter"
 publish_to: "none"
 
-version: 0.0.8
+version: 0.0.9
 
 environment:
   sdk: ^3.9.0

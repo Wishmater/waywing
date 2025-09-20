@@ -334,7 +334,7 @@ class DBusMenuValues {
             DBusMenuItemProperties.propertyNames,
           );
         } else {
-          logger.error(
+          logger.warning(
             "canonicalDbusmenu.callGetLayout($parentId, -1, ${DBusMenuItemProperties.propertyNames}) failed. disposing menu",
             error: e,
             stackTrace: st,

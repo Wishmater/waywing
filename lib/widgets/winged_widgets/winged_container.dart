@@ -215,7 +215,7 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
         children: [
           Material(
             shape: shape,
-            elevation: widget.elevation,
+            elevation: 0,
             clipBehavior: widget.clipBehavior,
             color: widget.color,
             animationDuration: Duration.zero,

@@ -91,6 +91,7 @@ class _BatteryIndicator extends StatelessWidget {
         batteryLevel: batteryLevel,
         fillColor: fillColor,
         outlineColor: outlineColor,
+        textStyle: Theme.of(context).textTheme.bodyMedium!,
       ),
     );
   }
@@ -100,11 +101,13 @@ class _BatteryPainter extends CustomPainter {
   final double batteryLevel;
   final Color fillColor;
   final Color outlineColor;
+  final TextStyle textStyle;
 
   const _BatteryPainter({
     required this.outlineColor,
     required this.batteryLevel,
     required this.fillColor,
+    required this.textStyle,
   });
 
   @override
@@ -149,7 +152,7 @@ class _BatteryPainter extends CustomPainter {
 
     final TextSpan span = TextSpan(
       text: "${batteryLevel.floor()}",
-      style: TextStyle(fontSize: size.height * 0.8, color: Colors.white, height: 1),
+      style: textStyle.copyWith(fontSize: size.height * 0.8, height: 1),
     );
     final TextPainter tp = TextPainter(
       text: span,
@@ -164,6 +167,7 @@ class _BatteryPainter extends CustomPainter {
   bool shouldRepaint(covariant _BatteryPainter oldDelegate) {
     return batteryLevel != oldDelegate.batteryLevel ||
         outlineColor != oldDelegate.outlineColor ||
-        fillColor != oldDelegate.fillColor;
+        fillColor != oldDelegate.fillColor ||
+        textStyle != oldDelegate.textStyle;
   }
 }

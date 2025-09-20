@@ -85,13 +85,14 @@ class _BatteryIndicator extends StatelessWidget {
     } else {
       fillColor = criticalColor;
     }
+    final theme = Theme.of(context);
     return CustomPaint(
       size: size,
       painter: _BatteryPainter(
         batteryLevel: batteryLevel,
         fillColor: fillColor,
         outlineColor: outlineColor,
-        textStyle: Theme.of(context).textTheme.bodyMedium!,
+        textStyle: theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.onPrimary),
       ),
     );
   }

@@ -762,6 +762,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                       final size = positioning.size;
                       rect = Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
                     }
+                    // TODO 2: PERFOMANCE if backgorund opacity is 1 then there is no need to use clip
                     return ClipPath(
                       clipper: ShapeClipper(shape: e.$1, rectOverride: rect),
                       child: child,

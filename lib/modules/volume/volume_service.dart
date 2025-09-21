@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:convert";
 
 import "package:flutter/foundation.dart";
 import "package:pulseaudio/pulseaudio.dart";
@@ -353,34 +354,65 @@ class VolumeAppInterface extends VolumeInterface {
 
   PulseAudioSinkInput _sinkInput;
 
+  late final ValueNotifier<int?> _processId;
+  late final ValueNotifier<String?> _processUser;
+
   VolumeAppInterface(super._client, this._sinkInput);
+
+  void _updateSubtitle() {
+    final buff = StringBuffer();
+    if (_sinkInput.props.applicationName != null) {
+      buff.write(_sinkInput.name);
+      buff.write(" ");
+    }
+    if (_processId.value != null || _processUser.value != null) {
+      buff.write("(");
+      if (_processId.value != null) {
+        buff.write("${_processId.value}");
+      }
+      if (_processUser.value != null) {
+        buff.write(":${_processUser.value}");
+      }
+      buff.write(")");
+    }
+    if (buff.isEmpty) {
+      _subtitle.value = null;
+    } else {
+      _subtitle.value = buff.toString();
+    }
+  }
 
   @override
   Future<void> init() async {
+    _processId = ValueNotifier(_sinkInput.props.processId());
+    _processUser = ValueNotifier(_sinkInput.props.processUser());
+
+    _subtitle = ValueNotifier(null);
     if (_sinkInput.props.applicationName != null) {
       _name = ValueNotifier(_sinkInput.props.applicationName!);
-      _subtitle = ValueNotifier(_sinkInput.name);
     } else {
       _name = ValueNotifier(_sinkInput.name);
-      _subtitle = ValueNotifier(null);
     }
     _volume = ValueNotifier(_sinkInput.volume);
     _isMuted = ValueNotifier(_sinkInput.mute);
 
     _iconName = ValueNotifier(_sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName);
+    _updateSubtitle();
   }
 
   @override
   void _update() {
     if (_sinkInput.props.applicationName != null) {
       _name.value = _sinkInput.props.applicationName!;
-      _subtitle.value = _sinkInput.name;
     } else {
       _name.value = _sinkInput.name;
-      _subtitle.value = null;
     }
     _volume.value = _sinkInput.volume;
     _isMuted.value = _sinkInput.mute;
+
+    _processId.value = _sinkInput.props.processId();
+    _processUser.value = _sinkInput.props.processUser();
+    _updateSubtitle();
   }
 
   @override
@@ -402,6 +434,29 @@ class VolumeAppInterface extends VolumeInterface {
       return name.value == other.name.value && _sinkInput.index == other._sinkInput.index;
     }
     return super == other;
+  }
+}
+
+extension on PropList {
+  int? processId() {
+    final strid = _valueToString(this["application.process.id"]);
+    if (strid == null) {
+      return null;
+    }
+    return int.tryParse(strid);
+  }
+
+  String? processUser() => _valueToString(this["application.process.user"]);
+}
+
+String? _valueToString(Uint8List? data) {
+  if (data == null) {
+    return null;
+  }
+  try {
+    return const Utf8Codec().decoder.convert(data.takeWhile((e) => e != 0).toList());
+  } catch (_) {
+    return null;
   }
 }
 

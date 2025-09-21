@@ -117,6 +117,11 @@ mixin MainConfigBase on MainConfigI {
     ...featherRegistry.getSchemaTables(),
     ...serviceRegistry.getSchemaTables(),
   };
+
+  //===========================================================================
+  // Internal experimental options
+  //===========================================================================
+  static const _internalUsePainter = BooleanField(defaultTo: false);
 }
 
 Future<MainConfig> reloadConfig(String content) async {

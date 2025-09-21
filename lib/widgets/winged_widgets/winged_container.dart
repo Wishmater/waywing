@@ -51,6 +51,7 @@ class WingedContainer extends StatelessWidget {
       shadowOffset: shadowOffset,
       clipBehavior: clipBehavior,
       color: color,
+      usePainter: mainConfig.internalUsePainter,
       child: child,
     );
   }
@@ -71,6 +72,9 @@ class _WingedContainer extends StatefulWidget {
   final Color? color;
   final Widget? child;
 
+  /// temporary option to use ShapeShadowPainter instead of ShapeShadorClipper
+  final bool usePainter;
+
   const _WingedContainer({
     required this.motion,
     required this.active,
@@ -81,6 +85,7 @@ class _WingedContainer extends StatefulWidget {
     required this.shadowOffset,
     required this.clipBehavior,
     required this.color,
+    required this.usePainter,
     required this.child,
   });
 
@@ -228,27 +233,34 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
                   shape: shape,
                   contain: false,
                 ),
-                child: ImageFiltered(
-                  imageFilter: ImageFilter.blur(
-                    sigmaX: elevation,
-                    sigmaY: elevation,
-                  ),
-                  child: ClipPath(
-                    clipper: ShapeShadowClipper(
-                      shape: shape,
-                      offset: offset,
-                    ),
-                    child: ColoredBox(
-                      color: color,
-                      child: Transform.translate(
-                        offset: offset,
-                        child: ColoredBox(
-                          color: color,
+                child: widget.usePainter
+                    ? CustomPaint(
+                        painter: ShapeShadowPainter(
+                          shape: shape,
+                          shadow: Shadow(blurRadius: elevation, color: color, offset: offset),
+                        ),
+                      )
+                    : ImageFiltered(
+                        imageFilter: ImageFilter.blur(
+                          sigmaX: elevation,
+                          sigmaY: elevation,
+                        ),
+                        child: ClipPath(
+                          clipper: ShapeShadowClipper(
+                            shape: shape,
+                            offset: offset,
+                          ),
+                          child: ColoredBox(
+                            color: color,
+                            child: Transform.translate(
+                              offset: offset,
+                              child: ColoredBox(
+                                color: color,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
               ),
             ),
         ],

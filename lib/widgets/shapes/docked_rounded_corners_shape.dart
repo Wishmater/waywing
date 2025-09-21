@@ -4,7 +4,7 @@ import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/widgets.dart";
 
-getDockedRoundCornersPathForDirection({
+Path getDockedRoundCornersPathForDirection({
   required ScreenEdge dockedSide,
   required Rect rect,
   required double radiusInCross,
@@ -35,7 +35,7 @@ getDockedRoundCornersPathForDirection({
   );
 }
 
-getDockedRoundCornersPathPercForDirection({
+Path getDockedRoundCornersPathPercForDirection({
   required ScreenEdge dockedSide,
   required Rect rect,
   required double radiusInPercCross,
@@ -68,7 +68,7 @@ getDockedRoundCornersPathPercForDirection({
   );
 }
 
-getDockedRoundCornersPath({
+Path getDockedRoundCornersPath({
   required ScreenEdge dockedSide,
   required Rect rect,
   required double radiusInX,

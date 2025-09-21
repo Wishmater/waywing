@@ -1,8 +1,7 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
 import "package:fl_linux_window_manager/widgets/focus_grab.dart";
-import "package:flutter/foundation.dart";
-import "package:flutter/material.dart";
+import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/state_positioning.dart";

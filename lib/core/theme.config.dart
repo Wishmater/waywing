@@ -9,7 +9,12 @@ part of 'theme.dart';
 
 mixin ThemeConfigI {
   ThemeMode get mode;
+
+  /// Use this to set a custom font
   String? get fontFamily;
+
+  /// Set the font size
+  double get fontSize;
   List<IconType> get iconPriority;
   ConfigIconVariation get iconFlutterVariation;
   bool get iconFlutterTwoTone;
@@ -30,6 +35,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     fields: {
       'mode': ThemeConfigBase._mode,
       'fontFamily': ThemeConfigBase._fontFamily,
+      'fontSize': ThemeConfigBase._fontSize,
       'iconPriority': ThemeConfigBase._iconPriority,
       'iconFlutterVariation': ThemeConfigBase._iconFlutterVariation,
       'iconFlutterTwoTone': ThemeConfigBase._iconFlutterTwoTone,
@@ -52,6 +58,8 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   final ThemeMode mode;
   @override
   final String? fontFamily;
+  @override
+  final double fontSize;
   @override
   final List<IconType> iconPriority;
   @override
@@ -82,6 +90,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   ThemeConfig({
     ThemeMode? mode,
     this.fontFamily,
+    double? fontSize,
     List<IconType>? iconPriority,
     ConfigIconVariation? iconFlutterVariation,
     bool? iconFlutterTwoTone,
@@ -96,6 +105,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     double? backgroundOpacity,
     double? shadows,
   }) : mode = mode ?? ThemeMode.system,
+       fontSize = fontSize ?? kDefaultFontSize,
        iconPriority =
            iconPriority ??
            [
@@ -117,6 +127,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     return ThemeConfig(
       mode: map['mode'],
       fontFamily: map['fontFamily'],
+      fontSize: map['fontSize'],
       iconPriority: map['iconPriority'],
       iconFlutterVariation: map['iconFlutterVariation'],
       iconFlutterTwoTone: map['iconFlutterTwoTone'],
@@ -135,13 +146,14 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
 
   @override
   String toString() {
-    return 'ThemeConfig(mode = $mode, fontFamily = $fontFamily, iconPriority = $iconPriority, iconFlutterVariation = $iconFlutterVariation, iconFlutterTwoTone = $iconFlutterTwoTone, iconFlutterFill = $iconFlutterFill, iconFlutterWeight = $iconFlutterWeight, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows)';
+    return 'ThemeConfig(mode = $mode, fontFamily = $fontFamily, fontSize = $fontSize, iconPriority = $iconPriority, iconFlutterVariation = $iconFlutterVariation, iconFlutterTwoTone = $iconFlutterTwoTone, iconFlutterFill = $iconFlutterFill, iconFlutterWeight = $iconFlutterWeight, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows)';
   }
 
   @override
   bool operator ==(covariant ThemeConfig other) {
     return mode == other.mode &&
         fontFamily == other.fontFamily &&
+        fontSize == other.fontSize &&
         iconPriority == other.iconPriority &&
         iconFlutterVariation == other.iconFlutterVariation &&
         iconFlutterTwoTone == other.iconFlutterTwoTone &&
@@ -161,6 +173,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   int get hashCode => Object.hashAll([
     mode,
     fontFamily,
+    fontSize,
     iconPriority,
     iconFlutterVariation,
     iconFlutterTwoTone,

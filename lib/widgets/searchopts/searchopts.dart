@@ -4,6 +4,7 @@ import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
 import "package:fuzzy_string/fuzzy_string.dart";
+import "package:waywing/core/config.dart";
 import "./options_list_widgets/stack_option_list_widget.dart";
 
 /// An [Intent] to highlight the previous option in the autocomplete list.
@@ -255,6 +256,7 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
       highlighted: highlighted,
       availableHeight: contentHeight,
       showScrollBar: widget.showScrollBar,
+      motion: mainConfig.motions.expressive.spatial.normal,
     );
 
     return Shortcuts(

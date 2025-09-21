@@ -125,25 +125,36 @@ class App extends StatelessWidget {
               themeAnimationCurve: Curves.easeOutCubic,
               home: Builder(
                 builder: (context) {
-                  return XdgIconTheme(
-                    data: XdgIconThemeData(
-                      size: TextIcon.getIconEffectiveSize(context).round(),
+                  final theme = Theme.of(context);
+
+                  /// The text size configuration needs to happen here because the default
+                  /// text has all sizes in null... aparently is MaterialApp who fill the sizes
+                  return Theme(
+                    data: theme.copyWith(
+                      textTheme: theme.textTheme.apply(
+                        fontSizeFactor: mainConfig.theme.fontSizeScaleFactor,
+                      ),
                     ),
-                    child: Scaffold(
-                      backgroundColor: Colors.transparent,
-                      body: CallbackShortcuts(
-                        bindings: {
-                          const SingleActivator(LogicalKeyboardKey.escape): () {
-                            FocusScope.of(context).requestScopeFocus();
+                    child: XdgIconTheme(
+                      data: XdgIconThemeData(
+                        size: TextIcon.getIconEffectiveSize(context).round(),
+                      ),
+                      child: Scaffold(
+                        backgroundColor: Colors.transparent,
+                        body: CallbackShortcuts(
+                          bindings: {
+                            const SingleActivator(LogicalKeyboardKey.escape): () {
+                              FocusScope.of(context).requestScopeFocus();
+                            },
                           },
-                        },
-                        child: WingedPopoverProvider(
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              ...wingWidgets,
-                              Positioned.fill(child: MouseFocusListener()),
-                            ],
+                          child: WingedPopoverProvider(
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                ...wingWidgets,
+                                Positioned.fill(child: MouseFocusListener()),
+                              ],
+                            ),
                           ),
                         ),
                       ),

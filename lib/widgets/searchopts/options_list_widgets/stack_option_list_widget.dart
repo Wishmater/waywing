@@ -6,7 +6,7 @@ import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
 import "package:motor/motor.dart";
-import "package:waywing/core/config.dart";
+// import "package:waywing/core/config.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "../searchopts.dart";
 
@@ -21,6 +21,8 @@ class StackOptionsListWidget<T extends Object> extends StatefulWidget {
   final ValueNotifier<int> highlighted;
   final double availableHeight;
   final bool showScrollBar;
+  // TODO 3: do we need more motions?
+  final Motion motion;
 
   const StackOptionsListWidget({
     required this.options,
@@ -31,6 +33,7 @@ class StackOptionsListWidget<T extends Object> extends StatefulWidget {
     required this.highlighted,
     required this.availableHeight,
     required this.showScrollBar,
+    required this.motion,
     super.key,
   });
 
@@ -95,13 +98,14 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
           valueListenable: widget.highlighted,
           builder: (context, value, child) {
             return MotionPositioned(
-              motion: mainConfig.motions.expressive.spatial.normal,
+              motion: widget.motion,
               left: 0,
               right: 0,
               top: widget.itemHeight * (e.index - startingIndex),
               child: _ItemAnimation(
                 isItemVisible: isVisible,
                 isItemRemoved: e.timeRemoved != null,
+                motion: widget.motion,
                 child: widget.renderOption(
                   context,
                   e.option.object,
@@ -142,9 +146,8 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
     final areAllItemsVisible = widget.filtered.length <= focusableItemCount;
     const scrollbarWidth = 3.0;
     final scrollbar = switch (widget.showScrollBar) {
-      true => AnimatedPositioned(
-        duration: animationDuration * 0.66,
-        curve: Curves.easeOutCubic,
+      true => MotionPositioned(
+        motion: widget.motion,
         top: focusableHeight * startingPerc,
         height: focusableHeight * visiplePerc,
         right: 0,
@@ -288,12 +291,14 @@ class _Item<T extends Object> {
 class _ItemAnimation<T extends Object> extends StatefulWidget {
   final bool isItemVisible;
   final bool isItemRemoved;
+  final Motion motion;
   final Widget child;
 
   const _ItemAnimation({
     required this.isItemVisible,
     required this.isItemRemoved,
     required this.child,
+    required this.motion,
     super.key,
   });
 
@@ -311,12 +316,12 @@ class _ItemAnimationState extends State<_ItemAnimation> with TickerProviderState
   void initState() {
     super.initState();
     opacityAnimationController = SingleMotionController(
-      motion: mainConfig.motions.expressive.effects.normal,
+      motion: widget.motion,
       initialValue: 0,
       vsync: this,
     );
     translationAnimationController = SingleMotionController(
-      motion: mainConfig.motions.expressive.effects.normal,
+      motion: widget.motion,
       initialValue: widget.isItemVisible ? 1 : 0.5,
       vsync: this,
     );

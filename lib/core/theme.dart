@@ -23,7 +23,13 @@ enum ConfigIconVariation {
 mixin ThemeConfigBase on ThemeConfigI {
   static const _mode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
 
+  /// Use this to set a custom font
   static const _fontFamily = StringField(nullable: true);
+
+  /// Set the font size
+  static const _fontSize = DoubleNumberField(defaultTo: kDefaultFontSize);
+
+  double get fontSizeScaleFactor => fontSize / kDefaultFontSize;
 
   static const _iconPriority = ListField(
     EnumField(IconType.values),
@@ -259,7 +265,7 @@ class WaywingTheme {
   }
 
   ThemeData _getTheme(ColorScheme colorScheme) {
-    final result = ThemeData(
+    var result = ThemeData(
       colorScheme: colorScheme,
       fontFamily: config.fontFamily,
       splashFactory: mainConfig.animationEnable ? InkSparkle.splashFactory : NoSplash.splashFactory,

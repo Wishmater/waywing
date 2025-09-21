@@ -64,7 +64,10 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
                     data: List<ValueNotifier<Notification>>.from(notifications),
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     itemBuilder: (context, noti) {
-                      Widget result = _NotificationWidget(noti, widget.config);
+                      Widget result = _NotificationWidget(
+                        noti,
+                        widget.config,
+                      );
                       // TODO: 2 should we enable variable notif width, at least as an option ?
                       // result = Align(
                       //   alignment: widget.config.alignment,
@@ -107,7 +110,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
   ValueNotifier<bool> isHovered = ValueNotifier(false);
 
   // TODO: 1 if notification has no body and no actions, it should not be expandable (disable functionality entirely)
-  late bool isExpanded = widget.config.autoExpand;
+  late bool isExpanded = widget.notification.value.isFirst ? true : widget.config.autoExpand;
   late BoundedSingleMotionController _animationController;
   bool isDragging = false;
 
@@ -119,6 +122,11 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
       vsync: this,
       initialValue: isExpanded ? 1 : 0,
     );
+    widget.notification.addListener(() {
+      if (!isExpanded && widget.notification.value.isFirst) {
+        _toggleExpansion();
+      }
+    });
   }
 
   @override

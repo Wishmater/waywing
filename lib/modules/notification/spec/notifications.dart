@@ -1,6 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 
 import "dart:async";
+import "dart:collection";
 
 import "package:dbus/dbus.dart";
 import "package:tronco/tronco.dart";
@@ -109,6 +110,9 @@ class Notification {
   /// user will most likely want to know about.
   NotificationUrgency get urgency => hints.urgency;
 
+  /// True if notification is at the top of the list
+  final bool isFirst;
+
   Notification._({
     required this.id,
     required this.timestampMs,
@@ -120,6 +124,7 @@ class Notification {
     required this.actions,
     required this.hints,
     required this.timeout,
+    required this.isFirst,
   });
 
   Notification({
@@ -132,7 +137,8 @@ class Notification {
     required this.hints,
     required this.timeout,
   }) : timestampMs = DateTime.now().millisecondsSinceEpoch,
-       id = _idGenerator++;
+       id = _idGenerator++,
+       isFirst = false;
 
   Notification copyWith({
     String? appName,
@@ -144,6 +150,7 @@ class Notification {
     NotificationHints? hints,
     int? timeout,
     int? timestampMs,
+    bool? isFirst,
   }) {
     return Notification._(
       id: id,
@@ -156,6 +163,7 @@ class Notification {
       hints: hints ?? this.hints,
       timeout: timeout ?? this.timeout,
       timestampMs: timestampMs ?? this.timestampMs,
+      isFirst: isFirst ?? this.isFirst,
     );
   }
 
@@ -171,7 +179,8 @@ class Notification {
         actions == other.actions &&
         hints == other.hints &&
         timeout == other.timeout &&
-        timestampMs == other.timestampMs;
+        timestampMs == other.timestampMs &&
+        isFirst == other.isFirst;
   }
 
   @override
@@ -186,6 +195,11 @@ class Notification {
     timeout,
     timestampMs,
   ]);
+
+  @override
+  String toString() {
+    return "Notification(id: $id, appName: $appName, appIcon: $appIcon, summary: $summary, body: $body)";
+  }
 }
 
 /// Main Notification object that expose an org.freedesktop.Notifications dbus interface
@@ -194,7 +208,7 @@ class Notification {
 class OrgFreedesktopNotifications extends DBusObject {
   final Logger logger;
 
-  final Map<int, Notification> activeNotifications;
+  final LinkedHashMap<int, Notification> activeNotifications;
   final Map<String, int> synchronousIds;
   final Map<int, NotificationTimer> _timers;
 
@@ -209,7 +223,7 @@ class OrgFreedesktopNotifications extends DBusObject {
   OrgFreedesktopNotifications({
     required this.logger,
     DBusObjectPath path = const DBusObjectPath.unchecked("/"),
-  }) : activeNotifications = {},
+  }) : activeNotifications = LinkedHashMap(),
        synchronousIds = {},
        _timers = {},
        _notificationCreated = StreamController(),
@@ -231,6 +245,9 @@ class OrgFreedesktopNotifications extends DBusObject {
 
   void addOrReplaceNotification(Notification notification) {
     bool contains = activeNotifications.containsKey(notification.id);
+    if (activeNotifications.isEmpty || activeNotifications.values.first.id == notification.id) {
+      notification = notification.copyWith(isFirst: true);
+    }
     activeNotifications[notification.id] = notification;
 
     bool isSynchronous = notification.hints.synchronous?.isNotEmpty == true;
@@ -261,7 +278,13 @@ class OrgFreedesktopNotifications extends DBusObject {
   }
 
   void removeNotification(int id, NotificationsCloseReason reason) {
+    final isFirst = activeNotifications.values.firstOrNull?.id == id;
     final removed = activeNotifications.remove(id);
+    if (isFirst && activeNotifications.isNotEmpty) {
+      final notification = activeNotifications.values.first;
+      activeNotifications[notification.id] = notification.copyWith(isFirst: true);
+      _notificationChanged.add(notification.id);
+    }
     if (removed != null) {
       if (removed.hints.synchronous?.isNotEmpty == true) {
         synchronousIds.remove(removed.hints.synchronous!);

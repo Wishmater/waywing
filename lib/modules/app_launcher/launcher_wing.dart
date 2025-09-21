@@ -1,4 +1,6 @@
+import "package:fl_linux_window_manager/widgets/focus_grab.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:path/path.dart";
@@ -55,19 +57,19 @@ class AppLauncherWing extends Wing<LauncherConfig> {
       valueListenable: showLauncher,
       builder: (contex, show, _) {
         if (show) {
-          return InputRegion(
-            child: KeyboardFocus(
-              mode: KeyboardFocusMode.exclusive,
-              child: CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.escape): () {
-                    showLauncher.value = false;
+          return Center(
+            child: InputRegion(
+              child: KeyboardFocus(
+                mode: kReleaseMode ? KeyboardFocusMode.exclusive : KeyboardFocusMode.onDemand,
+                child: CallbackShortcuts(
+                  bindings: {
+                    const SingleActivator(LogicalKeyboardKey.escape): () {
+                      showLauncher.value = false;
+                    },
                   },
-                },
-                child: SizedBox(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: Center(
+                  child: FocusGrab(
+                    callback: () => showLauncher.value = false,
+                    grabOnInit: kReleaseMode,
                     child: SizedBox(
                       width: config.width.toDouble(),
                       height: config.height.toDouble(),

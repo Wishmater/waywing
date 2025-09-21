@@ -1,3 +1,5 @@
+import "dart:math";
+
 import "package:flutter/material.dart";
 import "package:upower/upower.dart";
 import "package:waywing/modules/battery/battery_service.dart";
@@ -24,7 +26,7 @@ class BatteryIndicatorState extends State<BatteryIndicator> {
     return LayoutBuilder(
       builder: (context, constrains) {
         final width = 35.0.clamp(constrains.minWidth, constrains.maxWidth);
-        final height = (15.0 * width/35).clamp(constrains.minHeight, constrains.maxHeight);
+        final height = (15.0 * width / 35).clamp(constrains.minHeight, constrains.maxHeight);
         return ValueListenableBuilder(
           valueListenable: DerivedValueNotifier(
             dependencies: [values.energy, values.energyFull, values.state],
@@ -47,7 +49,7 @@ class BatteryIndicatorState extends State<BatteryIndicator> {
             );
           },
         );
-      }
+      },
     );
   }
 }
@@ -92,7 +94,7 @@ class _BatteryIndicator extends StatelessWidget {
         batteryLevel: batteryLevel,
         fillColor: fillColor,
         outlineColor: outlineColor,
-        textStyle: theme.textTheme.bodyMedium!.copyWith(color: theme.colorScheme.onPrimary),
+        textStyle: theme.textTheme.bodyMedium!,
       ),
     );
   }
@@ -153,7 +155,7 @@ class _BatteryPainter extends CustomPainter {
 
     final TextSpan span = TextSpan(
       text: "${batteryLevel.floor()}",
-      style: textStyle.copyWith(fontSize: size.height * 0.8, height: 1),
+      style: textStyle.copyWith(fontSize: min(textStyle.fontSize ?? double.infinity, size.height * 0.75), height: -1),
     );
     final TextPainter tp = TextPainter(
       text: span,

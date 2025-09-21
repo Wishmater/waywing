@@ -87,7 +87,7 @@ class NMServiceDevices extends ChangeNotifier implements ValueListenable<List<NM
 
 class NMServiceDevice {
   ValueListenable<NetworkManagerActiveConnection?> get activeConnection => _activeConnection;
-  late final ValueListenable<NetworkManagerActiveConnection?> _activeConnection;
+  final DBusPropertyValueNotifier<NetworkManagerActiveConnection?> _activeConnection;
 
   ValueListenable<String?> get activeConnectionName => _activeConnectionName;
   late final ValueListenable<String?> _activeConnectionName;
@@ -96,10 +96,10 @@ class NMServiceDevice {
   late final DerivedValueNotifier<bool> _isConnected;
 
   ValueListenable<int?> get txBytes => _txBytes;
-  late final DBusPropertyValueNotifier<int?> _txBytes;
+  final DBusPropertyValueNotifier<int?> _txBytes;
 
   ValueListenable<int?> get rxBytes => _rxBytes;
-  late final DBusPropertyValueNotifier<int?> _rxBytes;
+  final DBusPropertyValueNotifier<int?> _rxBytes;
 
   ValueListenable<double?> get txRate => _txRate;
   late final DerivedValueNotifier<double?> _txRate;
@@ -113,7 +113,24 @@ class NMServiceDevice {
   final NetworkManagerClient _client;
   final NetworkManagerDevice _device;
   final Logger _logger;
-  NMServiceDevice(this._client, this._device, this._logger);
+
+  NMServiceDevice(this._client, this._device, this._logger)
+    : _activeConnection = DBusPropertyValueNotifier(
+        name: "ActiveConnection",
+        stream: _device.propertiesChanged,
+        callback: () => _device.activeConnection,
+      ),
+      // TODO: 3 can "Statistics" object change, which means we would need to re-init this (or update the stream in the notifier)
+      _txBytes = DBusPropertyValueNotifier(
+        name: "TxBytes",
+        stream: _device.statistics?.propertiesChanged,
+        callback: () => _device.statistics?.txBytes,
+      ),
+      _rxBytes = DBusPropertyValueNotifier(
+        name: "RxBytes",
+        stream: _device.statistics?.propertiesChanged,
+        callback: () => _device.statistics?.rxBytes,
+      );
 
   factory NMServiceDevice.build(NetworkManagerClient client, NetworkManagerDevice device, Logger logger) {
     if (device.deviceType == NetworkManagerDeviceType.wifi) {
@@ -132,28 +149,11 @@ class NMServiceDevice {
       await _device.statistics!.setRefreshRateMs(1000);
     }
 
-    _activeConnection = DBusPropertyValueNotifier(
-      name: "ActiveConnection",
-      stream: _device.propertiesChanged,
-      callback: () => _device.activeConnection,
-    );
     _isConnected = DerivedValueNotifier(
       dependencies: [_activeConnection],
       derive: () => _activeConnection.value != null,
     );
     initActiveConnectionName();
-
-    // TODO: 3 can "Statistics" object change, which means we would need to re-init this (or update the stream in the notifier)
-    _txBytes = DBusPropertyValueNotifier(
-      name: "TxBytes",
-      stream: _device.statistics?.propertiesChanged,
-      callback: () => _device.statistics?.txBytes,
-    );
-    _rxBytes = DBusPropertyValueNotifier(
-      name: "RxBytes",
-      stream: _device.statistics?.propertiesChanged,
-      callback: () => _device.statistics?.rxBytes,
-    );
 
     _txRate = DerivedValueNotifier(
       dependencies: [_txBytes],
@@ -196,6 +196,8 @@ class NMServiceDevice {
     _rxBytes.dispose();
     _txRate.dispose();
     _rxRate.dispose();
+    _activeConnection.dispose();
+    _isConnected.dispose();
   }
 }
 
@@ -285,66 +287,63 @@ class _RemoveDuplicatedElement {
 
 class NMServiceWifiDevice extends NMServiceDevice {
   ValueListenable<List<NMServiceAccessPoint>> get accessPoints => _accessPoints;
-  late final DBusPropertyValueNotifier<List<NMServiceAccessPoint>> _accessPoints;
+  final DBusPropertyValueNotifier<List<NMServiceAccessPoint>> _accessPoints;
 
   ValueListenable<NMServiceAccessPoint?> get activeAccessPoint => _activeAccessPoint;
-  late final DBusPropertyValueNotifier<NMServiceAccessPoint?> _activeAccessPoint;
+  final DBusPropertyValueNotifier<NMServiceAccessPoint?> _activeAccessPoint;
 
   ValueListenable<int> get lastScan => _lastScan;
-  late final DBusPropertyValueNotifier<int> _lastScan;
+  final DBusPropertyValueNotifier<int> _lastScan;
 
   ValueListenable<bool> get wirelessEnabled => _wirelessEnabled;
-  late final DBusPropertyValueNotifier<bool> _wirelessEnabled;
+  final DBusPropertyValueNotifier<bool> _wirelessEnabled;
 
-  NMServiceWifiDevice(super._client, super._device, super._logger);
+  NMServiceWifiDevice(super._client, super._device, super._logger)
+    : _activeAccessPoint = DBusPropertyValueNotifier(
+        name: "ActiveAccessPoint",
+        stream: _device.wireless!.propertiesChanged,
+        callback: () {
+          if (_device.wireless!.activeAccessPoint == null) return null;
+          final result = NMServiceAccessPoint(_device.wireless!.activeAccessPoint!);
+          result.init();
+          return result;
+        },
+      ),
+      // TODO: 3 is probably that there is a leak here because the previous NMServiceAccessPoint
+      // did not dispose when changed (same in _activeAccessPoint)
+      _accessPoints = DBusPropertyValueNotifier(
+        name: "AccessPoints",
+        stream: _device.wireless!.propertiesChanged,
+        callback: () => _device.wireless!.accessPoints
+            .removeHidden()
+            .removeInvalidUtf8Ssid()
+            .removeDuplicated(_device.wireless!.activeAccessPoint)
+            .map((e) {
+              final result = NMServiceAccessPoint(e);
+              result.init();
+              return result;
+            })
+            .sortedByDescending((e) => e._accessPoint.strength)
+            .toList(),
+      ),
+      _lastScan = DBusPropertyValueNotifier(
+        name: "LastScan",
+        stream: _device.wireless!.propertiesChanged,
+        callback: () => _device.wireless!.lastScan,
+      ),
+      _wirelessEnabled = DBusPropertyValueNotifier(
+        name: "WirelessEnabled",
+        stream: _client.propertiesChanged,
+        callback: () => _client.wirelessEnabled,
+      );
 
   @override
   Future<void> init() async {
     await super.init();
-    _activeAccessPoint = DBusPropertyValueNotifier(
-      name: "ActiveAccessPoint",
-      stream: _device.wireless!.propertiesChanged,
-      callback: () {
-        if (_device.wireless!.activeAccessPoint == null) return null;
-        final result = NMServiceAccessPoint(_device.wireless!.activeAccessPoint!);
-        result.init();
-        return result;
-      },
-    );
-    _initActiveConnectionName();
-    // TODO: 3 is probably that there is a leak here because the previous NMServiceAccessPoint
-    // did not dispose when changed (same in _activeAccessPoint)
-    _accessPoints = DBusPropertyValueNotifier(
-      name: "AccessPoints",
-      stream: _device.wireless!.propertiesChanged,
-      callback: () => _device.wireless!.accessPoints
-          .removeHidden()
-          .removeInvalidUtf8Ssid()
-          .removeDuplicated(_device.wireless!.activeAccessPoint)
-          .map((e) {
-            final result = NMServiceAccessPoint(e);
-            result.init();
-            return result;
-          })
-          .sortedByDescending((e) => e._accessPoint.strength)
-          .toList(),
-    );
-    _lastScan = DBusPropertyValueNotifier(
-      name: "LastScan",
-      stream: _device.wireless!.propertiesChanged,
-      callback: () => _device.wireless!.lastScan,
-    );
-    _wirelessEnabled = DBusPropertyValueNotifier(
-      name: "WirelessEnabled",
-      stream: _client.propertiesChanged,
-      callback: () => _client.wirelessEnabled,
-    );
   }
 
   @override
-  void initActiveConnectionName() {}
-  void _initActiveConnectionName() {
-    // hack to manually run this at the END of init, because it depends on other notifiers
+  void initActiveConnectionName() {
     _activeConnectionName = DerivedValueNotifier(
       dependencies: [_activeConnection, _activeAccessPoint],
       derive: () {
@@ -356,11 +355,11 @@ class NMServiceWifiDevice extends NMServiceDevice {
 
   @override
   void dispose() {
-    super.dispose();
     _activeAccessPoint.dispose();
     _accessPoints.dispose();
     _lastScan.dispose();
     _wirelessEnabled.dispose();
+    super.dispose();
   }
 
   Future<void> requestScan() async {
@@ -544,7 +543,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
 
 class NMServiceAccessPoint {
   ValueListenable<double> get strength => _strength;
-  late final DBusPropertyValueNotifier<double> _strength;
+  final DBusPropertyValueNotifier<double> _strength;
 
   late final String ssid = utf8.decode(_accessPoint.ssid);
 
@@ -555,15 +554,14 @@ class NMServiceAccessPoint {
   late final isSecured = rsnFlags.isNotEmpty || wpaFlags.isNotEmpty;
 
   final NetworkManagerAccessPoint _accessPoint;
-  NMServiceAccessPoint(this._accessPoint);
+  NMServiceAccessPoint(this._accessPoint)
+    : _strength = DBusPropertyValueNotifier(
+        name: "Strength",
+        stream: _accessPoint.propertiesChanged,
+        callback: () => _accessPoint.strength / 100,
+      );
 
-  void init() {
-    _strength = DBusPropertyValueNotifier(
-      name: "Strength",
-      stream: _accessPoint.propertiesChanged,
-      callback: () => _accessPoint.strength / 100,
-    );
-  }
+  void init() {}
 
   void dispose() {
     _strength.dispose();

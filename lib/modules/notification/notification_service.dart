@@ -82,13 +82,12 @@ class NotificationsService extends Service {
 }
 
 class NotificationsList {
-  late final ValueListenable<List<ValueNotifier<Notification>>> notifications;
+  final ValueListenable<List<ValueNotifier<Notification>>> notifications;
 
-  NotificationsList(OrgFreedesktopNotifications server) {
-    notifications = ManualValueNotifier(
-      server.activeNotifications.values.map((e) => NotificationValueNotifier(e)).toList(),
-    );
-
+  NotificationsList(OrgFreedesktopNotifications server)
+    : notifications = ManualValueNotifier(
+        server.activeNotifications.values.map((e) => NotificationValueNotifier(e)).toList(),
+      ) {
     server.notificationChanged.listen((id) {
       for (final notification in notifications.value) {
         if (notification.value.id == id) {

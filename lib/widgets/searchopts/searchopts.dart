@@ -259,6 +259,8 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
       motion: mainConfig.motions.expressive.spatial.normal,
     );
 
+    final borderRadiusTop = const BorderRadius.vertical(top: Radius.circular(10));
+    final borderRadiusBottom = const BorderRadius.vertical(bottom: Radius.circular(10));
     return Shortcuts(
       shortcuts: shortcuts,
       child: Actions(
@@ -267,9 +269,12 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
           children: [
             SizedBox(
               height: textFieldHeight,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: borderRadiusTop,
+                ),
                 child: Material(
+                  borderRadius: borderRadiusTop,
                   child: TextFormField(
                     autofocus: true,
                     focusNode: widget.focusNode,
@@ -290,9 +295,12 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
               child: ExcludeFocusTraversal(
                 child: Align(
                   alignment: Alignment.topCenter,
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(10)),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: borderRadiusBottom,
+                    ),
                     child: Material(
+                      borderRadius: borderRadiusBottom,
                       child: ShaderMask(
                         blendMode: BlendMode.dstOut,
                         shaderCallback: (_) {

@@ -176,6 +176,8 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
     }
     return Listener(
       onPointerSignal: onPointerSignal,
+      onPointerPanZoomUpdate: onPanUpdate,
+      // TODO 2: use MotionContainer
       child: AnimatedContainer(
         height: min(widget.availableHeight, widget.itemHeight * visibleAndNotRemovedItemCount),
         duration: animationDuration,
@@ -233,22 +235,35 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
     }
   }
 
+  Offset _pan = Offset.zero;
+  void onPanUpdate(PointerPanZoomUpdateEvent event) {
+    _pan += event.localPanDelta;
+    if (_pan.dy.abs() < 30) {
+      return;
+    }
+    _onScrollDelta(-_pan);
+    _pan = Offset.zero;
+  }
+
   void onPointerSignal(PointerSignalEvent event) {
     if (event is! PointerScrollEvent) {
       return;
     }
+    return _onScrollDelta(event.scrollDelta);
+  }
 
+  void _onScrollDelta(Offset scrollDelta) {
     int newHighlight = widget.highlighted.value;
     final multiplier = switch (HardwareKeyboard.instance.isControlPressed) {
       true => 5,
       false => 1,
     };
     ScrollDirection? direction;
-    assert(event.scrollDelta.dy != 0, "unexpected value of 0 in event.scrollDelta.dy");
-    if (event.scrollDelta.dy < 0) {
+    assert(scrollDelta.dy != 0, "unexpected value of 0 in event.scrollDelta.dy");
+    if (scrollDelta.dy < 0) {
       direction = ScrollDirection.reverse;
       newHighlight -= 1 * multiplier;
-    } else if (event.scrollDelta.dy > 0) {
+    } else if (scrollDelta.dy > 0) {
       direction = ScrollDirection.forward;
       newHighlight += 1 * multiplier;
     }

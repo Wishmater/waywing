@@ -89,9 +89,19 @@ class NotificationsList {
         server.activeNotifications.values.map((e) => NotificationValueNotifier(e)).toList(),
       ) {
     server.notificationChanged.listen((id) {
-      for (final notification in notifications.value) {
+      for (int i = 0; i< notifications.value.length; i++) {
+        final notification = notifications.value[i];
         if (notification.value.id == id) {
-          notification.value = server.activeNotifications[id]!;
+          final newNotification = server.activeNotifications[id];
+          /// Change notification event is async, which means that when we get the event the notification
+          /// could be already deleted. Having a null assert is fine must of the time... but i do managed
+          /// to get an `Null check operator used on a null value` error after my laptop wake up from sleep
+          if (newNotification != null) {
+            notification.value = newNotification;
+          } else {
+            notifications.value.removeAt(i);
+          }
+          break;
         }
       }
     });

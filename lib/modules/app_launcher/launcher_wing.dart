@@ -44,12 +44,14 @@ class AppLauncherWing extends Wing<LauncherConfig> {
       "Show the application launcher",
       (params) {
         showLauncher.value = true;
+        // controller.grabFocus();
         return Response.ok();
       },
     ),
   };
 
   ValueNotifier<bool> showLauncher = ValueNotifier(false);
+  final controller = FocusGrabController();
 
   @override
   Widget buildWing(EdgeInsets rerservedSpace) {
@@ -65,11 +67,15 @@ class AppLauncherWing extends Wing<LauncherConfig> {
                   bindings: {
                     const SingleActivator(LogicalKeyboardKey.escape): () {
                       showLauncher.value = false;
+                      // controller.ungrabFocus();
                     },
                   },
                   child: FocusGrab(
-                    callback: () => showLauncher.value = false,
-                    grabOnInit: kReleaseMode,
+                    // controller: controller,
+                    callback: () {
+                      showLauncher.value = false;
+                    },
+                    grabOnInit: true,
                     child: SizedBox(
                       width: config.width.toDouble(),
                       height: config.height.toDouble(),

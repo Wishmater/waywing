@@ -106,7 +106,7 @@ class ShapeShadowPainter extends CustomPainter {
     Paint paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, elevation);
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, Shadow.convertRadiusToSigma(elevation));
 
     // Draw the main path
     canvas.drawPath(shadowPath, paint);

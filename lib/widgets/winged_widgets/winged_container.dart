@@ -228,19 +228,23 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
           ),
           if (shape != null && elevation > 0)
             Positioned.fill(
-              child: ClipPath(
-                clipper: ShapeClipper(
-                  shape: shape,
-                  contain: false,
-                ),
-                child: widget.usePainter
-                    ? CustomPaint(
+              child: widget.usePainter
+                  ? IgnorePointer(
+                      child: CustomPaint(
                         painter: ShapeShadowPainter(
                           shape: shape,
-                          shadow: Shadow(blurRadius: elevation, color: color, offset: offset),
+                          elevation: elevation,
+                          offset: offset,
+                          color: color,
                         ),
-                      )
-                    : ImageFiltered(
+                      ),
+                    )
+                  : ClipPath(
+                      clipper: ShapeClipper(
+                        shape: shape,
+                        contain: false,
+                      ),
+                      child: ImageFiltered(
                         imageFilter: ImageFilter.blur(
                           sigmaX: elevation,
                           sigmaY: elevation,
@@ -261,7 +265,7 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
                           ),
                         ),
                       ),
-              ),
+                    ),
             ),
         ],
       ),

@@ -23,22 +23,32 @@ class ConfigChangeWatcher extends StatefulWidget {
 class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   void _watch() async {
     final filepath = getConfigurationFilePath();
-    final w = watcher.DirectoryWatcher(getConfigurationDirectoryPath());
-    w.events.listen(
-      (event) {
-        if (event.path == filepath) {
-          if (event.type == watcher.ChangeType.REMOVE) {
-            return;
+    while(true) {
+      final w = watcher.DirectoryWatcher(File(filepath).parent.path);
+      _logger.trace("watching directory for configuration reset ${w.path}");
+      final completer = Completer<()>();
+      w.events.listen(
+        (event) {
+          if (event.path == filepath) {
+            if (event.type == watcher.ChangeType.REMOVE) {
+              return;
+            }
+            _logger.trace("watch configuration file event $event");
+            onConfigUpdated();
           }
-          _logger.trace("watch configuration file event $event");
-          onConfigUpdated();
-        }
-      },
-      onError: (e) {
-        _logger.error("watching directory error $e");
-      },
-      cancelOnError: true,
-    );
+        },
+        onError: (e) {
+          _logger.error("watching directory error $e");
+        },
+        onDone: () async {
+          _logger.debug("watching directory end");
+          completer.complete(());
+        },
+        cancelOnError: false,
+      );
+      await completer.future;
+      await Future.delayed(Duration(milliseconds: 100));
+    }
   }
 
   @override

@@ -14,7 +14,7 @@ late Logger mainLogger;
 
 @Config()
 mixin LoggingConfigBase on LoggingConfigI {
-  static const _levelFilter = EnumField(Level.values, defaultTo: Level.info);
+  static const _levelFilter = EnumField(Level.values, defaultTo: kDebugMode ? Level.trace : Level.info);
   static const _typeLevelFilters = MapField(StringField(), EnumField(Level.values), defaultTo: <String, Level>{});
   static const _output = StringField(nullable: true);
 }

@@ -13,8 +13,8 @@ mixin BarConfigBase on BarConfigI {
   // Positioning / sizing
   //===========================================================================
 
-  static const _side = EnumField(ScreenEdge.values);
-  static const _size = IntegerNumberField(); // in pixels
+  static const _side = EnumField(ScreenEdge.values, defaultTo: ScreenEdge.bottom);
+  static const _size = IntegerNumberField(defaultTo: 30); // in pixels
 
   // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
   static const _marginLeft = DoubleNumberField(defaultTo: 0);

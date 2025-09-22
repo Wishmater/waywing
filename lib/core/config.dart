@@ -180,18 +180,7 @@ Future<String> getConfigurationString() async {
 
 // TODO: 2 RELEASE update the defalut config
 const String defaultConfig = '''
-  seedColor = "#0000ff"
-  animationDuration = 250ms
-  barSide = "top"
-  barSize = 64
-  barMarginLeft = barSize
-  barMarginRight = barSize
-  barRadiusInCross = barSize * 0.5
-  barRadiusInMain = barSize * 0.5 * 0.67
-  barRadiusOutCross = barSize * 0.5
-  barRadiusOutMain = barSize * 0.5 * 1.5
-  barStartFeathers = [  ]
-  barEndFeathers = [ "Volume", "NetworkManager", "SystemTray", "Clock" ]
+
 ''';
 
 dynamic _toPrettyJson(dynamic values) {

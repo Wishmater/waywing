@@ -1,6 +1,4 @@
-import "package:fl_linux_window_manager/widgets/focus_grab.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
-import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:path/path.dart";
@@ -11,6 +9,7 @@ import "package:waywing/core/wing.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/modules/app_launcher/launcher_config.dart";
 import "package:waywing/modules/app_launcher/launcher_widget.dart";
+import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 
 class AppLauncherWing extends Wing<LauncherConfig> {
@@ -44,14 +43,18 @@ class AppLauncherWing extends Wing<LauncherConfig> {
       "Show the application launcher",
       (params) {
         showLauncher.value = true;
-        // controller.grabFocus();
+        controller.grabFocus();
         return Response.ok();
       },
     ),
   };
 
   ValueNotifier<bool> showLauncher = ValueNotifier(false);
-  final controller = FocusGrabController();
+  late final controller = FocusGrabController(
+    onCleared: () {
+      showLauncher.value = false;
+    },
+  );
 
   @override
   Widget buildWing(EdgeInsets rerservedSpace) {
@@ -62,20 +65,16 @@ class AppLauncherWing extends Wing<LauncherConfig> {
           return Center(
             child: InputRegion(
               child: KeyboardFocus(
-                mode: kReleaseMode ? KeyboardFocusMode.exclusive : KeyboardFocusMode.onDemand,
+                mode: KeyboardFocusMode.onDemand,
                 child: CallbackShortcuts(
                   bindings: {
                     const SingleActivator(LogicalKeyboardKey.escape): () {
                       showLauncher.value = false;
-                      // controller.ungrabFocus();
+                      controller.ungrabFocus();
                     },
                   },
                   child: FocusGrab(
-                    // controller: controller,
-                    callback: () {
-                      showLauncher.value = false;
-                    },
-                    grabOnInit: true,
+                    controller: controller,
                     child: SizedBox(
                       width: config.width.toDouble(),
                       height: config.height.toDouble(),
@@ -87,7 +86,10 @@ class AppLauncherWing extends Wing<LauncherConfig> {
                               service: service,
                               applications: snapshot.data!,
                               config: config,
-                              close: () => showLauncher.value = false,
+                              close: () {
+                                showLauncher.value = false;
+                                controller.ungrabFocus();
+                              },
                             );
                           } else {
                             return const Center(

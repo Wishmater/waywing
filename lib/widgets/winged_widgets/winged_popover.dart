@@ -1,9 +1,9 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
-import "package:fl_linux_window_manager/widgets/focus_grab.dart";
 import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
@@ -167,7 +167,7 @@ class WingedPopoverState extends State<WingedPopover>
 
   WingedPopoverClientState? clientState;
 
-  final FocusGrabController focusGrabController = FocusGrabController();
+  late final FocusGrabController focusGrabController = FocusGrabController(onCleared: hidePopover);
 
   @override
   void initState() {
@@ -288,8 +288,6 @@ class WingedPopoverState extends State<WingedPopover>
     }
     return FocusGrab(
       controller: focusGrabController,
-      grabOnInit: false,
-      callback: hidePopover,
       child: result,
     );
   }

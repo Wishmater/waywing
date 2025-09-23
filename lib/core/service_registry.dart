@@ -145,9 +145,9 @@ class ServiceRegistry {
     await Future.wait(futures);
   }
 
-  Map<String, TableSchema> getSchemaTables() => {
+  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})>  getSchemaTables() => {
     for (final e in _registeredServices.entries)
-      if (e.value.schemaBuilder != null) e.key.toString(): e.value.schemaBuilder!(),
+      if (e.value.schemaBuilder != null) e.key.toString(): (schema: e.value.schemaBuilder!(), from: e.value.configBuilder!),
   };
 
   // TODO: 3 SCOPING only ConfigWatcher should be able to call this

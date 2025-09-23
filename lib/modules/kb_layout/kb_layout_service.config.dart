@@ -12,7 +12,7 @@ mixin KbLayoutServiceConfigI {
   int get pullInterval;
 }
 
-class KbLayoutServiceConfig
+class KbLayoutServiceConfig extends ConfigBaseI
     with KbLayoutServiceConfigI, KbLayoutServiceConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {'pullInterval': KbLayoutServiceConfigBase._pullInterval},
@@ -32,7 +32,9 @@ class KbLayoutServiceConfig
 
   @override
   String toString() {
-    return 'KbLayoutServiceConfig(pullInterval = $pullInterval)';
+    return '''KbLayoutServiceConfig(
+	pullInterval = $pullInterval
+)''';
   }
 
   @override

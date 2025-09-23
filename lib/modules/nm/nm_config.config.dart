@@ -15,7 +15,7 @@ mixin NetworkManagerConfigI {
   List<String> get deviceTypeFilter;
 }
 
-class NetworkManagerConfig
+class NetworkManagerConfig extends ConfigBaseI
     with NetworkManagerConfigI, NetworkManagerConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {
@@ -66,7 +66,13 @@ class NetworkManagerConfig
 
   @override
   String toString() {
-    return 'NetworkManagerConfig(showConnectionNameIndicator = $showConnectionNameIndicator, showUploadIndicator = $showUploadIndicator, showDownloadIndicator = $showDownloadIndicator, showThroughputIndicator = $showThroughputIndicator, deviceTypeFilter = $deviceTypeFilter)';
+    return '''NetworkManagerConfig(
+	showConnectionNameIndicator = $showConnectionNameIndicator,
+	showUploadIndicator = $showUploadIndicator,
+	showDownloadIndicator = $showDownloadIndicator,
+	showThroughputIndicator = $showThroughputIndicator,
+	deviceTypeFilter = $deviceTypeFilter
+)''';
   }
 
   @override

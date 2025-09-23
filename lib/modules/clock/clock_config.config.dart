@@ -11,7 +11,7 @@ mixin ClockConfigI {
   bool get militar;
 }
 
-class ClockConfig with ClockConfigI, ClockConfigBase {
+class ClockConfig extends ConfigBaseI with ClockConfigI, ClockConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {'militar': ClockConfigBase._militar},
   );
@@ -29,7 +29,9 @@ class ClockConfig with ClockConfigI, ClockConfigBase {
 
   @override
   String toString() {
-    return 'ClockConfig(militar = $militar)';
+    return '''ClockConfig(
+	militar = $militar
+)''';
   }
 
   @override

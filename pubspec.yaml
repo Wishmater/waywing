@@ -18,7 +18,7 @@ dependencies:
       url: https://github.com/ross96D/config.dart
       tag_pattern: "{{version}}"
   config_gen:
-    version: ^0.0.7
+    version: ^0.0.10
     git:
       url: https://github.com/Wishmater/config_gen
       tag_pattern: "{{version}}"
@@ -118,7 +118,7 @@ dependency_overrides:
   intl: ^0.20.2
   # fl_linux_window_manager:
   #   path: ../fl-linux-window-manager
-  # config:
-  #   path: ../config.dart
-  # config_gen:
-  #   path: ../config_gen
+  config:
+    path: ../config.dart
+  config_gen:
+    path: ../config_gen

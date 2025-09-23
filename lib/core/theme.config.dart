@@ -30,7 +30,7 @@ mixin ThemeConfigI {
   double get shadows;
 }
 
-class ThemeConfig with ThemeConfigI, ThemeConfigBase {
+class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {
       'mode': ThemeConfigBase._mode,
@@ -146,7 +146,24 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
 
   @override
   String toString() {
-    return 'ThemeConfig(mode = $mode, fontFamily = $fontFamily, fontSize = $fontSize, iconPriority = $iconPriority, iconFlutterVariation = $iconFlutterVariation, iconFlutterTwoTone = $iconFlutterTwoTone, iconFlutterFill = $iconFlutterFill, iconFlutterWeight = $iconFlutterWeight, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows)';
+    return '''ThemeConfig(
+	mode = $mode,
+	fontFamily = $fontFamily,
+	fontSize = $fontSize,
+	iconPriority = $iconPriority,
+	iconFlutterVariation = $iconFlutterVariation,
+	iconFlutterTwoTone = $iconFlutterTwoTone,
+	iconFlutterFill = $iconFlutterFill,
+	iconFlutterWeight = $iconFlutterWeight,
+	primaryColor = $primaryColor,
+	secondaryColor = $secondaryColor,
+	tertiaryColor = $tertiaryColor,
+	errorColor = $errorColor,
+	backgroundColor = $backgroundColor,
+	foregroundColor = $foregroundColor,
+	backgroundOpacity = $backgroundOpacity,
+	shadows = $shadows
+)''';
   }
 
   @override

@@ -17,7 +17,8 @@ mixin NotificationsConfigI {
   bool get showProgressBar;
 }
 
-class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
+class NotificationsConfig extends ConfigBaseI
+    with NotificationsConfigI, NotificationsConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {
       'alignment': NotificationsConfigBase._alignment,
@@ -77,7 +78,15 @@ class NotificationsConfig with NotificationsConfigI, NotificationsConfigBase {
 
   @override
   String toString() {
-    return 'NotificationsConfig(alignment = $alignment, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, autoExpand = $autoExpand, showProgressBar = $showProgressBar)';
+    return '''NotificationsConfig(
+	alignment = $alignment,
+	marginLeft = $marginLeft,
+	marginRight = $marginRight,
+	marginTop = $marginTop,
+	marginBottom = $marginBottom,
+	autoExpand = $autoExpand,
+	showProgressBar = $showProgressBar
+)''';
   }
 
   @override

@@ -113,7 +113,7 @@ mixin MainConfigBase on MainConfigI {
   // ignore: constant_identifier_names
   static const _Theme = ThemeConfig.staticSchema;
 
-  static Map<String, TableSchema> _getDynamicSchemaTables() => {
+  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() => {
     ...featherRegistry.getSchemaTables(),
     ...serviceRegistry.getSchemaTables(),
   };
@@ -146,7 +146,7 @@ Future<MainConfig> reloadConfig(String content) async {
       _logger.log(Level.debug, _toPrettyJson(result.values));
       _rawMainConfig = Map.unmodifiable(result.values);
       _config = MainConfig.fromMap(result.values);
-      updateLoggerConfig(LoggingConfig.fromMap(result.values["Logging"]));
+      updateLoggerConfig(_config.logging);
       return _config;
   }
 }
@@ -195,4 +195,15 @@ dynamic _sanitizeForJson(dynamic e) {
   if (e is List) return e.map(_sanitizeForJson).toList();
   if (e is Map) return e.mapValues((entry) => _sanitizeForJson(entry.value));
   return e.toString();
+}
+
+
+class EmptyConfig {
+  const EmptyConfig();
+
+  factory EmptyConfig.fromMap(dynamic _) {
+    return EmptyConfig();
+  }
+
+  static Schema get schema => Schema();
 }

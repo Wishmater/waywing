@@ -14,7 +14,7 @@ late Logger mainLogger;
 
 @Config()
 mixin LoggingConfigBase on LoggingConfigI {
-  static const _levelFilter = EnumField(Level.values, defaultTo: kDebugMode ? Level.trace : Level.info);
+  static const _levelFilter = EnumField(Level.values, defaultTo: (kDebugMode ? Level.trace : Level.info)); // TODO fix in config_gen add automatic parentesis on this cases
   static const _typeLevelFilters = MapField(StringField(), EnumField(Level.values), defaultTo: <String, Level>{});
   static const _output = StringField(nullable: true);
 }
@@ -32,6 +32,10 @@ void updateLoggerConfig(LoggingConfig config) {
   (mainLogger.output.value as Output).filePath = config.output;
   (mainLogger.filter.value as Filter)._defaultLevel = config.levelFilter;
   (mainLogger.filter.value as Filter)._types = config.typeLevelFilters.mapKeys((e) => LogType(e.key));
+}
+
+void updateLevel(Level level) {
+  (mainLogger.filter.value as Filter)._defaultLevel = level;
 }
 
 class LogType extends LogEventProperty {

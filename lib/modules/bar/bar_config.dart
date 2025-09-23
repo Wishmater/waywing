@@ -3,7 +3,7 @@ import "package:config_gen/config_gen.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/painting.dart";
 import "package:waywing/core/feather.dart";
-import "package:waywing/util/config_fields.dart";
+import "package:waywing/core/feather_registry.dart";
 
 part "bar_config.config.dart";
 
@@ -74,8 +74,43 @@ mixin BarConfigBase on BarConfigI {
   static const __indicatorPadding = DoubleNumberField(nullable: true); // defaults to a fraction of barSize
   double get indicatorPadding => _indicatorPadding ?? size / 8;
 
-  static const _startFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
-  static const _centerFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
-  static const _endFeathers = ListField(FeatherField(), defaultTo: <Feather>[]);
+  List<Feather> get startFeathers => start?.feathers.keys.map(featherRegistry.getFeatherByName).toList() ?? [];
+  List<Feather> get centerFeathers => center?.feathers.keys.map(featherRegistry.getFeatherByName).toList() ?? [];
+  List<Feather> get endFeathers => end?.feathers.keys.map(featherRegistry.getFeatherByName).toList() ?? [];
+
   // TODO: 3 validate that at least one feather is added to one of the lists
+
+  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() => {
+    "Start": (schema: StartConfig.schema, from: StartConfig.fromMap),
+    "Center": (schema: CenterConfig.schema, from: CenterConfig.fromMap),
+    "End": (schema: EndConfig.schema, from: EndConfig.fromMap),
+  };
+
+  StartConfig? get start => dynamicSchemas["Start"]?[0] as StartConfig?;
+  CenterConfig? get center => dynamicSchemas["Center"]?[0] as CenterConfig?;
+  EndConfig? get end => dynamicSchemas["End"]?[0] as EndConfig?;
+}
+
+@Config()
+mixin StartConfigBase on StartConfigI {
+  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
+      featherRegistry.dynamicFeathersSchemas({"Bar"});
+
+  Map<String, List<Object>> get feathers => dynamicSchemas;
+}
+
+@Config()
+mixin CenterConfigBase on CenterConfigI {
+  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
+      featherRegistry.dynamicFeathersSchemas({"Bar"});
+
+  Map<String, List<Object>> get feathers => dynamicSchemas;
+}
+
+@Config()
+mixin EndConfigBase on EndConfigI {
+  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
+      featherRegistry.dynamicFeathersSchemas({"Bar"});
+
+  Map<String, List<Object>> get feathers => dynamicSchemas;
 }

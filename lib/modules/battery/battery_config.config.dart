@@ -27,7 +27,7 @@ mixin BatteryConfigI {
   double get batteryThreshold;
 }
 
-class BatteryConfig with BatteryConfigI, BatteryConfigBase {
+class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {
       'enableProfile': BatteryConfigBase._enableProfile,
@@ -75,7 +75,13 @@ class BatteryConfig with BatteryConfigI, BatteryConfigBase {
 
   @override
   String toString() {
-    return 'BatteryConfig(enableProfile = $enableProfile, automaticProfileChanging = $automaticProfileChanging, saverProfile = $saverProfile, normalProfile = $normalProfile, batteryThreshold = $batteryThreshold)';
+    return '''BatteryConfig(
+	enableProfile = $enableProfile,
+	automaticProfileChanging = $automaticProfileChanging,
+	saverProfile = $saverProfile,
+	normalProfile = $normalProfile,
+	batteryThreshold = $batteryThreshold
+)''';
   }
 
   @override

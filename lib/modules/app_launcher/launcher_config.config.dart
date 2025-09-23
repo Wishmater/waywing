@@ -14,7 +14,8 @@ mixin LauncherConfigI {
   bool get showScrollBar;
 }
 
-class LauncherConfig with LauncherConfigI, LauncherConfigBase {
+class LauncherConfig extends ConfigBaseI
+    with LauncherConfigI, LauncherConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {
       'width': LauncherConfigBase._width,
@@ -51,7 +52,12 @@ class LauncherConfig with LauncherConfigI, LauncherConfigBase {
 
   @override
   String toString() {
-    return 'LauncherConfig(width = $width, height = $height, iconSize = $iconSize, showScrollBar = $showScrollBar)';
+    return '''LauncherConfig(
+	width = $width,
+	height = $height,
+	iconSize = $iconSize,
+	showScrollBar = $showScrollBar
+)''';
   }
 
   @override

@@ -21,9 +21,10 @@ mixin MainConfigI {
   bool get internalUsePainter;
   LoggingConfig get logging;
   ThemeConfig get theme;
+  Map<String, List<Object>> get dynamicSchemas;
 }
 
-class MainConfig with MainConfigI, MainConfigBase {
+class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   static const TableSchema staticSchema = TableSchema(
     tables: {
       'Logging': MainConfigBase._Logging,
@@ -48,13 +49,21 @@ class MainConfig with MainConfigI, MainConfigBase {
   static TableSchema get schema => TableSchema(
     tables: {
       ...staticSchema.tables,
-      ...MainConfigBase._getDynamicSchemaTables(),
+      ...MainConfigBase._getDynamicSchemaTables().map(
+        (k, v) => MapEntry(k, v.schema),
+      ),
     },
     fields: staticSchema.fields,
     validator: staticSchema.validator,
     ignoreNotInSchema: staticSchema.ignoreNotInSchema,
-    canBeMissingSchemas: staticSchema.canBeMissingSchemas,
+    canBeMissingSchemas: <String>{
+      ...staticSchema.canBeMissingSchemas,
+      ...MainConfigBase._getDynamicSchemaTables().keys,
+    },
   );
+
+  @override
+  final Map<String, List<Object>> dynamicSchemas;
 
   @override
   final int monitor;
@@ -98,6 +107,7 @@ class MainConfig with MainConfigI, MainConfigBase {
     bool? internalUsePainter,
     required this.logging,
     required this.theme,
+    required this.dynamicSchemas,
   }) : monitor = monitor ?? 0,
        wings = wings ?? <Wing>[],
        focusGrab = focusGrab ?? kReleaseMode,
@@ -111,7 +121,20 @@ class MainConfig with MainConfigI, MainConfigBase {
        internalUsePainter = internalUsePainter ?? false;
 
   factory MainConfig.fromMap(Map<String, dynamic> map) {
+    final dynamicSchemas = <String, List<Object>>{};
+    final schemas = MainConfigBase._getDynamicSchemaTables();
+    for (final entry in schemas.entries) {
+      if (map[entry.key] == null) continue;
+      for (final e in map[entry.key]) {
+        if (dynamicSchemas[entry.key] == null) {
+          dynamicSchemas[entry.key] = [];
+        }
+        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+      }
+    }
+
     return MainConfig(
+      dynamicSchemas: dynamicSchemas,
       monitor: map['monitor'],
       wings: map['wings'],
       socket: map['socket'],
@@ -123,14 +146,29 @@ class MainConfig with MainConfigI, MainConfigBase {
       animationSwitching: map['animationSwitching'],
       requestKeyboardFocus: map['requestKeyboardFocus'],
       internalUsePainter: map['internalUsePainter'],
-      logging: LoggingConfig.fromMap(map['Logging']),
-      theme: ThemeConfig.fromMap(map['Theme']),
+      logging: LoggingConfig.fromMap(map['Logging'][0]),
+      theme: ThemeConfig.fromMap(map['Theme'][0]),
     );
   }
 
   @override
   String toString() {
-    return 'MainConfig(monitor = $monitor, wings = $wings, socket = $socket, focusGrab = $focusGrab, animationEnable = $animationEnable, animationSpeed = $animationSpeed, animationDamping = $animationDamping, animationFitting = $animationFitting, animationSwitching = $animationSwitching, requestKeyboardFocus = $requestKeyboardFocus, internalUsePainter = $internalUsePainter, logging = $logging, theme = $theme)';
+    return '''MainConfig(
+	monitor = $monitor,
+	wings = $wings,
+	socket = $socket,
+	focusGrab = $focusGrab,
+	animationEnable = $animationEnable,
+	animationSpeed = $animationSpeed,
+	animationDamping = $animationDamping,
+	animationFitting = $animationFitting,
+	animationSwitching = $animationSwitching,
+	requestKeyboardFocus = $requestKeyboardFocus,
+	internalUsePainter = $internalUsePainter,
+	logging = ${logging.toString().split("\n").join("\n\t")},
+	theme = ${theme.toString().split("\n").join("\n\t")},
+	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
+)''';
   }
 
   @override
@@ -147,7 +185,8 @@ class MainConfig with MainConfigI, MainConfigBase {
         requestKeyboardFocus == other.requestKeyboardFocus &&
         internalUsePainter == other.internalUsePainter &&
         logging == other.logging &&
-        theme == other.theme;
+        theme == other.theme &&
+        configMapEqual(dynamicSchemas, other.dynamicSchemas);
   }
 
   @override
@@ -165,5 +204,6 @@ class MainConfig with MainConfigI, MainConfigBase {
     internalUsePainter,
     logging,
     theme,
+    dynamicSchemas,
   ]);
 }

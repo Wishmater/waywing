@@ -13,7 +13,7 @@ mixin LoggingConfigI {
   String? get output;
 }
 
-class LoggingConfig with LoggingConfigI, LoggingConfigBase {
+class LoggingConfig extends ConfigBaseI with LoggingConfigI, LoggingConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {
       'levelFilter': LoggingConfigBase._levelFilter,
@@ -35,7 +35,7 @@ class LoggingConfig with LoggingConfigI, LoggingConfigBase {
     Level? levelFilter,
     Map<String, Level>? typeLevelFilters,
     this.output,
-  }) : levelFilter = levelFilter ?? Level.info,
+  }) : levelFilter = levelFilter ?? (kDebugMode ? Level.trace : Level.info),
        typeLevelFilters = typeLevelFilters ?? <String, Level>{};
 
   factory LoggingConfig.fromMap(Map<String, dynamic> map) {
@@ -48,7 +48,11 @@ class LoggingConfig with LoggingConfigI, LoggingConfigBase {
 
   @override
   String toString() {
-    return 'LoggingConfig(levelFilter = $levelFilter, typeLevelFilters = $typeLevelFilters, output = $output)';
+    return '''LoggingConfig(
+	levelFilter = $levelFilter,
+	typeLevelFilters = $typeLevelFilters,
+	output = $output
+)''';
   }
 
   @override

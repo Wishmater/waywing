@@ -15,7 +15,7 @@ mixin VolumeConfigI {
   bool get showTooltipOnVolumeChange;
 }
 
-class VolumeConfig with VolumeConfigI, VolumeConfigBase {
+class VolumeConfig extends ConfigBaseI with VolumeConfigI, VolumeConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {
       'showPercentageIndicator': VolumeConfigBase._showPercentageIndicator,
@@ -63,7 +63,13 @@ class VolumeConfig with VolumeConfigI, VolumeConfigBase {
 
   @override
   String toString() {
-    return 'VolumeConfig(showPercentageIndicator = $showPercentageIndicator, showSeparateMicIndicator = $showSeparateMicIndicator, maxVolume = $maxVolume, volumeStep = $volumeStep, showTooltipOnVolumeChange = $showTooltipOnVolumeChange)';
+    return '''VolumeConfig(
+	showPercentageIndicator = $showPercentageIndicator,
+	showSeparateMicIndicator = $showSeparateMicIndicator,
+	maxVolume = $maxVolume,
+	volumeStep = $volumeStep,
+	showTooltipOnVolumeChange = $showTooltipOnVolumeChange
+)''';
   }
 
   @override

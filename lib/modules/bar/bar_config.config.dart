@@ -24,12 +24,10 @@ mixin BarConfigI {
   double get radiusOutMain;
   double? get _indicatorMinSize;
   double? get _indicatorPadding;
-  List<Feather<dynamic>> get startFeathers;
-  List<Feather<dynamic>> get centerFeathers;
-  List<Feather<dynamic>> get endFeathers;
+  Map<String, List<Object>> get dynamicSchemas;
 }
 
-class BarConfig with BarConfigI, BarConfigBase {
+class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
   static const TableSchema staticSchema = TableSchema(
     fields: {
       'side': BarConfigBase._side,
@@ -48,13 +46,27 @@ class BarConfig with BarConfigI, BarConfigBase {
       'radiusOutMain': BarConfigBase._radiusOutMain,
       'indicatorMinSize': BarConfigBase.__indicatorMinSize,
       'indicatorPadding': BarConfigBase.__indicatorPadding,
-      'startFeathers': BarConfigBase._startFeathers,
-      'centerFeathers': BarConfigBase._centerFeathers,
-      'endFeathers': BarConfigBase._endFeathers,
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static TableSchema get schema => TableSchema(
+    tables: {
+      ...staticSchema.tables,
+      ...BarConfigBase._getDynamicSchemaTables().map(
+        (k, v) => MapEntry(k, v.schema),
+      ),
+    },
+    fields: staticSchema.fields,
+    validator: staticSchema.validator,
+    ignoreNotInSchema: staticSchema.ignoreNotInSchema,
+    canBeMissingSchemas: <String>{
+      ...staticSchema.canBeMissingSchemas,
+      ...BarConfigBase._getDynamicSchemaTables().keys,
+    },
+  );
+
+  @override
+  final Map<String, List<Object>> dynamicSchemas;
 
   @override
   final ScreenEdge side;
@@ -88,16 +100,10 @@ class BarConfig with BarConfigI, BarConfigBase {
   final double? _indicatorMinSize;
   @override
   final double? _indicatorPadding;
-  @override
-  final List<Feather<dynamic>> startFeathers;
-  @override
-  final List<Feather<dynamic>> centerFeathers;
-  @override
-  final List<Feather<dynamic>> endFeathers;
 
   BarConfig({
-    required this.side,
-    required this.size,
+    ScreenEdge? side,
+    int? size,
     double? marginLeft,
     double? marginRight,
     double? marginTop,
@@ -112,10 +118,10 @@ class BarConfig with BarConfigI, BarConfigBase {
     double? radiusOutMain,
     double? indicatorMinSize,
     double? indicatorPadding,
-    List<Feather<dynamic>>? startFeathers,
-    List<Feather<dynamic>>? centerFeathers,
-    List<Feather<dynamic>>? endFeathers,
-  }) : marginLeft = marginLeft ?? 0,
+    required this.dynamicSchemas,
+  }) : side = side ?? ScreenEdge.bottom,
+       size = size ?? 30,
+       marginLeft = marginLeft ?? 0,
        marginRight = marginRight ?? 0,
        marginTop = marginTop ?? 0,
        marginBottom = marginBottom ?? 0,
@@ -128,13 +134,23 @@ class BarConfig with BarConfigI, BarConfigBase {
        radiusOutCross = radiusOutCross ?? 0,
        radiusOutMain = radiusOutMain ?? 0,
        _indicatorMinSize = indicatorMinSize,
-       _indicatorPadding = indicatorPadding,
-       startFeathers = startFeathers ?? <Feather>[],
-       centerFeathers = centerFeathers ?? <Feather>[],
-       endFeathers = endFeathers ?? <Feather>[];
+       _indicatorPadding = indicatorPadding;
 
   factory BarConfig.fromMap(Map<String, dynamic> map) {
+    final dynamicSchemas = <String, List<Object>>{};
+    final schemas = BarConfigBase._getDynamicSchemaTables();
+    for (final entry in schemas.entries) {
+      if (map[entry.key] == null) continue;
+      for (final e in map[entry.key]) {
+        if (dynamicSchemas[entry.key] == null) {
+          dynamicSchemas[entry.key] = [];
+        }
+        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+      }
+    }
+
     return BarConfig(
+      dynamicSchemas: dynamicSchemas,
       side: map['side'],
       size: map['size'],
       marginLeft: map['marginLeft'],
@@ -151,15 +167,30 @@ class BarConfig with BarConfigI, BarConfigBase {
       radiusOutMain: map['radiusOutMain'],
       indicatorMinSize: map['indicatorMinSize'],
       indicatorPadding: map['indicatorPadding'],
-      startFeathers: map['startFeathers'],
-      centerFeathers: map['centerFeathers'],
-      endFeathers: map['endFeathers'],
     );
   }
 
   @override
   String toString() {
-    return 'BarConfig(side = $side, size = $size, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, _exclusiveSizeLeft = $_exclusiveSizeLeft, _exclusiveSizeRight = $_exclusiveSizeRight, _exclusiveSizeTop = $_exclusiveSizeTop, _exclusiveSizeBottom = $_exclusiveSizeBottom, radiusInCross = $radiusInCross, radiusInMain = $radiusInMain, radiusOutCross = $radiusOutCross, radiusOutMain = $radiusOutMain, _indicatorMinSize = $_indicatorMinSize, _indicatorPadding = $_indicatorPadding, startFeathers = $startFeathers, centerFeathers = $centerFeathers, endFeathers = $endFeathers)';
+    return '''BarConfig(
+	side = $side,
+	size = $size,
+	marginLeft = $marginLeft,
+	marginRight = $marginRight,
+	marginTop = $marginTop,
+	marginBottom = $marginBottom,
+	_exclusiveSizeLeft = $_exclusiveSizeLeft,
+	_exclusiveSizeRight = $_exclusiveSizeRight,
+	_exclusiveSizeTop = $_exclusiveSizeTop,
+	_exclusiveSizeBottom = $_exclusiveSizeBottom,
+	radiusInCross = $radiusInCross,
+	radiusInMain = $radiusInMain,
+	radiusOutCross = $radiusOutCross,
+	radiusOutMain = $radiusOutMain,
+	_indicatorMinSize = $_indicatorMinSize,
+	_indicatorPadding = $_indicatorPadding,
+	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
+)''';
   }
 
   @override
@@ -180,9 +211,7 @@ class BarConfig with BarConfigI, BarConfigBase {
         radiusOutMain == other.radiusOutMain &&
         _indicatorMinSize == other._indicatorMinSize &&
         _indicatorPadding == other._indicatorPadding &&
-        startFeathers == other.startFeathers &&
-        centerFeathers == other.centerFeathers &&
-        endFeathers == other.endFeathers;
+        configMapEqual(dynamicSchemas, other.dynamicSchemas);
   }
 
   @override
@@ -203,8 +232,186 @@ class BarConfig with BarConfigI, BarConfigBase {
     radiusOutMain,
     _indicatorMinSize,
     _indicatorPadding,
-    startFeathers,
-    centerFeathers,
-    endFeathers,
+    dynamicSchemas,
   ]);
+}
+
+mixin StartConfigI {
+  Map<String, List<Object>> get dynamicSchemas;
+}
+
+class StartConfig extends ConfigBaseI with StartConfigI, StartConfigBase {
+  static const TableSchema staticSchema = TableSchema(fields: {});
+
+  static TableSchema get schema => TableSchema(
+    tables: {
+      ...staticSchema.tables,
+      ...StartConfigBase._getDynamicSchemaTables().map(
+        (k, v) => MapEntry(k, v.schema),
+      ),
+    },
+    fields: staticSchema.fields,
+    validator: staticSchema.validator,
+    ignoreNotInSchema: staticSchema.ignoreNotInSchema,
+    canBeMissingSchemas: <String>{
+      ...staticSchema.canBeMissingSchemas,
+      ...StartConfigBase._getDynamicSchemaTables().keys,
+    },
+  );
+
+  @override
+  final Map<String, List<Object>> dynamicSchemas;
+
+  StartConfig({required this.dynamicSchemas});
+
+  factory StartConfig.fromMap(Map<String, dynamic> map) {
+    final dynamicSchemas = <String, List<Object>>{};
+    final schemas = StartConfigBase._getDynamicSchemaTables();
+    for (final entry in schemas.entries) {
+      if (map[entry.key] == null) continue;
+      for (final e in map[entry.key]) {
+        if (dynamicSchemas[entry.key] == null) {
+          dynamicSchemas[entry.key] = [];
+        }
+        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+      }
+    }
+
+    return StartConfig(dynamicSchemas: dynamicSchemas);
+  }
+
+  @override
+  String toString() {
+    return '''StartConfig(
+	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
+)''';
+  }
+
+  @override
+  bool operator ==(covariant StartConfig other) {
+    return configMapEqual(dynamicSchemas, other.dynamicSchemas);
+  }
+
+  @override
+  int get hashCode => Object.hashAll([dynamicSchemas]);
+}
+
+mixin CenterConfigI {
+  Map<String, List<Object>> get dynamicSchemas;
+}
+
+class CenterConfig extends ConfigBaseI with CenterConfigI, CenterConfigBase {
+  static const TableSchema staticSchema = TableSchema(fields: {});
+
+  static TableSchema get schema => TableSchema(
+    tables: {
+      ...staticSchema.tables,
+      ...CenterConfigBase._getDynamicSchemaTables().map(
+        (k, v) => MapEntry(k, v.schema),
+      ),
+    },
+    fields: staticSchema.fields,
+    validator: staticSchema.validator,
+    ignoreNotInSchema: staticSchema.ignoreNotInSchema,
+    canBeMissingSchemas: <String>{
+      ...staticSchema.canBeMissingSchemas,
+      ...CenterConfigBase._getDynamicSchemaTables().keys,
+    },
+  );
+
+  @override
+  final Map<String, List<Object>> dynamicSchemas;
+
+  CenterConfig({required this.dynamicSchemas});
+
+  factory CenterConfig.fromMap(Map<String, dynamic> map) {
+    final dynamicSchemas = <String, List<Object>>{};
+    final schemas = CenterConfigBase._getDynamicSchemaTables();
+    for (final entry in schemas.entries) {
+      if (map[entry.key] == null) continue;
+      for (final e in map[entry.key]) {
+        if (dynamicSchemas[entry.key] == null) {
+          dynamicSchemas[entry.key] = [];
+        }
+        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+      }
+    }
+
+    return CenterConfig(dynamicSchemas: dynamicSchemas);
+  }
+
+  @override
+  String toString() {
+    return '''CenterConfig(
+	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
+)''';
+  }
+
+  @override
+  bool operator ==(covariant CenterConfig other) {
+    return configMapEqual(dynamicSchemas, other.dynamicSchemas);
+  }
+
+  @override
+  int get hashCode => Object.hashAll([dynamicSchemas]);
+}
+
+mixin EndConfigI {
+  Map<String, List<Object>> get dynamicSchemas;
+}
+
+class EndConfig extends ConfigBaseI with EndConfigI, EndConfigBase {
+  static const TableSchema staticSchema = TableSchema(fields: {});
+
+  static TableSchema get schema => TableSchema(
+    tables: {
+      ...staticSchema.tables,
+      ...EndConfigBase._getDynamicSchemaTables().map(
+        (k, v) => MapEntry(k, v.schema),
+      ),
+    },
+    fields: staticSchema.fields,
+    validator: staticSchema.validator,
+    ignoreNotInSchema: staticSchema.ignoreNotInSchema,
+    canBeMissingSchemas: <String>{
+      ...staticSchema.canBeMissingSchemas,
+      ...EndConfigBase._getDynamicSchemaTables().keys,
+    },
+  );
+
+  @override
+  final Map<String, List<Object>> dynamicSchemas;
+
+  EndConfig({required this.dynamicSchemas});
+
+  factory EndConfig.fromMap(Map<String, dynamic> map) {
+    final dynamicSchemas = <String, List<Object>>{};
+    final schemas = EndConfigBase._getDynamicSchemaTables();
+    for (final entry in schemas.entries) {
+      if (map[entry.key] == null) continue;
+      for (final e in map[entry.key]) {
+        if (dynamicSchemas[entry.key] == null) {
+          dynamicSchemas[entry.key] = [];
+        }
+        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+      }
+    }
+
+    return EndConfig(dynamicSchemas: dynamicSchemas);
+  }
+
+  @override
+  String toString() {
+    return '''EndConfig(
+	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
+)''';
+  }
+
+  @override
+  bool operator ==(covariant EndConfig other) {
+    return configMapEqual(dynamicSchemas, other.dynamicSchemas);
+  }
+
+  @override
+  int get hashCode => Object.hashAll([dynamicSchemas]);
 }

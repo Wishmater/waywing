@@ -48,6 +48,24 @@ class FeatherRegistry {
   final Map<String, Feather> _instancedFeathers = {};
   final Map<Feather, Future<void>> _initializedFeathers = {};
 
+  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> dynamicFeathersSchemas([
+    Set<String> omit = const {},
+  ]) {
+    final response = <String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})>{};
+
+    for (final entry in _registeredFeathers.entries) {
+      if (omit.contains(entry.key)) continue;
+
+      if (entry.value.schemaBuilder != null) {
+        response[entry.key] = (schema: entry.value.schemaBuilder!(), from: entry.value.configBuilder!);
+      } else {
+        response[entry.key] = (schema: EmptyConfig.schema, from: EmptyConfig.fromMap);
+      }
+    }
+
+    return response;
+  }
+
   void registerFeather<T extends Feather<Conf>, Conf>(
     String name,
     FeatherRegistration<T, Conf> registration,
@@ -90,9 +108,9 @@ class FeatherRegistry {
     return _initializedFeathers[feather]!;
   }
 
-  Map<String, TableSchema> getSchemaTables() => {
+  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> getSchemaTables() => {
     for (final e in _registeredFeathers.entries)
-      if (e.value.schemaBuilder != null) e.key: e.value.schemaBuilder!(),
+      if (e.value.schemaBuilder != null) e.key: (schema: e.value.schemaBuilder!(), from: e.value.configBuilder!),
   };
 
   void _updateFeathers(BuildContext context, Iterable<Feather> configFeathers) {
@@ -122,7 +140,8 @@ class FeatherRegistry {
       final registration = _registeredFeathers[e.name]!;
       if (registration.configBuilder == null) continue;
       final oldConfig = e.config;
-      final newConfig = registration.configBuilder!(rawMainConfig[e.name]);
+      final newConfig = mainConfig.dynamicSchemas[e.name]![0];
+      // final newConfig = registration.configBuilder!(rawMainConfig[e.name]);
       e.config = newConfig;
       e.onConfigUpdated(oldConfig);
     }
@@ -143,7 +162,7 @@ class FeatherRegistry {
     feather.logger = mainLogger.clone(properties: [LogType(feather.name)]); // ignore: invalid_use_of_protected_member
     final registration = _registeredFeathers[feather.name]!;
     if (registration.configBuilder != null) {
-      feather.config = registration.configBuilder!(rawMainConfig[feather.name]);
+      feather.config = registration.configBuilder!(rawMainConfig[feather.name][0]);
     }
     // add feather routes actions
     if (feather.actions case final actions?) {

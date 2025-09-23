@@ -283,26 +283,20 @@
     "config": {
       "dependency": "direct main",
       "description": {
-        "path": ".",
-        "ref": "HEAD",
-        "resolved-ref": "85963911df5e17eff6a886611c112bf1212db4ca",
-        "url": "https://github.com/ross96D/config.dart",
-        "sha256": "sha256-bG0xEQ0gXMMk/bX2ktc9uvKF8u8ImZaGT1dYf5dDIIo="
+        "path": "../config.dart",
+        "relative": true
       },
-      "source": "git",
-      "version": "0.0.5"
+      "source": "path",
+      "version": "0.0.6"
     },
     "config_gen": {
       "dependency": "direct main",
       "description": {
-        "path": ".",
-        "ref": "HEAD",
-        "resolved-ref": "cecc32c38acb6d54bb94188ff8b87d0dec76eeca",
-        "url": "https://github.com/Wishmater/config_gen",
-        "sha256": "sha256-C5MoAcjdspxdz0sTbzDULToFVh9+aos+E8dgMLBLtWo="
+        "path": "../config_gen",
+        "relative": true
       },
-      "source": "git",
-      "version": "0.0.7"
+      "source": "path",
+      "version": "0.0.10"
     },
     "convert": {
       "dependency": "transitive",
@@ -428,8 +422,8 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
+        "ref": "HEAD",
         "resolved-ref": "b1850e0cefe93da3d11afa0061e7237b90f8153a",
-        "tag-pattern": "{{version}}",
         "url": "https://github.com/Wishmater/fl-linux-window-manager",
         "sha256": "sha256-mUsX0W4XHgL31cIgRIwn0SOY+yU0cfeiqw9lWY9nz9Q="
       },

@@ -24,8 +24,9 @@ class ApplicationService extends Service {
   }
 
   Future<void> run(Application app) async {
+    logger.trace("running app ${app.name}");
     _db!.increaseExecCounter(app);
-    await app.run();
+    await app.run(logger: logger);
   }
 
   Future<List<Application>> applications() => loadApplications(_db!, logger);

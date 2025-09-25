@@ -3,6 +3,7 @@ import "dart:io";
 import "package:dbus/dbus.dart";
 import "package:path/path.dart" as path;
 import "package:json_annotation/json_annotation.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/modules/app_launcher/packages/freedesktop_entry/freedesktop_entry.dart";
 
 part "application.g.dart";
@@ -167,7 +168,7 @@ class Application implements Comparable<Application> {
     return "Application name: $name filepath: $filepath";
   }
 
-  Future<void> run({bool forceExec = false}) async {
+  Future<void> run({bool forceExec = false, Logger? logger}) async {
     if (!forceExec && dBusActivatable) {
       String dbusname = path.basename(filepath);
       if (dbusname.endsWith(".desktop")) {
@@ -191,10 +192,11 @@ class Application implements Comparable<Application> {
         ),
       ];
       try {
+        logger?.trace("call org.freedesktop.Application.Activate $params");
         await remoteObject.callMethod("org.freedesktop.Application", "Activate", params, noReplyExpected: true);
       } on DBusMethodResponseException catch (e) {
         if (e is DBusServiceUnknownException) {
-          return run(forceExec: true);
+          return run(forceExec: true, logger: logger);
         }
         throw Exception("dbus activation error: $e");
       }
@@ -204,10 +206,12 @@ class Application implements Comparable<Application> {
       }
       final (cmd, args) = parseExec(exec!);
       if (terminal) {
+        logger?.trace("run alacritty -e $cmd ${args.join(' ')}");
         // TODO increase the list of terminals to launch and also make it configurable
         await Process.start("alacritty", ["-e", cmd, ...args], mode: ProcessStartMode.detached);
       } else {
-        await Process.start(cmd, args, mode: ProcessStartMode.detached);
+        logger?.trace("run $cmd ${args.join(' ')}");
+        await Process.start(cmd, args, mode: ProcessStartMode.detached, environment: Platform.environment);
       }
     }
   }

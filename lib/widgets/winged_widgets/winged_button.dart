@@ -123,6 +123,9 @@ class WingedButton<T> extends StatefulWidget {
   /// If this is null, it is interpreted as [BorderRadius.zero].
   final BorderRadius? borderRadius;
 
+  /// If set then a background color will be used
+  final Color? color;
+
   final Clip clipBehavior;
 
   const WingedButton({
@@ -148,6 +151,7 @@ class WingedButton<T> extends StatefulWidget {
     this.radius,
     this.borderRadius,
     this.clipBehavior = Clip.hardEdge,
+    this.color,
     super.key,
   });
 
@@ -206,6 +210,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
             clipBehavior: widget.clipBehavior,
             decoration: BoxDecoration(
               borderRadius: borderRadius,
+              color: widget.color,
             ),
             child: child,
           ),

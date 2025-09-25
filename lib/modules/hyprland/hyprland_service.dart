@@ -68,6 +68,10 @@ class HyprlandService extends Service {
     return HyprlandWorkspace.fromJson(decoded);
   }
 
+  Future<void> changeWorkspace(int id) async {
+    await sendCommand("dispatch", args: ["workspace", "$id"], flags: ["-j"]);
+  }
+
   Future<List<HyprlandWindow>> windows() async {
     final data = await sendCommand("windows", flags: ["-j"]);
     final List<dynamic> decoded = json.decode(data);

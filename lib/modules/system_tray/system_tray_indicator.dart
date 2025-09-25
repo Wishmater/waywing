@@ -1,7 +1,9 @@
+import "dart:io";
 import "dart:typed_data";
 
 import "package:dbus/dbus.dart";
 import "package:flutter/material.dart";
+import "package:path/path.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "package:waywing/widgets/argb_32_image_renderer.dart";
@@ -154,13 +156,17 @@ class RawSystemTrayIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = TextIcon.getIconEffectiveSize(context);
     if (path.isNotEmpty) {
-      return XdgIcon(
-        name: path,
-        size: size.round(),
-        iconNotFoundBuilder: () {
-          return renderPixmap(context, size);
-        },
-      );
+      if (isAbsolute(path)) {
+        return Image.file(File(path));
+      } else {
+        return XdgIcon(
+          name: path,
+          size: size.round(),
+          iconNotFoundBuilder: () {
+            return renderPixmap(context, size);
+          },
+        );
+      }
     } else {
       return renderPixmap(context, size);
     }

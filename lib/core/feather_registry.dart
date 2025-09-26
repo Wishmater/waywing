@@ -192,15 +192,18 @@ class FeatherRegistry {
       }
     }
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
-    featherRegistry._dereferenceFeather(feather.name);
+    featherRegistry._dereferenceFeather(feather.uniqueId);
     await feather.dispose();
     // ignore: invalid_use_of_protected_member
     await feather.logger.destroy();
   }
 
-  void _dereferenceFeather(String name) {
-    assert(_instancedFeathers.containsKey(name), "Trying to de-reference a Feather that is not currently built: $name");
-    final feather = _instancedFeathers.remove(name)!;
+  void _dereferenceFeather(String uniqueId) {
+    assert(
+      _instancedFeathers.containsKey(uniqueId),
+      "Trying to de-reference a Feather that is not currently built: $uniqueId",
+    );
+    final feather = _instancedFeathers.remove(uniqueId)!;
     serviceRegistry.onFeatherDereferenced(feather);
   }
 

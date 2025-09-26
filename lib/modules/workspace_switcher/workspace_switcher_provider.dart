@@ -20,7 +20,7 @@ class Workspace implements Comparable<Workspace> {
   const Workspace({required this.id, required this.name});
 
   @override
-  bool operator==(covariant Workspace other) {
+  bool operator ==(covariant Workspace other) {
     return id == other.id;
   }
 
@@ -55,11 +55,15 @@ final class HyprlandWorkspaceSwitcherProvider extends IWorkspaceSwitcherProvider
     });
 
     _service.createWorkspace.listen((workspace) {
-      _workspaces.value.add(from(workspace));
+      if (workspace.id > 0) {
+        _workspaces.value.add(from(workspace));
+      }
     });
 
     _service.destroyWorkspace.listen((workspace) {
-      _workspaces.value.remove(from(workspace));
+      if (workspace.id > 0) {
+        _workspaces.value.remove(from(workspace));
+      }
     });
   }
 

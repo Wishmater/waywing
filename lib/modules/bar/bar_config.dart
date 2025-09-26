@@ -13,6 +13,7 @@ mixin BarConfigBase on BarConfigI {
   // Positioning / sizing
   //===========================================================================
 
+  // TODO: 2 these two should probably not have a default (force the user to set them)
   static const _side = EnumField(ScreenEdge.values, defaultTo: ScreenEdge.bottom);
   static const _size = IntegerNumberField(defaultTo: 30); // in pixels
 

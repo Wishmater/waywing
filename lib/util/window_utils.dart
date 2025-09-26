@@ -79,6 +79,9 @@ Future<void> _updateMainWindow() async {
   _logger.log(Level.debug, "Setting main window exclusive zone...");
   // final monitors = await FlLinuxWindowManager.instance.listMonitors();
   // monitors.first.connector;
+  // TODO: 2 this sets monitor by INDEX, instead of ID. Index and id is usually the same,
+  // but at least in hyprland, if you remove and re-connect the ID-0 monitor, it will now
+  // be the last index, but still ID-0.
   await Future.wait([
     FlLinuxWindowManager.instance.setMonitor(mainConfig.monitor),
     FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),

@@ -179,9 +179,9 @@ Future<String> getConfigurationString() async {
 }
 
 // TODO: 2 RELEASE update the defalut config
-const String defaultConfig = '''
-
-''';
+const String defaultConfig = """
+  # TODO: 2 add a sensible initial config, once config API is more stable
+""";
 
 dynamic _toPrettyJson(dynamic values) {
   const encoder = JsonEncoder.withIndent("  ");

@@ -18,6 +18,7 @@ import "package:waywing/modules/notification/notification_wing.dart";
 import "package:waywing/modules/session/session_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_feather.dart";
 import "package:waywing/modules/volume/volume_feather.dart";
+import "package:waywing/modules/workspace_switcher/workspace_switcher_feather.dart";
 import "package:waywing/util/logger.dart";
 
 final featherRegistry = FeatherRegistry._();
@@ -214,6 +215,7 @@ class FeatherRegistry {
     KeyboardLayoutFeather.registerFeather(registerFeather);
     CapsLockFeather.registerFeather(registerFeather);
     NumLockFeather.registerFeather(registerFeather);
+    WorkspaceSwitcherFeather.registerFeather(registerFeather);
   }
 }
 

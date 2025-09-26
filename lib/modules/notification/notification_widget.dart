@@ -393,7 +393,19 @@ class _NotificationTitle extends StatelessWidget {
                                 return RawImage(image: snapshot.data!);
                               },
                             ),
-                            NotificationImagePath imagePath => Image.file(File(imagePath.path)),
+                            NotificationImagePath imagePath => Image.file(
+                              File(imagePath.path),
+                              errorBuilder: (context, _, _) {
+                                if (!imagePath.path.contains("/")) {
+                                  return XdgIcon(
+                                    name: imagePath.path,
+                                    iconNotFoundBuilder: () => SizedBox.shrink(),
+                                  );
+                                } else {
+                                  return SizedBox.shrink();
+                                }
+                              }
+                            ),
                           },
                         ),
                       ),

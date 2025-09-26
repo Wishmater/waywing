@@ -95,7 +95,7 @@ mixin BarConfigBase on BarConfigI {
 @Config()
 mixin StartConfigBase on StartConfigI {
   static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
-      featherRegistry.dynamicFeathersSchemas({"Bar"});
+      featherRegistry.dynamicFeathersSchemas(const {"Bar"});
 
   Map<String, List<Object>> get feathers => dynamicSchemas;
 }
@@ -103,7 +103,7 @@ mixin StartConfigBase on StartConfigI {
 @Config()
 mixin CenterConfigBase on CenterConfigI {
   static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
-      featherRegistry.dynamicFeathersSchemas({"Bar"});
+      featherRegistry.dynamicFeathersSchemas(const {"Bar"});
 
   Map<String, List<Object>> get feathers => dynamicSchemas;
 }
@@ -111,7 +111,7 @@ mixin CenterConfigBase on CenterConfigI {
 @Config()
 mixin EndConfigBase on EndConfigI {
   static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
-      featherRegistry.dynamicFeathersSchemas({"Bar"});
+      featherRegistry.dynamicFeathersSchemas(const {"Bar"});
 
   Map<String, List<Object>> get feathers => dynamicSchemas;
 }

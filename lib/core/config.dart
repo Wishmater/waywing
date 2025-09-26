@@ -36,6 +36,7 @@ final _logger = mainLogger.clone(properties: [LogType("Config")]);
 MainConfig get mainConfig => _config;
 late MainConfig _config;
 
+// TODO: 2 try to remove this
 /// This should only be used by featherRegistry and serviceRegistry, because they need to
 /// dynamically add config schemas, which can't be added in a type safe way.
 Map<String, dynamic> get rawMainConfig => _rawMainConfig;
@@ -196,7 +197,6 @@ dynamic _sanitizeForJson(dynamic e) {
   if (e is Map) return e.mapValues((entry) => _sanitizeForJson(entry.value));
   return e.toString();
 }
-
 
 class EmptyConfig {
   const EmptyConfig();

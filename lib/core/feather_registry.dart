@@ -120,7 +120,8 @@ class FeatherRegistry {
     _addNewFeathersNotInOldConfig(context, configFeathers);
     assert(
       !_instancedFeathers.values.any((e) => !_initializedFeathers.containsKey(e)),
-      "After updating Feathers, there are still Feathers that were instanced but not initialized, this should never happen.",
+      "After updating Feathers, there are still Feathers that were instanced but not initialized, this should never happen."
+      " The following are the offending feathers: ${_instancedFeathers.values.where((e) => !_initializedFeathers.containsKey(e))}",
     );
   }
 
@@ -141,7 +142,8 @@ class FeatherRegistry {
       final registration = _registeredFeathers[e.name]!;
       if (registration.configBuilder == null) continue;
       final oldConfig = e.config;
-      final newConfig = mainConfig.dynamicSchemas[e.name]![0];
+      print(e.name);
+      final newConfig = mainConfig.dynamicSchemas[e.name]?[0] ?? registration.configBuilder!({});
       // final newConfig = registration.configBuilder!(rawMainConfig[e.name]);
       e.config = newConfig;
       e.onConfigUpdated(oldConfig);
@@ -163,7 +165,7 @@ class FeatherRegistry {
     feather.logger = mainLogger.clone(properties: [LogType(feather.name)]); // ignore: invalid_use_of_protected_member
     final registration = _registeredFeathers[feather.name]!;
     if (registration.configBuilder != null) {
-      feather.config = registration.configBuilder!(rawMainConfig[feather.name][0]);
+      feather.config = registration.configBuilder!(rawMainConfig[feather.name]?[0] ?? {});
     }
     // add feather routes actions
     if (feather.actions case final actions?) {

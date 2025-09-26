@@ -88,7 +88,7 @@ class ServiceRegistry {
     final registration = _registeredServices[serviceType]!;
     final service = registration.constructor() as T;
     if (registration.configBuilder != null) {
-      service.config = registration.configBuilder!(rawMainConfig["$serviceType"]);
+      service.config = registration.configBuilder!(rawMainConfig["$serviceType"]?[0] ?? {});
     }
     // ignore: invalid_use_of_protected_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
@@ -145,9 +145,10 @@ class ServiceRegistry {
     await Future.wait(futures);
   }
 
-  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})>  getSchemaTables() => {
+  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> getSchemaTables() => {
     for (final e in _registeredServices.entries)
-      if (e.value.schemaBuilder != null) e.key.toString(): (schema: e.value.schemaBuilder!(), from: e.value.configBuilder!),
+      if (e.value.schemaBuilder != null)
+        e.key.toString(): (schema: e.value.schemaBuilder!(), from: e.value.configBuilder!),
   };
 
   // TODO: 3 SCOPING only ConfigWatcher should be able to call this

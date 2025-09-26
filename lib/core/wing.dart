@@ -12,7 +12,7 @@ abstract class Wing<Conf> extends Feather<Conf> {
   @override
   int get hashCode => Object.hash(Wing, name, uniqueId);
   @override
-  String toString() => "Wing($name)";
+  String toString() => "Wing($name) - $uniqueId";
 
   /// This should return a Positioned widget. It will be added to a stack that spans the whole screen.
   Widget buildWing(EdgeInsets rerservedSpace);

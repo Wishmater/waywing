@@ -37,7 +37,7 @@ abstract class Feather<Conf> implements ServiceConsumer {
   @override
   int get hashCode => Object.hash(Feather, name, uniqueId);
   @override
-  String toString() => "Feather($name)";
+  String toString() => "Feather($name) - $uniqueId";
 
   Map<String, WaywingAction>? get actions => null;
 

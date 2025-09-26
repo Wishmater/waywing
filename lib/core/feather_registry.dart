@@ -172,7 +172,7 @@ class FeatherRegistry {
     if (feather.actions case final actions?) {
       for (final entry in actions.entries) {
         // TODO: 1 how does the new multi-feather changes affect WaywingServer ???
-        WaywingServer.instance.router.register(join(feather.name, entry.key), entry.value);
+        // WaywingServer.instance.router.register(join(feather.name, entry.key), entry.value);
       }
     }
     final initFuture = feather.init(context);

@@ -61,56 +61,55 @@ class AppLauncherWing extends Wing<LauncherConfig> {
     return ValueListenableBuilder(
       valueListenable: showLauncher,
       builder: (contex, show, _) {
-        if (show) {
-          return Center(
-            child: InputRegion(
-              child: KeyboardFocus(
-                mode: KeyboardFocusMode.onDemand,
-                child: CallbackShortcuts(
-                  bindings: {
-                    const SingleActivator(LogicalKeyboardKey.escape): () {
-                      showLauncher.value = false;
-                      controller.ungrabFocus();
-                    },
+        if (!show) {
+          return SizedBox.shrink();
+        }
+        return Center(
+          child: InputRegion(
+            child: KeyboardFocus(
+              mode: KeyboardFocusMode.onDemand,
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.escape): () {
+                    showLauncher.value = false;
+                    controller.ungrabFocus();
                   },
-                  child: FocusGrab(
-                    controller: controller,
-                    child: SizedBox(
-                      width: config.width.toDouble(),
-                      height: config.height.toDouble(),
-                      child: FutureBuilder(
-                        future: service.applications(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return LauncherWidget(
-                              service: service,
-                              applications: snapshot.data!,
-                              config: config,
-                              close: () {
-                                showLauncher.value = false;
-                                controller.ungrabFocus();
-                              },
-                            );
-                          } else {
-                            return const Center(
-                              child: SizedBox(
-                                height: 35,
-                                width: 35,
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-                        },
-                      ),
+                },
+                child: FocusGrab(
+                  controller: controller,
+                  child: SizedBox(
+                    width: config.width.toDouble(),
+                    height: config.height.toDouble(),
+                    child: FutureBuilder(
+                      future: service.applications(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return LauncherWidget(
+                            service: service,
+                            applications: snapshot.data!,
+                            config: config,
+                            close: () {
+                              showLauncher.value = false;
+                              controller.ungrabFocus();
+                            },
+                          );
+                        } else {
+                          return const Center(
+                            child: SizedBox(
+                              height: 35,
+                              width: 35,
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                      },
                     ),
                   ),
                 ),
               ),
             ),
-          );
-        } else {
-          return SizedBox.shrink();
-        }
+          ),
+        );
       },
     );
   }

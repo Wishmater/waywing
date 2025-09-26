@@ -33,6 +33,7 @@ class _LauncherWidgetState extends State<LauncherWidget> {
     super.initState();
 
     focusNode = FocusNode(debugLabel: "launcher");
+    // TODO FIX THIS (Maybe with the hyprpland focus grab protocol this is not needed
     focusNode.requestFocus();
     focusNode.addListener(() {
       if (!focusNode.hasFocus) {

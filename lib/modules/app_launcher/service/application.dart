@@ -208,10 +208,10 @@ class Application implements Comparable<Application> {
       if (terminal) {
         logger?.trace("run alacritty -e $cmd ${args.join(' ')}");
         // TODO increase the list of terminals to launch and also make it configurable
-        await Process.start("alacritty", ["-e", cmd, ...args], mode: ProcessStartMode.detached);
+        await Process.start("alacritty", ["-e", cmd, ...args], mode: ProcessStartMode.detached, includeParentEnvironment: true);
       } else {
         logger?.trace("run $cmd ${args.join(' ')}");
-        await Process.start(cmd, args, mode: ProcessStartMode.detached, environment: Platform.environment);
+        await Process.start(cmd, args, mode: ProcessStartMode.detached, includeParentEnvironment: true);
       }
     }
   }

@@ -164,10 +164,6 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
       if (oldShape == null || oldShape is DockedRoundedCornersBorder) {
         // TODO: 1 animations: implement converters for DockedShapePerc
       }
-    } else if (newShape is DockedRoundedCornersBorderPerc) {
-      if (oldShape == null || oldShape is DockedRoundedCornersBorderPerc) {
-        // TODO: 1 animations: implement converters for DockedShapePerc
-      }
     }
 
     if (converter != null) {

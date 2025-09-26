@@ -2,6 +2,7 @@ import "dart:ui";
 
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
+import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 
 Path getDockedRoundCornersPathForDirection({
@@ -187,11 +188,11 @@ class DockedRoundedCornersBorder extends ShapeBorder {
 
   const DockedRoundedCornersBorder({
     required this.dockedSide,
+    required this.isVertical,
     required this.radiusInCross,
     required this.radiusInMain,
     this.radiusOutCross = 0,
     this.radiusOutMain = 0,
-    this.isVertical,
   });
 
   @override
@@ -217,13 +218,28 @@ class DockedRoundedCornersBorder extends ShapeBorder {
     );
   }
 
+  final borderSize = 2.0;
   @override
   Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
     return getOuterPath(rect);
   }
 
   @override
-  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
+    final colors = [Colors.red, Colors.blue];
+
+    final paint = Paint()
+      ..shader = LinearGradient(
+        colors: colors,
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = borderSize * 2;
+
+    final path = getOuterPath(rect, textDirection: textDirection);
+    canvas.drawPath(path, paint);
+  }
 
   @override
   ShapeBorder scale(double t) {
@@ -331,163 +347,5 @@ class DockedRoundedCornersBorder extends ShapeBorder {
         ),
       ),
     };
-  }
-}
-
-class DockedRoundedCornersBorderPerc extends ShapeBorder {
-  final ScreenEdge dockedSide;
-  final double radiusInPercCross;
-  final double radiusInPercMain;
-  final double radiusOutPercCross;
-  final double radiusOutPercMain;
-  final bool? isVertical;
-
-  const DockedRoundedCornersBorderPerc({
-    required this.dockedSide,
-    required this.radiusInPercCross,
-    required this.radiusInPercMain,
-    this.radiusOutPercCross = 0,
-    this.radiusOutPercMain = 0,
-    this.isVertical,
-  });
-
-  // can't infer dimensions from percentages because we don't have size at this point
-  @override
-  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
-
-  @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    return getDockedRoundCornersPathPercForDirection(
-      dockedSide: dockedSide,
-      rect: rect,
-      radiusInPercCross: radiusInPercCross,
-      radiusInPercMain: radiusInPercMain,
-      radiusOutPercCross: radiusOutPercCross,
-      radiusOutPercMain: radiusOutPercMain,
-      isVertical: isVertical,
-    );
-  }
-
-  @override
-  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
-    return getOuterPath(rect);
-  }
-
-  @override
-  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
-
-  @override
-  ShapeBorder scale(double t) {
-    return DockedRoundedCornersBorderPerc(
-      dockedSide: dockedSide,
-      radiusInPercCross: radiusInPercCross * t,
-      radiusInPercMain: radiusInPercMain * t,
-      radiusOutPercCross: radiusOutPercCross * t,
-      radiusOutPercMain: radiusOutPercMain * t,
-      isVertical: isVertical,
-    );
-  }
-
-  @override
-  ShapeBorder? lerpFrom(ShapeBorder? a, double t) {
-    if (a == null || a is! DockedRoundedCornersBorderPerc) {
-      return super.lerpFrom(a, t);
-    }
-    // if dockedSide and isVertical are the same, we can interpolate gracefully
-    if (dockedSide == a.dockedSide && isVertical == a.isVertical) {
-      return DockedRoundedCornersBorderPerc(
-        dockedSide: dockedSide,
-        radiusInPercCross: lerpDouble(a.radiusInPercCross, radiusInPercCross, t)!,
-        radiusInPercMain: lerpDouble(a.radiusInPercMain, radiusInPercMain, t)!,
-        radiusOutPercCross: lerpDouble(a.radiusOutPercCross, radiusOutPercCross, t)!,
-        radiusOutPercMain: lerpDouble(a.radiusOutPercMain, radiusOutPercMain, t)!,
-        isVertical: isVertical,
-      );
-    }
-    // if dockedSide is different, we default to removing current border and then adding new one
-    if (t < 0.5) {
-      return a.scale(1 - (t * 2));
-    }
-    return scale((t - 0.5) * 2);
-  }
-}
-
-class DockedRoundedCornersClipper extends CustomClipper<Path> {
-  final ScreenEdge dockedSide;
-  final double radiusInCross;
-  final double radiusInMain;
-  final double radiusOutCross;
-  final double radiusOutMain;
-  final bool? isVertical;
-
-  const DockedRoundedCornersClipper({
-    required this.dockedSide,
-    required this.radiusInCross,
-    required this.radiusInMain,
-    this.radiusOutCross = 0,
-    this.radiusOutMain = 0,
-    this.isVertical,
-  });
-
-  @override
-  Path getClip(Size size) {
-    return getDockedRoundCornersPathForDirection(
-      dockedSide: dockedSide,
-      rect: Rect.fromLTWH(0, 0, size.width, size.height),
-      radiusInCross: radiusInCross,
-      radiusInMain: radiusInMain,
-      radiusOutCross: radiusOutCross,
-      radiusOutMain: radiusOutMain,
-      isVertical: isVertical,
-    );
-  }
-
-  @override
-  bool shouldReclip(covariant DockedRoundedCornersClipper oldClipper) {
-    return dockedSide != oldClipper.dockedSide ||
-        radiusInCross != oldClipper.radiusInCross ||
-        radiusInMain != oldClipper.radiusInMain ||
-        radiusOutCross != oldClipper.radiusOutCross ||
-        radiusOutMain != oldClipper.radiusOutMain;
-  }
-}
-
-class DockedRoundedCornersClipperPerc extends CustomClipper<Path> {
-  final ScreenEdge dockedSide;
-  final double radiusInPercCross;
-  final double radiusInPercMain;
-  final double radiusOutPercCross;
-  final double radiusOutPercMain;
-  final bool? isVertical;
-
-  const DockedRoundedCornersClipperPerc({
-    required this.dockedSide,
-    required this.radiusInPercCross,
-    required this.radiusInPercMain,
-    this.radiusOutPercCross = 0,
-    this.radiusOutPercMain = 0,
-    this.isVertical,
-  });
-
-  @override
-  Path getClip(Size size) {
-    return getDockedRoundCornersPathPercForDirection(
-      dockedSide: dockedSide,
-      rect: Rect.fromLTWH(0, 0, size.width, size.height),
-      radiusInPercCross: radiusInPercCross,
-      radiusInPercMain: radiusInPercMain,
-      radiusOutPercCross: radiusOutPercCross,
-      radiusOutPercMain: radiusOutPercMain,
-      isVertical: isVertical,
-    );
-  }
-
-  @override
-  bool shouldReclip(covariant DockedRoundedCornersClipperPerc oldClipper) {
-    return dockedSide != oldClipper.dockedSide ||
-        radiusInPercCross != oldClipper.radiusInPercCross ||
-        radiusInPercMain != oldClipper.radiusInPercMain ||
-        radiusOutPercCross != oldClipper.radiusOutPercCross ||
-        radiusOutPercMain != oldClipper.radiusOutPercMain;
   }
 }

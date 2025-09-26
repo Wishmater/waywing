@@ -5,6 +5,7 @@ import "package:waywing/core/service.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
+import "package:waywing/modules/command_palette/user_command_service.dart";
 import "package:waywing/modules/hyprland/hyprland_service.dart";
 import "package:waywing/modules/kb_layout/kb_layout_service.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
@@ -176,6 +177,7 @@ class ServiceRegistry {
     KeyboardLayoutService.registerService(registerService);
     ApplicationService.registerService(registerService);
     HyprlandService.registerService(registerService);
+    UserCommandService.registerService(registerService);
   }
 }
 

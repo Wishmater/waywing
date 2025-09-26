@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:flutter/widgets.dart";
+import "package:waywing/util/logger.dart";
 import "./handler.dart";
 
 /// {@template request}
@@ -36,7 +37,7 @@ class _FocusGrabControllerInternal {
 class FocusGrabController {
   static final Finalizer<_FocusGrabControllerInternal> _finalizer = Finalizer((internal) {
     if (internal._removeFocusGrab()) {
-      print(
+      mainLogger.error(
         "ERROR: FocusGrabController is being garbage collected "
         "but the focus grab is still active. A call to ungrabFocus is missing",
       );

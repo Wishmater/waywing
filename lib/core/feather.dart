@@ -17,6 +17,7 @@ abstract class Feather<Conf> implements ServiceConsumer {
   @protected
   late Logger logger;
   late Conf config;
+  late String uniqueId;
 
   String get name;
 
@@ -32,9 +33,9 @@ abstract class Feather<Conf> implements ServiceConsumer {
   }
 
   @override
-  bool operator ==(Object other) => other is Feather && name == other.name;
+  bool operator ==(Object other) => other is Feather && name == other.name && uniqueId == other.uniqueId;
   @override
-  int get hashCode => Object.hash(Feather, name);
+  int get hashCode => Object.hash(Feather, name, uniqueId);
   @override
   String toString() => "Feather($name)";
 

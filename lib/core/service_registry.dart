@@ -88,7 +88,7 @@ class ServiceRegistry {
     final registration = _registeredServices[serviceType]!;
     final service = registration.constructor() as T;
     if (registration.configBuilder != null) {
-      service.config = registration.configBuilder!(rawMainConfig["$serviceType"]?[0] ?? {});
+      service.config = mainConfig.dynamicSchemas["$serviceType"]?[0] ?? registration.configBuilder!({});
     }
     // ignore: invalid_use_of_protected_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
@@ -158,8 +158,7 @@ class ServiceRegistry {
       if (registration.configBuilder == null) continue;
       e.value.then((service) {
         final oldConfig = service.config;
-        // TODO: 1 this should probably use the config objects already built?
-        final newConfig = registration.configBuilder!(rawMainConfig[e.key.toString()]?[0] ?? {});
+        final newConfig = mainConfig.dynamicSchemas[e.key.toString()]?[0] ?? registration.configBuilder!({});
         service.config = newConfig;
         service.onConfigUpdated(oldConfig);
       });

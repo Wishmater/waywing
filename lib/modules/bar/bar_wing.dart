@@ -23,17 +23,39 @@ class BarWing extends Wing<BarConfig> {
   @override
   String get name => "Bar";
 
+  late List<Feather> startFeathers;
+  late List<Feather> centerFeathers;
+  late List<Feather> endFeathers;
+
   @override
   List<Feather> getFeathers() => [
-    ...config.start.feathers,
-    ...config.center.feathers,
-    ...config.end.feathers,
+    ...startFeathers,
+    ...centerFeathers,
+    ...endFeathers,
   ];
+
+  @override
+  Future<void> init(BuildContext context) async {
+    updateFeathers();
+  }
+
+  void updateFeathers() {
+    // TODO: 1 differentiate bar index
+    startFeathers = config.start?.getFeatherInstances("Bar[0].Start") ?? [];
+    centerFeathers = config.center?.getFeatherInstances("Bar[0].Center") ?? [];
+    endFeathers = config.end?.getFeatherInstances("Bar[0].End") ?? [];
+  }
 
   @override
   Widget buildWing(EdgeInsets rerservedSpace) {
     // TODO: 1 apply rerservedSpace in Bar
-    return Bar(config: config, logger: logger);
+    return Bar(
+      startFeathers: startFeathers,
+      centerFeathers: centerFeathers,
+      endFeathers: endFeathers,
+      config: config,
+      logger: logger,
+    );
   }
 
   @override
@@ -49,5 +71,6 @@ class BarWing extends Wing<BarConfig> {
   @override
   onConfigUpdated(BarConfig oldConfig) {
     _exclusiveSize.value = _getExclusiveSize();
+    updateFeathers();
   }
 }

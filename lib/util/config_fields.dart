@@ -1,8 +1,5 @@
 import "package:config/config.dart";
 import "package:flutter/widgets.dart";
-import "package:waywing/core/feather.dart";
-import "package:waywing/core/feather_registry.dart";
-import "package:waywing/core/wing.dart";
 
 // Hack because Color class breaks codegen for some reason :)))
 class MyColor extends Color {
@@ -89,40 +86,6 @@ class AlignmentField extends StringFieldBase<Alignment> {
       "bottomRight" => ValidatorTransform(Alignment.bottomRight),
       _ => ValidatorError(MyValError("Unknown alignment: $value")),
     };
-  }
-}
-
-class FeatherField extends StringFieldBase<Feather> {
-  const FeatherField({
-    super.defaultTo,
-    super.nullable,
-  }) : super(validator: transform);
-
-  static ValidatorResult<Feather> transform(String value) {
-    try {
-      return ValidatorTransform(featherRegistry.getFeatherByName(value));
-    } catch (_) {
-      return ValidatorError(MyValError("Unknown feather: $value"));
-    }
-  }
-}
-
-class WingField extends StringFieldBase<Wing> {
-  const WingField({
-    super.defaultTo,
-    super.nullable,
-  }) : super(validator: transform);
-
-  static ValidatorResult<Wing> transform(String value) {
-    try {
-      final result = featherRegistry.getFeatherByName(value);
-      if (result is! Wing) {
-        return ValidatorError(MyValError("Feather: $value is not a Wing"));
-      }
-      return ValidatorTransform(result);
-    } catch (_) {
-      return ValidatorError(MyValError("Unknown feather: $value"));
-    }
   }
 }
 

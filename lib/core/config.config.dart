@@ -9,7 +9,6 @@ part of 'config.dart';
 
 mixin MainConfigI {
   int get monitor;
-  List<Wing<dynamic>> get wings;
   String? get socket;
   bool get focusGrab;
   bool get animationEnable;
@@ -33,7 +32,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     canBeMissingSchemas: {},
     fields: {
       'monitor': MainConfigBase._monitor,
-      'wings': MainConfigBase._wings,
       'socket': MainConfigBase._socket,
       'focusGrab': MainConfigBase._focusGrab,
       'animationEnable': MainConfigBase._animationEnable,
@@ -68,8 +66,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   @override
   final int monitor;
   @override
-  final List<Wing<dynamic>> wings;
-  @override
   final String? socket;
   @override
   final bool focusGrab;
@@ -95,7 +91,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
 
   MainConfig({
     int? monitor,
-    List<Wing<dynamic>>? wings,
     this.socket,
     bool? focusGrab,
     bool? animationEnable,
@@ -109,7 +104,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     required this.theme,
     required this.dynamicSchemas,
   }) : monitor = monitor ?? 0,
-       wings = wings ?? <Wing>[],
        focusGrab = focusGrab ?? kReleaseMode,
        animationEnable = animationEnable ?? true,
        animationSpeed = animationSpeed ?? 1,
@@ -136,7 +130,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     return MainConfig(
       dynamicSchemas: dynamicSchemas,
       monitor: map['monitor'],
-      wings: map['wings'],
       socket: map['socket'],
       focusGrab: map['focusGrab'],
       animationEnable: map['animationEnable'],
@@ -155,7 +148,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   String toString() {
     return '''MainConfig(
 	monitor = $monitor,
-	wings = $wings,
 	socket = $socket,
 	focusGrab = $focusGrab,
 	animationEnable = $animationEnable,
@@ -174,7 +166,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   @override
   bool operator ==(covariant MainConfig other) {
     return monitor == other.monitor &&
-        wings == other.wings &&
         socket == other.socket &&
         focusGrab == other.focusGrab &&
         animationEnable == other.animationEnable &&
@@ -192,7 +183,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   @override
   int get hashCode => Object.hashAll([
     monitor,
-    wings,
     socket,
     focusGrab,
     animationEnable,
@@ -206,4 +196,65 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     theme,
     dynamicSchemas,
   ]);
+}
+
+mixin FeathersContainerI {
+  Map<String, List<Object>> get dynamicSchemas;
+}
+
+class FeathersContainer extends ConfigBaseI
+    with FeathersContainerI, FeathersContainerBase {
+  static const TableSchema staticSchema = TableSchema(fields: {});
+
+  static TableSchema get schema => TableSchema(
+    tables: {
+      ...staticSchema.tables,
+      ...FeathersContainerBase._getDynamicSchemaTables().map(
+        (k, v) => MapEntry(k, v.schema),
+      ),
+    },
+    fields: staticSchema.fields,
+    validator: staticSchema.validator,
+    ignoreNotInSchema: staticSchema.ignoreNotInSchema,
+    canBeMissingSchemas: <String>{
+      ...staticSchema.canBeMissingSchemas,
+      ...FeathersContainerBase._getDynamicSchemaTables().keys,
+    },
+  );
+
+  @override
+  final Map<String, List<Object>> dynamicSchemas;
+
+  FeathersContainer({required this.dynamicSchemas});
+
+  factory FeathersContainer.fromMap(Map<String, dynamic> map) {
+    final dynamicSchemas = <String, List<Object>>{};
+    final schemas = FeathersContainerBase._getDynamicSchemaTables();
+    for (final entry in schemas.entries) {
+      if (map[entry.key] == null) continue;
+      for (final e in map[entry.key]) {
+        if (dynamicSchemas[entry.key] == null) {
+          dynamicSchemas[entry.key] = [];
+        }
+        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+      }
+    }
+
+    return FeathersContainer(dynamicSchemas: dynamicSchemas);
+  }
+
+  @override
+  String toString() {
+    return '''FeathersContainer(
+	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
+)''';
+  }
+
+  @override
+  bool operator ==(covariant FeathersContainer other) {
+    return configMapEqual(dynamicSchemas, other.dynamicSchemas);
+  }
+
+  @override
+  int get hashCode => Object.hashAll([dynamicSchemas]);
 }

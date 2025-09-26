@@ -24,19 +24,11 @@ mixin BarConfigI {
   double get radiusOutMain;
   double? get _indicatorMinSize;
   double? get _indicatorPadding;
-  BarFeathersContainer get start;
-  BarFeathersContainer get center;
-  BarFeathersContainer get end;
+  Map<String, List<Object>> get dynamicSchemas;
 }
 
 class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
   static const TableSchema staticSchema = TableSchema(
-    tables: {
-      'Start': BarConfigBase._Start,
-      'Center': BarConfigBase._Center,
-      'End': BarConfigBase._End,
-    },
-    canBeMissingSchemas: {},
     fields: {
       'side': BarConfigBase._side,
       'size': BarConfigBase._size,
@@ -57,7 +49,24 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static TableSchema get schema => TableSchema(
+    tables: {
+      ...staticSchema.tables,
+      ...BarConfigBase._getDynamicSchemaTables().map(
+        (k, v) => MapEntry(k, v.schema),
+      ),
+    },
+    fields: staticSchema.fields,
+    validator: staticSchema.validator,
+    ignoreNotInSchema: staticSchema.ignoreNotInSchema,
+    canBeMissingSchemas: <String>{
+      ...staticSchema.canBeMissingSchemas,
+      ...BarConfigBase._getDynamicSchemaTables().keys,
+    },
+  );
+
+  @override
+  final Map<String, List<Object>> dynamicSchemas;
 
   @override
   final ScreenEdge side;
@@ -92,13 +101,6 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
   @override
   final double? _indicatorPadding;
 
-  @override
-  final BarFeathersContainer start;
-  @override
-  final BarFeathersContainer center;
-  @override
-  final BarFeathersContainer end;
-
   BarConfig({
     ScreenEdge? side,
     int? size,
@@ -116,9 +118,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     double? radiusOutMain,
     double? indicatorMinSize,
     double? indicatorPadding,
-    required this.start,
-    required this.center,
-    required this.end,
+    required this.dynamicSchemas,
   }) : side = side ?? ScreenEdge.bottom,
        size = size ?? 30,
        marginLeft = marginLeft ?? 0,
@@ -137,7 +137,20 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
        _indicatorPadding = indicatorPadding;
 
   factory BarConfig.fromMap(Map<String, dynamic> map) {
+    final dynamicSchemas = <String, List<Object>>{};
+    final schemas = BarConfigBase._getDynamicSchemaTables();
+    for (final entry in schemas.entries) {
+      if (map[entry.key] == null) continue;
+      for (final e in map[entry.key]) {
+        if (dynamicSchemas[entry.key] == null) {
+          dynamicSchemas[entry.key] = [];
+        }
+        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+      }
+    }
+
     return BarConfig(
+      dynamicSchemas: dynamicSchemas,
       side: map['side'],
       size: map['size'],
       marginLeft: map['marginLeft'],
@@ -154,9 +167,6 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
       radiusOutMain: map['radiusOutMain'],
       indicatorMinSize: map['indicatorMinSize'],
       indicatorPadding: map['indicatorPadding'],
-      start: BarFeathersContainer.fromMap(map['Start'][0]),
-      center: BarFeathersContainer.fromMap(map['Center'][0]),
-      end: BarFeathersContainer.fromMap(map['End'][0]),
     );
   }
 
@@ -179,9 +189,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
 	radiusOutMain = $radiusOutMain,
 	_indicatorMinSize = $_indicatorMinSize,
 	_indicatorPadding = $_indicatorPadding,
-	start = ${start.toString().split("\n").join("\n\t")},
-	center = ${center.toString().split("\n").join("\n\t")},
-	end = ${end.toString().split("\n").join("\n\t")}
+	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
 )''';
   }
 
@@ -203,9 +211,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
         radiusOutMain == other.radiusOutMain &&
         _indicatorMinSize == other._indicatorMinSize &&
         _indicatorPadding == other._indicatorPadding &&
-        start == other.start &&
-        center == other.center &&
-        end == other.end;
+        configMapEqual(dynamicSchemas, other.dynamicSchemas);
   }
 
   @override
@@ -226,9 +232,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     radiusOutMain,
     _indicatorMinSize,
     _indicatorPadding,
-    start,
-    center,
-    end,
+    dynamicSchemas,
   ]);
 }
 

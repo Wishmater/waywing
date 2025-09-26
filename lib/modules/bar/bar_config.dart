@@ -2,6 +2,7 @@ import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/painting.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 
@@ -77,27 +78,26 @@ mixin BarConfigBase on BarConfigI {
 
   // TODO: 3 validate that at least one feather is added to one of the lists
 
-  @SchemaFieldAnnot()
-  static const _Start = BarFeathersContainer.staticSchema; // ignore: constant_identifier_names
-  @SchemaFieldAnnot()
-  static const _Center = BarFeathersContainer.staticSchema; // ignore: constant_identifier_names
-  @SchemaFieldAnnot()
-  static const _End = BarFeathersContainer.staticSchema; // ignore: constant_identifier_names
+  // TODO: 3 validate none of these are added several times
+  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() => {
+    "Start": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromMap),
+    "Center": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromMap),
+    "End": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromMap),
+  };
+
+  BarFeathersContainer? get start => dynamicSchemas["Start"]?[0] as BarFeathersContainer?;
+  BarFeathersContainer? get center => dynamicSchemas["Center"]?[0] as BarFeathersContainer?;
+  BarFeathersContainer? get end => dynamicSchemas["End"]?[0] as BarFeathersContainer?;
 }
 
 @Config()
 mixin BarFeathersContainerBase on BarFeathersContainerI {
   static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
-      featherRegistry.dynamicFeathersSchemas(omit: const ["Bar"]);
+      featherRegistry.getDynamicFeathersSchemas(omit: const ["Bar"]);
 
-  late final List<Feather> feathers = _feathers;
-  List<Feather> get _feathers {
-    final result = <Feather>[];
-    for (final e in dynamicSchemas.entries) {
-      for (final v in e.value) {
-        result.add(featherRegistry.getFeatherByName(e.key));
-      }
-    }
-    return result;
+  Map<String, List<Object>> get rawFeathers => dynamicSchemas;
+
+  List<T> getFeatherInstances<T extends Feather>(String uniqueIdPrefix) {
+    return getFeatherInstancesStatic<T>(rawFeathers, uniqueIdPrefix);
   }
 }

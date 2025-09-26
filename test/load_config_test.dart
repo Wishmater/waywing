@@ -15,9 +15,9 @@ void main() {
     try {
       final config = await reloadConfig(configInput);
       print(config);
-      print((config.dynamicSchemas["Bar"]![0] as BarConfig).end?.feathers);
-      print((config.dynamicSchemas["Bar"]![0] as BarConfig).center?.feathers);
-      print((config.dynamicSchemas["Bar"]![0] as BarConfig).start?.feathers);
+      print((config.dynamicSchemas["Bar"]![0] as BarConfig).end?.rawFeathers);
+      print((config.dynamicSchemas["Bar"]![0] as BarConfig).center?.rawFeathers);
+      print((config.dynamicSchemas["Bar"]![0] as BarConfig).start?.rawFeathers);
     } catch (e, st) {
       print("$e\n$st");
       print(BarConfig.schema.tables["End"]!.tables);

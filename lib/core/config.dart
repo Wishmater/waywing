@@ -9,12 +9,12 @@ import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
+import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/theme.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/animation_utils.dart";
-import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/xdg_dirs.dart";
@@ -36,11 +36,6 @@ final _logger = mainLogger.clone(properties: [LogType("Config")]);
 MainConfig get mainConfig => _config;
 late MainConfig _config;
 
-/// This should only be used by featherRegistry and serviceRegistry, because they need to
-/// dynamically add config schemas, which can't be added in a type safe way.
-Map<String, dynamic> get rawMainConfig => _rawMainConfig;
-late Map<String, dynamic> _rawMainConfig;
-
 typedef SchemaBuilder = TableSchema Function();
 typedef ConfigBuilder<Conf> = Conf Function(Map<String, dynamic> map);
 
@@ -49,7 +44,6 @@ mixin MainConfigBase on MainConfigI {
   // TODO: 2 each wing should declare its monitor, instead of having it here globally
   // This requires a big refactor in window_utils
   static const _monitor = IntegerNumberField(defaultTo: 0);
-  static const _wings = ListField(WingField(), defaultTo: <Wing>[]);
   static const _socket = StringField(nullable: true);
   static const _focusGrab = BooleanField(defaultTo: kReleaseMode);
 
@@ -112,7 +106,9 @@ mixin MainConfigBase on MainConfigI {
   static const _Theme = ThemeConfig.staticSchema; // ignore: constant_identifier_names
 
   static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() => {
-    ...featherRegistry.getSchemaTables(),
+    // TODO: 3 validate that "Wings" is only added once
+    "Wings": (schema: FeathersContainer.schema, from: FeathersContainer.fromMap),
+    ...featherRegistry.getDynamicFeathersSchemas(),
     ...serviceRegistry.getSchemaTables(),
   };
 
@@ -120,6 +116,47 @@ mixin MainConfigBase on MainConfigI {
   // Internal experimental options
   //===========================================================================
   static const _internalUsePainter = BooleanField(defaultTo: false);
+
+  //===========================================================================
+  // Wings
+  //===========================================================================
+
+  late final List<Wing> wings = _getWings();
+  List<Wing> _getWings() {
+    // TODO: 3 validate that Wings is added and that it has at least 1 wing
+    final feathersContainer = dynamicSchemas["Wings"]?[0] as FeathersContainer?;
+    // TODO: 3 make it so the error is prettier if a non-wing feather is added as a wing
+    return feathersContainer?.getFeatherInstances<Wing>("BaseWings") ?? [];
+  }
+}
+
+@Config()
+mixin FeathersContainerBase on FeathersContainerI {
+  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
+      featherRegistry.getDynamicFeathersSchemas();
+
+  Map<String, List<Object>> get rawFeathers => dynamicSchemas;
+
+  List<T> getFeatherInstances<T extends Feather>(String uniqueIdPrefix) {
+    return getFeatherInstancesStatic<T>(rawFeathers, uniqueIdPrefix);
+  }
+}
+
+List<T> getFeatherInstancesStatic<T extends Feather>(
+  Map<String, List<Object>> feathers,
+  String uniqueIdPrefix,
+) {
+  final result = <T>[];
+  for (final e in feathers.entries) {
+    final featherName = e.key;
+    for (int i = 0; i < e.value.length; i++) {
+      final config = e.value[i] as Map<String, dynamic>;
+      final uniqueId = "$uniqueIdPrefix.$featherName[$i]";
+      final feather = featherRegistry.getFeatherInstance(featherName, uniqueId, config) as T;
+      result.add(feather);
+    }
+  }
+  return result;
 }
 
 Future<MainConfig> reloadConfig(String content) async {
@@ -142,7 +179,6 @@ Future<MainConfig> reloadConfig(String content) async {
     case EvaluationSuccess():
       _logger.log(Level.info, "Read config EvaluationSuccess");
       _logger.log(Level.debug, _toPrettyJson(result.values));
-      _rawMainConfig = Map.unmodifiable(result.values);
       _config = MainConfig.fromMap(result.values);
       updateLoggerConfig(_config.logging);
       return _config;
@@ -195,6 +231,7 @@ dynamic _sanitizeForJson(dynamic e) {
   return e.toString();
 }
 
+// TODO: 3 why is this necessary ??
 class EmptyConfig {
   const EmptyConfig();
 

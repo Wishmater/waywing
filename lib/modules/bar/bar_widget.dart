@@ -21,12 +21,18 @@ import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class Bar extends StatefulWidget {
+  final List<Feather> startFeathers;
+  final List<Feather> centerFeathers;
+  final List<Feather> endFeathers;
   final BarConfig config;
   // TODO: 2 there should never be a need to log in the widgets, it's probably
   // a skill issue that can be validated before getting here
   final Logger logger;
 
   const Bar({
+    required this.startFeathers,
+    required this.centerFeathers,
+    required this.endFeathers,
     required this.config,
     required this.logger,
     super.key,
@@ -152,7 +158,7 @@ class _BarState extends State<Bar> {
                             context,
                             buildFeatherWidgets(
                               context: context,
-                              feathers: widget.config.end.feathers,
+                              feathers: widget.endFeathers,
                               feathersCount: feathersCount,
                               barShape: shape,
                             ),
@@ -165,7 +171,7 @@ class _BarState extends State<Bar> {
                             context,
                             buildFeatherWidgets(
                               context: context,
-                              feathers: widget.config.center.feathers,
+                              feathers: widget.centerFeathers,
                               feathersCount: feathersCount,
                               barShape: shape,
                             ),
@@ -182,7 +188,7 @@ class _BarState extends State<Bar> {
                             context,
                             buildFeatherWidgets(
                               context: context,
-                              feathers: widget.config.start.feathers,
+                              feathers: widget.startFeathers,
                               feathersCount: feathersCount,
                               barShape: shape,
                             ),
@@ -268,8 +274,8 @@ class _BarState extends State<Bar> {
                 // TODO: 3 maybe add some visual indication that widgets belong to the same feather
                 feathersCount[feather.name] ??= 0;
                 final featherIndex = feathersCount[feather.name]!;
+                feathersCount[feather.name] = featherIndex + 1;
                 final featherName = "${feather.name}$featherIndex";
-                feathersCount[featherName] = featherIndex + 1;
                 featherGlobalKeys[featherName] ??= [GlobalKey()];
                 final featherKeys = featherGlobalKeys[featherName]!;
                 while (featherKeys.length <= components.length) {

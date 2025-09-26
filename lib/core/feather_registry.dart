@@ -49,24 +49,6 @@ class FeatherRegistry {
   final Map<String, Feather> _instancedFeathers = {};
   final Map<Feather, Future<void>> _initializedFeathers = {};
 
-  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> dynamicFeathersSchemas({
-    Iterable<String> omit = const {},
-  }) {
-    final response = <String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})>{};
-
-    for (final entry in _registeredFeathers.entries) {
-      if (omit.contains(entry.key)) continue;
-
-      if (entry.value.schemaBuilder != null) {
-        response[entry.key] = (schema: entry.value.schemaBuilder!(), from: entry.value.configBuilder!);
-      } else {
-        response[entry.key] = (schema: EmptyConfig.schema, from: EmptyConfig.fromMap);
-      }
-    }
-
-    return response;
-  }
-
   void registerFeather<T extends Feather<Conf>, Conf>(
     String name,
     FeatherRegistration<T, Conf> registration,
@@ -75,18 +57,38 @@ class FeatherRegistry {
     _registeredFeathers[name] = registration;
   }
 
-  // TODO: 3 SCOPING only Config should be able to access this
-  Feather getFeatherByName(String name) {
-    var feather = _instancedFeathers[name];
-    if (feather == null) {
-      assert(_registeredFeathers.containsKey(name), "Trying to get an unknown Feather by name: $name");
-      final registration = _registeredFeathers[name]!;
+  Feather getFeatherInstance(String featherName, String uniqueId, [Map<String, dynamic> configOverride = const {}]) {
+    assert(_registeredFeathers.containsKey(featherName), "Trying to get an unknown Feather by name: $featherName");
+    final registration = _registeredFeathers[featherName]!;
+    var feather = _instancedFeathers[uniqueId];
+    final alreadyExists = feather != null;
+    if (!alreadyExists) {
       feather = registration.constructor();
       assert(
-        feather.name == name,
-        "The name exposed by a Feather (${feather.name}) is not the same name that was used to register said Feather ($name).",
+        feather.name == featherName,
+        "The name exposed by a Feather (${feather.name}) is not the same name that was used to register said Feather ($featherName).",
       );
-      _instancedFeathers[name] = feather;
+      feather.uniqueId = uniqueId;
+      _instancedFeathers[uniqueId] = feather;
+    }
+    if (registration.configBuilder != null) {
+      final globalConfig = mainConfig.dynamicSchemas[feather.name]?[0] as Map<String, dynamic>? ?? {};
+      final combinedConfig = {
+        ...globalConfig,
+        ...configOverride,
+      };
+      // print("=========================================");
+      // print(globalConfig);
+      // print(configOverride);
+      // print(combinedConfig);
+      final newConfig = registration.configBuilder!(combinedConfig);
+      if (alreadyExists) {
+        final oldConfig = feather.config;
+        feather.config = newConfig;
+        feather.onConfigUpdated(oldConfig);
+      } else {
+        feather.config = newConfig;
+      }
     }
     return feather;
   }
@@ -109,14 +111,29 @@ class FeatherRegistry {
     return _initializedFeathers[feather]!;
   }
 
-  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> getSchemaTables() => {
-    for (final e in _registeredFeathers.entries)
-      if (e.value.schemaBuilder != null) e.key: (schema: e.value.schemaBuilder!(), from: e.value.configBuilder!),
-  };
+  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> getDynamicFeathersSchemas({
+    Iterable<String> omit = const [],
+    bool parseConfigs = false,
+  }) {
+    final response = <String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})>{};
+
+    for (final entry in _registeredFeathers.entries) {
+      if (omit.contains(entry.key)) continue;
+
+      if (entry.value.schemaBuilder != null) {
+        final from = parseConfigs ? entry.value.configBuilder! : (e) => e;
+        response[entry.key] = (schema: entry.value.schemaBuilder!(), from: from);
+      } else {
+        final from = parseConfigs ? EmptyConfig.fromMap : (e) => e;
+        response[entry.key] = (schema: EmptyConfig.schema, from: from);
+      }
+    }
+
+    return response;
+  }
 
   void _updateFeathers(BuildContext context, Iterable<Feather> configFeathers) {
     _removeOldFeathersNotInNewConfig(configFeathers);
-    _updateFeathersConfig();
     _addNewFeathersNotInOldConfig(context, configFeathers);
     assert(
       !_instancedFeathers.values.any((e) => !_initializedFeathers.containsKey(e)),
@@ -137,18 +154,6 @@ class FeatherRegistry {
     }
   }
 
-  void _updateFeathersConfig() {
-    for (final e in _initializedFeathers.keys) {
-      final registration = _registeredFeathers[e.name]!;
-      if (registration.configBuilder == null) continue;
-      final oldConfig = e.config;
-      final newConfig = mainConfig.dynamicSchemas[e.name]?[0] ?? registration.configBuilder!({});
-      // final newConfig = registration.configBuilder!(rawMainConfig[e.name]);
-      e.config = newConfig;
-      e.onConfigUpdated(oldConfig);
-    }
-  }
-
   void _addNewFeathersNotInOldConfig(BuildContext context, Iterable<Feather> configFeathers) {
     for (final ne in configFeathers) {
       if (!_initializedFeathers.containsKey(ne)) {
@@ -162,10 +167,6 @@ class FeatherRegistry {
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
     assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already initialized");
     feather.logger = mainLogger.clone(properties: [LogType(feather.name)]); // ignore: invalid_use_of_protected_member
-    final registration = _registeredFeathers[feather.name]!;
-    if (registration.configBuilder != null) {
-      feather.config = registration.configBuilder!(rawMainConfig[feather.name]?[0] ?? {});
-    }
     // add feather routes actions
     if (feather.actions case final actions?) {
       for (final entry in actions.entries) {

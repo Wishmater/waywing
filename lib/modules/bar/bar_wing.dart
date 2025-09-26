@@ -23,9 +23,9 @@ class BarWing extends Wing<BarConfig> {
   @override
   String get name => "Bar";
 
-  late List<Feather> startFeathers;
-  late List<Feather> centerFeathers;
-  late List<Feather> endFeathers;
+  late List<Feather> startFeathers = config.start?.getFeatherInstances("$uniqueId.Start") ?? [];
+  late List<Feather> centerFeathers = config.center?.getFeatherInstances("$uniqueId.Center") ?? [];
+  late List<Feather> endFeathers = config.end?.getFeatherInstances("$uniqueId.End") ?? [];
 
   @override
   List<Feather> getFeathers() => [
@@ -34,16 +34,10 @@ class BarWing extends Wing<BarConfig> {
     ...endFeathers,
   ];
 
-  @override
-  Future<void> init(BuildContext context) async {
-    updateFeathers();
-  }
-
   void updateFeathers() {
-    // TODO: 1 differentiate bar index
-    startFeathers = config.start?.getFeatherInstances("Bar[0].Start") ?? [];
-    centerFeathers = config.center?.getFeatherInstances("Bar[0].Center") ?? [];
-    endFeathers = config.end?.getFeatherInstances("Bar[0].End") ?? [];
+    startFeathers = config.start?.getFeatherInstances("$uniqueId.Start") ?? [];
+    centerFeathers = config.center?.getFeatherInstances("$uniqueId.Center") ?? [];
+    endFeathers = config.end?.getFeatherInstances("$uniqueId.End") ?? [];
   }
 
   @override

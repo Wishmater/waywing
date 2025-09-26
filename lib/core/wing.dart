@@ -8,9 +8,9 @@ import "package:waywing/util/derived_value_notifier.dart";
 /// Similarly to feathers, it has its own service dependencies, logging, and config.
 abstract class Wing<Conf> extends Feather<Conf> {
   @override
-  bool operator ==(Object other) => other is Wing && name == other.name;
+  bool operator ==(Object other) => other is Wing && name == other.name && uniqueId == other.uniqueId;
   @override
-  int get hashCode => Object.hash(Wing, name);
+  int get hashCode => Object.hash(Wing, name, uniqueId);
   @override
   String toString() => "Wing($name)";
 

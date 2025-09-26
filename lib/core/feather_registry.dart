@@ -166,10 +166,12 @@ class FeatherRegistry {
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
     assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already initialized");
-    feather.logger = mainLogger.clone(properties: [LogType(feather.name)]); // ignore: invalid_use_of_protected_member
+    // ignore: invalid_use_of_protected_member
+    feather.logger = mainLogger.clone(properties: [LogType(feather.uniqueId)]);
     // add feather routes actions
     if (feather.actions case final actions?) {
       for (final entry in actions.entries) {
+        // TODO: 1 how does the new multi-feather changes affect WaywingServer ???
         WaywingServer.instance.router.register(join(feather.name, entry.key), entry.value);
       }
     }

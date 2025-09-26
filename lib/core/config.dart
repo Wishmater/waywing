@@ -126,7 +126,7 @@ mixin MainConfigBase on MainConfigI {
     // TODO: 3 validate that Wings is added and that it has at least 1 wing
     final feathersContainer = dynamicSchemas["Wings"]?[0] as FeathersContainer?;
     // TODO: 3 make it so the error is prettier if a non-wing feather is added as a wing
-    return feathersContainer?.getFeatherInstances<Wing>("BaseWings") ?? [];
+    return feathersContainer?.getFeatherInstances<Wing>(null) ?? [];
   }
 }
 
@@ -137,21 +137,21 @@ mixin FeathersContainerBase on FeathersContainerI {
 
   Map<String, List<Object>> get rawFeathers => dynamicSchemas;
 
-  List<T> getFeatherInstances<T extends Feather>(String uniqueIdPrefix) {
+  List<T> getFeatherInstances<T extends Feather>(String? uniqueIdPrefix) {
     return getFeatherInstancesStatic<T>(rawFeathers, uniqueIdPrefix);
   }
 }
 
 List<T> getFeatherInstancesStatic<T extends Feather>(
   Map<String, List<Object>> feathers,
-  String uniqueIdPrefix,
+  String? uniqueIdPrefix,
 ) {
   final result = <T>[];
   for (final e in feathers.entries) {
     final featherName = e.key;
     for (int i = 0; i < e.value.length; i++) {
       final config = e.value[i] as Map<String, dynamic>;
-      final uniqueId = "$uniqueIdPrefix.$featherName[$i]";
+      final uniqueId = uniqueIdPrefix != null ? "$uniqueIdPrefix.$featherName[$i]" : "$featherName[$i]";
       final feather = featherRegistry.getFeatherInstance(featherName, uniqueId, config) as T;
       result.add(feather);
     }

@@ -36,7 +36,6 @@ final _logger = mainLogger.clone(properties: [LogType("Config")]);
 MainConfig get mainConfig => _config;
 late MainConfig _config;
 
-// TODO: 2 try to remove this
 /// This should only be used by featherRegistry and serviceRegistry, because they need to
 /// dynamically add config schemas, which can't be added in a type safe way.
 Map<String, dynamic> get rawMainConfig => _rawMainConfig;
@@ -108,11 +107,9 @@ mixin MainConfigBase on MainConfigI {
   //===========================================================================
 
   @SchemaFieldAnnot()
-  // ignore: constant_identifier_names
-  static const _Logging = LoggingConfig.staticSchema;
+  static const _Logging = LoggingConfig.staticSchema; // ignore: constant_identifier_names
   @SchemaFieldAnnot()
-  // ignore: constant_identifier_names
-  static const _Theme = ThemeConfig.staticSchema;
+  static const _Theme = ThemeConfig.staticSchema; // ignore: constant_identifier_names
 
   static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() => {
     ...featherRegistry.getSchemaTables(),

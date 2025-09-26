@@ -75,43 +75,29 @@ mixin BarConfigBase on BarConfigI {
   static const __indicatorPadding = DoubleNumberField(nullable: true); // defaults to a fraction of barSize
   double get indicatorPadding => _indicatorPadding ?? size / 8;
 
-  List<Feather> get startFeathers => start?.feathers.keys.map(featherRegistry.getFeatherByName).toList() ?? [];
-  List<Feather> get centerFeathers => center?.feathers.keys.map(featherRegistry.getFeatherByName).toList() ?? [];
-  List<Feather> get endFeathers => end?.feathers.keys.map(featherRegistry.getFeatherByName).toList() ?? [];
-
   // TODO: 3 validate that at least one feather is added to one of the lists
 
-  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() => {
-    "Start": (schema: StartConfig.schema, from: StartConfig.fromMap),
-    "Center": (schema: CenterConfig.schema, from: CenterConfig.fromMap),
-    "End": (schema: EndConfig.schema, from: EndConfig.fromMap),
-  };
-
-  StartConfig? get start => dynamicSchemas["Start"]?[0] as StartConfig?;
-  CenterConfig? get center => dynamicSchemas["Center"]?[0] as CenterConfig?;
-  EndConfig? get end => dynamicSchemas["End"]?[0] as EndConfig?;
+  @SchemaFieldAnnot()
+  static const _Start = BarFeathersContainer.staticSchema; // ignore: constant_identifier_names
+  @SchemaFieldAnnot()
+  static const _Center = BarFeathersContainer.staticSchema; // ignore: constant_identifier_names
+  @SchemaFieldAnnot()
+  static const _End = BarFeathersContainer.staticSchema; // ignore: constant_identifier_names
 }
 
 @Config()
-mixin StartConfigBase on StartConfigI {
+mixin BarFeathersContainerBase on BarFeathersContainerI {
   static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
-      featherRegistry.dynamicFeathersSchemas(const {"Bar"});
+      featherRegistry.dynamicFeathersSchemas(omit: const ["Bar"]);
 
-  Map<String, List<Object>> get feathers => dynamicSchemas;
-}
-
-@Config()
-mixin CenterConfigBase on CenterConfigI {
-  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
-      featherRegistry.dynamicFeathersSchemas(const {"Bar"});
-
-  Map<String, List<Object>> get feathers => dynamicSchemas;
-}
-
-@Config()
-mixin EndConfigBase on EndConfigI {
-  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
-      featherRegistry.dynamicFeathersSchemas(const {"Bar"});
-
-  Map<String, List<Object>> get feathers => dynamicSchemas;
+  late final List<Feather> feathers = _feathers;
+  List<Feather> get _feathers {
+    final result = <Feather>[];
+    for (final e in dynamicSchemas.entries) {
+      for (final v in e.value) {
+        result.add(featherRegistry.getFeatherByName(e.key));
+      }
+    }
+    return result;
+  }
 }

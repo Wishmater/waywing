@@ -158,7 +158,8 @@ class ServiceRegistry {
       if (registration.configBuilder == null) continue;
       e.value.then((service) {
         final oldConfig = service.config;
-        final newConfig = registration.configBuilder!(rawMainConfig[e.key.toString()]);
+        // TODO: 1 this should probably use the config objects already built?
+        final newConfig = registration.configBuilder!(rawMainConfig[e.key.toString()]?[0] ?? {});
         service.config = newConfig;
         service.onConfigUpdated(oldConfig);
       });

@@ -49,9 +49,9 @@ class FeatherRegistry {
   final Map<String, Feather> _instancedFeathers = {};
   final Map<Feather, Future<void>> _initializedFeathers = {};
 
-  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> dynamicFeathersSchemas([
-    Set<String> omit = const {},
-  ]) {
+  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> dynamicFeathersSchemas({
+    Iterable<String> omit = const {},
+  }) {
     final response = <String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})>{};
 
     for (final entry in _registeredFeathers.entries) {
@@ -142,7 +142,6 @@ class FeatherRegistry {
       final registration = _registeredFeathers[e.name]!;
       if (registration.configBuilder == null) continue;
       final oldConfig = e.config;
-      print(e.name);
       final newConfig = mainConfig.dynamicSchemas[e.name]?[0] ?? registration.configBuilder!({});
       // final newConfig = registration.configBuilder!(rawMainConfig[e.name]);
       e.config = newConfig;

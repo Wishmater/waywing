@@ -25,9 +25,9 @@ class BarWing extends Wing<BarConfig> {
 
   @override
   List<Feather> getFeathers() => [
-    ...config.startFeathers,
-    ...config.centerFeathers,
-    ...config.endFeathers,
+    ...config.start.feathers,
+    ...config.center.feathers,
+    ...config.end.feathers,
   ];
 
   @override

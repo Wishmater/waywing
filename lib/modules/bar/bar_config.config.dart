@@ -24,11 +24,11 @@ mixin BarConfigI {
   double get radiusOutMain;
   double? get _indicatorMinSize;
   double? get _indicatorPadding;
-  Map<String, List<Object>> get dynamicSchemas;
+  List<(String, Object)> get dynamicSchemas;
 }
 
 class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {
       'side': BarConfigBase._side,
       'size': BarConfigBase._size,
@@ -49,9 +49,9 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     },
   );
 
-  static TableSchema get schema => TableSchema(
-    tables: {
-      ...staticSchema.tables,
+  static BlockSchema get schema => BlockSchema(
+    blocks: {
+      ...staticSchema.blocks,
       ...BarConfigBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
       ),
@@ -66,7 +66,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
   );
 
   @override
-  final Map<String, List<Object>> dynamicSchemas;
+  final List<(String, Object)> dynamicSchemas;
 
   @override
   final ScreenEdge side;
@@ -136,37 +136,38 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
        _indicatorMinSize = indicatorMinSize,
        _indicatorPadding = indicatorPadding;
 
-  factory BarConfig.fromMap(Map<String, dynamic> map) {
-    final dynamicSchemas = <String, List<Object>>{};
+  factory BarConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
+
+    final dynamicSchemas = <(String, Object)>[];
     final schemas = BarConfigBase._getDynamicSchemaTables();
-    for (final entry in schemas.entries) {
-      if (map[entry.key] == null) continue;
-      for (final e in map[entry.key]) {
-        if (dynamicSchemas[entry.key] == null) {
-          dynamicSchemas[entry.key] = [];
-        }
-        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+
+    for (final block in data.blocks) {
+      final key = block.$1;
+      if (!schemas.containsKey(key)) {
+        continue;
       }
+      dynamicSchemas.add((key, schemas[key]!.from(block.$2)));
     }
 
     return BarConfig(
       dynamicSchemas: dynamicSchemas,
-      side: map['side'],
-      size: map['size'],
-      marginLeft: map['marginLeft'],
-      marginRight: map['marginRight'],
-      marginTop: map['marginTop'],
-      marginBottom: map['marginBottom'],
-      exclusiveSizeLeft: map['exclusiveSizeLeft'],
-      exclusiveSizeRight: map['exclusiveSizeRight'],
-      exclusiveSizeTop: map['exclusiveSizeTop'],
-      exclusiveSizeBottom: map['exclusiveSizeBottom'],
-      radiusInCross: map['radiusInCross'],
-      radiusInMain: map['radiusInMain'],
-      radiusOutCross: map['radiusOutCross'],
-      radiusOutMain: map['radiusOutMain'],
-      indicatorMinSize: map['indicatorMinSize'],
-      indicatorPadding: map['indicatorPadding'],
+      side: fields['side'],
+      size: fields['size'],
+      marginLeft: fields['marginLeft'],
+      marginRight: fields['marginRight'],
+      marginTop: fields['marginTop'],
+      marginBottom: fields['marginBottom'],
+      exclusiveSizeLeft: fields['exclusiveSizeLeft'],
+      exclusiveSizeRight: fields['exclusiveSizeRight'],
+      exclusiveSizeTop: fields['exclusiveSizeTop'],
+      exclusiveSizeBottom: fields['exclusiveSizeBottom'],
+      radiusInCross: fields['radiusInCross'],
+      radiusInMain: fields['radiusInMain'],
+      radiusOutCross: fields['radiusOutCross'],
+      radiusOutMain: fields['radiusOutMain'],
+      indicatorMinSize: fields['indicatorMinSize'],
+      indicatorPadding: fields['indicatorPadding'],
     );
   }
 
@@ -211,7 +212,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
         radiusOutMain == other.radiusOutMain &&
         _indicatorMinSize == other._indicatorMinSize &&
         _indicatorPadding == other._indicatorPadding &&
-        configMapEqual(dynamicSchemas, other.dynamicSchemas);
+        configListEqual(dynamicSchemas, other.dynamicSchemas);
   }
 
   @override
@@ -237,16 +238,16 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
 }
 
 mixin BarFeathersContainerI {
-  Map<String, List<Object>> get dynamicSchemas;
+  List<(String, Object)> get dynamicSchemas;
 }
 
 class BarFeathersContainer extends ConfigBaseI
     with BarFeathersContainerI, BarFeathersContainerBase {
-  static const TableSchema staticSchema = TableSchema(fields: {});
+  static const BlockSchema staticSchema = BlockSchema(fields: {});
 
-  static TableSchema get schema => TableSchema(
-    tables: {
-      ...staticSchema.tables,
+  static BlockSchema get schema => BlockSchema(
+    blocks: {
+      ...staticSchema.blocks,
       ...BarFeathersContainerBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
       ),
@@ -261,21 +262,22 @@ class BarFeathersContainer extends ConfigBaseI
   );
 
   @override
-  final Map<String, List<Object>> dynamicSchemas;
+  final List<(String, Object)> dynamicSchemas;
 
   BarFeathersContainer({required this.dynamicSchemas});
 
-  factory BarFeathersContainer.fromMap(Map<String, dynamic> map) {
-    final dynamicSchemas = <String, List<Object>>{};
+  factory BarFeathersContainer.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
+
+    final dynamicSchemas = <(String, Object)>[];
     final schemas = BarFeathersContainerBase._getDynamicSchemaTables();
-    for (final entry in schemas.entries) {
-      if (map[entry.key] == null) continue;
-      for (final e in map[entry.key]) {
-        if (dynamicSchemas[entry.key] == null) {
-          dynamicSchemas[entry.key] = [];
-        }
-        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+
+    for (final block in data.blocks) {
+      final key = block.$1;
+      if (!schemas.containsKey(key)) {
+        continue;
       }
+      dynamicSchemas.add((key, schemas[key]!.from(block.$2)));
     }
 
     return BarFeathersContainer(dynamicSchemas: dynamicSchemas);
@@ -290,7 +292,7 @@ class BarFeathersContainer extends ConfigBaseI
 
   @override
   bool operator ==(covariant BarFeathersContainer other) {
-    return configMapEqual(dynamicSchemas, other.dynamicSchemas);
+    return configListEqual(dynamicSchemas, other.dynamicSchemas);
   }
 
   @override

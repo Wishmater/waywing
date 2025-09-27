@@ -14,11 +14,11 @@ mixin KbLayoutServiceConfigI {
 
 class KbLayoutServiceConfig extends ConfigBaseI
     with KbLayoutServiceConfigI, KbLayoutServiceConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {'pullInterval': KbLayoutServiceConfigBase._pullInterval},
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final int pullInterval;
@@ -26,8 +26,9 @@ class KbLayoutServiceConfig extends ConfigBaseI
   KbLayoutServiceConfig({int? pullInterval})
     : pullInterval = pullInterval ?? 500;
 
-  factory KbLayoutServiceConfig.fromMap(Map<String, dynamic> map) {
-    return KbLayoutServiceConfig(pullInterval: map['pullInterval']);
+  factory KbLayoutServiceConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
+    return KbLayoutServiceConfig(pullInterval: fields['pullInterval']);
   }
 
   @override

@@ -1,4 +1,5 @@
 import "package:config/config.dart";
+import "package:dartx/dartx_io.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/service.dart";
@@ -94,7 +95,9 @@ class ServiceRegistry {
     final registration = _registeredServices[serviceType]!;
     final service = registration.constructor() as T;
     if (registration.configBuilder != null) {
-      service.config = mainConfig.dynamicSchemas["$serviceType"]?[0] ?? registration.configBuilder!({});
+      service.config =
+          mainConfig.dynamicSchemas.firstOrNullWhere((e) => e.$1 == "$serviceType")?.$2 ??
+          registration.configBuilder!(BlockData.empty());
     }
     // ignore: invalid_use_of_protected_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
@@ -151,7 +154,7 @@ class ServiceRegistry {
     await Future.wait(futures);
   }
 
-  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> getSchemaTables() => {
+  Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> getSchemaTables() => {
     for (final e in _registeredServices.entries)
       if (e.value.schemaBuilder != null)
         e.key.toString(): (schema: e.value.schemaBuilder!(), from: e.value.configBuilder!),
@@ -164,7 +167,9 @@ class ServiceRegistry {
       if (registration.configBuilder == null) continue;
       e.value.then((service) {
         final oldConfig = service.config;
-        final newConfig = mainConfig.dynamicSchemas[e.key.toString()]?[0] ?? registration.configBuilder!({});
+        final newConfig =
+            mainConfig.dynamicSchemas.firstOrNullWhere((v) => v.$1 == e.key.toString())?.$2 ??
+            registration.configBuilder!(BlockData.empty());
         service.config = newConfig;
         service.onConfigUpdated(oldConfig);
       });

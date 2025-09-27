@@ -19,7 +19,7 @@ mixin NotificationsConfigI {
 
 class NotificationsConfig extends ConfigBaseI
     with NotificationsConfigI, NotificationsConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {
       'alignment': NotificationsConfigBase._alignment,
       'marginLeft': NotificationsConfigBase._marginLeft,
@@ -31,7 +31,7 @@ class NotificationsConfig extends ConfigBaseI
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final Alignment alignment;
@@ -64,15 +64,16 @@ class NotificationsConfig extends ConfigBaseI
        autoExpand = autoExpand ?? false,
        showProgressBar = showProgressBar ?? false;
 
-  factory NotificationsConfig.fromMap(Map<String, dynamic> map) {
+  factory NotificationsConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
     return NotificationsConfig(
-      alignment: map['alignment'],
-      marginLeft: map['marginLeft'],
-      marginRight: map['marginRight'],
-      marginTop: map['marginTop'],
-      marginBottom: map['marginBottom'],
-      autoExpand: map['autoExpand'],
-      showProgressBar: map['showProgressBar'],
+      alignment: fields['alignment'],
+      marginLeft: fields['marginLeft'],
+      marginRight: fields['marginRight'],
+      marginTop: fields['marginTop'],
+      marginBottom: fields['marginBottom'],
+      autoExpand: fields['autoExpand'],
+      showProgressBar: fields['showProgressBar'],
     );
   }
 

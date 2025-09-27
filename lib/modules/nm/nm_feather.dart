@@ -23,7 +23,7 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
       FeatherRegistration(
         constructor: NetworkManagerFeather._,
         schemaBuilder: () => NetworkManagerConfig.schema,
-        configBuilder: NetworkManagerConfig.fromMap,
+        configBuilder: NetworkManagerConfig.fromBlock,
       ),
     );
   }

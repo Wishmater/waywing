@@ -23,7 +23,7 @@ class ClockFeather extends Feather<ClockConfig> {
       FeatherRegistration(
         constructor: ClockFeather._,
         schemaBuilder: () => ClockConfig.schema,
-        configBuilder: ClockConfig.fromMap,
+        configBuilder: ClockConfig.fromBlock,
       ),
     );
   }

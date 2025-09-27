@@ -16,7 +16,7 @@ mixin LauncherConfigI {
 
 class LauncherConfig extends ConfigBaseI
     with LauncherConfigI, LauncherConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {
       'width': LauncherConfigBase._width,
       'height': LauncherConfigBase._height,
@@ -25,7 +25,7 @@ class LauncherConfig extends ConfigBaseI
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final int width;
@@ -41,12 +41,13 @@ class LauncherConfig extends ConfigBaseI
       height = height ?? 400,
       showScrollBar = showScrollBar ?? true;
 
-  factory LauncherConfig.fromMap(Map<String, dynamic> map) {
+  factory LauncherConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
     return LauncherConfig(
-      width: map['width'],
-      height: map['height'],
-      iconSize: map['iconSize'],
-      showScrollBar: map['showScrollBar'],
+      width: fields['width'],
+      height: fields['height'],
+      iconSize: fields['iconSize'],
+      showScrollBar: fields['showScrollBar'],
     );
   }
 

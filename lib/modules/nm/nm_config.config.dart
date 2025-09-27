@@ -17,7 +17,7 @@ mixin NetworkManagerConfigI {
 
 class NetworkManagerConfig extends ConfigBaseI
     with NetworkManagerConfigI, NetworkManagerConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {
       'showConnectionNameIndicator':
           NetworkManagerConfigBase._showConnectionNameIndicator,
@@ -29,7 +29,7 @@ class NetworkManagerConfig extends ConfigBaseI
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final bool showConnectionNameIndicator;
@@ -54,13 +54,14 @@ class NetworkManagerConfig extends ConfigBaseI
        showThroughputIndicator = showThroughputIndicator ?? true,
        deviceTypeFilter = deviceTypeFilter ?? <String>[];
 
-  factory NetworkManagerConfig.fromMap(Map<String, dynamic> map) {
+  factory NetworkManagerConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
     return NetworkManagerConfig(
-      showConnectionNameIndicator: map['showConnectionNameIndicator'],
-      showUploadIndicator: map['showUploadIndicator'],
-      showDownloadIndicator: map['showDownloadIndicator'],
-      showThroughputIndicator: map['showThroughputIndicator'],
-      deviceTypeFilter: map['deviceTypeFilter'],
+      showConnectionNameIndicator: fields['showConnectionNameIndicator'],
+      showUploadIndicator: fields['showUploadIndicator'],
+      showDownloadIndicator: fields['showDownloadIndicator'],
+      showThroughputIndicator: fields['showThroughputIndicator'],
+      deviceTypeFilter: fields['deviceTypeFilter'],
     );
   }
 

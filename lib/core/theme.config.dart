@@ -31,7 +31,7 @@ mixin ThemeConfigI {
 }
 
 class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {
       'mode': ThemeConfigBase._mode,
       'fontFamily': ThemeConfigBase._fontFamily,
@@ -52,7 +52,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final ThemeMode mode;
@@ -123,24 +123,25 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
        backgroundOpacity = backgroundOpacity ?? 1.0,
        shadows = shadows ?? 1.0;
 
-  factory ThemeConfig.fromMap(Map<String, dynamic> map) {
+  factory ThemeConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
     return ThemeConfig(
-      mode: map['mode'],
-      fontFamily: map['fontFamily'],
-      fontSize: map['fontSize'],
-      iconPriority: map['iconPriority'],
-      iconFlutterVariation: map['iconFlutterVariation'],
-      iconFlutterTwoTone: map['iconFlutterTwoTone'],
-      iconFlutterFill: map['iconFlutterFill'],
-      iconFlutterWeight: map['iconFlutterWeight'],
-      primaryColor: map['primaryColor'],
-      secondaryColor: map['secondaryColor'],
-      tertiaryColor: map['tertiaryColor'],
-      errorColor: map['errorColor'],
-      backgroundColor: map['backgroundColor'],
-      foregroundColor: map['foregroundColor'],
-      backgroundOpacity: map['backgroundOpacity'],
-      shadows: map['shadows'],
+      mode: fields['mode'],
+      fontFamily: fields['fontFamily'],
+      fontSize: fields['fontSize'],
+      iconPriority: fields['iconPriority'],
+      iconFlutterVariation: fields['iconFlutterVariation'],
+      iconFlutterTwoTone: fields['iconFlutterTwoTone'],
+      iconFlutterFill: fields['iconFlutterFill'],
+      iconFlutterWeight: fields['iconFlutterWeight'],
+      primaryColor: fields['primaryColor'],
+      secondaryColor: fields['secondaryColor'],
+      tertiaryColor: fields['tertiaryColor'],
+      errorColor: fields['errorColor'],
+      backgroundColor: fields['backgroundColor'],
+      foregroundColor: fields['foregroundColor'],
+      backgroundOpacity: fields['backgroundOpacity'],
+      shadows: fields['shadows'],
     );
   }
 

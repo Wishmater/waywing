@@ -14,7 +14,7 @@ mixin LoggingConfigI {
 }
 
 class LoggingConfig extends ConfigBaseI with LoggingConfigI, LoggingConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {
       'levelFilter': LoggingConfigBase._levelFilter,
       'typeLevelFilters': LoggingConfigBase._typeLevelFilters,
@@ -22,7 +22,7 @@ class LoggingConfig extends ConfigBaseI with LoggingConfigI, LoggingConfigBase {
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final Level levelFilter;
@@ -38,11 +38,12 @@ class LoggingConfig extends ConfigBaseI with LoggingConfigI, LoggingConfigBase {
   }) : levelFilter = levelFilter ?? (kDebugMode ? Level.trace : Level.info),
        typeLevelFilters = typeLevelFilters ?? <String, Level>{};
 
-  factory LoggingConfig.fromMap(Map<String, dynamic> map) {
+  factory LoggingConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
     return LoggingConfig(
-      levelFilter: map['levelFilter'],
-      typeLevelFilters: map['typeLevelFilters'],
-      output: map['output'],
+      levelFilter: fields['levelFilter'],
+      typeLevelFilters: fields['typeLevelFilters'],
+      output: fields['output'],
     );
   }
 

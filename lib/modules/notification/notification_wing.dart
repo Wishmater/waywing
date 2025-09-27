@@ -25,7 +25,7 @@ class NotificationsWing extends Wing<NotificationsConfig> {
       FeatherRegistration(
         constructor: NotificationsWing._,
         schemaBuilder: () => NotificationsConfig.schema,
-        configBuilder: NotificationsConfig.fromMap,
+        configBuilder: NotificationsConfig.fromBlock,
       ),
     );
   }

@@ -57,7 +57,7 @@ class FeatherRegistry {
     _registeredFeathers[name] = registration;
   }
 
-  Feather getFeatherInstance(String featherName, String uniqueId, [Map<String, dynamic> configOverride = const {}]) {
+  Feather getFeatherInstance(String featherName, String uniqueId, [BlockData configOverride = const BlockData.constEmpty()]) {
     assert(_registeredFeathers.containsKey(featherName), "Trying to get an unknown Feather by name: $featherName");
     final registration = _registeredFeathers[featherName]!;
     var feather = _instancedFeathers[uniqueId];
@@ -72,11 +72,12 @@ class FeatherRegistry {
       _instancedFeathers[uniqueId] = feather;
     }
     if (registration.configBuilder != null) {
-      final globalConfig = mainConfig.dynamicSchemas[feather.name]?[0] as Map<String, dynamic>? ?? {};
-      final combinedConfig = {
-        ...globalConfig,
-        ...configOverride,
-      };
+      // final globalConfig = mainConfig.dynamicSchemas[feather.name]?[0] as Map<String, dynamic>? ?? {};
+      // final combinedConfig = {
+      //   ...globalConfig,
+      //   ...configOverride,
+      // };
+      final combinedConfig = configOverride;
       // print("=========================================");
       // print(globalConfig);
       // print(configOverride);
@@ -111,11 +112,11 @@ class FeatherRegistry {
     return _initializedFeathers[feather]!;
   }
 
-  Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> getDynamicFeathersSchemas({
+  Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> getDynamicFeathersSchemas({
     Iterable<String> omit = const [],
     bool parseConfigs = false,
   }) {
-    final response = <String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})>{};
+    final response = <String, ({BlockSchema schema, dynamic Function(BlockData) from})>{};
 
     for (final entry in _registeredFeathers.entries) {
       if (omit.contains(entry.key)) continue;

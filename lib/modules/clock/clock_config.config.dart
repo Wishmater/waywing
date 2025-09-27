@@ -12,19 +12,20 @@ mixin ClockConfigI {
 }
 
 class ClockConfig extends ConfigBaseI with ClockConfigI, ClockConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {'militar': ClockConfigBase._militar},
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final bool militar;
 
   ClockConfig({bool? militar}) : militar = militar ?? false;
 
-  factory ClockConfig.fromMap(Map<String, dynamic> map) {
-    return ClockConfig(militar: map['militar']);
+  factory ClockConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
+    return ClockConfig(militar: fields['militar']);
   }
 
   @override

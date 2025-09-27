@@ -36,8 +36,8 @@ final _logger = mainLogger.clone(properties: [LogType("Config")]);
 MainConfig get mainConfig => _config;
 late MainConfig _config;
 
-typedef SchemaBuilder = TableSchema Function();
-typedef ConfigBuilder<Conf> = Conf Function(Map<String, dynamic> map);
+typedef SchemaBuilder = BlockSchema Function();
+typedef ConfigBuilder<Conf> = Conf Function(BlockData map);
 
 @Config()
 mixin MainConfigBase on MainConfigI {
@@ -105,9 +105,9 @@ mixin MainConfigBase on MainConfigI {
   @SchemaFieldAnnot()
   static const _Theme = ThemeConfig.staticSchema; // ignore: constant_identifier_names
 
-  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() => {
+  static Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> _getDynamicSchemaTables() => {
     // TODO: 3 validate that "Wings" is only added once
-    "Wings": (schema: FeathersContainer.schema, from: FeathersContainer.fromMap),
+    "Wings": (schema: FeathersContainer.schema, from: FeathersContainer.fromBlock),
     ...featherRegistry.getDynamicFeathersSchemas(),
     ...serviceRegistry.getSchemaTables(),
   };
@@ -124,7 +124,7 @@ mixin MainConfigBase on MainConfigI {
   late final List<Wing> wings = _getWings();
   List<Wing> _getWings() {
     // TODO: 3 validate that Wings is added and that it has at least 1 wing
-    final feathersContainer = dynamicSchemas["Wings"]?[0] as FeathersContainer?;
+    final feathersContainer = dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Wings")?.$2 as FeathersContainer?;
     // TODO: 3 make it so the error is prettier if a non-wing feather is added as a wing
     return feathersContainer?.getFeatherInstances<Wing>(null) ?? [];
   }
@@ -132,10 +132,10 @@ mixin MainConfigBase on MainConfigI {
 
 @Config()
 mixin FeathersContainerBase on FeathersContainerI {
-  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
+  static Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> _getDynamicSchemaTables() =>
       featherRegistry.getDynamicFeathersSchemas();
 
-  Map<String, List<Object>> get rawFeathers => dynamicSchemas;
+  List<(String, Object)> get rawFeathers => dynamicSchemas;
 
   List<T> getFeatherInstances<T extends Feather>(String? uniqueIdPrefix) {
     return getFeatherInstancesStatic<T>(rawFeathers, uniqueIdPrefix);
@@ -143,18 +143,20 @@ mixin FeathersContainerBase on FeathersContainerI {
 }
 
 List<T> getFeatherInstancesStatic<T extends Feather>(
-  Map<String, List<Object>> feathers,
+  List<(String, Object)> feathers,
   String? uniqueIdPrefix,
 ) {
   final result = <T>[];
-  for (final e in feathers.entries) {
-    final featherName = e.key;
-    for (int i = 0; i < e.value.length; i++) {
-      final config = e.value[i] as Map<String, dynamic>;
-      final uniqueId = uniqueIdPrefix != null ? "$uniqueIdPrefix.$featherName[$i]" : "$featherName[$i]";
-      final feather = featherRegistry.getFeatherInstance(featherName, uniqueId, config) as T;
-      result.add(feather);
-    }
+  final counter = <String, int>{};
+  for (final e in feathers) {
+    final featherName = e.$1;
+    counter[featherName] ??= 0;
+    final i = counter[featherName];
+
+    final config = e.$2 as BlockData;
+    final uniqueId = uniqueIdPrefix != null ? "$uniqueIdPrefix.$featherName[$i]" : "$featherName[$i]";
+    final feather = featherRegistry.getFeatherInstance(featherName, uniqueId, config) as T;
+    result.add(feather);
   }
   return result;
 }
@@ -179,7 +181,7 @@ Future<MainConfig> reloadConfig(String content) async {
     case EvaluationSuccess():
       _logger.log(Level.info, "Read config EvaluationSuccess");
       _logger.log(Level.debug, _toPrettyJson(result.values));
-      _config = MainConfig.fromMap(result.values);
+      _config = MainConfig.fromBlock(result.values);
       updateLoggerConfig(_config.logging);
       return _config;
   }

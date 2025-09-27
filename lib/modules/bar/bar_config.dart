@@ -1,5 +1,6 @@
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
+import "package:dartx/dartx_io.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/painting.dart";
 import "package:waywing/core/config.dart";
@@ -79,23 +80,23 @@ mixin BarConfigBase on BarConfigI {
   // TODO: 3 validate that at least one feather is added to one of the lists
 
   // TODO: 3 validate none of these are added several times
-  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() => {
-    "Start": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromMap),
-    "Center": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromMap),
-    "End": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromMap),
+  static Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> _getDynamicSchemaTables() => {
+    "Start": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromBlock),
+    "Center": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromBlock),
+    "End": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromBlock),
   };
 
-  BarFeathersContainer? get start => dynamicSchemas["Start"]?[0] as BarFeathersContainer?;
-  BarFeathersContainer? get center => dynamicSchemas["Center"]?[0] as BarFeathersContainer?;
-  BarFeathersContainer? get end => dynamicSchemas["End"]?[0] as BarFeathersContainer?;
+  BarFeathersContainer? get start => dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Start")?.$2 as BarFeathersContainer?;
+  BarFeathersContainer? get center => dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Center")?.$2 as BarFeathersContainer?;
+  BarFeathersContainer? get end => dynamicSchemas.firstOrNullWhere((e) => e.$1 == "End")?.$2 as BarFeathersContainer?;
 }
 
 @Config()
 mixin BarFeathersContainerBase on BarFeathersContainerI {
-  static Map<String, ({TableSchema schema, dynamic Function(Map<String, dynamic>) from})> _getDynamicSchemaTables() =>
+  static Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> _getDynamicSchemaTables() =>
       featherRegistry.getDynamicFeathersSchemas(omit: const ["Bar"]);
 
-  Map<String, List<Object>> get rawFeathers => dynamicSchemas;
+  List<(String, Object)> get rawFeathers => dynamicSchemas;
 
   List<T> getFeatherInstances<T extends Feather>(String uniqueIdPrefix) {
     return getFeatherInstancesStatic<T>(rawFeathers, uniqueIdPrefix);

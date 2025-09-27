@@ -23,7 +23,7 @@ class KeyboardLayoutService extends Service<KbLayoutServiceConfig> {
       ServiceRegistration(
         constructor: KeyboardLayoutService._,
         schemaBuilder: () => KbLayoutServiceConfig.schema,
-        configBuilder: KbLayoutServiceConfig.fromMap,
+        configBuilder: KbLayoutServiceConfig.fromBlock,
       ),
     );
   }

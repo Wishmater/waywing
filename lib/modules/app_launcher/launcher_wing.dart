@@ -23,7 +23,7 @@ class AppLauncherWing extends Wing<LauncherConfig> {
       FeatherRegistration<AppLauncherWing, LauncherConfig>(
         constructor: AppLauncherWing._,
         schemaBuilder: () => LauncherConfig.schema,
-        configBuilder: LauncherConfig.fromMap,
+        configBuilder: LauncherConfig.fromBlock,
       ),
     );
   }

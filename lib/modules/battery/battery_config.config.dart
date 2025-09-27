@@ -28,7 +28,7 @@ mixin BatteryConfigI {
 }
 
 class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {
       'enableProfile': BatteryConfigBase._enableProfile,
       'automaticProfileChanging': BatteryConfigBase._automaticProfileChanging,
@@ -38,7 +38,7 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final bool enableProfile;
@@ -63,13 +63,14 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
        normalProfile = normalProfile ?? "balanced",
        batteryThreshold = batteryThreshold ?? 30;
 
-  factory BatteryConfig.fromMap(Map<String, dynamic> map) {
+  factory BatteryConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
     return BatteryConfig(
-      enableProfile: map['enableProfile'],
-      automaticProfileChanging: map['automaticProfileChanging'],
-      saverProfile: map['saverProfile'],
-      normalProfile: map['normalProfile'],
-      batteryThreshold: map['batteryThreshold'],
+      enableProfile: fields['enableProfile'],
+      automaticProfileChanging: fields['automaticProfileChanging'],
+      saverProfile: fields['saverProfile'],
+      normalProfile: fields['normalProfile'],
+      batteryThreshold: fields['batteryThreshold'],
     );
   }
 

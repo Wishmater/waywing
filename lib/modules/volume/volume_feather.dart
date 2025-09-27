@@ -19,7 +19,7 @@ class VolumeFeather extends Feather<VolumeConfig> {
       FeatherRegistration(
         constructor: VolumeFeather._,
         schemaBuilder: () => VolumeConfig.schema,
-        configBuilder: VolumeConfig.fromMap,
+        configBuilder: VolumeConfig.fromBlock,
       ),
     );
   }

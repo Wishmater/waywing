@@ -231,7 +231,7 @@ packages:
       path: "../config.dart"
       relative: true
     source: path
-    version: "0.0.6"
+    version: "0.0.8"
   config_gen:
     dependency: "direct main"
     description:

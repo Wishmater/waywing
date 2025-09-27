@@ -23,7 +23,7 @@ class BatteryFeather extends Feather<BatteryConfig> {
       "Battery",
       FeatherRegistration(
         constructor: BatteryFeather._,
-        configBuilder: BatteryConfig.fromMap,
+        configBuilder: BatteryConfig.fromBlock,
         schemaBuilder: () => BatteryConfig.schema,
       ),
     );

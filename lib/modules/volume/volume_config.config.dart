@@ -16,7 +16,7 @@ mixin VolumeConfigI {
 }
 
 class VolumeConfig extends ConfigBaseI with VolumeConfigI, VolumeConfigBase {
-  static const TableSchema staticSchema = TableSchema(
+  static const BlockSchema staticSchema = BlockSchema(
     fields: {
       'showPercentageIndicator': VolumeConfigBase._showPercentageIndicator,
       'showSeparateMicIndicator': VolumeConfigBase._showSeparateMicIndicator,
@@ -26,7 +26,7 @@ class VolumeConfig extends ConfigBaseI with VolumeConfigI, VolumeConfigBase {
     },
   );
 
-  static TableSchema get schema => staticSchema;
+  static BlockSchema get schema => staticSchema;
 
   @override
   final bool showPercentageIndicator;
@@ -51,13 +51,14 @@ class VolumeConfig extends ConfigBaseI with VolumeConfigI, VolumeConfigBase {
        volumeStep = volumeStep ?? 5,
        showTooltipOnVolumeChange = showTooltipOnVolumeChange ?? true;
 
-  factory VolumeConfig.fromMap(Map<String, dynamic> map) {
+  factory VolumeConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
     return VolumeConfig(
-      showPercentageIndicator: map['showPercentageIndicator'],
-      showSeparateMicIndicator: map['showSeparateMicIndicator'],
-      maxVolume: map['maxVolume'],
-      volumeStep: map['volumeStep'],
-      showTooltipOnVolumeChange: map['showTooltipOnVolumeChange'],
+      showPercentageIndicator: fields['showPercentageIndicator'],
+      showSeparateMicIndicator: fields['showSeparateMicIndicator'],
+      maxVolume: fields['maxVolume'],
+      volumeStep: fields['volumeStep'],
+      showTooltipOnVolumeChange: fields['showTooltipOnVolumeChange'],
     );
   }
 

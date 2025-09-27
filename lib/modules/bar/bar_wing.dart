@@ -15,7 +15,7 @@ class BarWing extends Wing<BarConfig> {
       FeatherRegistration(
         constructor: BarWing._,
         schemaBuilder: () => BarConfig.schema,
-        configBuilder: BarConfig.fromMap,
+        configBuilder: BarConfig.fromBlock,
       ),
     );
   }

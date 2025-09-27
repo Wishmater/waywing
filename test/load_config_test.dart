@@ -1,3 +1,5 @@
+import "package:config/config.dart";
+import "package:dartx/dartx_io.dart";
 import "package:flutter_test/flutter_test.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
@@ -15,14 +17,14 @@ void main() {
     try {
       final config = await reloadConfig(configInput);
       print(config);
-      print((config.dynamicSchemas["Bar"]![0] as BarConfig).end?.rawFeathers);
-      print((config.dynamicSchemas["Bar"]![0] as BarConfig).center?.rawFeathers);
-      print((config.dynamicSchemas["Bar"]![0] as BarConfig).start?.rawFeathers);
+      print(BarConfig.fromBlock((config.dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Bar") as (String, BlockData)).$2).end?.rawFeathers);
+      print(BarConfig.fromBlock((config.dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Bar") as (String, BlockData)).$2).center?.rawFeathers);
+      print(BarConfig.fromBlock((config.dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Bar") as (String, BlockData)).$2).start?.rawFeathers);
     } catch (e, st) {
       print("$e\n$st");
-      print(BarConfig.schema.tables["End"]!.tables);
+      print(BarConfig.schema.blocks["End"]!.blocks);
     }
-    print(BarConfig.schema.tables["End"]!.tables);
+    print(BarConfig.schema.blocks["End"]!.blocks);
   });
 }
 

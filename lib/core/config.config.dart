@@ -20,12 +20,12 @@ mixin MainConfigI {
   bool get internalUsePainter;
   LoggingConfig get logging;
   ThemeConfig get theme;
-  Map<String, List<Object>> get dynamicSchemas;
+  List<(String, Object)> get dynamicSchemas;
 }
 
 class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
-  static const TableSchema staticSchema = TableSchema(
-    tables: {
+  static const BlockSchema staticSchema = BlockSchema(
+    blocks: {
       'Logging': MainConfigBase._Logging,
       'Theme': MainConfigBase._Theme,
     },
@@ -44,9 +44,9 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     },
   );
 
-  static TableSchema get schema => TableSchema(
-    tables: {
-      ...staticSchema.tables,
+  static BlockSchema get schema => BlockSchema(
+    blocks: {
+      ...staticSchema.blocks,
       ...MainConfigBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
       ),
@@ -61,7 +61,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   );
 
   @override
-  final Map<String, List<Object>> dynamicSchemas;
+  final List<(String, Object)> dynamicSchemas;
 
   @override
   final int monitor;
@@ -114,33 +114,34 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
        requestKeyboardFocus = requestKeyboardFocus ?? false,
        internalUsePainter = internalUsePainter ?? false;
 
-  factory MainConfig.fromMap(Map<String, dynamic> map) {
-    final dynamicSchemas = <String, List<Object>>{};
+  factory MainConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
+
+    final dynamicSchemas = <(String, Object)>[];
     final schemas = MainConfigBase._getDynamicSchemaTables();
-    for (final entry in schemas.entries) {
-      if (map[entry.key] == null) continue;
-      for (final e in map[entry.key]) {
-        if (dynamicSchemas[entry.key] == null) {
-          dynamicSchemas[entry.key] = [];
-        }
-        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+
+    for (final block in data.blocks) {
+      final key = block.$1;
+      if (!schemas.containsKey(key)) {
+        continue;
       }
+      dynamicSchemas.add((key, schemas[key]!.from(block.$2)));
     }
 
     return MainConfig(
       dynamicSchemas: dynamicSchemas,
-      monitor: map['monitor'],
-      socket: map['socket'],
-      focusGrab: map['focusGrab'],
-      animationEnable: map['animationEnable'],
-      animationSpeed: map['animationSpeed'],
-      animationDamping: map['animationDamping'],
-      animationFitting: map['animationFitting'],
-      animationSwitching: map['animationSwitching'],
-      requestKeyboardFocus: map['requestKeyboardFocus'],
-      internalUsePainter: map['internalUsePainter'],
-      logging: LoggingConfig.fromMap(map['Logging'][0]),
-      theme: ThemeConfig.fromMap(map['Theme'][0]),
+      monitor: fields['monitor'],
+      socket: fields['socket'],
+      focusGrab: fields['focusGrab'],
+      animationEnable: fields['animationEnable'],
+      animationSpeed: fields['animationSpeed'],
+      animationDamping: fields['animationDamping'],
+      animationFitting: fields['animationFitting'],
+      animationSwitching: fields['animationSwitching'],
+      requestKeyboardFocus: fields['requestKeyboardFocus'],
+      internalUsePainter: fields['internalUsePainter'],
+      logging: LoggingConfig.fromBlock(data.firstBlockWith('Logging')!),
+      theme: ThemeConfig.fromBlock(data.firstBlockWith('Theme')!),
     );
   }
 
@@ -177,7 +178,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
         internalUsePainter == other.internalUsePainter &&
         logging == other.logging &&
         theme == other.theme &&
-        configMapEqual(dynamicSchemas, other.dynamicSchemas);
+        configListEqual(dynamicSchemas, other.dynamicSchemas);
   }
 
   @override
@@ -199,16 +200,16 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
 }
 
 mixin FeathersContainerI {
-  Map<String, List<Object>> get dynamicSchemas;
+  List<(String, Object)> get dynamicSchemas;
 }
 
 class FeathersContainer extends ConfigBaseI
     with FeathersContainerI, FeathersContainerBase {
-  static const TableSchema staticSchema = TableSchema(fields: {});
+  static const BlockSchema staticSchema = BlockSchema(fields: {});
 
-  static TableSchema get schema => TableSchema(
-    tables: {
-      ...staticSchema.tables,
+  static BlockSchema get schema => BlockSchema(
+    blocks: {
+      ...staticSchema.blocks,
       ...FeathersContainerBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
       ),
@@ -223,21 +224,22 @@ class FeathersContainer extends ConfigBaseI
   );
 
   @override
-  final Map<String, List<Object>> dynamicSchemas;
+  final List<(String, Object)> dynamicSchemas;
 
   FeathersContainer({required this.dynamicSchemas});
 
-  factory FeathersContainer.fromMap(Map<String, dynamic> map) {
-    final dynamicSchemas = <String, List<Object>>{};
+  factory FeathersContainer.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields;
+
+    final dynamicSchemas = <(String, Object)>[];
     final schemas = FeathersContainerBase._getDynamicSchemaTables();
-    for (final entry in schemas.entries) {
-      if (map[entry.key] == null) continue;
-      for (final e in map[entry.key]) {
-        if (dynamicSchemas[entry.key] == null) {
-          dynamicSchemas[entry.key] = [];
-        }
-        dynamicSchemas[entry.key]!.add(entry.value.from(e));
+
+    for (final block in data.blocks) {
+      final key = block.$1;
+      if (!schemas.containsKey(key)) {
+        continue;
       }
+      dynamicSchemas.add((key, schemas[key]!.from(block.$2)));
     }
 
     return FeathersContainer(dynamicSchemas: dynamicSchemas);
@@ -252,7 +254,7 @@ class FeathersContainer extends ConfigBaseI
 
   @override
   bool operator ==(covariant FeathersContainer other) {
-    return configMapEqual(dynamicSchemas, other.dynamicSchemas);
+    return configListEqual(dynamicSchemas, other.dynamicSchemas);
   }
 
   @override

@@ -343,8 +343,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: "76694595f8a8021d22bcc9539c1a520d587c7a50"
-      tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/fl-linux-window-manager"
     source: git
     version: "2.0.5"

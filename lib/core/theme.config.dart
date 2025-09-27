@@ -28,6 +28,8 @@ mixin ThemeConfigI {
   MyColor? get foregroundColor;
   double get backgroundOpacity;
   double get shadows;
+  double get buttonRounding;
+  double get containerRounding;
 }
 
 class ThemeConfig with ThemeConfigI, ThemeConfigBase {
@@ -49,6 +51,8 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       'foregroundColor': ThemeConfigBase._foregroundColor,
       'backgroundOpacity': ThemeConfigBase._backgroundOpacity,
       'shadows': ThemeConfigBase._shadows,
+      'buttonRounding': ThemeConfigBase._buttonRounding,
+      'containerRounding': ThemeConfigBase._containerRounding,
     },
   );
 
@@ -86,6 +90,10 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
   final double backgroundOpacity;
   @override
   final double shadows;
+  @override
+  final double buttonRounding;
+  @override
+  final double containerRounding;
 
   ThemeConfig({
     ThemeMode? mode,
@@ -104,6 +112,8 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     this.foregroundColor,
     double? backgroundOpacity,
     double? shadows,
+    double? buttonRounding,
+    double? containerRounding,
   }) : mode = mode ?? ThemeMode.system,
        fontSize = fontSize ?? kDefaultFontSize,
        iconPriority =
@@ -121,7 +131,9 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
        iconFlutterWeight = iconFlutterWeight ?? 400,
        primaryColor = primaryColor ?? MyColor(0xFF2196F3),
        backgroundOpacity = backgroundOpacity ?? 1.0,
-       shadows = shadows ?? 1.0;
+       shadows = shadows ?? 1.0,
+       buttonRounding = buttonRounding ?? 12,
+       containerRounding = containerRounding ?? 24;
 
   factory ThemeConfig.fromMap(Map<String, dynamic> map) {
     return ThemeConfig(
@@ -141,12 +153,14 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
       foregroundColor: map['foregroundColor'],
       backgroundOpacity: map['backgroundOpacity'],
       shadows: map['shadows'],
+      buttonRounding: map['buttonRounding'],
+      containerRounding: map['containerRounding'],
     );
   }
 
   @override
   String toString() {
-    return 'ThemeConfig(mode = $mode, fontFamily = $fontFamily, fontSize = $fontSize, iconPriority = $iconPriority, iconFlutterVariation = $iconFlutterVariation, iconFlutterTwoTone = $iconFlutterTwoTone, iconFlutterFill = $iconFlutterFill, iconFlutterWeight = $iconFlutterWeight, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows)';
+    return 'ThemeConfig(mode = $mode, fontFamily = $fontFamily, fontSize = $fontSize, iconPriority = $iconPriority, iconFlutterVariation = $iconFlutterVariation, iconFlutterTwoTone = $iconFlutterTwoTone, iconFlutterFill = $iconFlutterFill, iconFlutterWeight = $iconFlutterWeight, primaryColor = $primaryColor, secondaryColor = $secondaryColor, tertiaryColor = $tertiaryColor, errorColor = $errorColor, backgroundColor = $backgroundColor, foregroundColor = $foregroundColor, backgroundOpacity = $backgroundOpacity, shadows = $shadows, buttonRounding = $buttonRounding, containerRounding = $containerRounding)';
   }
 
   @override
@@ -166,7 +180,9 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
         backgroundColor == other.backgroundColor &&
         foregroundColor == other.foregroundColor &&
         backgroundOpacity == other.backgroundOpacity &&
-        shadows == other.shadows;
+        shadows == other.shadows &&
+        buttonRounding == other.buttonRounding &&
+        containerRounding == other.containerRounding;
   }
 
   @override
@@ -187,5 +203,7 @@ class ThemeConfig with ThemeConfigI, ThemeConfigBase {
     foregroundColor,
     backgroundOpacity,
     shadows,
+    buttonRounding,
+    containerRounding,
   ]);
 }

@@ -3,7 +3,6 @@ import "dart:ui";
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/material.dart";
-import "package:flutter/widgets.dart";
 
 Path getDockedRoundCornersPathForDirection({
   required ScreenEdge dockedSide,
@@ -178,6 +177,7 @@ Path getDockedRoundCornersPath({
   return path;
 }
 
+@Deprecated("Use ExternalRoundedCornersBorder instead")
 class DockedRoundedCornersBorder extends ShapeBorder {
   final ScreenEdge dockedSide;
   final double radiusInCross;
@@ -218,7 +218,7 @@ class DockedRoundedCornersBorder extends ShapeBorder {
     );
   }
 
-  final borderSize = 2.0;
+  // final borderSize = 2.0;
   @override
   Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
     return getOuterPath(rect);
@@ -226,19 +226,19 @@ class DockedRoundedCornersBorder extends ShapeBorder {
 
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
-    final colors = [Colors.red, Colors.blue];
-
-    final paint = Paint()
-      ..shader = LinearGradient(
-        colors: colors,
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ).createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = borderSize * 2;
-
-    final path = getOuterPath(rect, textDirection: textDirection);
-    canvas.drawPath(path, paint);
+    // final colors = [Colors.red, Colors.blue];
+    //
+    // final paint = Paint()
+    //   ..shader = LinearGradient(
+    //     colors: colors,
+    //     begin: Alignment.topLeft,
+    //     end: Alignment.bottomRight,
+    //   ).createShader(rect)
+    //   ..style = PaintingStyle.stroke
+    //   ..strokeWidth = borderSize * 2;
+    //
+    // final path = getOuterPath(rect, textDirection: textDirection);
+    // canvas.drawPath(path, paint);
   }
 
   @override

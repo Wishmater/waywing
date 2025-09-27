@@ -2,6 +2,7 @@ import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/painting.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/util/config_fields.dart";
 
@@ -57,11 +58,9 @@ mixin BarConfigBase on BarConfigI {
   //===========================================================================
 
   // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const _radiusInCross = DoubleNumberField(defaultTo: 0);
-  static const _radiusInMain = DoubleNumberField(defaultTo: 0);
-  static const _radiusOutCross = DoubleNumberField(defaultTo: 0);
-  static const _radiusOutMain = DoubleNumberField(defaultTo: 0);
-  // TODO: 3 validate that barRadiusOutMain <= relevantBarMargin
+  static const __rounding = DoubleNumberField(nullable: true); // defaults to mainConfig.theme.containerRounding
+  double get rounding => _rounding ?? mainConfig.theme.containerRounding;
+  // TODO: 3 do we want to expose different rounding values for each corner? or at least horizontal/vertical?
 
   // Derived
 

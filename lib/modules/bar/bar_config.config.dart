@@ -18,10 +18,7 @@ mixin BarConfigI {
   double? get _exclusiveSizeRight;
   double? get _exclusiveSizeTop;
   double? get _exclusiveSizeBottom;
-  double get radiusInCross;
-  double get radiusInMain;
-  double get radiusOutCross;
-  double get radiusOutMain;
+  double? get _rounding;
   double? get _indicatorMinSize;
   double? get _indicatorPadding;
   List<Feather<dynamic>> get startFeathers;
@@ -42,10 +39,7 @@ class BarConfig with BarConfigI, BarConfigBase {
       'exclusiveSizeRight': BarConfigBase.__exclusiveSizeRight,
       'exclusiveSizeTop': BarConfigBase.__exclusiveSizeTop,
       'exclusiveSizeBottom': BarConfigBase.__exclusiveSizeBottom,
-      'radiusInCross': BarConfigBase._radiusInCross,
-      'radiusInMain': BarConfigBase._radiusInMain,
-      'radiusOutCross': BarConfigBase._radiusOutCross,
-      'radiusOutMain': BarConfigBase._radiusOutMain,
+      'rounding': BarConfigBase.__rounding,
       'indicatorMinSize': BarConfigBase.__indicatorMinSize,
       'indicatorPadding': BarConfigBase.__indicatorPadding,
       'startFeathers': BarConfigBase._startFeathers,
@@ -77,13 +71,7 @@ class BarConfig with BarConfigI, BarConfigBase {
   @override
   final double? _exclusiveSizeBottom;
   @override
-  final double radiusInCross;
-  @override
-  final double radiusInMain;
-  @override
-  final double radiusOutCross;
-  @override
-  final double radiusOutMain;
+  final double? _rounding;
   @override
   final double? _indicatorMinSize;
   @override
@@ -106,10 +94,7 @@ class BarConfig with BarConfigI, BarConfigBase {
     double? exclusiveSizeRight,
     double? exclusiveSizeTop,
     double? exclusiveSizeBottom,
-    double? radiusInCross,
-    double? radiusInMain,
-    double? radiusOutCross,
-    double? radiusOutMain,
+    double? rounding,
     double? indicatorMinSize,
     double? indicatorPadding,
     List<Feather<dynamic>>? startFeathers,
@@ -123,10 +108,7 @@ class BarConfig with BarConfigI, BarConfigBase {
        _exclusiveSizeRight = exclusiveSizeRight,
        _exclusiveSizeTop = exclusiveSizeTop,
        _exclusiveSizeBottom = exclusiveSizeBottom,
-       radiusInCross = radiusInCross ?? 0,
-       radiusInMain = radiusInMain ?? 0,
-       radiusOutCross = radiusOutCross ?? 0,
-       radiusOutMain = radiusOutMain ?? 0,
+       _rounding = rounding,
        _indicatorMinSize = indicatorMinSize,
        _indicatorPadding = indicatorPadding,
        startFeathers = startFeathers ?? <Feather>[],
@@ -145,10 +127,7 @@ class BarConfig with BarConfigI, BarConfigBase {
       exclusiveSizeRight: map['exclusiveSizeRight'],
       exclusiveSizeTop: map['exclusiveSizeTop'],
       exclusiveSizeBottom: map['exclusiveSizeBottom'],
-      radiusInCross: map['radiusInCross'],
-      radiusInMain: map['radiusInMain'],
-      radiusOutCross: map['radiusOutCross'],
-      radiusOutMain: map['radiusOutMain'],
+      rounding: map['rounding'],
       indicatorMinSize: map['indicatorMinSize'],
       indicatorPadding: map['indicatorPadding'],
       startFeathers: map['startFeathers'],
@@ -159,7 +138,7 @@ class BarConfig with BarConfigI, BarConfigBase {
 
   @override
   String toString() {
-    return 'BarConfig(side = $side, size = $size, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, _exclusiveSizeLeft = $_exclusiveSizeLeft, _exclusiveSizeRight = $_exclusiveSizeRight, _exclusiveSizeTop = $_exclusiveSizeTop, _exclusiveSizeBottom = $_exclusiveSizeBottom, radiusInCross = $radiusInCross, radiusInMain = $radiusInMain, radiusOutCross = $radiusOutCross, radiusOutMain = $radiusOutMain, _indicatorMinSize = $_indicatorMinSize, _indicatorPadding = $_indicatorPadding, startFeathers = $startFeathers, centerFeathers = $centerFeathers, endFeathers = $endFeathers)';
+    return 'BarConfig(side = $side, size = $size, marginLeft = $marginLeft, marginRight = $marginRight, marginTop = $marginTop, marginBottom = $marginBottom, _exclusiveSizeLeft = $_exclusiveSizeLeft, _exclusiveSizeRight = $_exclusiveSizeRight, _exclusiveSizeTop = $_exclusiveSizeTop, _exclusiveSizeBottom = $_exclusiveSizeBottom, _rounding = $_rounding, _indicatorMinSize = $_indicatorMinSize, _indicatorPadding = $_indicatorPadding, startFeathers = $startFeathers, centerFeathers = $centerFeathers, endFeathers = $endFeathers)';
   }
 
   @override
@@ -174,10 +153,7 @@ class BarConfig with BarConfigI, BarConfigBase {
         _exclusiveSizeRight == other._exclusiveSizeRight &&
         _exclusiveSizeTop == other._exclusiveSizeTop &&
         _exclusiveSizeBottom == other._exclusiveSizeBottom &&
-        radiusInCross == other.radiusInCross &&
-        radiusInMain == other.radiusInMain &&
-        radiusOutCross == other.radiusOutCross &&
-        radiusOutMain == other.radiusOutMain &&
+        _rounding == other._rounding &&
         _indicatorMinSize == other._indicatorMinSize &&
         _indicatorPadding == other._indicatorPadding &&
         startFeathers == other.startFeathers &&
@@ -197,10 +173,7 @@ class BarConfig with BarConfigI, BarConfigBase {
     _exclusiveSizeRight,
     _exclusiveSizeTop,
     _exclusiveSizeBottom,
-    radiusInCross,
-    radiusInMain,
-    radiusOutCross,
-    radiusOutMain,
+    _rounding,
     _indicatorMinSize,
     _indicatorPadding,
     startFeathers,

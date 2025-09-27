@@ -21,15 +21,26 @@ enum ConfigIconVariation {
 
 @Config()
 mixin ThemeConfigBase on ThemeConfigI {
+  //===========================================================================
+  // Mode (light / dark)
+  //===========================================================================
+
   static const _mode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
+
+  //===========================================================================
+  // Font
+  //===========================================================================
 
   /// Use this to set a custom font
   static const _fontFamily = StringField(nullable: true);
 
   /// Set the font size
   static const _fontSize = DoubleNumberField(defaultTo: kDefaultFontSize);
-
   double get fontSizeScaleFactor => fontSize / kDefaultFontSize;
+
+  //===========================================================================
+  // Icons
+  //===========================================================================
 
   static const _iconPriority = ListField(
     EnumField(IconType.values),
@@ -83,6 +94,10 @@ mixin ThemeConfigBase on ThemeConfigI {
     return ValidatorSuccess();
   }
 
+  //===========================================================================
+  // Colors
+  //===========================================================================
+
   static const _primaryColor = ColorField(defaultTo: MyColor(0xFF2196F3));
   static const _secondaryColor = ColorField(nullable: true);
   static const _tertiaryColor = ColorField(nullable: true);
@@ -114,10 +129,12 @@ mixin ThemeConfigBase on ThemeConfigI {
     }
   }
 
-  // TODO: 1 STYLE think well on how to expose corners theme (including rounding and "docking"(negative rounding)).
-  // This should affect: buttons, popovers / tooltips, and Bar (if not overriden in the bar config)
-  final double buttonRadiusX = 12;
-  final double buttonRadiusY = 12;
+  //===========================================================================
+  // Rounded corners
+  //===========================================================================
+
+  static const _buttonRounding = DoubleNumberField(defaultTo: 12);
+  static const _containerRounding = DoubleNumberField(defaultTo: 24);
 }
 
 class WaywingTheme {

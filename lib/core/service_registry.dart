@@ -67,11 +67,17 @@ class ServiceRegistry {
     final serviceType = T;
     final existingService = _initializedServices[serviceType];
     if (existingService != null) {
-      assert(_requestedServices.containsKey(serviceType));
+      assert(
+        _requestedServices.containsKey(serviceType),
+        "$serviceType is initialized, but wasn't requested, this shouldn't be possible",
+      );
       _requestedServices[serviceType]!.add(consumer);
       return existingService as Future<T>;
     } else {
-      assert(!_requestedServices.containsKey(serviceType));
+      assert(
+        !_requestedServices.containsKey(serviceType),
+        "$serviceType isn't initialized, but was already requested, this shouldn't be possible",
+      );
       _requestedServices[serviceType] = [consumer];
       assert(
         _registeredServices.containsKey(serviceType),

@@ -57,7 +57,11 @@ class FeatherRegistry {
     _registeredFeathers[name] = registration;
   }
 
-  Feather getFeatherInstance(String featherName, String uniqueId, [BlockData configOverride = const BlockData.constEmpty()]) {
+  Feather getFeatherInstance(
+    String featherName,
+    String uniqueId, [
+    BlockData configOverride = const BlockData.constEmpty(),
+  ]) {
     assert(_registeredFeathers.containsKey(featherName), "Trying to get an unknown Feather by name: $featherName");
     final registration = _registeredFeathers[featherName]!;
     var feather = _instancedFeathers[uniqueId];
@@ -72,12 +76,9 @@ class FeatherRegistry {
       _instancedFeathers[uniqueId] = feather;
     }
     if (registration.configBuilder != null) {
-      // final globalConfig = mainConfig.dynamicSchemas[feather.name]?[0] as Map<String, dynamic>? ?? {};
-      // final combinedConfig = {
-      //   ...globalConfig,
-      //   ...configOverride,
-      // };
-      final combinedConfig = configOverride;
+      final globalConfig =
+          mainConfig.dynamicSchemas.firstOrNullWhere((e) => e.$1 == feather!.name)?.$2 as BlockData? ?? BlockData.empty();
+      final combinedConfig = configOverride.merge(globalConfig);
       // print("=========================================");
       // print(globalConfig);
       // print(configOverride);

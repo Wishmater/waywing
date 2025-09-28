@@ -1,6 +1,7 @@
 import "dart:math";
 import "dart:ui";
 
+import "package:collection/collection.dart" as collection show DeepCollectionEquality;
 import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
 
@@ -35,6 +36,21 @@ class GradientBorderSide {
   GradientBorderSide operator *(num multiplier) {
     return copyWith(width: width * multiplier);
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is GradientBorderSide &&
+        other.width == width &&
+        collection.DeepCollectionEquality().equals(other.colors, colors);
+  }
+
+  @override
+  int get hashCode => Object.hashAll([width, ...colors]);
+
+  @override
+  String toString() {
+    return "$runtimeType($width, $colors)";
+  }
 }
 
 /// Similar to RoundedRectangleBorder, but allows negative BorderRadius values
@@ -48,57 +64,8 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     this.borderSide = const GradientBorderSide.none(),
   });
 
-  /// Receives the possitive BorderRadius values, and turns them negative appropriately
-  /// so that the shape looks "docked" into the selected sides
-  ExternalRoundedCornersBorder.docked({
-    BorderRadius borderRadius = BorderRadius.zero,
-    bool isDockedTop = false,
-    bool isDockedBottom = false,
-    bool isDockedLeft = false,
-    bool isDockedRight = false,
-    this.borderSide = const GradientBorderSide.none(),
-  }) : assert(
-         !borderRadius.topLeft.x.isNegative &&
-             !borderRadius.topLeft.y.isNegative &&
-             !borderRadius.topRight.x.isNegative &&
-             !borderRadius.topRight.y.isNegative &&
-             !borderRadius.bottomLeft.x.isNegative &&
-             !borderRadius.bottomLeft.y.isNegative &&
-             !borderRadius.bottomRight.x.isNegative &&
-             !borderRadius.bottomRight.y.isNegative,
-         "ExternalRoundedCornersBorder.docked receives the possitive BorderRadius values,"
-         " and turns them negative appropriately so that the shape looks \"docked\" into the selected sides."
-         " to manually pass in the negative radius, use the default constructor.",
-       ),
-       borderRadius = BorderRadius.only(
-         topLeft: isDockedTop && isDockedLeft
-             ? Radius.zero
-             : Radius.elliptical(
-                 borderRadius.topLeft.x * (isDockedTop ? -1 : 1),
-                 borderRadius.topLeft.y * (isDockedLeft ? -1 : 1),
-               ),
-         topRight: isDockedTop && isDockedRight
-             ? Radius.zero
-             : Radius.elliptical(
-                 borderRadius.topRight.x * (isDockedTop ? -1 : 1),
-                 borderRadius.topRight.y * (isDockedRight ? -1 : 1),
-               ),
-         bottomLeft: isDockedBottom && isDockedLeft
-             ? Radius.zero
-             : Radius.elliptical(
-                 borderRadius.bottomLeft.x * (isDockedBottom ? -1 : 1),
-                 borderRadius.bottomLeft.y * (isDockedLeft ? -1 : 1),
-               ),
-         bottomRight: isDockedBottom && isDockedRight
-             ? Radius.zero
-             : Radius.elliptical(
-                 borderRadius.bottomRight.x * (isDockedBottom ? -1 : 1),
-                 borderRadius.bottomRight.y * (isDockedRight ? -1 : 1),
-               ),
-       );
-
   @override
-  EdgeInsetsGeometry get dimensions {
+  EdgeInsets get dimensions {
     return EdgeInsets.only(
       left: max(
         borderRadius.topLeft.x.isNegative ? borderRadius.topLeft.x.abs() : 0,
@@ -119,12 +86,35 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     );
   }
 
+  /// Similar to dimensions, but returns size taken by normal rounded borders, which isn't
+  /// actually applied as padding to content, but is useful for other calculations
+  EdgeInsets get innerDimensions {
+    return EdgeInsets.only(
+      left: max(
+        !borderRadius.topLeft.x.isNegative ? borderRadius.topLeft.x : 0,
+        !borderRadius.bottomLeft.x.isNegative ? borderRadius.bottomLeft.x : 0,
+      ),
+      right: max(
+        !borderRadius.topRight.x.isNegative ? borderRadius.topRight.x : 0,
+        !borderRadius.bottomRight.x.isNegative ? borderRadius.bottomRight.x : 0,
+      ),
+      top: max(
+        !borderRadius.topLeft.y.isNegative ? borderRadius.topLeft.y : 0,
+        !borderRadius.topRight.y.isNegative ? borderRadius.topRight.y : 0,
+      ),
+      bottom: max(
+        !borderRadius.bottomRight.y.isNegative ? borderRadius.bottomRight.y : 0,
+        !borderRadius.bottomLeft.y.isNegative ? borderRadius.bottomLeft.y : 0,
+      ),
+    );
+  }
+
   @override
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
     // TODO: 2 if radius*2 > size, this missclips in a weird way. Clamp the radius somehow
     final width = rect.width;
     final height = rect.height;
-    final padding = dimensions as EdgeInsets;
+    final padding = dimensions;
     final left = rect.left + padding.left;
     final right = rect.left + width - padding.right;
     final top = rect.top + padding.top;
@@ -227,4 +217,226 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     }
     return scale((t - 0.5) * 2);
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ExternalRoundedCornersBorder &&
+        other.borderRadius == borderRadius &&
+        other.borderSide == borderSide;
+  }
+
+  @override
+  int get hashCode => Object.hash(borderRadius, borderSide);
+
+  @override
+  String toString() {
+    return "$runtimeType($borderRadius, $borderSide)";
+  }
+
+  /// Receives the possitive BorderRadius values, and turns them negative appropriately
+  /// so that the shape looks "docked" into the selected sides. If you have the exact
+  /// container position and screen bounds, prefer using .positioned instead.
+  ExternalRoundedCornersBorder.docked({
+    BorderRadius borderRadius = BorderRadius.zero,
+    bool isDockedTop = false,
+    bool isDockedBottom = false,
+    bool isDockedLeft = false,
+    bool isDockedRight = false,
+    this.borderSide = const GradientBorderSide.none(),
+  }) : assert(
+         !borderRadius.topLeft.x.isNegative &&
+             !borderRadius.topLeft.y.isNegative &&
+             !borderRadius.topRight.x.isNegative &&
+             !borderRadius.topRight.y.isNegative &&
+             !borderRadius.bottomLeft.x.isNegative &&
+             !borderRadius.bottomLeft.y.isNegative &&
+             !borderRadius.bottomRight.x.isNegative &&
+             !borderRadius.bottomRight.y.isNegative,
+         "ExternalRoundedCornersBorder.docked receives the possitive BorderRadius values,"
+         " and turns them negative appropriately so that the shape looks \"docked\" into the selected sides."
+         " to manually pass in the negative radius, use the default constructor.",
+       ),
+       borderRadius = BorderRadius.only(
+         topLeft: isDockedTop && isDockedLeft
+             ? Radius.zero
+             : Radius.elliptical(
+                 borderRadius.topLeft.x * (isDockedTop ? -1 : 1),
+                 borderRadius.topLeft.y * (isDockedLeft ? -1 : 1),
+               ),
+         topRight: isDockedTop && isDockedRight
+             ? Radius.zero
+             : Radius.elliptical(
+                 borderRadius.topRight.x * (isDockedTop ? -1 : 1),
+                 borderRadius.topRight.y * (isDockedRight ? -1 : 1),
+               ),
+         bottomLeft: isDockedBottom && isDockedLeft
+             ? Radius.zero
+             : Radius.elliptical(
+                 borderRadius.bottomLeft.x * (isDockedBottom ? -1 : 1),
+                 borderRadius.bottomLeft.y * (isDockedLeft ? -1 : 1),
+               ),
+         bottomRight: isDockedBottom && isDockedRight
+             ? Radius.zero
+             : Radius.elliptical(
+                 borderRadius.bottomRight.x * (isDockedBottom ? -1 : 1),
+                 borderRadius.bottomRight.y * (isDockedRight ? -1 : 1),
+               ),
+       );
+
+  /// Receives the possitive BorderRadius values, and turns them negative appropriately
+  /// so that the shape looks "docked" into the selected sides
+  ExternalRoundedCornersBorder.positioned({
+    BorderRadius borderRadius = BorderRadius.zero,
+    required Rect position,
+    required Rect bounds,
+    List<Rect> parentContainers = const [],
+    this.borderSide = const GradientBorderSide.none(),
+  }) : assert(
+         !borderRadius.topLeft.x.isNegative &&
+             !borderRadius.topLeft.y.isNegative &&
+             !borderRadius.topRight.x.isNegative &&
+             !borderRadius.topRight.y.isNegative &&
+             !borderRadius.bottomLeft.x.isNegative &&
+             !borderRadius.bottomLeft.y.isNegative &&
+             !borderRadius.bottomRight.x.isNegative &&
+             !borderRadius.bottomRight.y.isNegative,
+         "ExternalRoundedCornersBorder.docked receives the possitive BorderRadius values,"
+         " and turns them negative appropriately so that the shape looks \"docked\" into the selected sides."
+         " to manually pass in the negative radius, use the default constructor.",
+       ),
+       borderRadius = _getPositionedBorderRadius(borderRadius, position, bounds, parentContainers);
+}
+
+BorderRadius _getPositionedBorderRadius(
+  BorderRadius borderRadius,
+  Rect position,
+  Rect bounds,
+  List<Rect> parentContainers,
+) {
+  // print("=============================================================");
+  return BorderRadius.only(
+    topLeft: _getCornerRadius(
+      borderRadius.topLeft,
+      position,
+      bounds,
+      parentContainers,
+      Side.top,
+      Side.left,
+    ),
+    topRight: _getCornerRadius(
+      borderRadius.topRight,
+      position,
+      bounds,
+      parentContainers,
+      Side.top,
+      Side.right,
+    ),
+    bottomLeft: _getCornerRadius(
+      borderRadius.bottomLeft,
+      position,
+      bounds,
+      parentContainers,
+      Side.bottom,
+      Side.left,
+    ),
+    bottomRight: _getCornerRadius(
+      borderRadius.bottomRight,
+      position,
+      bounds,
+      parentContainers,
+      Side.bottom,
+      Side.right,
+    ),
+  );
+}
+
+_getCornerRadius(
+  Radius radius,
+  Rect position,
+  Rect bounds,
+  List<Rect> parentContainers,
+  Side y,
+  Side x,
+) {
+  // print("Calculating corner $y $x");
+  final positionX = _getRectSide(position, x);
+  final positionY = _getRectSide(position, y);
+  // print("  position = $positionX, $positionY");
+  final closestBoundX = _getClosestBound(bounds, parentContainers, x, positionX, positionY);
+  final closestBoundY = _getClosestBound(bounds, parentContainers, y, positionY, positionX);
+  // print("  closestBoundX = $closestBoundX");
+  // print("  closestBoundY = $closestBoundY");
+  final isDockedX = closestBoundX == positionX;
+  final isDockedY = closestBoundY == positionY;
+  if (isDockedX && isDockedY) {
+    return Radius.zero;
+  }
+  final result = Radius.elliptical(
+    !isDockedY ? radius.x : (positionX - closestBoundX).negative.clamp(-radius.x, 0),
+    !isDockedX ? radius.y : (positionY - closestBoundY).negative.clamp(-radius.y, 0),
+  );
+  // print("  result = $result");
+  return result;
+}
+
+double _getClosestBound(
+  Rect bounds,
+  List<Rect> parentContainers,
+  Side side,
+  double mainPoint,
+  double crossPoint,
+) {
+  var result = _getRectSide(bounds, side);
+  var diff = (mainPoint - result).abs();
+  for (final e in parentContainers) {
+    if (_getRectSide(e, side.adjacent) > crossPoint || //
+        _getRectSide(e, side.adjacent.opposite) < crossPoint) {
+      continue;
+    }
+    final containerBound = _getRectSide(e, side.opposite);
+    final containerDiff = (mainPoint - containerBound).abs();
+    if (containerDiff < diff) {
+      result = containerBound;
+      diff = containerDiff;
+    }
+  }
+  return result;
+}
+
+double _getRectSide(Rect rect, Side side) {
+  return switch (side) {
+    Side.left => rect.left,
+    Side.right => rect.right,
+    Side.top => rect.top,
+    Side.bottom => rect.bottom,
+  };
+}
+
+enum Side {
+  left,
+  right,
+  top,
+  bottom;
+
+  Side get opposite {
+    return switch (this) {
+      Side.left => Side.right,
+      Side.right => Side.left,
+      Side.top => Side.bottom,
+      Side.bottom => Side.top,
+    };
+  }
+
+  Side get adjacent {
+    return switch (this) {
+      Side.left => Side.top,
+      Side.right => Side.top,
+      Side.top => Side.left,
+      Side.bottom => Side.left,
+    };
+  }
+}
+
+extension Negative on double {
+  double get negative => isNegative ? this : this * -1;
 }

@@ -177,6 +177,7 @@ Path getDockedRoundCornersPath({
   return path;
 }
 
+// TODO: 2 can we safely delete this whole file now?
 @Deprecated("Use ExternalRoundedCornersBorder instead")
 class DockedRoundedCornersBorder extends ShapeBorder {
   final ScreenEdge dockedSide;

@@ -355,7 +355,7 @@ class WingedPopoverClient extends StatefulWidget {
 class WingedPopoverClientState extends State<WingedPopoverClient> with TickerProviderStateMixin {
   final childPositioningController = PositioningNotifierController();
   final childContainerPositioningController = PositioningNotifierController();
-  Positioning? targetChildContainerPositioning;
+  final ValueNotifier<Positioning?> targetChildContainerPositioning = ValueNotifier(null);
 
   // this means it passed the 2nd frame, where we can actually get child sizing
   bool passedMeaningfulPaint = false;
@@ -541,7 +541,12 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     widget.host.clientState = this;
     final screenSize = MediaQuery.sizeOf(context);
 
-    _lastContent = popoverParams.builder(context, widget.host, childPositioningController);
+    _lastContent = popoverParams.builder(
+      context,
+      widget.host,
+      childPositioningController,
+      targetChildContainerPositioning,
+    );
     final currentContent = OverflowOrFit(
       alignment: popoverParams.overflowAlignment,
       child: AnimatedBuilder(
@@ -603,7 +608,13 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       ],
     );
 
-    final container = popoverParams.containerBuilder(context, widget.host, content);
+    final container = popoverParams.containerBuilder(
+      context,
+      content,
+      widget.host,
+      childPositioningController,
+      targetChildContainerPositioning,
+    );
 
     return ValueListenableBuilder(
       valueListenable: widget.host.positioningNotifier,
@@ -630,7 +641,13 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               childSize = hostSize;
               childPosition = hostPosition;
               if (popoverParams.closedContainerBuilder != null) {
-                container = popoverParams.closedContainerBuilder!(context, widget.host, content);
+                container = popoverParams.closedContainerBuilder!(
+                  context,
+                  content,
+                  widget.host,
+                  childPositioningController,
+                  targetChildContainerPositioning,
+                );
               }
             } else if (childSize == null) {
               // assuming this happens the first time the widget builds
@@ -639,7 +656,13 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               childSize = hostSize;
               childPosition = hostPosition;
               if (popoverParams.closedContainerBuilder != null) {
-                container = popoverParams.closedContainerBuilder!(context, widget.host, content);
+                container = popoverParams.closedContainerBuilder!(
+                  context,
+                  content,
+                  widget.host,
+                  childPositioningController,
+                  targetChildContainerPositioning,
+                );
               }
             } else {
               childSize += Offset(popoverParams.extraPadding.horizontal, popoverParams.extraPadding.vertical);
@@ -705,7 +728,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                 maxTop = hostPosition.dy + hostSize.height;
               }
             }
-            targetChildContainerPositioning = Positioning(childPosition, childSize);
+            targetChildContainerPositioning.value = Positioning(childPosition, childSize);
             result = PositioningNotifierMonitor(
               controller: childContainerPositioningController,
               child: MotionPositioned(
@@ -734,9 +757,9 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                     if (widget.isRemoved) {
                       provider._removeHost(widget.host);
                     } else if (intrinsincAnimationsEnabled && !popoverParams.enableIntrinsicSizeAnimation) {
-                      // setState(() {
-                      //   intrinsincAnimationsEnabled = false;
-                      // });
+                      setState(() {
+                        intrinsincAnimationsEnabled = false;
+                      });
                     }
                   }
                 },
@@ -751,6 +774,10 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                 clipBehavior: Clip.none,
                 children: [result],
               );
+              // TODO: 3 maybe refactor this to instead just be a clientClippersBuilder,
+              // pass in everything needed and let the caller build the clipper with more freedom.
+              // Maybe provide a default implementation so the caller doesn't need to do same 20
+              // lines of code every time.
               for (final e in widget.host.widget.extraClientClippers) {
                 result = ValueListenableBuilder(
                   valueListenable: e.$2,
@@ -760,9 +787,17 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                     if (positioning != null) {
                       final offset = positioning.offset;
                       final size = positioning.size;
-                      rect = Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
+                      final shapePadding = e.$1.dimensions.resolve(TextDirection.ltr);
+                      rect = Rect.fromLTWH(
+                        offset.dx - shapePadding.left,
+                        offset.dy - shapePadding.top,
+                        size.width + shapePadding.horizontal,
+                        size.height + shapePadding.vertical,
+                      );
                     }
-                    // TODO 2: PERFOMANCE if backgorund opacity is 1 then there is no need to use clip
+                    // TODO: 2 PERFOMANCE if background opacity is 1 then there is no need to use clip,
+                    // probably handle this in the host (Bar, ContextMenu, etc.) and just dont pass any
+                    // extraClientClippers if ressolved backgroundOpacity==1
                     return ClipPath(
                       clipper: ShapeClipper(shape: e.$1, rectOverride: rect),
                       child: child,

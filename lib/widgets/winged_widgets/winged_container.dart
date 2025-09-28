@@ -7,7 +7,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
-import "package:waywing/widgets/shapes/docked_rounded_corners_shape.dart";
+import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/shapes/shape_clipper.dart";
 
 class WingedContainer extends StatelessWidget {
@@ -42,7 +42,7 @@ class WingedContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _WingedContainer(
-      motion: motion ?? mainConfig.motions.expressive.spatial.fast,
+      motion: motion ?? mainConfig.motions.expressive.spatial.slow,
       active: active,
       onAnimationStatusChanged: onAnimationStatusChanged,
       shape: shape,
@@ -157,12 +157,12 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
 
     MotionConverter<ShapeBorder>? converter;
     if (newShape is RoundedRectangleBorder) {
-      if ((oldShape == null || oldShape is RoundedRectangleBorder)) {
+      if (oldShape == null || oldShape is RoundedRectangleBorder) {
         converter = RoundedRectangleBorderMotionConverter();
       }
-    } else if (newShape is DockedRoundedCornersBorder) {
-      if (oldShape == null || oldShape is DockedRoundedCornersBorder) {
-        // TODO: 1 animations: implement converters for DockedShapePerc
+    } else if (newShape is ExternalRoundedCornersBorder) {
+      if (oldShape == null || oldShape is ExternalRoundedCornersBorder) {
+        converter = ExternalRoundedCornersBorderMotionConverter();
       }
     }
 
@@ -206,6 +206,13 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
   @override
   Widget build(BuildContext context) {
     final shape = this.shape?.value ?? shapeManual?.value;
+    final shapePadding = shape?.dimensions.resolve(TextDirection.ltr) ?? EdgeInsets.zero;
+    final shapePaddingRect = RelativeRect.fromLTRB(
+      -shapePadding.left,
+      -shapePadding.top,
+      -shapePadding.right,
+      -shapePadding.bottom,
+    );
     final elevation = widget.elevation * mainConfig.theme.shadows;
     final offset = widget.shadowOffset * elevation;
     final color = Theme.of(context).shadowColor.withValues(alpha: 0.66);
@@ -214,16 +221,25 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
         clipBehavior: Clip.none,
         fit: StackFit.passthrough,
         children: [
-          Material(
-            shape: shape,
-            elevation: 0,
-            clipBehavior: widget.clipBehavior,
-            color: widget.color,
-            animationDuration: Duration.zero,
-            child: widget.child,
+          Positioned.fromRelativeRect(
+            rect: shapePaddingRect,
+            child: Material(
+              shape: shape,
+              elevation: 0,
+              clipBehavior: widget.clipBehavior,
+              color: widget.color,
+              animationDuration: Duration.zero,
+              child: Padding(
+                padding: shapePadding,
+                child: widget.child,
+              ),
+            ),
           ),
+
+          // paint shadows
           if (shape != null && elevation > 0)
-            Positioned.fill(
+            Positioned.fromRelativeRect(
+              rect: shapePaddingRect,
               child: widget.usePainter
                   ? IgnorePointer(
                       child: CustomPaint(

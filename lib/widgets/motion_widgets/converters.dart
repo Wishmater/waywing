@@ -1,6 +1,7 @@
 import "package:dartx/dartx.dart";
-import "package:flutter/widgets.dart";
+import "package:flutter/material.dart";
 import "package:motor/motor.dart";
+import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 
 class EdgeInsetsMotionConverter implements MotionConverter<EdgeInsets> {
   const EdgeInsetsMotionConverter();
@@ -124,21 +125,42 @@ class RoundedRectangleBorderMotionConverter implements MotionConverter<RoundedRe
   }
 }
 
-// class DockedRoundedCornersBorderMotionConverter implements MotionConverter<DockedRoundedCornersBorder> {
-//   const ColorMotionConverter();
-//
-//   @override
-//   DockedRoundedCornersBorder denormalize(List<double> v) {
-//     return DockedRoundedCornersBorder(
-//       dockedSide: ScreenEdge., 
-//       radiusInMain: radiusInMain,
-//       radiusInCross: radiusInCross, 
-//       radiusOutMain: ,
-//       radiusOutCross: ,
-//       isVertical: ,
-//     );
-//   }
-//
-//   @override
-//   List<double> normalize(DockedRoundedCornersBorder v) => [v.a, v.r, v.g, v.b];
-// }
+class ExternalRoundedCornersBorderMotionConverter implements MotionConverter<ExternalRoundedCornersBorder> {
+  const ExternalRoundedCornersBorderMotionConverter();
+
+  @override
+  ExternalRoundedCornersBorder denormalize(List<double> v) {
+    return ExternalRoundedCornersBorder(
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.elliptical(v[0], v[1]),
+        topRight: Radius.elliptical(v[2], v[3]),
+        bottomLeft: Radius.elliptical(v[4], v[5]),
+        bottomRight: Radius.elliptical(v[6], v[7]),
+      ),
+      borderSide: GradientBorderSide(
+        width: v[8],
+        colors: List.generate(v[9].round(), (i) {
+          final value = v.elementAtOrNull(10 + i)?.round();
+          return value == null ? Colors.transparent : Color(value);
+        }),
+      ),
+    );
+  }
+
+  @override
+  List<double> normalize(ExternalRoundedCornersBorder v) {
+    return [
+      v.borderRadius.topLeft.x,
+      v.borderRadius.topLeft.y,
+      v.borderRadius.topRight.x,
+      v.borderRadius.topRight.y,
+      v.borderRadius.bottomLeft.x,
+      v.borderRadius.bottomLeft.y,
+      v.borderRadius.bottomRight.x,
+      v.borderRadius.bottomRight.y,
+      v.borderSide.width,
+      v.borderSide.colors.length.toDouble(),
+      for (final e in v.borderSide.colors) e.toARGB32().toDouble(),
+    ];
+  }
+}

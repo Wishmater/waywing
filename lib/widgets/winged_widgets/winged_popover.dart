@@ -7,25 +7,28 @@ import "package:waywing/core/config.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
+typedef WingedPopoverHostContentBuilder =
+    Widget Function(
+      BuildContext context,
+      WingedPopoverController popover,
+      Widget? child,
+    );
+
 typedef WingedPopoverBuilder =
     Widget Function(
       BuildContext context,
       WingedPopoverController popover,
       PositioningNotifierController childPositioningController,
+      ValueNotifier<Positioning?> targetChildContainerPositioning,
     );
 
 typedef WingedPopoverChildBuilder =
     Widget Function(
       BuildContext context,
-      WingedPopoverController popover,
       Widget child,
-    );
-
-typedef WingedPopoverChildNullableBuilder =
-    Widget Function(
-      BuildContext context,
       WingedPopoverController popover,
-      Widget? child,
+      PositioningNotifierController childPositioningController,
+      ValueNotifier<Positioning?> targetChildContainerPositioning,
     );
 
 abstract class WingedPopoverController {
@@ -112,7 +115,7 @@ class TooltipParams extends PopoverParams {
 }
 
 class WingedPopover extends StatefulWidget {
-  final WingedPopoverChildNullableBuilder builder;
+  final WingedPopoverHostContentBuilder builder;
   final Widget? child;
   final PopoverParams? popoverParams;
   final TooltipParams? tooltipParams;

@@ -208,7 +208,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                 extraOffset: Offset(0, -8),
                 stickToHost: true,
                 hideDelay: Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
-                builder: (context, _, _) {
+                builder: (context, _, _, _) {
                   return SystemTrayMenu(
                     // make sure the state is dispose when switching to another popover
                     key: ValueKey("SystemTrayMenu-$hashCode"),
@@ -218,7 +218,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
                     depth: widget.depth + 1,
                   );
                 },
-                containerBuilder: (context, _, child) {
+                containerBuilder: (context, child, _, _, _) {
                   return WingedContainer(
                     clipBehavior: Clip.hardEdge,
                     shape: RoundedRectangleBorder(

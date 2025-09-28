@@ -70,13 +70,13 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                 anchorAlignment: Alignment.centerLeft,
                 popupAlignment: Alignment.centerRight,
                 zIndex: 999999,
-                builder: (context, controller, positioning) {
+                builder: (context, controller, _, _) {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                     child: Text.rich(widget.textSpan),
                   );
                 },
-                closedContainerBuilder: (context, controller, child) {
+                closedContainerBuilder: (context, child, _, _, _) {
                   return MotionOpacity(
                     motion: motion,
                     opacity: 0,
@@ -99,7 +99,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                     ),
                   );
                 },
-                containerBuilder: (context, controller, child) {
+                containerBuilder: (context, child, _, _, _) {
                   return MotionOpacity(
                     motion: motion,
                     opacity: 1,

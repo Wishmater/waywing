@@ -30,6 +30,9 @@ class UserCommand {
 
   @override
   bool operator ==(covariant UserCommand other) {
+    print(listEquals(arguments ?? [], other.arguments ?? []));
+    print("${arguments ?? []} -------- ${other.arguments ?? []}");
+    print("${arguments![0] == other.arguments![0]}");
     return program == other.program &&
         name == other.name &&
         description == other.description &&
@@ -41,7 +44,27 @@ class UserCommand {
   int get hashCode => Object.hashAll([program, name, description, path, ...(arguments ?? [])]);
 }
 
-sealed class UserCommandArgumentType2 {}
+sealed class UserCommandArgumentType2 {
+  @override
+  bool operator ==(covariant UserCommandArgumentType2 other) {
+    if (other.runtimeType != runtimeType) return false;
+    if (this is UserCommandArgumentTypeUnion) {
+      return listEquals(
+        (this as UserCommandArgumentTypeUnion).options,
+        (other as UserCommandArgumentTypeUnion).options,
+      );
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode {
+    if (this is UserCommandArgumentTypeUnion) {
+      return Object.hashAll((this as UserCommandArgumentTypeUnion).options);
+    }
+    return runtimeType.hashCode;
+  }
+}
 
 class UserCommandArgumentTypeInt extends UserCommandArgumentType2 {}
 
@@ -61,10 +84,21 @@ class UserCommandArgument {
   final String? description;
 
   const UserCommandArgument({required this.type, this.description});
+
+  @override
+  bool operator==(covariant UserCommandArgument other) {
+    return type == other.type && description == other.description;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([type, description]);
 }
 
 class UserCommandService extends Service {
   UserCommandService._();
+
+  @visibleForTesting
+  UserCommandService();
 
   static void registerService(RegisterServiceCallback registerService) {
     registerService<UserCommandService, dynamic>(
@@ -91,7 +125,7 @@ class UserCommandService extends Service {
       logger.trace("entry found ${entry.name}");
       if (entry.statSync().type == FileSystemEntityType.file) {
         final content = await File(entry.absolute.path).readAsString();
-        final command = _parseCommand(entry.absolute.path, content);
+        final command = parseCommand(entry.absolute.path, content);
         if (command != null) {
           response.add(command);
         }
@@ -100,7 +134,8 @@ class UserCommandService extends Service {
     return response;
   }
 
-  UserCommand? _parseCommand(String path, String content) {
+  @visibleForTesting
+  UserCommand? parseCommand(String path, String content) {
     logger.trace("parse command for $path");
     final line = StringBuffer();
     final iterator = content.codeUnits.iterator;
@@ -225,7 +260,7 @@ class UserCommandService extends Service {
     if (type == null) {
       return null;
     }
-    return UserCommandArgument(type: type, description: line);
+    return UserCommandArgument(type: type, description: desc);
   }
 }
 
@@ -257,7 +292,7 @@ class UserCommandService extends Service {
       str.substring(idx + 1),
     );
   } else {
-    String last = splitted.last;
+    String last = splitted.last.trim();
     final idx = last.indexOf(" ");
     String desc = "";
     if (idx != -1) {

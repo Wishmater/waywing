@@ -14,6 +14,8 @@ import "package:waywing/core/service_registry.dart";
 // # @arg <type> <description> ## spam as much arguments as you want
 // ## write your program
 
+// arg type can be string, int, float, bool, or opt1 | opt2 | opt3
+
 class UserCommand {
   /// program to run the file
   final String program;
@@ -39,25 +41,23 @@ class UserCommand {
   int get hashCode => Object.hashAll([program, name, description, path, ...(arguments ?? [])]);
 }
 
-enum UserCommandArgumentType {
-  int,
-  string,
-  float,
-  bool;
+sealed class UserCommandArgumentType2 {}
 
-  static UserCommandArgumentType? fromString(String v) {
-    return switch (v.toLowerCase()) {
-      "int" => int,
-      "string" => string,
-      "float" => float,
-      "bool" => bool,
-      _ => null,
-    };
-  }
+class UserCommandArgumentTypeInt extends UserCommandArgumentType2 {}
+
+class UserCommandArgumentTypeString extends UserCommandArgumentType2 {}
+
+class UserCommandArgumentTypeFloat extends UserCommandArgumentType2 {}
+
+class UserCommandArgumentTypeBool extends UserCommandArgumentType2 {}
+
+class UserCommandArgumentTypeUnion extends UserCommandArgumentType2 {
+  List<String> options;
+  UserCommandArgumentTypeUnion(this.options);
 }
 
 class UserCommandArgument {
-  final UserCommandArgumentType type;
+  final UserCommandArgumentType2 type;
   final String? description;
 
   const UserCommandArgument({required this.type, this.description});
@@ -73,7 +73,6 @@ class UserCommandService extends Service {
       ),
     );
   }
-
 
   @override
   Future<void> init() async {
@@ -221,23 +220,54 @@ class UserCommandService extends Service {
       return null;
     }
     line = line.substring(arg.length);
-    String? typeStr;
-    int i = 0;
-    for (; i < line.codeUnits.length; i++) {
-      final char = line.codeUnits[i];
-      if (char == 32) {
-        typeStr = line.substring(0, i);
-        break;
-      }
-    }
-    if (typeStr == null) {
-      return null;
-    }
-    final type = UserCommandArgumentType.fromString(typeStr);
+
+    final (type, desc) = _parseTypeAndDesc(line);
     if (type == null) {
       return null;
     }
-    line = line.substring(i).trim();
     return UserCommandArgument(type: type, description: line);
+  }
+}
+
+(UserCommandArgumentType2?, String) _parseTypeAndDesc(String str) {
+  str = str.trim();
+  final splitted = str.split("|");
+  if (splitted.length == 1) {
+    final idx = str.indexOf(" ");
+    if (idx == -1) {
+      return (
+        switch (str) {
+          "int" => UserCommandArgumentTypeInt(),
+          "string" => UserCommandArgumentTypeString(),
+          "float" => UserCommandArgumentTypeFloat(),
+          "bool" => UserCommandArgumentTypeBool(),
+          _ => null,
+        },
+        "",
+      );
+    }
+    return (
+      switch (str.substring(0, idx)) {
+        "int" => UserCommandArgumentTypeInt(),
+        "string" => UserCommandArgumentTypeString(),
+        "float" => UserCommandArgumentTypeFloat(),
+        "bool" => UserCommandArgumentTypeBool(),
+        _ => null,
+      },
+      str.substring(idx + 1),
+    );
+  } else {
+    String last = splitted.last;
+    final idx = last.indexOf(" ");
+    String desc = "";
+    if (idx != -1) {
+      desc = last.substring(idx + 1);
+      splitted.last = last.substring(0, idx);
+    }
+    final options = <String>[];
+    for (final item in splitted) {
+      options.add(item.trim());
+    }
+    return (UserCommandArgumentTypeUnion(options), desc);
   }
 }

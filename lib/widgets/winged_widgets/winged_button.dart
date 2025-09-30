@@ -176,7 +176,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
       future: taskFuture,
       builder: (context, snapshot) {
         var borderRadius = widget.borderRadius;
-        borderRadius ??= BorderRadius.all(Radius.elliptical(mainConfig.buttonRadiusX, mainConfig.buttonRadiusY));
+        borderRadius ??= BorderRadius.all(Radius.circular(mainConfig.theme.buttonRounding));
         final Widget child;
         if (widget.builder == null) {
           child = widget.child;

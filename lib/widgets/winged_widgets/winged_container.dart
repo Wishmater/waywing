@@ -2,20 +2,24 @@ import "dart:ui";
 
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
-import "package:waywing/widgets/shapes/docked_rounded_corners_shape.dart";
+import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/shapes/shape_clipper.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
-class WingedContainer extends StatelessWidget {
+class WingedContainer extends StatefulWidget {
   final Motion? motion;
   final bool active;
   final ValueChanged<AnimationStatus>? onAnimationStatusChanged;
 
   final ShapeBorder? shape;
+  final GradientBorderSide? activeBorder;
+  final GradientBorderSide? inactiveBorder;
 
   final ShapeBorder? fromShape;
 
@@ -30,6 +34,8 @@ class WingedContainer extends StatelessWidget {
     this.active = true,
     this.onAnimationStatusChanged,
     this.shape,
+    this.activeBorder,
+    this.inactiveBorder,
     this.fromShape,
     this.elevation = 0,
     this.shadowOffset = const Offset(0.66, 1),
@@ -40,20 +46,70 @@ class WingedContainer extends StatelessWidget {
   });
 
   @override
+  State<WingedContainer> createState() => WingedContainerState();
+}
+
+class WingedContainerState extends State<WingedContainer> {
+  final focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    // TODO: 2 PERFORMANCE don't rebuild on focus change if active/inactive borders are disabled, there are also some things in build method that can be skipped
+    focusNode.addListener(() => setState(() {}));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return _WingedContainer(
-      motion: motion ?? mainConfig.motions.expressive.spatial.fast,
-      active: active,
-      onAnimationStatusChanged: onAnimationStatusChanged,
-      shape: shape,
-      fromShape: fromShape,
-      elevation: elevation,
-      shadowOffset: shadowOffset,
-      clipBehavior: clipBehavior,
-      color: color,
-      usePainter: mainConfig.internalUsePainter,
-      child: child,
+    var shape = widget.shape;
+    if (shape is ExternalRoundedCornersBorder) {
+      shape = shape.copyWith(
+        borderSide: focusNode.hasFocus
+            ? widget.activeBorder ?? mainConfig.theme.activeBorder
+            : widget.inactiveBorder ?? mainConfig.theme.inactiveBorder,
+      );
+    }
+    Widget result = CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.escape): () {
+          final client = context.findAncestorStateOfType<WingedPopoverClientState>();
+          if (client != null) {
+            client.onEscapePressed();
+          } else {
+            focusNode.requestFocus();
+          }
+        },
+      },
+      child: Focus(
+        focusNode: focusNode,
+        child: _WingedContainer(
+          motion: widget.motion ?? mainConfig.motions.expressive.spatial.slow.multiplySpeed(0.2),
+          active: widget.active,
+          onAnimationStatusChanged: widget.onAnimationStatusChanged,
+          shape: shape,
+          fromShape: widget.fromShape,
+          elevation: widget.elevation,
+          shadowOffset: widget.shadowOffset,
+          clipBehavior: widget.clipBehavior,
+          color: widget.color,
+          usePainter: mainConfig.internalUsePainter,
+          child: widget.child,
+        ),
+      ),
     );
+    if (mainConfig.focusContainerOnMouseOver) {
+      result = MouseRegion(
+        opaque: false,
+        onEnter: (_) {
+          focusNode.requestFocus();
+        },
+        onExit: (_) {
+          focusNode.unfocus();
+        },
+        child: result,
+      );
+    }
+    return result;
   }
 }
 
@@ -157,16 +213,12 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
 
     MotionConverter<ShapeBorder>? converter;
     if (newShape is RoundedRectangleBorder) {
-      if ((oldShape == null || oldShape is RoundedRectangleBorder)) {
+      if (oldShape == null || oldShape is RoundedRectangleBorder) {
         converter = RoundedRectangleBorderMotionConverter();
       }
-    } else if (newShape is DockedRoundedCornersBorder) {
-      if (oldShape == null || oldShape is DockedRoundedCornersBorder) {
-        // TODO: 1 animations: implement converters for DockedShapePerc
-      }
-    } else if (newShape is DockedRoundedCornersBorderPerc) {
-      if (oldShape == null || oldShape is DockedRoundedCornersBorderPerc) {
-        // TODO: 1 animations: implement converters for DockedShapePerc
+    } else if (newShape is ExternalRoundedCornersBorder) {
+      if (oldShape == null || oldShape is ExternalRoundedCornersBorder) {
+        converter = ExternalRoundedCornersBorderMotionConverter();
       }
     }
 
@@ -210,6 +262,13 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
   @override
   Widget build(BuildContext context) {
     final shape = this.shape?.value ?? shapeManual?.value;
+    final shapePadding = shape?.dimensions.resolve(TextDirection.ltr) ?? EdgeInsets.zero;
+    final shapePaddingRect = RelativeRect.fromLTRB(
+      -shapePadding.left,
+      -shapePadding.top,
+      -shapePadding.right,
+      -shapePadding.bottom,
+    );
     final elevation = widget.elevation * mainConfig.theme.shadows;
     final offset = widget.shadowOffset * elevation;
     final color = Theme.of(context).shadowColor.withValues(alpha: 0.66);
@@ -218,16 +277,25 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
         clipBehavior: Clip.none,
         fit: StackFit.passthrough,
         children: [
-          Material(
-            shape: shape,
-            elevation: 0,
-            clipBehavior: widget.clipBehavior,
-            color: widget.color,
-            animationDuration: Duration.zero,
-            child: widget.child,
+          Positioned.fromRelativeRect(
+            rect: shapePaddingRect,
+            child: Material(
+              shape: shape,
+              elevation: 0,
+              clipBehavior: widget.clipBehavior,
+              color: widget.color,
+              animationDuration: Duration.zero,
+              child: Padding(
+                padding: shapePadding,
+                child: widget.child,
+              ),
+            ),
           ),
+
+          // paint shadows
           if (shape != null && elevation > 0)
-            Positioned.fill(
+            Positioned.fromRelativeRect(
+              rect: shapePaddingRect,
               child: widget.usePainter
                   ? IgnorePointer(
                       child: CustomPaint(

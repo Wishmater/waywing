@@ -9,6 +9,7 @@ import "package:waywing/modules/notification/notification_config.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
+import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/simple_gesture_detector.dart";
 import "package:waywing/widgets/draggable.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
@@ -211,16 +212,14 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                 },
                 child: WingedContainer(
                   color: surfaceColor,
-                  shape: RoundedRectangleBorder(
-                    // TODO: 2 STYLE this should take the border radius from theme, oncesthat is decided
-                    borderRadius: BorderRadius.circular(12),
+                  shape: ExternalRoundedCornersBorder(
+                    borderRadius: BorderRadius.circular(mainConfig.theme.containerRounding),
                   ),
                   child: Stack(
                     children: [
-                      // TODO: 2 STYLE should this also use WingedButton? or maybe separate WingedInkWell and use that?
                       Positioned.fill(
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(mainConfig.theme.containerRounding),
                           hoverColor: Colors.transparent,
                           highlightColor: Colors.transparent,
                           onTap: () async {

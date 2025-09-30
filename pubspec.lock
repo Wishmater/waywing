@@ -344,7 +344,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: b1850e0cefe93da3d11afa0061e7237b90f8153a
+      resolved-ref: "76694595f8a8021d22bcc9539c1a520d587c7a50"
       url: "https://github.com/Wishmater/fl-linux-window-manager"
     source: git
     version: "2.0.6"

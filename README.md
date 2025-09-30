@@ -33,6 +33,11 @@ The Motions used on widgets and controllers should be obtained be from config, f
 
 This is only relevant when creating new surfaces, like when implementing a new Wing; if you are only creating a Feather then the Wing where it will be added should take care of this. WingedContainer is a widget that should be the root of any surface you create. It provides a background, shadows, and flutter Material base all according to waywing config. Also, WingedContainer creates an InputRegion (TODO: 1 add link to explain InputRegion) by default, so if you try to create a new surface without it, mouse input won't work.
 
+- **Use ExternalRoundedCornersBorder instead of RoundedRectangleBorder.** It can do everything RoundedRectangleBorder can do
+and also supports the "external" curving out corners, by setting negative radius. It also has support for active/inactive 
+borders when used in a WingedContainer. The shape of a WingedContainer should always be ExternalRoundedCornersBorder, unless
+you want to implement a really weird custom shape.
+
 ### Use WingedPopover instead of Dialogs, Pages, Tooltips, etc.
 
 TODO: 1 write WingedPopover docs, kinda complicated

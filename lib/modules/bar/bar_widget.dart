@@ -324,7 +324,7 @@ class _BarState extends State<Bar> {
         return ValueListenableBuilder(
           valueListenable: component.isTooltipEnabled,
           builder: (context, isTooltipEnabled, _) {
-            final tooltipShape = RoundedRectangleBorder(
+            final tooltipShape = ExternalRoundedCornersBorder(
               borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
             );
             final buttonShape = RoundedRectangleBorder(
@@ -521,7 +521,8 @@ class _BarState extends State<Bar> {
     required isClosed,
   }) {
     return WingedContainer(
-      // motion: motion, // default to spatial.expressive.slow, doesn't matter if it's different
+      // default to mainConfig.motions.expressive.spatial.slow.multiplySpeed(0.2), doesn't matter if it's different
+      motion: motion,
       elevation: isClosed ? 0 : 3.5,
       shadowOffset: getShadowOffset(),
       clipBehavior: Clip.antiAliasWithSaveLayer,

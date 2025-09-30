@@ -139,9 +139,16 @@ class ExternalRoundedCornersBorderMotionConverter implements MotionConverter<Ext
       ),
       borderSide: GradientBorderSide(
         width: v[8],
-        colors: List.generate(v[9].round(), (i) {
-          final value = v.elementAtOrNull(10 + i)?.round();
-          return value == null ? Colors.transparent : Color(value);
+        angle: v[9],
+        colors: List.generate(v[10].round(), (i) {
+          final initialIndex = 11 + i * 4;
+          if (initialIndex >= v.length) return Colors.transparent;
+          return Color.from(
+            alpha: v[initialIndex],
+            red: v[initialIndex + 1],
+            green: v[initialIndex + 2],
+            blue: v[initialIndex + 3],
+          );
         }),
       ),
     );
@@ -159,8 +166,9 @@ class ExternalRoundedCornersBorderMotionConverter implements MotionConverter<Ext
       v.borderRadius.bottomRight.x,
       v.borderRadius.bottomRight.y,
       v.borderSide.width,
+      v.borderSide.angle,
       v.borderSide.colors.length.toDouble(),
-      for (final e in v.borderSide.colors) e.toARGB32().toDouble(),
+      for (final e in v.borderSide.colors) ...[e.a, e.r, e.g, e.b],
     ];
   }
 }

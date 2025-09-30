@@ -8,18 +8,34 @@ import "package:flutter/material.dart";
 class GradientBorderSide {
   final List<Color> colors;
   final double width;
+  final double angle;
+  late final double angleRadians = angle * pi / 180;
+  late final Alignment alignmentBegin = Alignment(-cos(angleRadians), -sin(angleRadians));
+  late final Alignment alignmentEnd = Alignment(cos(angleRadians), sin(angleRadians));
 
-  const GradientBorderSide({required this.colors, this.width = 1});
+  // TODO: 3 make this const somehow
+  GradientBorderSide({
+    required this.colors,
+    this.width = 1,
+    required this.angle,
+  }) : assert(colors.isNotEmpty, "At least one color is needed. Maybe just pass [Colors.transparent].");
 
-  const GradientBorderSide.none() : this(colors: const [Colors.transparent], width: 0);
+  // TODO: 3 make this const if we can make GradientBorderSide const
+  static final none = GradientBorderSide(
+    colors: const [Colors.transparent],
+    width: 0,
+    angle: 0,
+  );
 
   GradientBorderSide copyWith({
     List<Color>? colors,
     double? width,
+    double? angle,
   }) {
     return GradientBorderSide(
       colors: colors ?? this.colors,
       width: width ?? this.width,
+      angle: angle ?? this.angle,
     );
   }
 
@@ -30,6 +46,7 @@ class GradientBorderSide {
         (i) => Color.lerp(a.colors.elementAtOrNull(i), b.colors.elementAtOrNull(i), t)!,
       ),
       width: lerpDouble(a.width, a.width, t)!,
+      angle: lerpDouble(a.angle, b.angle, t)!,
     );
   }
 
@@ -41,15 +58,16 @@ class GradientBorderSide {
   bool operator ==(Object other) {
     return other is GradientBorderSide &&
         other.width == width &&
+        other.angle == angle &&
         collection.DeepCollectionEquality().equals(other.colors, colors);
   }
 
   @override
-  int get hashCode => Object.hashAll([width, ...colors]);
+  int get hashCode => Object.hashAll([width, angle, ...colors]);
 
   @override
   String toString() {
-    return "$runtimeType($width, $colors)";
+    return "$runtimeType($width, $angle, $colors)";
   }
 }
 
@@ -59,10 +77,11 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
   final BorderRadius borderRadius;
   final GradientBorderSide borderSide;
 
-  const ExternalRoundedCornersBorder({
+  // TODO: 3 make this const if we can make GradientBorderSide const
+  ExternalRoundedCornersBorder({
     this.borderRadius = BorderRadius.zero,
-    this.borderSide = const GradientBorderSide.none(),
-  });
+    GradientBorderSide? borderSide,
+  }) : borderSide = borderSide ?? GradientBorderSide.none;
 
   @override
   EdgeInsets get dimensions {
@@ -132,6 +151,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     // Bottom-left corner
     path.lineTo(left + borderRadius.bottomLeft.x, bottom);
     path.quadraticBezierTo(left, bottom, left, bottom - borderRadius.bottomLeft.y);
+    path.lineTo(left, top + borderRadius.topLeft.y);
     return path;
   }
 
@@ -153,8 +173,8 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     } else {
       paint.shader = LinearGradient(
         colors: borderSide.colors,
-        begin: Alignment.topLeft, // TODO: 2 allow customizing border gradient alignment
-        end: Alignment.bottomRight,
+        begin: borderSide.alignmentBegin,
+        end: borderSide.alignmentEnd,
       ).createShader(rect);
     }
     final path = getOuterPath(rect, textDirection: textDirection);
@@ -183,6 +203,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
         borderSide: GradientBorderSide(
           colors: borderSide.colors.map((e) => Color.lerp(e, b.side.color, t)!).toList(),
           width: lerpDouble(borderSide.width, b.side.width, t)!,
+          angle: borderSide.angle,
         ),
       );
     }
@@ -209,6 +230,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
         borderSide: GradientBorderSide(
           colors: borderSide.colors.map((e) => Color.lerp(a.side.color, e, t)!).toList(),
           width: lerpDouble(a.side.width, borderSide.width, t)!,
+          angle: borderSide.angle,
         ),
       );
     }
@@ -233,6 +255,16 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     return "$runtimeType($borderRadius, $borderSide)";
   }
 
+  ExternalRoundedCornersBorder copyWith({
+    BorderRadius? borderRadius,
+    GradientBorderSide? borderSide,
+  }) {
+    return ExternalRoundedCornersBorder(
+      borderRadius: borderRadius ?? this.borderRadius,
+      borderSide: borderSide ?? this.borderSide,
+    );
+  }
+
   /// Receives the possitive BorderRadius values, and turns them negative appropriately
   /// so that the shape looks "docked" into the selected sides. If you have the exact
   /// container position and screen bounds, prefer using .positioned instead.
@@ -242,7 +274,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     bool isDockedBottom = false,
     bool isDockedLeft = false,
     bool isDockedRight = false,
-    this.borderSide = const GradientBorderSide.none(),
+    GradientBorderSide? borderSide,
   }) : assert(
          !borderRadius.topLeft.x.isNegative &&
              !borderRadius.topLeft.y.isNegative &&
@@ -256,6 +288,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
          " and turns them negative appropriately so that the shape looks \"docked\" into the selected sides."
          " to manually pass in the negative radius, use the default constructor.",
        ),
+       borderSide = borderSide ?? GradientBorderSide.none,
        borderRadius = BorderRadius.only(
          topLeft: isDockedTop && isDockedLeft
              ? Radius.zero
@@ -290,7 +323,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     required Rect position,
     required Rect bounds,
     List<Rect> parentContainers = const [],
-    this.borderSide = const GradientBorderSide.none(),
+    GradientBorderSide? borderSide,
   }) : assert(
          !borderRadius.topLeft.x.isNegative &&
              !borderRadius.topLeft.y.isNegative &&
@@ -304,6 +337,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
          " and turns them negative appropriately so that the shape looks \"docked\" into the selected sides."
          " to manually pass in the negative radius, use the default constructor.",
        ),
+       borderSide = borderSide ?? GradientBorderSide.none,
        borderRadius = _getPositionedBorderRadius(borderRadius, position, bounds, parentContainers);
 }
 

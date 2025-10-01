@@ -41,10 +41,10 @@ class AppLauncherWing extends Wing<LauncherConfig> {
   late final Map<String, WaywingAction>? actions = {
     "activate": WaywingAction(
       "Show the application launcher",
-      (params) {
+      (request) {
         showLauncher.value = true;
         controller.grabFocus();
-        return Response.ok();
+        return WaywingResponse.ok();
       },
     ),
   };

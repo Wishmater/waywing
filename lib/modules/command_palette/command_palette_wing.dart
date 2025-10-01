@@ -32,7 +32,7 @@ class CommandPaletteWing extends Wing {
       (params) {
         showCommandPalette.value = true;
         controller.grabFocus();
-        return Response.ok();
+        return WaywingResponse.ok();
       },
     ),
   };

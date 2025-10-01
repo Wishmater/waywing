@@ -14,6 +14,7 @@ import "package:waywing/modules/command_palette/command_palette_wing.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_feather.dart";
 import "package:waywing/modules/kb_layout/num_lock_feather.dart";
+import "package:waywing/modules/menu/menu_wing.dart";
 import "package:waywing/modules/nm/nm_feather.dart";
 import "package:waywing/modules/notification/notification_wing.dart";
 import "package:waywing/modules/session/session_feather.dart";
@@ -188,6 +189,7 @@ class FeatherRegistry {
     NotificationsWing.registerFeather(registerFeather);
     AppLauncherWing.registerFeather(registerFeather);
     CommandPaletteWing.registerFeather(registerFeather);
+    MenuWing.registerFeather(registerFeather);
     // Feathers
     ClockFeather.registerFeather(registerFeather);
     SystemTrayFeather.registerFeather(registerFeather);

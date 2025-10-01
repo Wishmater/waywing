@@ -17,21 +17,49 @@ pub const WaywingClient = struct {
     }
 
     pub fn list(self: *WaywingClient, gpa: std.mem.Allocator) !Response {
-        try self.write("list-actions");
+        try self.writePath("list-actions");
+        try self.writeHeaderEnd();
+        try self.writer.interface.flush();
         const response = read(self, gpa);
         return response;
     }
 
-    pub fn sendCmd(self: *WaywingClient, gpa: std.mem.Allocator, cmd: []const u8) !Response {
-        try self.write(cmd);
+    pub fn sendCmd(self: *WaywingClient, gpa: std.mem.Allocator, cmd: []const u8, body: ?*std.fs.File.Reader) !Response {
+        try self.writePath(cmd);
+        std.debug.print("ASDADS {}\n", .{body == null});
+        if (body != null) {
+            std.debug.print("ASDADS Transfer-Encoding zero \n", .{});
+            try self.writeHeader("Transfer-Encoding", "zero-ended");
+        }
+        try self.writeHeaderEnd();
+        try self.writer.interface.flush();
+        if (body) |b| {
+            // var buff: [2048]u8 = undefined;
+            // var ss = std.fs.File.stderr().writer(&buff);
+            // _ = try ss.interface.sendFileReadingAll(b, .unlimited);
+            // try ss.interface.flush();
+            _ = try self.writer.interface.sendFileAll(b, .unlimited);
+            try self.writer.interface.writeByte(0); // body end acording to the `Transfer-Encoding` zero-ended
+            try self.writer.interface.flush();
+        }
         const response = read(self, gpa);
         return response;
     }
 
-    fn write(self: *WaywingClient, cmd: []const u8) !void {
+    fn writePath(self: *WaywingClient, cmd: []const u8) !void {
         _ = try self.writer.interface.write(cmd);
         try self.writer.interface.writeByte('\n');
-        try self.writer.interface.flush();
+    }
+
+    fn writeHeader(self: *WaywingClient, key: []const u8, value: []const u8) !void {
+        _ = try self.writer.interface.write(key);
+        _ = try self.writer.interface.write(": ");
+        _ = try self.writer.interface.write(value);
+        try self.writer.interface.writeByte('\n');
+    }
+
+    fn writeHeaderEnd(self: *WaywingClient) !void {
+        _ = try self.writer.interface.write("\n");
     }
 
     const Response = struct {

@@ -1,5 +1,6 @@
 import "dart:math";
 
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
@@ -219,17 +220,23 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
     return max(primaryScore, secondaryScore * 0.75);
   }
 
+  static List<(Option<T>, double)> _computeScores<T extends Object>(
+    ({String v, List<Option<T>> options, FuzzyStringMatcher matcher}) params,
+  ) {
+    final scores = params.options
+        .map((e) => (e, _getSimilarityScore(e, params.v, params.matcher)))
+        .where((e) => e.$2 > 0.5)
+        .toList();
+    scores.sort((a, b) => b.$2.compareTo(a.$2));
+    return scores;
+  }
+
   void updateFilter(String v) {
     if (v.isEmpty) {
       setState(() => filtered = widget.options);
       return;
     }
-    final scores = widget.options
-        .map((e) => (e, _getSimilarityScore(e, v, widget.matcher)))
-        .where((e) => e.$2 > 0.5)
-        .toList();
-    scores.sort((a, b) => b.$2.compareTo(a.$2));
-
+    final scores = _computeScores((v: v, options: widget.options, matcher: widget.matcher));
     setState(() => filtered = scores.map((e) => e.$1).toList());
     updateHighlight(highlighted.value, ScrollDirection.forward);
   }

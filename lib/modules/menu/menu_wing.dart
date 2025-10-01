@@ -68,7 +68,7 @@ class MenuWing extends Wing {
   ValueNotifier<bool> showMenu = ValueNotifier(false);
   late final controller = FocusGrabController(
     onCleared: () {
-      showMenu.value = false;
+      response?.complete("");
     },
   );
 

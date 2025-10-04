@@ -7,6 +7,7 @@ import "package:motor/motor.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/modules/bar/bar_config.dart";
+import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
@@ -18,21 +19,20 @@ import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class Bar extends StatefulWidget {
-  final List<Feather> startFeathers;
-  final List<Feather> centerFeathers;
-  final List<Feather> endFeathers;
-  final BarConfig config;
-  // TODO: 2 there should never be a need to log in the widgets, it's probably
-  // a skill issue that can be validated before getting here
-  final Logger logger;
+  final BarWing wing;
   final EdgeInsets rerservedSpace;
 
+  BarConfig get config => wing.config;
+  List<Feather> get startFeathers => wing.startFeathers;
+  List<Feather> get centerFeathers => wing.centerFeathers;
+  List<Feather> get endFeathers => wing.endFeathers;
+
+  // TODO: 2 there should never be a need to log in the widgets, it's probably
+  // a skill issue that can be validated before getting here
+  Logger get logger => wing.logger; // ignore: invalid_use_of_protected_member
+
   const Bar({
-    required this.startFeathers,
-    required this.centerFeathers,
-    required this.endFeathers,
-    required this.config,
-    required this.logger,
+    required this.wing,
     required this.rerservedSpace,
     super.key,
   });
@@ -357,7 +357,7 @@ class _BarState extends State<Bar> {
                   ? null
                   : PopoverParams(
                       enabled: isPopoverEnabled,
-                      containerId: "BarPopover",
+                      containerId: "${widget.wing.uniqueId}.Popover",
                       motion: motion,
                       // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
                       zIndex: -10,
@@ -406,7 +406,7 @@ class _BarState extends State<Bar> {
                   ? null
                   : TooltipParams(
                       enabled: isTooltipEnabled,
-                      containerId: "BarTooltip",
+                      containerId: "${widget.wing.uniqueId}.Tooltip",
                       motion: motion,
                       // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
                       zIndex: -5,

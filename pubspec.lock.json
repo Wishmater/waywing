@@ -429,9 +429,9 @@
       "description": {
         "path": ".",
         "ref": "HEAD",
-        "resolved-ref": "76694595f8a8021d22bcc9539c1a520d587c7a50",
+        "resolved-ref": "b1850e0cefe93da3d11afa0061e7237b90f8153a",
         "url": "https://github.com/Wishmater/fl-linux-window-manager",
-        "sha256": "sha256-qO4ledunn0S/QcHRJHK9sP/KkSqPrIWLMI400uEBeWA="
+        "sha256": "sha256-mUsX0W4XHgL31cIgRIwn0SOY+yU0cfeiqw9lWY9nz9Q="
       },
       "source": "git",
       "version": "2.0.6"

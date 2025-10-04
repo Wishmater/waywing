@@ -143,7 +143,7 @@ class App extends StatelessWidget {
                         body: WingedPopoverProvider(
                           child: Stack(
                             fit: StackFit.expand,
-                            children: wingWidgets,
+                            children: wingWidgets.reversed.toList(),
                           ),
                         ),
                       ),

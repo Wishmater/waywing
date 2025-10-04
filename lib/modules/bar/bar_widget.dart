@@ -78,8 +78,11 @@ class _BarState extends State<Bar> {
     }
     left += widget.rerservedSpace.left;
     top += widget.rerservedSpace.top;
-    width -= widget.rerservedSpace.horizontal;
-    height -= widget.rerservedSpace.vertical;
+    if (widget.config.isVertical) {
+      height -= widget.rerservedSpace.vertical;
+    } else {
+      width -= widget.rerservedSpace.horizontal;
+    }
 
     final shape = ExternalRoundedCornersBorder.docked(
       borderRadius: BorderRadius.all(Radius.circular(widget.config.rounding)),
@@ -324,18 +327,29 @@ class _BarState extends State<Bar> {
       ScreenEdge.bottom => Alignment.bottomCenter,
       ScreenEdge.left => Alignment.centerLeft,
     };
+    final tooltipShape = ExternalRoundedCornersBorder(
+      borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
+    );
+    final buttonShape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.buttonRounding)),
+    );
+    // TODO: 2 we should probably listen to this, or have PopoverProvider receive the listenable and listen to it
+    final screenPadding = mainConfig.exclusiveSize.value;
+    // // this limits the popovers to have the same margin as the Bar. This was necessary with
+    // // the old Shapes model because it didn't support going over. Now it is not necessary, but
+    // // maybe it can still be optional??
+    // screenPadding: EdgeInsets.only(
+    //   left: widget.config.isVertical ? 0 : widget.config.marginLeft + widget.config.radiusInMain,
+    //   right: widget.config.isVertical ? 0 : widget.config.marginRight + widget.config.radiusInMain,
+    //   top: !widget.config.isVertical ? 0 : widget.config.marginTop + widget.config.radiusInMain,
+    //   bottom: !widget.config.isVertical ? 0 : widget.config.marginBottom + widget.config.radiusInMain,
+    // ),
     return ValueListenableBuilder(
       valueListenable: component.isPopoverEnabled,
       builder: (context, isPopoverEnabled, _) {
         return ValueListenableBuilder(
           valueListenable: component.isTooltipEnabled,
           builder: (context, isTooltipEnabled, _) {
-            final tooltipShape = ExternalRoundedCornersBorder(
-              borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
-            );
-            final buttonShape = RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.buttonRounding)),
-            );
             return WingedPopover(
               builder: (context, controller, _) => builder(context, controller),
               extraClientClippers: [(barShape, barPositioningController.positioningNotifier)],
@@ -350,16 +364,8 @@ class _BarState extends State<Bar> {
                       popupAlignment: popoverAlignment,
                       anchorAlignment: popoverAlignment,
                       overflowAlignment: overflowAlignment,
+                      screenPadding: screenPadding,
                       stickToHost: true,
-                      // // this limits the popovers to have the same margin as the Bar. This was necessary with
-                      // // the old Shapes model because it didn't support going over. Now it is not necessary, but
-                      // // maybe it can still be optional??
-                      // screenPadding: EdgeInsets.only(
-                      //   left: widget.config.isVertical ? 0 : widget.config.marginLeft + widget.config.radiusInMain,
-                      //   right: widget.config.isVertical ? 0 : widget.config.marginRight + widget.config.radiusInMain,
-                      //   top: !widget.config.isVertical ? 0 : widget.config.marginTop + widget.config.radiusInMain,
-                      //   bottom: !widget.config.isVertical ? 0 : widget.config.marginBottom + widget.config.radiusInMain,
-                      // ),
                       builder: (context, controller, _, targetChildContainerPositioning) {
                         return ValueListenableBuilder(
                           valueListenable: controller.hostState.sizeNotifier,
@@ -407,6 +413,7 @@ class _BarState extends State<Bar> {
                       popupAlignment: popoverAlignment,
                       anchorAlignment: popoverAlignment,
                       overflowAlignment: overflowAlignment,
+                      screenPadding: screenPadding,
                       extraPadding: EdgeInsets.only(
                         top: widget.config.side == ScreenEdge.top ? widget.config.size / 2 : 0,
                         bottom: widget.config.side == ScreenEdge.bottom ? widget.config.size / 2 : 0,

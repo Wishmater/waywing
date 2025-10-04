@@ -85,7 +85,7 @@ class FeatherRegistry {
     if (registration.configBuilder != null) {
       final dynamic newConfigBlock;
       final globalConfigBlock =
-          mainConfig.dynamicSchemas.firstOrNullWhere((e) => e.$1 == feather!.name)?.$2 as BlockData?;
+          mainConfig.featherDefaults?.dynamicSchemas.firstOrNullWhere((e) => e.$1 == feather!.name)?.$2 as BlockData?;
       if (globalConfigBlock == null) {
         newConfigBlock = configOverrideBlock;
       } else {

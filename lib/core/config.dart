@@ -102,9 +102,12 @@ mixin MainConfigBase on MainConfigI {
   static Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> _getDynamicSchemaTables() => {
     // TODO: 3 validate that "Wings" is only added once
     "Wings": (schema: FeathersContainer.schema, from: FeathersContainer.fromBlock),
-    ...featherRegistry.getDynamicFeathersSchemas(),
+    // TODO: 3 validate that "Defaults" is only added once
+    "Defaults": (schema: FeathersContainer.schema, from: FeathersContainer.fromBlock),
     ...serviceRegistry.getSchemaTables(),
   };
+  FeathersContainer? get featherDefaults =>
+      dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Defaults")?.$2 as FeathersContainer?;
 
   //===========================================================================
   // Internal experimental options

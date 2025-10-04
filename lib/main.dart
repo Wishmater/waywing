@@ -4,8 +4,7 @@ import "package:args/args.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:flutter/services.dart";
-import "package:path/path.dart";
+import "package:path/path.dart" as path;
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -43,7 +42,7 @@ void main(List<String> args) async {
   await reloadConfig(await getConfigurationString());
 
   WaywingServer.create(
-    mainConfig.socket ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "waywing.sock"),
+    mainConfig.socket ?? path.join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "waywing.sock"),
     mainLogger.clone(properties: [LogType("WaywingServer")]),
   );
   WaywingServer.instance.init();
@@ -141,20 +140,10 @@ class App extends StatelessWidget {
                       ),
                       child: Scaffold(
                         backgroundColor: Colors.transparent,
-                        body: CallbackShortcuts(
-                          bindings: {
-                            const SingleActivator(LogicalKeyboardKey.escape): () {
-                              FocusScope.of(context).requestScopeFocus();
-                            },
-                          },
-                          child: WingedPopoverProvider(
-                            child: Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                ...wingWidgets,
-                                Positioned.fill(child: MouseFocusListener()),
-                              ],
-                            ),
+                        body: WingedPopoverProvider(
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: wingWidgets,
                           ),
                         ),
                       ),
@@ -166,42 +155,6 @@ class App extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-}
-
-class MouseFocusListener extends StatefulWidget {
-  const MouseFocusListener({super.key});
-
-  @override
-  State<MouseFocusListener> createState() => _MouseFocusListenerState();
-}
-
-class _MouseFocusListenerState extends State<MouseFocusListener> {
-  bool hasMouseFocus = false;
-  bool hadFocus = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      opaque: false,
-      onEnter: (_) {
-        final focusScope = FocusScope.of(context, createDependency: false);
-        if (hadFocus) {
-          focusScope.requestFocus();
-        } else {
-          focusScope.requestScopeFocus();
-        }
-        hasMouseFocus = true;
-      },
-      onExit: (_) {
-        final focusScope = FocusScope.of(context, createDependency: false);
-        hadFocus = !focusScope.hasPrimaryFocus;
-        if (focusScope.hasFocus) {
-          focusScope.unfocus();
-        }
-        hasMouseFocus = false;
-      },
     );
   }
 }

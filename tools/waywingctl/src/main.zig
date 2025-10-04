@@ -49,7 +49,13 @@ pub fn main() !void {
         printOut("{s}", .{response.body});
         return;
     }
-    const response = try client.sendCmd(std.heap.smp_allocator, arg);
+    std.debug.print("ZZZ: {}\n\n", .{std.posix.isatty(0)});
+    var stdInBuffer: [1024]u8 = undefined;
+    var stdin: ?std.fs.File.Reader = std.fs.File.stdin().reader(&stdInBuffer);
+    if (std.posix.isatty(0)) {
+        stdin = null;
+    }
+    const response = try client.sendCmd(std.heap.smp_allocator, arg, if (stdin) |*v| v else null);
     if (response.status >= 400) {
         printOut("bad status code {d}\n", .{response.status});
     }

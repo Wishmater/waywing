@@ -6,6 +6,7 @@ import "package:waywing/core/service.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
+import "package:waywing/modules/command_palette/user_command_service.dart";
 import "package:waywing/modules/hyprland/hyprland_service.dart";
 import "package:waywing/modules/kb_layout/kb_layout_service.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
@@ -99,7 +100,7 @@ class ServiceRegistry {
           mainConfig.dynamicSchemas.firstOrNullWhere((e) => e.$1 == "$serviceType")?.$2 ??
           registration.configBuilder!(BlockData.empty());
     }
-    // ignore: invalid_use_of_protected_member
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
     await service.init();
     return service;
@@ -136,7 +137,7 @@ class ServiceRegistry {
     );
     final service = await _initializedServices.remove(serviceType)!;
     await service.dispose();
-    // ignore: invalid_use_of_protected_member
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     await service.logger.destroy();
     await _onConsumerDereferenced(service);
   }
@@ -188,6 +189,7 @@ class ServiceRegistry {
     KeyboardLayoutService.registerService(registerService);
     ApplicationService.registerService(registerService);
     HyprlandService.registerService(registerService);
+    UserCommandService.registerService(registerService);
   }
 }
 

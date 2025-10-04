@@ -1,8 +1,6 @@
 import "package:flutter/material.dart";
-import "package:flutter/widgets.dart";
 import "package:waywing/modules/workspace_switcher/workspace_switcher_provider.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
-import "package:waywing/widgets/winged_widgets/winged_container.dart";
 
 class WorkspaceSwitcherIndicator extends StatefulWidget {
   final IWorkspaceSwitcherProvider provider;
@@ -58,16 +56,5 @@ class _WorkspaceWidget extends StatelessWidget {
       onTap: changeWorkspace,
       child: Text(workspace.name),
     );
-    // if (isCurrent) {
-    //   return Padding(
-    //     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-    //     child: Text("[${workspace.name}]"),
-    //   );
-    // } else {
-    //   return Padding(
-    //     padding: const EdgeInsets.only(left: 8.0, right: 8.0),
-    //     child: Text("${workspace.name}"),
-    //   );
-    // }
   }
 }

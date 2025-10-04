@@ -9,6 +9,9 @@ class Positioning {
   Positioning.fromRect(Rect rect) : offset = Offset(rect.left, rect.top), size = rect.size;
 
   @override
+  String toString() => "($offset $size)";
+
+  @override
   int get hashCode => Object.hash(offset, size);
 
   @override

@@ -1,3 +1,5 @@
+import "dart:math";
+
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx.dart";
@@ -6,6 +8,7 @@ import "package:flex_seed_scheme/flex_seed_scheme.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/config_fields.dart";
+import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 part "theme.config.dart";
@@ -21,15 +24,26 @@ enum ConfigIconVariation {
 
 @Config()
 mixin ThemeConfigBase on ThemeConfigI {
+  //===========================================================================
+  // Mode (light / dark)
+  //===========================================================================
+
   static const _mode = EnumField(ThemeMode.values, defaultTo: ThemeMode.system);
+
+  //===========================================================================
+  // Font
+  //===========================================================================
 
   /// Use this to set a custom font
   static const _fontFamily = StringField(nullable: true);
 
   /// Set the font size
   static const _fontSize = DoubleNumberField(defaultTo: kDefaultFontSize);
-
   double get fontSizeScaleFactor => fontSize / kDefaultFontSize;
+
+  //===========================================================================
+  // Icons
+  //===========================================================================
 
   static const _iconPriority = ListField(
     EnumField(IconType.values),
@@ -83,6 +97,10 @@ mixin ThemeConfigBase on ThemeConfigI {
     return ValidatorSuccess();
   }
 
+  //===========================================================================
+  // Colors
+  //===========================================================================
+
   static const _primaryColor = ColorField(defaultTo: MyColor(0xFF2196F3));
   static const _secondaryColor = ColorField(nullable: true);
   static const _tertiaryColor = ColorField(nullable: true);
@@ -114,10 +132,51 @@ mixin ThemeConfigBase on ThemeConfigI {
     }
   }
 
-  // TODO: 1 STYLE think well on how to expose corners theme (including rounding and "docking"(negative rounding)).
-  // This should affect: buttons, popovers / tooltips, and Bar (if not overriden in the bar config)
-  final double buttonRadiusX = 12;
-  final double buttonRadiusY = 12;
+  //===========================================================================
+  // Rounded corners
+  //===========================================================================
+
+  static const _buttonRounding = DoubleNumberField(defaultTo: 12);
+  static const _containerRounding = DoubleNumberField(defaultTo: 24);
+
+  //===========================================================================
+  // Borders
+  //===========================================================================
+
+  static const _activeBorderSize = DoubleNumberField(defaultTo: 2);
+
+  static const __inactiveBorderSize = DoubleNumberField(nullable: true);
+  double get inactiveBorderSize => _inactiveBorderSize ?? activeBorderSize;
+
+  // border gradient colors, defaults to hyprland defaults
+  static const _activeBorderColors = ListField(ColorField(), defaultTo: [MyColor(0xee33ccff), MyColor(0xee00ff99)]);
+  static const _inactiveBorderColors = ListField(ColorField(), defaultTo: [MyColor(0xaa595959)]);
+
+  // gradient angle in degrees (similar to hyprland borders)
+  static const _activeBorderAngle = DoubleNumberField(defaultTo: 45);
+  static const _inactiveBorderAngle = DoubleNumberField(defaultTo: 45);
+
+  late final activeBorder = GradientBorderSide(
+    colors: _fillColors(activeBorderColors, borderMaxColorCount),
+    width: activeBorderSize,
+    angle: activeBorderAngle,
+  );
+
+  late final inactiveBorder = GradientBorderSide(
+    colors: _fillColors(inactiveBorderColors, borderMaxColorCount),
+    width: inactiveBorderSize,
+    angle: inactiveBorderAngle,
+  );
+
+  late final borderMaxColorCount = max(activeBorderColors.length, inactiveBorderColors.length);
+  List<Color> _fillColors(List<Color> colors, int length) {
+    if (length <= colors.length) return colors;
+    List<Color> result = [];
+    for (int i = 0; i < length; i++) {
+      result.add(colors[i % colors.length]);
+    }
+    return result;
+  }
 }
 
 class WaywingTheme {

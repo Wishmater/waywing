@@ -46,16 +46,10 @@ mixin MainConfigBase on MainConfigI {
   static const _monitor = IntegerNumberField(defaultTo: 0);
   static const _socket = StringField(nullable: true);
   static const _focusGrab = BooleanField(defaultTo: kReleaseMode);
+  // TODO: 2 flutter focus still does some weird shit when this is set to false, needs some debugging
+  static const _focusContainerOnMouseOver = BooleanField(defaultTo: true);
 
   // TODO: 3 validate that at least 1 wing is added (at least warn, prefer hard error)
-
-  //===========================================================================
-  // Theme / styling
-  //===========================================================================
-
-  // TODO: 2 remove this once mainConfig.style.xxx is easily accesible
-  late final double buttonRadiusX = 12;
-  late final double buttonRadiusY = 12;
 
   //===========================================================================
   // Animations

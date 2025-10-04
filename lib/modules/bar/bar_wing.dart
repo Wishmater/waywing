@@ -42,13 +42,14 @@ class BarWing extends Wing<BarConfig> {
 
   @override
   Widget buildWing(EdgeInsets rerservedSpace) {
-    // TODO: 1 apply rerservedSpace in Bar
     return Bar(
       startFeathers: startFeathers,
       centerFeathers: centerFeathers,
       endFeathers: endFeathers,
       config: config,
       logger: logger,
+      rerservedSpace: rerservedSpace,
+
     );
   }
 

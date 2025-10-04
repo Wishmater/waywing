@@ -90,7 +90,11 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       return; // this shouldn't happen, but whatever...
     }
     tooltipHosts[host]!.host = false;
-    _scheduleCheckHideTooltip(host);
+    if (host.widget.tooltipParams!.hideDelay > Duration.zero) {
+      hideTooltip(host);
+    } else {
+      _scheduleCheckHideTooltip(host);
+    }
   }
 
   void onMouseEnterClient(WingedPopoverClientState client) {
@@ -105,7 +109,11 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       return; // the tooltip client is in animation of being removed
     }
     tooltipHosts[client.widget.host]!.client = false;
-    _scheduleCheckHideTooltip(client.widget.host);
+    if (client.widget.host.widget.tooltipParams!.hideDelay > Duration.zero) {
+      hideTooltip(client.widget.host);
+    } else {
+      _scheduleCheckHideTooltip(client.widget.host);
+    }
   }
 
   Future<void> showTooltip(
@@ -118,6 +126,10 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       final status = tooltipHosts[host]!;
       status.hideTimer?.cancel();
       status.hideTimer = null;
+      if (initialStatus != null) {
+        status.host = status.host || initialStatus.host;
+        status.host = status.client || initialStatus.host;
+      }
       return;
     }
     if (activeHosts.contains(host)) {
@@ -134,7 +146,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
         final completer = Completer<void>();
         Timer(showDelay, () async {
           if (!host.mounted || !host.isHovered) return;
-          await showTooltip(host, showDelay: Duration.zero);
+          await showTooltip(host, initialStatus: initialStatus, showDelay: Duration.zero);
           completer.complete();
         });
         return completer.future;
@@ -180,14 +192,10 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
   void _scheduleCheckHideTooltip(WingedPopoverState host) {
     if (_checkHideTooltipScheduledled.contains(host)) return;
     _checkHideTooltipScheduledled.add(host);
-    // this NEEDS to wait 2 frames for it to be consistent
     WidgetsBinding.instance.scheduleFrame();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      WidgetsBinding.instance.scheduleFrame();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _checkHideTooltip(host);
-        _checkHideTooltipScheduledled.remove(host);
-      });
+      _checkHideTooltip(host);
+      _checkHideTooltipScheduledled.remove(host);
     });
   }
 
@@ -355,7 +363,7 @@ class WingedPopoverClient extends StatefulWidget {
 class WingedPopoverClientState extends State<WingedPopoverClient> with TickerProviderStateMixin {
   final childPositioningController = PositioningNotifierController();
   final childContainerPositioningController = PositioningNotifierController();
-  Positioning? targetChildContainerPositioning;
+  final ValueNotifier<Positioning?> targetChildContainerPositioning = ValueNotifier(null);
 
   // this means it passed the 2nd frame, where we can actually get child sizing
   bool passedMeaningfulPaint = false;
@@ -381,7 +389,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     _initContentAnimations(initialOpacity: 1, initialOffset: Offset.zero);
     if (!widget.isTooltip) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+        if (!mounted || widget.isTooltip) return;
         focusNode.requestFocus();
       });
     }
@@ -407,7 +415,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     );
     if (!widget.isTooltip) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
+        if (!mounted || widget.isTooltip) return;
         focusNode.requestFocus();
       });
     }
@@ -432,6 +440,13 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     }
     if (widget.isRemoved) {
       intrinsincAnimationsEnabled = true;
+    } else if (oldWidget.isRemoved) {
+      if (!widget.isTooltip) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || widget.isTooltip) return;
+          focusNode.requestFocus();
+        });
+      }
     }
   }
 
@@ -528,6 +543,18 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     });
   }
 
+  void onEscapePressed() {
+    if (widget.isTooltip) {
+      if (widget.host.isTooltipShown) {
+        widget.host.hideTooltip();
+      }
+    } else {
+      if (widget.host.isPopoverShown) {
+        widget.host.hidePopover();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.isRemoved && !passedMeaningfulPaint) {
@@ -541,7 +568,12 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     widget.host.clientState = this;
     final screenSize = MediaQuery.sizeOf(context);
 
-    _lastContent = popoverParams.builder(context, widget.host, childPositioningController);
+    _lastContent = popoverParams.builder(
+      context,
+      widget.host,
+      childPositioningController,
+      targetChildContainerPositioning,
+    );
     final currentContent = OverflowOrFit(
       alignment: popoverParams.overflowAlignment,
       child: AnimatedBuilder(
@@ -603,7 +635,13 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       ],
     );
 
-    final container = popoverParams.containerBuilder(context, widget.host, content);
+    final container = popoverParams.containerBuilder(
+      context,
+      content,
+      widget.host,
+      childPositioningController,
+      targetChildContainerPositioning,
+    );
 
     return ValueListenableBuilder(
       valueListenable: widget.host.positioningNotifier,
@@ -630,7 +668,13 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               childSize = hostSize;
               childPosition = hostPosition;
               if (popoverParams.closedContainerBuilder != null) {
-                container = popoverParams.closedContainerBuilder!(context, widget.host, content);
+                container = popoverParams.closedContainerBuilder!(
+                  context,
+                  content,
+                  widget.host,
+                  childPositioningController,
+                  targetChildContainerPositioning,
+                );
               }
             } else if (childSize == null) {
               // assuming this happens the first time the widget builds
@@ -639,7 +683,13 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               childSize = hostSize;
               childPosition = hostPosition;
               if (popoverParams.closedContainerBuilder != null) {
-                container = popoverParams.closedContainerBuilder!(context, widget.host, content);
+                container = popoverParams.closedContainerBuilder!(
+                  context,
+                  content,
+                  widget.host,
+                  childPositioningController,
+                  targetChildContainerPositioning,
+                );
               }
             } else {
               childSize += Offset(popoverParams.extraPadding.horizontal, popoverParams.extraPadding.vertical);
@@ -676,17 +726,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
 
             Widget result = CallbackShortcuts(
               bindings: {
-                SingleActivator(LogicalKeyboardKey.escape): () {
-                  if (widget.isTooltip) {
-                    if (widget.host.isTooltipShown) {
-                      widget.host.hideTooltip();
-                    }
-                  } else {
-                    if (widget.host.isPopoverShown) {
-                      widget.host.hidePopover();
-                    }
-                  }
-                },
+                SingleActivator(LogicalKeyboardKey.escape): onEscapePressed,
               },
               child: container,
             );
@@ -705,7 +745,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                 maxTop = hostPosition.dy + hostSize.height;
               }
             }
-            targetChildContainerPositioning = Positioning(childPosition, childSize);
+            targetChildContainerPositioning.value = Positioning(childPosition, childSize);
             result = PositioningNotifierMonitor(
               controller: childContainerPositioningController,
               child: MotionPositioned(
@@ -734,9 +774,9 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                     if (widget.isRemoved) {
                       provider._removeHost(widget.host);
                     } else if (intrinsincAnimationsEnabled && !popoverParams.enableIntrinsicSizeAnimation) {
-                      // setState(() {
-                      //   intrinsincAnimationsEnabled = false;
-                      // });
+                      setState(() {
+                        intrinsincAnimationsEnabled = false;
+                      });
                     }
                   }
                 },
@@ -751,6 +791,10 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                 clipBehavior: Clip.none,
                 children: [result],
               );
+              // TODO: 3 maybe refactor this to instead just be a clientClippersBuilder,
+              // pass in everything needed and let the caller build the clipper with more freedom.
+              // Maybe provide a default implementation so the caller doesn't need to do same 20
+              // lines of code every time.
               for (final e in widget.host.widget.extraClientClippers) {
                 result = ValueListenableBuilder(
                   valueListenable: e.$2,
@@ -760,9 +804,17 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                     if (positioning != null) {
                       final offset = positioning.offset;
                       final size = positioning.size;
-                      rect = Rect.fromLTWH(offset.dx, offset.dy, size.width, size.height);
+                      final shapePadding = e.$1.dimensions.resolve(TextDirection.ltr);
+                      rect = Rect.fromLTWH(
+                        offset.dx - shapePadding.left,
+                        offset.dy - shapePadding.top,
+                        size.width + shapePadding.horizontal,
+                        size.height + shapePadding.vertical,
+                      );
                     }
-                    // TODO 2: PERFOMANCE if backgorund opacity is 1 then there is no need to use clip
+                    // TODO: 2 PERFOMANCE if background opacity is 1 then there is no need to use clip,
+                    // probably handle this in the host (Bar, ContextMenu, etc.) and just dont pass any
+                    // extraClientClippers if ressolved backgroundOpacity==1
                     return ClipPath(
                       clipper: ShapeClipper(shape: e.$1, rectOverride: rect),
                       child: child,

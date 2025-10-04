@@ -33,14 +33,14 @@ class SessionFeather extends Feather {
       "Put the computer/laptop to sleep",
       (_) {
         Future.delayed(Duration.zero, () => service.sleep());
-        return Response.ok();
+        return WaywingResponse.ok();
       },
     ),
     "lock": WaywingAction(
       "Activate screen lock",
       (_) {
         Future.delayed(Duration.zero, () => service.lock());
-        return Response.ok();
+        return WaywingResponse.ok();
       },
     ),
   };

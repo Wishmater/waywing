@@ -14,7 +14,10 @@ late Logger mainLogger;
 
 @Config()
 mixin LoggingConfigBase on LoggingConfigI {
-  static const _levelFilter = EnumField(Level.values, defaultTo: (kDebugMode ? Level.trace : Level.info)); // TODO fix in config_gen add automatic parentesis on this cases
+  static const _levelFilter = EnumField(
+    Level.values,
+    defaultTo: (kDebugMode ? Level.trace : Level.info),
+  ); // TODO fix in config_gen add automatic parentesis on this cases
   static const _typeLevelFilters = MapField(StringField(), EnumField(Level.values), defaultTo: <String, Level>{});
   static const _output = StringField(nullable: true);
 }
@@ -336,4 +339,9 @@ class AggregateLogger extends Logger {
 
   @override
   Future<void> destroy() async {}
+}
+
+String listToString(Iterable list) {
+  if (list.isEmpty) return "[]";
+  return "[${list.map((e) => e.toString()).reduce((a, b) => "$a, $b")}";
 }

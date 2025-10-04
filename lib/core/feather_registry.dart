@@ -1,3 +1,5 @@
+import "dart:math";
+
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
@@ -6,6 +8,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/core/wing.dart";
 import "package:waywing/modules/app_launcher/launcher_wing.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
@@ -24,6 +27,7 @@ import "package:waywing/modules/workspace_switcher/workspace_switcher_feather.da
 import "package:waywing/util/logger.dart";
 
 final featherRegistry = FeatherRegistry._();
+final _logger = mainLogger.clone(properties: [LogType("FeatherRegistry")]);
 
 typedef FeatherConstructor<T extends Feather> = T Function();
 
@@ -59,6 +63,7 @@ class FeatherRegistry {
     _registeredFeathers[name] = registration;
   }
 
+  Map<Feather, dynamic> _feathersPendingConfigUpdate = {};
   Feather getFeatherInstance(
     String featherName,
     String uniqueId, [
@@ -85,19 +90,10 @@ class FeatherRegistry {
         newConfigBlock = configOverrideBlock;
       } else {
         newConfigBlock = configOverrideBlock.merge(globalConfigBlock);
-        // print("=========================================");
-        // print(uniqueId);
-        // print(feather);
-        // print(configOverrideBlock);
-        // print(configOverrideBlock.defaultKeys);
-        // print(globalConfigBlock);
-        // print(newConfigBlock);
       }
       final newConfig = registration.configBuilder!(newConfigBlock);
       if (alreadyExists) {
-        final oldConfig = feather.config;
-        feather.config = newConfig;
-        feather.onConfigUpdated(oldConfig);
+        _feathersPendingConfigUpdate[feather] = newConfig;
       } else {
         feather.config = newConfig;
       }
@@ -109,14 +105,31 @@ class FeatherRegistry {
   /// Check all feathers currently in config against those already registered in this servcice.
   /// Dispose and remove those no longer in config; add and initialize new ones.
   void onConfigUpdated(BuildContext context) {
-    // this is redundant, but we need to initialize wings first,
-    // so they can then give us their list of feathers.
-    _addNewFeathersNotInOldConfig(context, mainConfig.wings);
-    final configFeathers = <Feather>{
-      ...mainConfig.wings,
-      ...mainConfig.wings.map((e) => e.getFeathers()).flatten(),
-    };
-    _updateFeathers(context, configFeathers);
+    _logger.debug("onConfigUpdated");
+    final configFeathers = <Feather>[...mainConfig.wings];
+    _logger.trace("getting all feathers from starting wings: ${listToString(configFeathers)}");
+    _executePendingFeathersConfigUpdate();
+    for (int i = 0; i < configFeathers.length; i++) {
+      final feather = configFeathers[i];
+      if (feather is Wing) {
+        _logger.trace("addAll feathers from wing: $feather");
+        configFeathers.addAll(feather.getFeathers());
+        _executePendingFeathersConfigUpdate();
+      }
+    }
+    _logger.trace(
+      "got all feathers: ${listToString(configFeathers)}",
+    );
+    _logger.trace("initializing all feathers not in old config...");
+    // we should init new feathers before disposing old ones, to prevent shared services from being dispose
+    _initializeNewFeathersNotInOldConfig(context, configFeathers);
+    _logger.trace("disposing all feathers not in new config...");
+    _disposeOldFeathersNotInNewConfig(configFeathers);
+    assert(
+      !_instancedFeathers.values.any((e) => !_initializedFeathers.containsKey(e)),
+      "After updating Feathers, there are still Feathers that were instanced but not initialized, this should never happen."
+      " The following are the offending feathers: ${_instancedFeathers.values.where((e) => !_initializedFeathers.containsKey(e))}",
+    );
   }
 
   Future<void> awaitInitialization(Feather feather) {
@@ -144,17 +157,22 @@ class FeatherRegistry {
     return response;
   }
 
-  void _updateFeathers(BuildContext context, Iterable<Feather> configFeathers) {
-    _removeOldFeathersNotInNewConfig(configFeathers);
-    _addNewFeathersNotInOldConfig(context, configFeathers);
-    assert(
-      !_instancedFeathers.values.any((e) => !_initializedFeathers.containsKey(e)),
-      "After updating Feathers, there are still Feathers that were instanced but not initialized, this should never happen."
-      " The following are the offending feathers: ${_instancedFeathers.values.where((e) => !_initializedFeathers.containsKey(e))}",
-    );
+  void _executePendingFeathersConfigUpdate() {
+    while (_feathersPendingConfigUpdate.isNotEmpty) {
+      final currentDeathersPendingConfigUpdate = _feathersPendingConfigUpdate;
+      _feathersPendingConfigUpdate = {};
+      _logger.trace("executing config update on pending feathers: ${currentDeathersPendingConfigUpdate.keys}");
+      for (final e in currentDeathersPendingConfigUpdate.entries) {
+        final feather = e.key;
+        final newConfig = e.value;
+        final oldConfig = feather.config;
+        feather.config = newConfig;
+        feather.onConfigUpdated(oldConfig);
+      }
+    }
   }
 
-  void _removeOldFeathersNotInNewConfig(Iterable<Feather> configFeathers) {
+  void _disposeOldFeathersNotInNewConfig(Iterable<Feather> configFeathers) {
     final toRemove = <Feather>[]; // hack to avoid concurrent modification error
     for (final old in _initializedFeathers.keys) {
       if (!configFeathers.contains(old)) {
@@ -166,7 +184,7 @@ class FeatherRegistry {
     }
   }
 
-  void _addNewFeathersNotInOldConfig(BuildContext context, Iterable<Feather> configFeathers) {
+  void _initializeNewFeathersNotInOldConfig(BuildContext context, Iterable<Feather> configFeathers) {
     for (final ne in configFeathers) {
       if (!_initializedFeathers.containsKey(ne)) {
         _initializeFeather(context, ne);
@@ -177,6 +195,7 @@ class FeatherRegistry {
   /// Adds the feather to the provided inner list, and to the all likst, and runs init() on it.
   /// Returns the Future from calling init() on the feather.
   Future<void> _initializeFeather(BuildContext context, Feather feather) async {
+    _logger.debug("initializing feather $feather");
     assert(!_initializedFeathers.containsKey(feather), "Trying to add a feather that is already initialized");
     // ignore: invalid_use_of_protected_member
     feather.logger = mainLogger.clone(properties: [LogType(feather.uniqueId)]);
@@ -189,12 +208,14 @@ class FeatherRegistry {
     }
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
-    return initFuture;
+    await initFuture;
+    _logger.trace("finished initializing feather $feather");
   }
 
   /// Adds the feather to the list and runs dispose() on it.
   /// Returns the Future from calling dispose() on the feather.
   Future<void> _disposeFeather(Feather feather) async {
+    _logger.debug("disposing feather $feather");
     assert(_initializedFeathers.containsKey(feather), "Trying to remove a feather that is not in Feathers.all");
     _initializedFeathers.remove(feather);
     // remove feather routes
@@ -206,8 +227,9 @@ class FeatherRegistry {
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
     featherRegistry._dereferenceFeather(feather.uniqueId);
     await feather.dispose();
-    // ignore: invalid_use_of_protected_member
-    await feather.logger.destroy();
+    _logger.trace("finished disposing feather $feather");
+    await feather.logger.destroy(); // ignore: invalid_use_of_protected_member
+    _logger.trace("finished destroying log for feather $feather");
   }
 
   void _dereferenceFeather(String uniqueId) {

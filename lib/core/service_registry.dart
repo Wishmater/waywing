@@ -126,6 +126,7 @@ class ServiceRegistry {
     final dependentConsumers = _requestedServices[serviceType]!;
     final removed = dependentConsumers.remove(consumer);
     if (removed && dependentConsumers.isEmpty) {
+      _requestedServices.remove(serviceType);
       _disposeService(serviceType);
     }
   }
@@ -148,8 +149,12 @@ class ServiceRegistry {
   }
 
   Future<void> _onConsumerDereferenced(ServiceConsumer consumer) async {
-    final futures = <Future<void>>[];
+    final toRelease = <Type>[];
     for (final service in _requestedServices.keys) {
+      toRelease.add(service);
+    }
+    final futures = <Future<void>>[];
+    for (final service in toRelease) {
       futures.add(_releaseService(consumer, service));
     }
     await Future.wait(futures);

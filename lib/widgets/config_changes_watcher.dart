@@ -23,7 +23,7 @@ class ConfigChangeWatcher extends StatefulWidget {
 class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
   void _watch() async {
     final filepath = getConfigurationFilePath();
-    while(true) {
+    while (true) {
       final w = watcher.DirectoryWatcher(File(filepath).parent.path);
       _logger.trace("watching directory for configuration reset ${w.path}");
       final completer = Completer<()>();
@@ -63,15 +63,32 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     _watch();
   }
 
+  Future<void>? _running; // rudimentary safety mechanism to make sure updates don't run at the same time
+  Future<void>? _waiting; // if another update is already waiting, this one is just not necessary
   Future<void> onConfigUpdated() async {
+    final id = DateTime.now().microsecondsSinceEpoch;
+    _logger.debug("call onConfigUpdated() $id");
+    final completer = Completer();
+    if (_running != null) {
+      if (_waiting != null) {
+        return _waiting;
+      }
+      _waiting = completer.future;
+      await _running;
+      _waiting = null;
+    }
+    _running = completer.future;
+    _logger.debug("execute onConfigUpdated() $id");
+
     final context = this.context; // declare local reference to please the linter
     final oldConfig = mainConfig;
+    oldConfig.exclusiveSize.removeListener(updateWindows);
     String content = defaultConfig;
     final file = File(getConfigurationFilePath());
     if (file.existsSync()) {
       content = await file.readAsString();
     } else {
-      _logger.debug("configuration file not found");
+      _logger.warning("Configuration file not found");
     }
     await reloadConfig(content);
     if (!context.mounted) return; // something weird happened, probably the app was just closed
@@ -83,10 +100,11 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     if (newConfig.exclusiveSize.value != oldConfig.exclusiveSize.value || newConfig.monitor != oldConfig.monitor) {
       updateWindows();
     }
-    oldConfig.exclusiveSize.removeListener(updateWindows);
     newConfig.exclusiveSize.addListener(updateWindows);
 
     setState(() {});
+    completer.complete();
+    _running = null;
   }
 
   @override

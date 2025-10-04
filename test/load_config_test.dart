@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import "package:config/config.dart";
 import "package:dartx/dartx_io.dart";
 import "package:flutter_test/flutter_test.dart";

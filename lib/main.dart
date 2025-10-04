@@ -10,6 +10,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/theme.dart";
+import "package:waywing/core/wing.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/widgets/config_changes_watcher.dart";
@@ -76,41 +77,6 @@ class App extends StatelessWidget {
       child: ConfigChangeWatcher(
         builder: (context) {
           final waywingTheme = WaywingTheme(mainConfig.theme);
-          final wingWidgets = <Widget>[];
-          for (int i = 0; i < mainConfig.wings.length; i++) {
-            final wing = mainConfig.wings[i];
-            final previousWings = mainConfig.wings.sublist(0, i);
-            final reservedSpace = DerivedValueNotifier(
-              dependencies: previousWings.map((e) => e.exclusiveSize).toList(),
-              derive: () => previousWings.map((e) => e.exclusiveSize.value).fold(EdgeInsets.zero, (a, b) => a + b),
-            );
-            wingWidgets.add(
-              FutureBuilder(
-                future: featherRegistry.awaitInitialization(wing),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    // TODO: 1 Implement proper error handling in featherRegistry and remove this
-                    mainLogger.log(
-                      Level.error,
-                      "Error caught when initializing wing ${wing.name}",
-                      error: snapshot.error,
-                      stackTrace: snapshot.stackTrace,
-                    );
-                    return SizedBox.shrink();
-                  }
-                  if (snapshot.connectionState != ConnectionState.done) {
-                    return SizedBox.shrink();
-                  }
-                  return ValueListenableBuilder(
-                    valueListenable: reservedSpace,
-                    builder: (context, rerservedSpace, _) {
-                      return wing.buildWing(rerservedSpace);
-                    },
-                  );
-                },
-              ),
-            );
-          }
           return KeyboardFocusProvider(
             keyboardService: KeyboardFocusService(),
             child: MaterialApp(
@@ -141,10 +107,7 @@ class App extends StatelessWidget {
                       child: Scaffold(
                         backgroundColor: Colors.transparent,
                         body: WingedPopoverProvider(
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: wingWidgets.reversed.toList(),
-                          ),
+                          child: _WingsWidget(),
                         ),
                       ),
                     ),
@@ -155,6 +118,65 @@ class App extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+class _WingsWidget extends StatefulWidget {
+  const _WingsWidget();
+
+  @override
+  State<_WingsWidget> createState() => _WingsWidgetState();
+}
+
+class _WingsWidgetState extends State<_WingsWidget> {
+  Map<Wing, GlobalKey> savedGlobalKeys = {};
+
+  @override
+  Widget build(BuildContext context) {
+    final wingWidgets = <Widget>[];
+    final Map<Wing, GlobalKey> globalKeys = {};
+    for (int i = 0; i < mainConfig.wings.length; i++) {
+      final wing = mainConfig.wings[i];
+      final previousWings = mainConfig.wings.sublist(0, i);
+      final reservedSpace = DerivedValueNotifier(
+        dependencies: previousWings.map((e) => e.exclusiveSize).toList(),
+        derive: () => previousWings.map((e) => e.exclusiveSize.value).fold(EdgeInsets.zero, (a, b) => a + b),
+      );
+      final globalKey = savedGlobalKeys[wing] ?? GlobalKey();
+      globalKeys[wing] = globalKey;
+      wingWidgets.add(
+        FutureBuilder(
+          key: globalKey,
+          future: featherRegistry.awaitInitialization(wing),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              // TODO: 1 Implement proper error handling in featherRegistry and remove this
+              mainLogger.log(
+                Level.error,
+                "Error caught when initializing wing ${wing.name}",
+                error: snapshot.error,
+                stackTrace: snapshot.stackTrace,
+              );
+              return SizedBox.shrink();
+            }
+            if (snapshot.connectionState != ConnectionState.done) {
+              return SizedBox.shrink();
+            }
+            return ValueListenableBuilder(
+              valueListenable: reservedSpace,
+              builder: (context, rerservedSpace, _) {
+                return wing.buildWing(rerservedSpace);
+              },
+            );
+          },
+        ),
+      );
+    }
+    savedGlobalKeys = globalKeys;
+    return Stack(
+      fit: StackFit.expand,
+      children: wingWidgets.reversed.toList(),
     );
   }
 }

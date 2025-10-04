@@ -28,6 +28,14 @@ mixin ThemeConfigI {
   MyColor? get foregroundColor;
   double get backgroundOpacity;
   double get shadows;
+  double get buttonRounding;
+  double get containerRounding;
+  double get activeBorderSize;
+  double? get _inactiveBorderSize;
+  List<MyColor> get activeBorderColors;
+  List<MyColor> get inactiveBorderColors;
+  double get activeBorderAngle;
+  double get inactiveBorderAngle;
 }
 
 class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
@@ -49,6 +57,14 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
       'foregroundColor': ThemeConfigBase._foregroundColor,
       'backgroundOpacity': ThemeConfigBase._backgroundOpacity,
       'shadows': ThemeConfigBase._shadows,
+      'buttonRounding': ThemeConfigBase._buttonRounding,
+      'containerRounding': ThemeConfigBase._containerRounding,
+      'activeBorderSize': ThemeConfigBase._activeBorderSize,
+      'inactiveBorderSize': ThemeConfigBase.__inactiveBorderSize,
+      'activeBorderColors': ThemeConfigBase._activeBorderColors,
+      'inactiveBorderColors': ThemeConfigBase._inactiveBorderColors,
+      'activeBorderAngle': ThemeConfigBase._activeBorderAngle,
+      'inactiveBorderAngle': ThemeConfigBase._inactiveBorderAngle,
     },
   );
 
@@ -86,6 +102,22 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
   final double backgroundOpacity;
   @override
   final double shadows;
+  @override
+  final double buttonRounding;
+  @override
+  final double containerRounding;
+  @override
+  final double activeBorderSize;
+  @override
+  final double? _inactiveBorderSize;
+  @override
+  final List<MyColor> activeBorderColors;
+  @override
+  final List<MyColor> inactiveBorderColors;
+  @override
+  final double activeBorderAngle;
+  @override
+  final double inactiveBorderAngle;
 
   ThemeConfig({
     ThemeMode? mode,
@@ -104,6 +136,14 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
     this.foregroundColor,
     double? backgroundOpacity,
     double? shadows,
+    double? buttonRounding,
+    double? containerRounding,
+    double? activeBorderSize,
+    double? inactiveBorderSize,
+    List<MyColor>? activeBorderColors,
+    List<MyColor>? inactiveBorderColors,
+    double? activeBorderAngle,
+    double? inactiveBorderAngle,
   }) : mode = mode ?? ThemeMode.system,
        fontSize = fontSize ?? kDefaultFontSize,
        iconPriority =
@@ -121,7 +161,16 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
        iconFlutterWeight = iconFlutterWeight ?? 400,
        primaryColor = primaryColor ?? MyColor(0xFF2196F3),
        backgroundOpacity = backgroundOpacity ?? 1.0,
-       shadows = shadows ?? 1.0;
+       shadows = shadows ?? 1.0,
+       buttonRounding = buttonRounding ?? 12,
+       containerRounding = containerRounding ?? 24,
+       activeBorderSize = activeBorderSize ?? 2,
+       _inactiveBorderSize = inactiveBorderSize,
+       activeBorderColors =
+           activeBorderColors ?? [MyColor(0xee33ccff), MyColor(0xee00ff99)],
+       inactiveBorderColors = inactiveBorderColors ?? [MyColor(0xaa595959)],
+       activeBorderAngle = activeBorderAngle ?? 45,
+       inactiveBorderAngle = inactiveBorderAngle ?? 45;
 
   factory ThemeConfig.fromBlock(BlockData data) {
     Map<String, dynamic> fields = data.fields;
@@ -142,6 +191,14 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
       foregroundColor: fields['foregroundColor'],
       backgroundOpacity: fields['backgroundOpacity'],
       shadows: fields['shadows'],
+      buttonRounding: fields['buttonRounding'],
+      containerRounding: fields['containerRounding'],
+      activeBorderSize: fields['activeBorderSize'],
+      inactiveBorderSize: fields['inactiveBorderSize'],
+      activeBorderColors: fields['activeBorderColors'],
+      inactiveBorderColors: fields['inactiveBorderColors'],
+      activeBorderAngle: fields['activeBorderAngle'],
+      inactiveBorderAngle: fields['inactiveBorderAngle'],
     );
   }
 
@@ -163,7 +220,15 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
 	backgroundColor = $backgroundColor,
 	foregroundColor = $foregroundColor,
 	backgroundOpacity = $backgroundOpacity,
-	shadows = $shadows
+	shadows = $shadows,
+	buttonRounding = $buttonRounding,
+	containerRounding = $containerRounding,
+	activeBorderSize = $activeBorderSize,
+	_inactiveBorderSize = $_inactiveBorderSize,
+	activeBorderColors = $activeBorderColors,
+	inactiveBorderColors = $inactiveBorderColors,
+	activeBorderAngle = $activeBorderAngle,
+	inactiveBorderAngle = $inactiveBorderAngle
 )''';
   }
 
@@ -184,7 +249,15 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
         backgroundColor == other.backgroundColor &&
         foregroundColor == other.foregroundColor &&
         backgroundOpacity == other.backgroundOpacity &&
-        shadows == other.shadows;
+        shadows == other.shadows &&
+        buttonRounding == other.buttonRounding &&
+        containerRounding == other.containerRounding &&
+        activeBorderSize == other.activeBorderSize &&
+        _inactiveBorderSize == other._inactiveBorderSize &&
+        activeBorderColors == other.activeBorderColors &&
+        inactiveBorderColors == other.inactiveBorderColors &&
+        activeBorderAngle == other.activeBorderAngle &&
+        inactiveBorderAngle == other.inactiveBorderAngle;
   }
 
   @override
@@ -205,5 +278,13 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
     foregroundColor,
     backgroundOpacity,
     shadows,
+    buttonRounding,
+    containerRounding,
+    activeBorderSize,
+    _inactiveBorderSize,
+    activeBorderColors,
+    inactiveBorderColors,
+    activeBorderAngle,
+    inactiveBorderAngle,
   ]);
 }

@@ -144,8 +144,8 @@ List<T> getFeatherInstancesStatic<T extends Feather>(
   final counter = <String, int>{};
   for (final e in feathers) {
     final featherName = e.$1;
-    counter[featherName] ??= 0;
-    final i = counter[featherName];
+    final i = (counter[featherName] ?? -1) + 1;
+    counter[featherName] = i;
 
     final config = e.$2 as BlockData;
     final uniqueId = uniqueIdPrefix != null ? "$uniqueIdPrefix.$featherName[$i]" : "$featherName[$i]";

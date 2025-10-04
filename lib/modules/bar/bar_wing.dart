@@ -49,7 +49,6 @@ class BarWing extends Wing<BarConfig> {
       config: config,
       logger: logger,
       rerservedSpace: rerservedSpace,
-
     );
   }
 

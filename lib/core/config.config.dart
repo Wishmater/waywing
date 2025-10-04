@@ -11,6 +11,7 @@ mixin MainConfigI {
   int get monitor;
   String? get socket;
   bool get focusGrab;
+  bool get focusContainerOnMouseOver;
   bool get animationEnable;
   double get animationSpeed;
   double get animationDamping;
@@ -34,6 +35,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
       'monitor': MainConfigBase._monitor,
       'socket': MainConfigBase._socket,
       'focusGrab': MainConfigBase._focusGrab,
+      'focusContainerOnMouseOver': MainConfigBase._focusContainerOnMouseOver,
       'animationEnable': MainConfigBase._animationEnable,
       'animationSpeed': MainConfigBase._animationSpeed,
       'animationDamping': MainConfigBase._animationDamping,
@@ -70,6 +72,8 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   @override
   final bool focusGrab;
   @override
+  final bool focusContainerOnMouseOver;
+  @override
   final bool animationEnable;
   @override
   final double animationSpeed;
@@ -93,6 +97,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     int? monitor,
     this.socket,
     bool? focusGrab,
+    bool? focusContainerOnMouseOver,
     bool? animationEnable,
     double? animationSpeed,
     double? animationDamping,
@@ -105,6 +110,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     required this.dynamicSchemas,
   }) : monitor = monitor ?? 0,
        focusGrab = focusGrab ?? kReleaseMode,
+       focusContainerOnMouseOver = focusContainerOnMouseOver ?? true,
        animationEnable = animationEnable ?? true,
        animationSpeed = animationSpeed ?? 1,
        animationDamping = animationDamping ?? 1,
@@ -133,6 +139,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
       monitor: fields['monitor'],
       socket: fields['socket'],
       focusGrab: fields['focusGrab'],
+      focusContainerOnMouseOver: fields['focusContainerOnMouseOver'],
       animationEnable: fields['animationEnable'],
       animationSpeed: fields['animationSpeed'],
       animationDamping: fields['animationDamping'],
@@ -151,6 +158,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
 	monitor = $monitor,
 	socket = $socket,
 	focusGrab = $focusGrab,
+	focusContainerOnMouseOver = $focusContainerOnMouseOver,
 	animationEnable = $animationEnable,
 	animationSpeed = $animationSpeed,
 	animationDamping = $animationDamping,
@@ -169,6 +177,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     return monitor == other.monitor &&
         socket == other.socket &&
         focusGrab == other.focusGrab &&
+        focusContainerOnMouseOver == other.focusContainerOnMouseOver &&
         animationEnable == other.animationEnable &&
         animationSpeed == other.animationSpeed &&
         animationDamping == other.animationDamping &&
@@ -186,6 +195,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     monitor,
     socket,
     focusGrab,
+    focusContainerOnMouseOver,
     animationEnable,
     animationSpeed,
     animationDamping,

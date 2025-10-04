@@ -131,7 +131,7 @@ class _BarState extends State<Bar> {
                       context,
                       buildFeatherWidgets(
                         context: context,
-                        feathers: widget.config.endFeathers,
+                        feathers: widget.endFeathers,
                         feathersCount: feathersCount,
                         barShape: shape,
                       ),
@@ -144,7 +144,7 @@ class _BarState extends State<Bar> {
                       context,
                       buildFeatherWidgets(
                         context: context,
-                        feathers: widget.config.centerFeathers,
+                        feathers: widget.centerFeathers,
                         feathersCount: feathersCount,
                         barShape: shape,
                       ),
@@ -161,7 +161,7 @@ class _BarState extends State<Bar> {
                       context,
                       buildFeatherWidgets(
                         context: context,
-                        feathers: widget.config.startFeathers,
+                        feathers: widget.startFeathers,
                         feathersCount: feathersCount,
                         barShape: shape,
                       ),

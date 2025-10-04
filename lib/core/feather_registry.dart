@@ -62,7 +62,7 @@ class FeatherRegistry {
   Feather getFeatherInstance(
     String featherName,
     String uniqueId, [
-    BlockData configOverride = const BlockData.constEmpty(),
+    BlockData configOverrideBlock = const BlockData.constEmpty(),
   ]) {
     assert(_registeredFeathers.containsKey(featherName), "Trying to get an unknown Feather by name: $featherName");
     final registration = _registeredFeathers[featherName]!;
@@ -78,14 +78,22 @@ class FeatherRegistry {
       _instancedFeathers[uniqueId] = feather;
     }
     if (registration.configBuilder != null) {
-      final globalConfig =
-          mainConfig.dynamicSchemas.firstOrNullWhere((e) => e.$1 == feather!.name)?.$2 as BlockData? ?? BlockData.empty();
-      final combinedConfig = configOverride.merge(globalConfig);
-      // print("=========================================");
-      // print(globalConfig);
-      // print(configOverride);
-      // print(combinedConfig);
-      final newConfig = registration.configBuilder!(combinedConfig);
+      final dynamic newConfigBlock;
+      final globalConfigBlock =
+          mainConfig.dynamicSchemas.firstOrNullWhere((e) => e.$1 == feather!.name)?.$2 as BlockData?;
+      if (globalConfigBlock == null) {
+        newConfigBlock = configOverrideBlock;
+      } else {
+        newConfigBlock = configOverrideBlock.merge(globalConfigBlock);
+        // print("=========================================");
+        // print(uniqueId);
+        // print(feather);
+        // print(configOverrideBlock);
+        // print(configOverrideBlock.defaultKeys);
+        // print(globalConfigBlock);
+        // print(newConfigBlock);
+      }
+      final newConfig = registration.configBuilder!(newConfigBlock);
       if (alreadyExists) {
         final oldConfig = feather.config;
         feather.config = newConfig;

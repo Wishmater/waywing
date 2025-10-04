@@ -91,7 +91,7 @@ class ServiceRegistry {
     if (registration.configBuilder != null) {
       service.config = registration.configBuilder!(rawMainConfig["$serviceType"]);
     }
-    // ignore: invalid_use_of_protected_member
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
     await service.init();
     return service;
@@ -128,7 +128,7 @@ class ServiceRegistry {
     );
     final service = await _initializedServices.remove(serviceType)!;
     await service.dispose();
-    // ignore: invalid_use_of_protected_member
+    // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     await service.logger.destroy();
     await _onConsumerDereferenced(service);
   }

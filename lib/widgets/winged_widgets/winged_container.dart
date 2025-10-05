@@ -6,6 +6,7 @@ import "package:flutter/services.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/animation_utils.dart";
+import "package:waywing/widgets/better_padding.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
@@ -277,8 +278,8 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
         clipBehavior: Clip.none,
         fit: StackFit.passthrough,
         children: [
-          Positioned.fromRelativeRect(
-            rect: shapePaddingRect,
+          BetterPadding(
+            padding: shapePadding * -1,
             child: Material(
               shape: shape,
               elevation: 0,

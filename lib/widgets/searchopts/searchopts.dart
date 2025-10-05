@@ -159,6 +159,19 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with
     setState(() {});
   }
 
+  @override
+  void didUpdateWidget(SearchOptions<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final start = oldWidget.options.length;
+    final end = widget.options.length;
+    // This assume that the widget change is only additional entries.
+    final iterable = widget.options.getRange(start, end);
+    for (int i = start; i < end; i++) {
+      items[i] = widget.options[i];
+    }
+    nucleo.addAllAsync(iterable.map((e) => e.primaryValue).toList(), List.generate(end - start, (i) => i + start));
+  }
 
   void _initNucleo() {
     nucleo = NucleoDart(() {});
@@ -183,7 +196,10 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with
 
     _initNucleo();
 
-    items = widget.options.asMap();
+    items = {};
+    for (int i = 0; i < widget.options.length; i++) {
+      items[i] = widget.options[i];
+    }
     filtered = FilteredList<Option<T>>(items, nucleo.getSnapshot());
 
     shortcuts = <ShortcutActivator, Intent>{

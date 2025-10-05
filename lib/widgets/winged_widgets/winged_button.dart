@@ -2,6 +2,7 @@ import "dart:async";
 
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/widgets/theme/button_theme.dart";
 
 class WingedButton<T> extends StatefulWidget {
   final Widget child;
@@ -10,7 +11,7 @@ class WingedButton<T> extends StatefulWidget {
 
   final EdgeInsets? padding;
 
-  final BoxConstraints constraints;
+  final BoxConstraints? constraints;
 
   final Alignment? alignment;
 
@@ -132,7 +133,7 @@ class WingedButton<T> extends StatefulWidget {
     required this.child,
     this.builder,
     this.padding,
-    this.constraints = const BoxConstraints(minWidth: 38, minHeight: 38),
+    this.constraints,
     this.alignment = Alignment.center,
     this.onTap,
     this.initialFuture,
@@ -172,11 +173,15 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final buttonTheme = theme.buttonTheme;
+    final wingedButtonTheme = theme.wingedButtonTheme;
+    var borderRadius = widget.borderRadius;
+    borderRadius ??= BorderRadius.all(Radius.circular(mainConfig.theme.buttonRounding));
+
     return FutureBuilder(
       future: taskFuture,
       builder: (context, snapshot) {
-        var borderRadius = widget.borderRadius;
-        borderRadius ??= BorderRadius.all(Radius.circular(mainConfig.theme.buttonRounding));
         final Widget child;
         if (widget.builder == null) {
           child = widget.child;
@@ -204,8 +209,8 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
                 },
           // ignore: sort_child_properties_last
           child: Container(
-            padding: widget.padding ?? Theme.of(context).buttonTheme.padding,
-            constraints: widget.constraints,
+            padding: widget.padding ?? buttonTheme.padding,
+            constraints: widget.constraints ?? wingedButtonTheme.boxConstraints,
             alignment: widget.alignment,
             clipBehavior: widget.clipBehavior,
             decoration: BoxDecoration(

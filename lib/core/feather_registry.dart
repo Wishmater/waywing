@@ -22,6 +22,8 @@ import "package:waywing/modules/nm/nm_feather.dart";
 import "package:waywing/modules/notification/notification_wing.dart";
 import "package:waywing/modules/session/session_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_feather.dart";
+import "package:waywing/modules/util_feathers/divider.dart";
+import "package:waywing/modules/util_feathers/spacer.dart";
 import "package:waywing/modules/volume/volume_feather.dart";
 import "package:waywing/modules/workspace_switcher/workspace_switcher_feather.dart";
 import "package:waywing/util/logger.dart";
@@ -252,6 +254,8 @@ class FeatherRegistry {
     CommandPaletteWing.registerFeather(registerFeather);
     MenuWing.registerFeather(registerFeather);
     // Feathers
+    SpacerFeather.registerFeather(registerFeather);
+    DividerFeather.registerFeather(registerFeather);
     ClockFeather.registerFeather(registerFeather);
     SystemTrayFeather.registerFeather(registerFeather);
     NetworkManagerFeather.registerFeather(registerFeather);

@@ -5,6 +5,8 @@ import "package:mutex/mutex.dart" as mut;
 import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
 
+final _logger = mainLogger.clone(properties: [LogType("KeyboardFocus")]);
+
 class KeyboardFocus extends StatefulWidget {
   final Widget child;
   final KeyboardFocusMode mode;
@@ -71,7 +73,7 @@ class _KeyboardFocusProviderState extends State<KeyboardFocusProvider> {
   void initState() {
     super.initState();
     widget.keyboardService.mutex.protect(() {
-      mainLogger.trace("Setting keyboard interactivity mode: ${widget.keyboardService._currentMode}");
+      _logger.trace("Setting initial keyboard interactivity mode: ${widget.keyboardService._currentMode}");
       return FlLinuxWindowManager.instance.setKeyboardInteractivity(widget.keyboardService._currentMode);
     });
   }
@@ -177,7 +179,7 @@ class KeyboardFocusService {
       _modes[id] = mode;
       if (mode.kMode().isPriorityGreater(_currentMode)) {
         _currentId = id;
-        mainLogger.trace("Setting keyboard interactivity mode: ${mode.kMode()}");
+        _logger.trace("Setting keyboard interactivity mode: ${mode.kMode()}");
         await FlLinuxWindowManager.instance.setKeyboardInteractivity(mode.kMode());
       }
       return id;
@@ -203,12 +205,12 @@ class KeyboardFocusService {
             "all KeyboardFocusMode KeyboardMode must be greater than KeyboardMode.none",
           );
           _currentId = null;
-          mainLogger.trace("Setting keyboard interactivity mode (id==-1): ${KeyboardMode.none}");
+          _logger.trace("Setting keyboard interactivity mode fallback (id==-1): ${KeyboardMode.none}");
           await FlLinuxWindowManager.instance.setKeyboardInteractivity(KeyboardMode.none);
         } else {
           _currentId = id;
           if (prevMode.isPriorityGreater(_currentMode)) {
-            mainLogger.trace("Setting keyboard interactivity mode: $_currentMode");
+            _logger.trace("Setting keyboard interactivity mode fallback: $_currentMode");
             await FlLinuxWindowManager.instance.setKeyboardInteractivity(_currentMode);
           }
         }

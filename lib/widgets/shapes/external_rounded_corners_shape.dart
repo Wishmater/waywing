@@ -130,7 +130,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
 
   @override
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    // TODO: 2 if radius*2 > size, this missclips in a weird way. Clamp the radius somehow
+    // TODO: 1 if radius*2 > size, this missclips in a weird way. Clamp the radius somehow
     final width = rect.width;
     final height = rect.height;
     final padding = dimensions;
@@ -162,7 +162,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
 
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
-    // TODO: 2 right now, the border paints on top of the container background color. This will warp
+    // TODO: 1 right now, the border paints on top of the container background color. This will warp
     // the intended border colors if they have transparency. We probably need to implement proper getInnerPath
     // to fix this
     if (borderSide.width == 0) return;

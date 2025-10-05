@@ -8,12 +8,25 @@ part of 'notification_config.dart';
 // **************************************************************************
 
 mixin NotificationsConfigI {
+  @ConfigDocDefault<Alignment>(Alignment.topLeft)
   Alignment get alignment;
+
+  @ConfigDocDefault<double>(32)
   double get marginLeft;
+
+  @ConfigDocDefault<double>(32)
   double get marginRight;
+
+  @ConfigDocDefault<double>(32)
   double get marginTop;
+
+  @ConfigDocDefault<double>(32)
   double get marginBottom;
+
+  @ConfigDocDefault<bool>(false)
   bool get autoExpand;
+
+  @ConfigDocDefault<bool>(false)
   bool get showProgressBar;
 }
 

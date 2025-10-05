@@ -8,21 +8,26 @@ part of 'battery_config.dart';
 // **************************************************************************
 
 mixin BatteryConfigI {
+  @ConfigDocDefault<bool>(true)
   /// Enable powerprofile functionality
   ///
   /// this option only matters if powerprofiles is installed in the system
   /// otherwise profile service will be disable nonetheless
   bool get enableProfile;
 
+  @ConfigDocDefault<bool>(true)
   /// Enable automatic handling of powerprofile changing depending on the battery level
   bool get automaticProfileChanging;
 
+  @ConfigDocDefault<String>("power-saver")
   /// Profile to be set when the battery level is below the threshold
   String get saverProfile;
 
+  @ConfigDocDefault<String>("balanced")
   /// Profile to be set when the battery level is above the threshold
   String get normalProfile;
 
+  @ConfigDocDefault<double>(30)
   /// Battery level threshold
   double get batteryThreshold;
 }

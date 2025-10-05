@@ -8,6 +8,7 @@ part of 'clock_config.dart';
 // **************************************************************************
 
 mixin ClockConfigI {
+  @ConfigDocDefault<bool>(false)
   bool get militar;
 }
 

@@ -8,9 +8,15 @@ part of 'launcher_config.dart';
 // **************************************************************************
 
 mixin LauncherConfigI {
+  @ConfigDocDefault<int>(400)
   int get width;
+
+  @ConfigDocDefault<int>(400)
   int get height;
+
   int? get iconSize;
+
+  @ConfigDocDefault<bool>(true)
   bool get showScrollBar;
 }
 

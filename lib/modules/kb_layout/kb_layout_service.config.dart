@@ -8,6 +8,7 @@ part of 'kb_layout_service.dart';
 // **************************************************************************
 
 mixin KbLayoutServiceConfigI {
+  @ConfigDocDefault<int>(500)
   /// pull interval in milliseconds
   int get pullInterval;
 }

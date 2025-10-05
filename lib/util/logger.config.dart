@@ -8,8 +8,12 @@ part of 'logger.dart';
 // **************************************************************************
 
 mixin LoggingConfigI {
+  @ConfigDocDefault<Level>((kDebugMode ? Level.trace : Level.info))
   Level get levelFilter;
+
+  @ConfigDocDefault<Map<String, Level>>(<String, Level>{})
   Map<String, Level> get typeLevelFilters;
+
   String? get output;
 }
 

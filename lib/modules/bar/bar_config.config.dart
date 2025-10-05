@@ -8,18 +8,36 @@ part of 'bar_config.dart';
 // **************************************************************************
 
 mixin BarConfigI {
+  @ConfigDocDefault<ScreenEdge>(ScreenEdge.bottom)
   ScreenEdge get side;
+
+  @ConfigDocDefault<int>(30)
   int get size;
+
+  @ConfigDocDefault<double>(0)
   double get marginLeft;
+
+  @ConfigDocDefault<double>(0)
   double get marginRight;
+
+  @ConfigDocDefault<double>(0)
   double get marginTop;
+
+  @ConfigDocDefault<double>(0)
   double get marginBottom;
+
   double? get _exclusiveSizeLeft;
+
   double? get _exclusiveSizeRight;
+
   double? get _exclusiveSizeTop;
+
   double? get _exclusiveSizeBottom;
+
   double? get _rounding;
+
   double? get _indicatorMinSize;
+
   double? get _indicatorPadding;
   List<(String, Object)> get dynamicSchemas;
 }

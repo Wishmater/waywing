@@ -2,8 +2,7 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   exclude:
-    - '**/*.g.dart'
-    - '**/*.config.dart'
+    - "**/*.g.dart"
 
 linter:
   rules:

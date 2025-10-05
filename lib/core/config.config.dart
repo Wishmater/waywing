@@ -8,16 +8,36 @@ part of 'config.dart';
 // **************************************************************************
 
 mixin MainConfigI {
+  @ConfigDocDefault<int>(0)
   int get monitor;
+
   String? get socket;
+
+  @ConfigDocDefault<bool>(kReleaseMode)
   bool get focusGrab;
+
+  @ConfigDocDefault<bool>(true)
   bool get focusContainerOnMouseOver;
+
+  @ConfigDocDefault<bool>(true)
   bool get animationEnable;
+
+  @ConfigDocDefault<double>(1)
   double get animationSpeed;
+
+  @ConfigDocDefault<double>(1)
   double get animationDamping;
+
+  @ConfigDocDefault<AnimationFitting>(AnimationFitting.clip)
   AnimationFitting get animationFitting;
+
+  @ConfigDocDefault<AnimationSwitching>(AnimationSwitching.fadeThrough)
   AnimationSwitching get animationSwitching;
+
+  @ConfigDocDefault<bool>(false)
   bool get requestKeyboardFocus;
+
+  @ConfigDocDefault<bool>(false)
   bool get internalUsePainter;
   LoggingConfig get logging;
   ThemeConfig get theme;

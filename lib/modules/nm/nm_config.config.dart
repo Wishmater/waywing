@@ -8,10 +8,19 @@ part of 'nm_config.dart';
 // **************************************************************************
 
 mixin NetworkManagerConfigI {
+  @ConfigDocDefault<bool>(false)
   bool get showConnectionNameIndicator;
+
+  @ConfigDocDefault<bool>(false)
   bool get showUploadIndicator;
+
+  @ConfigDocDefault<bool>(false)
   bool get showDownloadIndicator;
+
+  @ConfigDocDefault<bool>(true)
   bool get showThroughputIndicator;
+
+  @ConfigDocDefault<List<String>>(<String>[])
   List<String> get deviceTypeFilter;
 }
 

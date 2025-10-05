@@ -8,6 +8,7 @@ import "package:flutter/services.dart";
 import "package:motor/motor.dart";
 // import "package:waywing/core/config.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
+import "../filtered_list.dart";
 import "../searchopts.dart";
 
 const animationDuration = Duration(milliseconds: 250);
@@ -16,7 +17,7 @@ class StackOptionsListWidget<T extends Object> extends StatefulWidget {
   final List<Option<T>> options;
   final RenderOption<T> renderOption;
   final double itemHeight;
-  final List<Option<T>> filtered;
+  final FilteredList<Option<T>> filtered;
   final Widget? prototypeItem;
   final ValueNotifier<int> highlighted;
   final double availableHeight;

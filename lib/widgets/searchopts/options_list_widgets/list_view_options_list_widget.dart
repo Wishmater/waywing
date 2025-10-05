@@ -2,13 +2,14 @@ import "dart:math";
 
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
+import "../filtered_list.dart";
 import "../searchopts.dart";
 
 class ListViewOptionsListWidget<T extends Object> extends StatefulWidget {
 
   final List<Option<T>> options;
   final RenderOption<T> renderOption;
-  final List<Option<T>> filtered;
+  final FilteredList<Option<T>> filtered;
   final Widget? prototypeItem;
   final ValueNotifier<int> highlighted;
 

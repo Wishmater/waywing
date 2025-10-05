@@ -65,6 +65,8 @@ dependencies:
   lucide_icons_flutter: ^3.1.0 # Lucide Icons, for some spice (mostly unused)
 
   # Native plugins
+  nucleo_dart:
+    path: ../../my/nucleo.dart/
   path: ^1.9.1
   # directory/file watcher library
   watcher: ^1.1.2

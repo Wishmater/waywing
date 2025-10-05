@@ -4,7 +4,9 @@ import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
 import "package:fuzzy_string/fuzzy_string.dart";
+import "package:nucleo_dart/nucleo_dart.dart";
 import "package:waywing/core/config.dart";
+import "filtered_list.dart";
 import "./options_list_widgets/stack_option_list_widget.dart";
 
 /// An [Intent] to highlight the previous option in the autocomplete list.
@@ -121,8 +123,11 @@ class SearchOptions<T extends Object> extends StatefulWidget {
   State<SearchOptions<T>> createState() => _SearchOptionsState<T>();
 }
 
-class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
-  late List<Option<T>> filtered;
+class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with SingleTickerProviderStateMixin {
+  late NucleoDart nucleo;
+
+  late Map<int, Option<T>> items;
+  late FilteredList<Option<T>> filtered;
   ValueNotifier<int> highlighted = ValueNotifier(0);
 
   late final Map<Type, Action<Intent>> actionMap;
@@ -146,11 +151,28 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
     return state as OptionsListRenderer;
   }
 
+  void _updateFilters() {
+    filtered = FilteredList<Option<T>>(items, nucleo.getSnapshot());
+    updateHighlight(highlighted.value, ScrollDirection.forward);
+    setState(() {});
+  }
+
+  void _initNucleo() {
+    nucleo = NucleoDart(_updateFilters);
+    // TODO maybe we can use the secondaryValue using the multicolumn feature of nucleo
+    nucleo.addAll(widget.options.map((e) => e.primaryValue));
+    nucleo.reparse("");
+    createTicker((_) => nucleo.tick());
+  }
+
   @override
   void initState() {
     super.initState();
 
-    filtered = widget.options;
+    _initNucleo();
+
+    items = widget.options.asMap();
+    filtered = FilteredList<Option<T>>(items, nucleo.getSnapshot());
 
     shortcuts = <ShortcutActivator, Intent>{
       widget.previousOptionActivator: const SearchPreviousOptionIntent(),
@@ -213,31 +235,32 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
     widget.onSelected(filtered[highlighted.value].object);
   }
 
-  static double _getSimilarityScore<T extends Object>(Option<T> obj, String v, FuzzyStringMatcher matcher) {
-    final primaryScore = obj.primaryValue.similarityScoreTo(v, ignoreCase: true, matcher: matcher);
-    final secondaryScore = obj.secondaryValue?.similarityScoreTo(v, ignoreCase: true, matcher: matcher) ?? 0;
-    return max(primaryScore, secondaryScore * 0.75);
-  }
+  // static double _getSimilarityScore<T extends Object>(Option<T> obj, String v, FuzzyStringMatcher matcher) {
+  //   final primaryScore = obj.primaryValue.similarityScoreTo(v, ignoreCase: true, matcher: matcher);
+  //   final secondaryScore = obj.secondaryValue?.similarityScoreTo(v, ignoreCase: true, matcher: matcher) ?? 0;
+  //   return max(primaryScore, secondaryScore * 0.75);
+  // }
 
-  static List<(Option<T>, double)> _computeScores<T extends Object>(
-    ({String v, List<Option<T>> options, FuzzyStringMatcher matcher}) params,
-  ) {
-    final scores = params.options
-        .map((e) => (e, _getSimilarityScore(e, params.v, params.matcher)))
-        .where((e) => e.$2 > 0.5)
-        .toList();
-    scores.sort((a, b) => b.$2.compareTo(a.$2));
-    return scores;
-  }
+  // static List<(Option<T>, double)> _computeScores<T extends Object>(
+  //   ({String v, List<Option<T>> options, FuzzyStringMatcher matcher}) params,
+  // ) {
+  //   final scores = params.options
+  //       .map((e) => (e, _getSimilarityScore(e, params.v, params.matcher)))
+  //       .where((e) => e.$2 > 0.5)
+  //       .toList();
+  //   scores.sort((a, b) => b.$2.compareTo(a.$2));
+  //   return scores;
+  // }
 
   void updateFilter(String v) {
-    if (v.isEmpty) {
-      setState(() => filtered = widget.options);
-      return;
-    }
-    final scores = _computeScores((v: v, options: widget.options, matcher: widget.matcher));
-    setState(() => filtered = scores.map((e) => e.$1).toList());
-    updateHighlight(highlighted.value, ScrollDirection.forward);
+    nucleo.reparse(v);
+    // if (v.isEmpty) {
+    //   setState(() => filtered = widget.options);
+    //   return;
+    // }
+    // final scores = _computeScores((v: v, options: widget.options, matcher: widget.matcher));
+    // setState(() => filtered = scores.map((e) => e.$1).toList());
+    // updateHighlight(highlighted.value, ScrollDirection.forward);
   }
 
   @override

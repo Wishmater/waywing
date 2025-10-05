@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'divider.dart';
 
@@ -8,8 +9,13 @@ part of 'divider.dart';
 // **************************************************************************
 
 mixin DividerConfigI {
+  @ConfigDocDefault<double>(12)
   double get size;
+
+  @ConfigDocDefault<double>(2)
   double get thickness;
+
+  @ConfigDocDefault<double>(6)
   double get indent;
 }
 

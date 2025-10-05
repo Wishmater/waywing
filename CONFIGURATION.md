@@ -136,6 +136,22 @@ This document lists all configuration classes marked with `@Config()`.
 |autoExpand||bool|false|
 |showProgressBar||bool|false|
 
+## SpacerConfig
+
+
+|name|description|type|default|
+|--|--|--|--|
+|size||double|12|
+
+## DividerConfig
+
+
+|name|description|type|default|
+|--|--|--|--|
+|size||double|12|
+|thickness||double|2|
+|indent||double|6|
+
 ## NetworkManagerConfig
 
 
@@ -159,7 +175,7 @@ This document lists all configuration classes marked with `@Config()`.
 
 |name|description|type|default|
 |--|--|--|--|
-|enableProfile| Enable powerprofile functionality&#10&#10 this option only matters if powerprofiles is installed in the system&#10 otherwise profile service will be disable nonetheless|bool|true|
+|enableProfile| Enable powerprofile functionality&#10;&#10; this option only matters if powerprofiles is installed in the system&#10; otherwise profile service will be disable nonetheless|bool|true|
 |automaticProfileChanging| Enable automatic handling of powerprofile changing depending on the battery level|bool|true|
 |saverProfile| Profile to be set when the battery level is below the threshold|String|"power-saver"|
 |normalProfile| Profile to be set when the battery level is above the threshold|String|"balanced"|

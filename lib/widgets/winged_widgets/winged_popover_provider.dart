@@ -643,192 +643,198 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       targetChildContainerPositioning,
     );
 
-    return ValueListenableBuilder(
-      valueListenable: widget.host.positioningNotifier,
-      child: container,
-      builder: (context, hostPositioning, container) {
-        return ValueListenableBuilder(
-          valueListenable: childPositioningController.sizeNotifier,
-          child: container,
-          builder: (context, childSize, container) {
-            if (hostPositioning == null) {
-              mainLogger.log(Level.error, "Popover client built before host. This should never happen");
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                setState(() {});
-              });
-              return SizedBox.shrink();
-            }
-            final hostPosition = hostPositioning.offset;
-            final hostSize = hostPositioning.size;
-            // print("-----------------------------------");
-            // print("hostSize: $hostSize");
-            // print("hostPosition: $hostPosition");
-            Offset childPosition;
-            if (widget.isRemoved) {
-              childSize = hostSize;
-              childPosition = hostPosition;
-              if (popoverParams.closedContainerBuilder != null) {
-                container = popoverParams.closedContainerBuilder!(
-                  context,
-                  content,
-                  widget.host,
-                  childPositioningController,
-                  targetChildContainerPositioning,
-                );
+    return NotificationListener<CloseRequestNotification>(
+      onNotification: (_) {
+        provider.hideHost(widget.host);
+        return true;
+      },
+      child: ValueListenableBuilder(
+        valueListenable: widget.host.positioningNotifier,
+        child: container,
+        builder: (context, hostPositioning, container) {
+          return ValueListenableBuilder(
+            valueListenable: childPositioningController.sizeNotifier,
+            child: container,
+            builder: (context, childSize, container) {
+              if (hostPositioning == null) {
+                mainLogger.log(Level.error, "Popover client built before host. This should never happen");
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  setState(() {});
+                });
+                return SizedBox.shrink();
               }
-            } else if (childSize == null) {
-              // assuming this happens the first time the widget builds
-              // fall back to setting the size/position of the host,
-              // which should have the added effect of animating entry
-              childSize = hostSize;
-              childPosition = hostPosition;
-              if (popoverParams.closedContainerBuilder != null) {
-                container = popoverParams.closedContainerBuilder!(
-                  context,
-                  content,
-                  widget.host,
-                  childPositioningController,
-                  targetChildContainerPositioning,
+              final hostPosition = hostPositioning.offset;
+              final hostSize = hostPositioning.size;
+              // print("-----------------------------------");
+              // print("hostSize: $hostSize");
+              // print("hostPosition: $hostPosition");
+              Offset childPosition;
+              if (widget.isRemoved) {
+                childSize = hostSize;
+                childPosition = hostPosition;
+                if (popoverParams.closedContainerBuilder != null) {
+                  container = popoverParams.closedContainerBuilder!(
+                    context,
+                    content,
+                    widget.host,
+                    childPositioningController,
+                    targetChildContainerPositioning,
+                  );
+                }
+              } else if (childSize == null) {
+                // assuming this happens the first time the widget builds
+                // fall back to setting the size/position of the host,
+                // which should have the added effect of animating entry
+                childSize = hostSize;
+                childPosition = hostPosition;
+                if (popoverParams.closedContainerBuilder != null) {
+                  container = popoverParams.closedContainerBuilder!(
+                    context,
+                    content,
+                    widget.host,
+                    childPositioningController,
+                    targetChildContainerPositioning,
+                  );
+                }
+              } else {
+                childSize += Offset(popoverParams.extraPadding.horizontal, popoverParams.extraPadding.vertical);
+                childPosition = getPopoverPosition(
+                  anchorAlignment: popoverParams.anchorAlignment,
+                  popupAlignment: popoverParams.popupAlignment,
+                  hostPosition: hostPosition,
+                  hostSize: hostSize,
+                  childSize: childSize,
+                  screenSize: screenSize,
+                  padding: popoverParams.screenPadding,
+                  extraOffset: popoverParams.extraOffset,
                 );
+                passedMeaningfulPaint = true;
               }
-            } else {
-              childSize += Offset(popoverParams.extraPadding.horizontal, popoverParams.extraPadding.vertical);
-              childPosition = getPopoverPosition(
-                anchorAlignment: popoverParams.anchorAlignment,
-                popupAlignment: popoverParams.popupAlignment,
-                hostPosition: hostPosition,
-                hostSize: hostSize,
-                childSize: childSize,
-                screenSize: screenSize,
-                padding: popoverParams.screenPadding,
-                extraOffset: popoverParams.extraOffset,
+              final motion = this.motion;
+              container = MotionPadding(
+                motion: motion,
+                padding: passedMeaningfulPaint ? popoverParams.extraPadding : EdgeInsets.zero,
+                child: container,
               );
-              passedMeaningfulPaint = true;
-            }
-            final motion = this.motion;
-            container = MotionPadding(
-              motion: motion,
-              padding: passedMeaningfulPaint ? popoverParams.extraPadding : EdgeInsets.zero,
-              child: container,
-            );
-            if (widget.isTooltip) {
-              // TODO: 2 this InputRegion is necessary only when extraPadding is declared (like on bar tooltip)
-              // this solution is not ideal because it may conflict with the better declared InputRegion on the
-              // Popover container, which might include detailed border radius, etc.
-              container = InputRegion(
-                child: MouseRegion(
-                  onEnter: (_) => provider.onMouseEnterClient(this),
-                  onExit: (_) => provider.onMouseExitClient(this),
-                  child: container,
+              if (widget.isTooltip) {
+                // TODO: 2 this InputRegion is necessary only when extraPadding is declared (like on bar tooltip)
+                // this solution is not ideal because it may conflict with the better declared InputRegion on the
+                // Popover container, which might include detailed border radius, etc.
+                container = InputRegion(
+                  child: MouseRegion(
+                    onEnter: (_) => provider.onMouseEnterClient(this),
+                    onExit: (_) => provider.onMouseExitClient(this),
+                    child: container,
+                  ),
+                );
+              }
+
+              Widget result = CallbackShortcuts(
+                bindings: {
+                  SingleActivator(LogicalKeyboardKey.escape): onEscapePressed,
+                },
+                child: container,
+              );
+              // print("childSize: $childSize");
+              // print("childPosition: $childPosition");
+              double? minLeft, maxLeft, minTop, maxTop, minRight, maxRight, minBottom, maxBottom;
+              if (popoverParams.stickToHost) {
+                if (popoverParams.popupAlignment.x < 0) {
+                  minRight = hostPosition.dx;
+                } else if (popoverParams.popupAlignment.x > 0) {
+                  maxLeft = hostPosition.dx + hostSize.width;
+                }
+                if (popoverParams.popupAlignment.y < 0) {
+                  minBottom = hostPosition.dy;
+                } else if (popoverParams.popupAlignment.y > 0) {
+                  maxTop = hostPosition.dy + hostSize.height;
+                }
+              }
+              targetChildContainerPositioning.value = Positioning(childPosition, childSize);
+              result = PositioningNotifierMonitor(
+                controller: childContainerPositioningController,
+                child: MotionPositioned(
+                  // TODO: 2 ANIMATIONS ideally, we separate animation for the container and the content,
+                  // so that the content doesn't "bounce around" like the container does.
+                  // This seems hard to do, because the motion controller doesn't expose when the animation
+                  // reached the target and is now "bouncing".
+                  // An alternative is to add container and content as separate MotionPositioned widgets,
+                  // but this is ugly and has risk of causing other bugs like desync and clipping issues.
+                  motion: motion,
+                  active: intrinsincAnimationsEnabled,
+                  left: childPosition.dx,
+                  top: childPosition.dy,
+                  width: childSize.width,
+                  height: childSize.height,
+                  minLeft: minLeft,
+                  maxLeft: maxLeft,
+                  minTop: minTop,
+                  maxTop: maxTop,
+                  minRight: minRight,
+                  maxRight: maxRight,
+                  minBottom: minBottom,
+                  maxBottom: maxBottom,
+                  onAnimationStatusChanged: (status) {
+                    if (!status.isAnimating) {
+                      if (widget.isRemoved) {
+                        provider._removeHost(widget.host);
+                      } else if (intrinsincAnimationsEnabled && !popoverParams.enableIntrinsicSizeAnimation) {
+                        setState(() {
+                          intrinsincAnimationsEnabled = false;
+                        });
+                      }
+                    }
+                  },
+                  child: result,
                 ),
               );
-            }
 
-            Widget result = CallbackShortcuts(
-              bindings: {
-                SingleActivator(LogicalKeyboardKey.escape): onEscapePressed,
-              },
-              child: container,
-            );
-            // print("childSize: $childSize");
-            // print("childPosition: $childPosition");
-            double? minLeft, maxLeft, minTop, maxTop, minRight, maxRight, minBottom, maxBottom;
-            if (popoverParams.stickToHost) {
-              if (popoverParams.popupAlignment.x < 0) {
-                minRight = hostPosition.dx;
-              } else if (popoverParams.popupAlignment.x > 0) {
-                maxLeft = hostPosition.dx + hostSize.width;
-              }
-              if (popoverParams.popupAlignment.y < 0) {
-                minBottom = hostPosition.dy;
-              } else if (popoverParams.popupAlignment.y > 0) {
-                maxTop = hostPosition.dy + hostSize.height;
-              }
-            }
-            targetChildContainerPositioning.value = Positioning(childPosition, childSize);
-            result = PositioningNotifierMonitor(
-              controller: childContainerPositioningController,
-              child: MotionPositioned(
-                // TODO: 2 ANIMATIONS ideally, we separate animation for the container and the content,
-                // so that the content doesn't "bounce around" like the container does.
-                // This seems hard to do, because the motion controller doesn't expose when the animation
-                // reached the target and is now "bouncing".
-                // An alternative is to add container and content as separate MotionPositioned widgets,
-                // but this is ugly and has risk of causing other bugs like desync and clipping issues.
-                motion: motion,
-                active: intrinsincAnimationsEnabled,
-                left: childPosition.dx,
-                top: childPosition.dy,
-                width: childSize.width,
-                height: childSize.height,
-                minLeft: minLeft,
-                maxLeft: maxLeft,
-                minTop: minTop,
-                maxTop: maxTop,
-                minRight: minRight,
-                maxRight: maxRight,
-                minBottom: minBottom,
-                maxBottom: maxBottom,
-                onAnimationStatusChanged: (status) {
-                  if (!status.isAnimating) {
-                    if (widget.isRemoved) {
-                      provider._removeHost(widget.host);
-                    } else if (intrinsincAnimationsEnabled && !popoverParams.enableIntrinsicSizeAnimation) {
-                      setState(() {
-                        intrinsincAnimationsEnabled = false;
-                      });
-                    }
-                  }
-                },
-                child: result,
-              ),
-            );
-
-            // add extra client clippers
-            if (widget.host.widget.extraClientClippers.isNotEmpty) {
-              result = Stack(
-                fit: StackFit.expand,
-                clipBehavior: Clip.none,
-                children: [result],
-              );
-              // TODO: 3 maybe refactor this to instead just be a clientClippersBuilder,
-              // pass in everything needed and let the caller build the clipper with more freedom.
-              // Maybe provide a default implementation so the caller doesn't need to do same 20
-              // lines of code every time.
-              for (final e in widget.host.widget.extraClientClippers) {
-                result = ValueListenableBuilder(
-                  valueListenable: e.$2,
-                  child: result,
-                  builder: (context, positioning, child) {
-                    Rect? rect;
-                    if (positioning != null) {
-                      final offset = positioning.offset;
-                      final size = positioning.size;
-                      final shapePadding = e.$1.dimensions.resolve(TextDirection.ltr);
-                      rect = Rect.fromLTWH(
-                        offset.dx - shapePadding.left,
-                        offset.dy - shapePadding.top,
-                        size.width + shapePadding.horizontal,
-                        size.height + shapePadding.vertical,
-                      );
-                    }
-                    // TODO: 2 PERFOMANCE if background opacity is 1 then there is no need to use clip,
-                    // probably handle this in the host (Bar, ContextMenu, etc.) and just dont pass any
-                    // extraClientClippers if ressolved backgroundOpacity==1
-                    return ClipPath(
-                      clipper: ShapeClipper(shape: e.$1, rectOverride: rect),
-                      child: child,
-                    );
-                  },
+              // add extra client clippers
+              if (widget.host.widget.extraClientClippers.isNotEmpty) {
+                result = Stack(
+                  fit: StackFit.expand,
+                  clipBehavior: Clip.none,
+                  children: [result],
                 );
+                // TODO: 3 maybe refactor this to instead just be a clientClippersBuilder,
+                // pass in everything needed and let the caller build the clipper with more freedom.
+                // Maybe provide a default implementation so the caller doesn't need to do same 20
+                // lines of code every time.
+                for (final e in widget.host.widget.extraClientClippers) {
+                  result = ValueListenableBuilder(
+                    valueListenable: e.$2,
+                    child: result,
+                    builder: (context, positioning, child) {
+                      Rect? rect;
+                      if (positioning != null) {
+                        final offset = positioning.offset;
+                        final size = positioning.size;
+                        final shapePadding = e.$1.dimensions.resolve(TextDirection.ltr);
+                        rect = Rect.fromLTWH(
+                          offset.dx - shapePadding.left,
+                          offset.dy - shapePadding.top,
+                          size.width + shapePadding.horizontal,
+                          size.height + shapePadding.vertical,
+                        );
+                      }
+                      // TODO: 2 PERFOMANCE if background opacity is 1 then there is no need to use clip,
+                      // probably handle this in the host (Bar, ContextMenu, etc.) and just dont pass any
+                      // extraClientClippers if ressolved backgroundOpacity==1
+                      return ClipPath(
+                        clipper: ShapeClipper(shape: e.$1, rectOverride: rect),
+                        child: child,
+                      );
+                    },
+                  );
+                }
+                result = Positioned.fill(child: result);
               }
-              result = Positioned.fill(child: result);
-            }
 
-            return result;
-          },
-        );
-      },
+              return result;
+            },
+          );
+        },
+      ),
     );
   }
 }
@@ -854,3 +860,5 @@ class _OutgoingChild {
     required this.widget,
   });
 }
+
+class CloseRequestNotification extends Notification {}

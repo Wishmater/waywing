@@ -67,8 +67,8 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     },
   );
 
-  static BlockSchema get schema => BlockSchema(
-    blocks: {
+  static BlockSchema get schema => LazySchema(
+    blocksGetter: () => {
       ...staticSchema.blocks,
       ...MainConfigBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
@@ -77,7 +77,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     fields: staticSchema.fields,
     validator: staticSchema.validator,
     ignoreNotInSchema: staticSchema.ignoreNotInSchema,
-    canBeMissingSchemas: <String>{
+    canBeMissingSchemasGetter: () => <String>{
       ...staticSchema.canBeMissingSchemas,
       ...MainConfigBase._getDynamicSchemaTables().keys,
     },
@@ -238,8 +238,8 @@ class FeathersContainer extends ConfigBaseI
     with FeathersContainerI, FeathersContainerBase {
   static const BlockSchema staticSchema = BlockSchema(fields: {});
 
-  static BlockSchema get schema => BlockSchema(
-    blocks: {
+  static BlockSchema get schema => LazySchema(
+    blocksGetter: () => {
       ...staticSchema.blocks,
       ...FeathersContainerBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
@@ -248,7 +248,7 @@ class FeathersContainer extends ConfigBaseI
     fields: staticSchema.fields,
     validator: staticSchema.validator,
     ignoreNotInSchema: staticSchema.ignoreNotInSchema,
-    canBeMissingSchemas: <String>{
+    canBeMissingSchemasGetter: () => <String>{
       ...staticSchema.canBeMissingSchemas,
       ...FeathersContainerBase._getDynamicSchemaTables().keys,
     },

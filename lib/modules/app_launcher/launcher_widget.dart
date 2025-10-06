@@ -44,14 +44,18 @@ class _LauncherWidgetState extends State<LauncherWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SearchOptions(
-      options: Option.from(widget.applications, ApplicationOption.from),
-      renderOption: _renderOption,
-      onSelected: _run,
-      showScrollBar: widget.config.showScrollBar,
-      height: widget.config.height.toDouble(),
-      width: widget.config.width.toDouble(),
-      focusNode: focusNode,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SearchOptions(
+          options: Option.from(widget.applications, ApplicationOption.from),
+          renderOption: _renderOption,
+          onSelected: _run,
+          showScrollBar: widget.config.showScrollBar,
+          height: constraints.maxHeight.toDouble(),
+          width: constraints.maxWidth.toDouble(),
+          focusNode: focusNode,
+        );
+      },
     );
   }
 

@@ -1,5 +1,6 @@
 import "dart:math";
 
+import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
@@ -271,66 +272,69 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
       shortcuts: shortcuts,
       child: Actions(
         actions: actionMap,
-        child: Column(
-          children: [
-            SizedBox(
-              height: textFieldHeight,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: borderRadiusTop,
-                ),
-                child: Material(
-                  borderRadius: borderRadiusTop,
-                  child: TextFormField(
-                    autofocus: true,
-                    focusNode: widget.focusNode,
-                    decoration: const InputDecoration(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 32,
-                        // ugly hack, but flutter TextFormField widget is dogshit
-                        // and doesn't allow me to set a fixed height, so it is what it is
-                        vertical: (textFieldHeight - 16) / 2,
-                      ),
-                    ),
-                    onChanged: updateFilter,
+        // TODO: 2 migrate this to use WingedContainer
+        child: InputRegion(
+          child: Column(
+            children: [
+              SizedBox(
+                height: textFieldHeight,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: borderRadiusTop,
                   ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: ExcludeFocusTraversal(
-                child: Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: borderRadiusBottom,
-                    ),
-                    child: Material(
-                      borderRadius: borderRadiusBottom,
-                      child: ShaderMask(
-                        blendMode: BlendMode.dstOut,
-                        shaderCallback: (_) {
-                          // don't use provided bounds that change with inner size, instead use fixed constraints from the LayoutBuilder
-                          final shaderRect = Rect.fromLTRB(
-                            0,
-                            lastItemPos,
-                            width,
-                            contentHeight,
-                          );
-                          return const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Colors.black],
-                          ).createShader(shaderRect);
-                        },
-                        child: optionsView,
+                  child: Material(
+                    borderRadius: borderRadiusTop,
+                    child: TextFormField(
+                      autofocus: true,
+                      focusNode: widget.focusNode,
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 32,
+                          // ugly hack, but flutter TextFormField widget is dogshit
+                          // and doesn't allow me to set a fixed height, so it is what it is
+                          vertical: (textFieldHeight - 16) / 2,
+                        ),
                       ),
+                      onChanged: updateFilter,
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+              Expanded(
+                child: ExcludeFocusTraversal(
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: borderRadiusBottom,
+                      ),
+                      child: Material(
+                        borderRadius: borderRadiusBottom,
+                        child: ShaderMask(
+                          blendMode: BlendMode.dstOut,
+                          shaderCallback: (_) {
+                            // don't use provided bounds that change with inner size, instead use fixed constraints from the LayoutBuilder
+                            final shaderRect = Rect.fromLTRB(
+                              0,
+                              lastItemPos,
+                              width,
+                              contentHeight,
+                            );
+                            return const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Colors.black],
+                            ).createShader(shaderRect);
+                          },
+                          child: optionsView,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -35,9 +35,9 @@ class ClockFeather extends Feather<ClockConfig> {
   }
 
   @override
-  late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([clockComponent]);
+  late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([component]);
 
-  late final clockComponent = FeatherComponent(
+  late final component = FeatherComponent(
     buildIndicators: (context, popover) {
       return [
         ClockIndicator(config: config, service: service, popover: popover!),

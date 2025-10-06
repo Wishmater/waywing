@@ -92,15 +92,17 @@ mixin BarConfigBase on BarConfigI {
     "End": (schema: BarFeathersContainer.schema, from: BarFeathersContainer.fromBlock),
   };
 
-  BarFeathersContainer? get start => dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Start")?.$2 as BarFeathersContainer?;
-  BarFeathersContainer? get center => dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Center")?.$2 as BarFeathersContainer?;
+  BarFeathersContainer? get start =>
+      dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Start")?.$2 as BarFeathersContainer?;
+  BarFeathersContainer? get center =>
+      dynamicSchemas.firstOrNullWhere((e) => e.$1 == "Center")?.$2 as BarFeathersContainer?;
   BarFeathersContainer? get end => dynamicSchemas.firstOrNullWhere((e) => e.$1 == "End")?.$2 as BarFeathersContainer?;
 }
 
 @Config()
 mixin BarFeathersContainerBase on BarFeathersContainerI {
   static Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> _getDynamicSchemaTables() =>
-      featherRegistry.getDynamicFeathersSchemas(omit: const ["Bar"]);
+      featherRegistry.getDynamicFeathersSchemas();
 
   List<(String, Object)> get rawFeathers => dynamicSchemas;
 

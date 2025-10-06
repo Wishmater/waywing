@@ -5,17 +5,8 @@ part "launcher_config.config.dart";
 
 @Config()
 mixin LauncherConfigBase {
-  static const _width = IntegerNumberField(defaultTo: 400, validator: _heightWidth);
-  static const _height = IntegerNumberField(defaultTo: 400, validator: _heightWidth);
   static const _iconSize = IntegerNumberField(nullable: true, validator: _mustBePositive);
   static const _showScrollBar = BooleanField(defaultTo: true);
-
-  static ValidatorResult<int> _heightWidth(int value) {
-    if (value < 200) {
-      return ValidatorError(_RangeValidationError<int>(start: 200, end: -1 >>> 1, actual: value));
-    }
-    return ValidatorSuccess();
-  }
 
   static ValidatorResult<int> _mustBePositive(int value) {
     if (value < 0) {

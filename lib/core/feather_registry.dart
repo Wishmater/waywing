@@ -9,11 +9,12 @@ import "package:waywing/core/feather.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/wing.dart";
-import "package:waywing/modules/app_launcher/launcher_wing.dart";
+import "package:waywing/modules/app_launcher/launcher_feather.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
 import "package:waywing/modules/command_palette/command_palette_wing.dart";
+import "package:waywing/modules/container_wings/modal.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_feather.dart";
 import "package:waywing/modules/kb_layout/num_lock_feather.dart";
@@ -139,14 +140,11 @@ class FeatherRegistry {
   }
 
   Map<String, ({BlockSchema schema, dynamic Function(BlockData) from})> getDynamicFeathersSchemas({
-    Iterable<String> omit = const [],
     bool parseConfigs = false,
   }) {
     final response = <String, ({BlockSchema schema, dynamic Function(BlockData) from})>{};
 
     for (final entry in _registeredFeathers.entries) {
-      if (omit.contains(entry.key)) continue;
-
       if (entry.value.schemaBuilder != null) {
         final from = parseConfigs ? entry.value.configBuilder! : (e) => e;
         response[entry.key] = (schema: entry.value.schemaBuilder!(), from: from);
@@ -203,10 +201,10 @@ class FeatherRegistry {
     feather.logger = mainLogger.clone(properties: [LogType(feather.uniqueId)]);
     // add feather routes actions
     if (feather.actions case final actions?) {
+      // TODO: 1 router declarations don't react to config reload
       for (final entry in actions.entries) {
-        // TODO: 1 how does the new multi-feather changes affect WaywingServer ???
         WaywingServer.instance.router.register(
-          join(feather.prettyUniqueId, entry.key),
+          join(feather.actionsPath, entry.key),
           entry.value,
         );
       }
@@ -248,9 +246,9 @@ class FeatherRegistry {
 
   void _registerDefaultFeathers() {
     // Wings
+    ModalWing.registerFeather(registerFeather);
     BarWing.registerFeather(registerFeather);
     NotificationsWing.registerFeather(registerFeather);
-    AppLauncherWing.registerFeather(registerFeather);
     CommandPaletteWing.registerFeather(registerFeather);
     MenuWing.registerFeather(registerFeather);
     // Feathers
@@ -266,6 +264,7 @@ class FeatherRegistry {
     CapsLockFeather.registerFeather(registerFeather);
     NumLockFeather.registerFeather(registerFeather);
     WorkspaceSwitcherFeather.registerFeather(registerFeather);
+    AppLauncherFeather.registerFeather(registerFeather);
   }
 }
 

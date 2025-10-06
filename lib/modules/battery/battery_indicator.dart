@@ -1,5 +1,6 @@
 import "dart:math";
 
+import "package:flex_seed_scheme/flex_seed_scheme.dart";
 import "package:flutter/material.dart";
 import "package:upower/upower.dart";
 import "package:waywing/modules/battery/battery_service.dart";
@@ -94,7 +95,7 @@ class _BatteryIndicator extends StatelessWidget {
         batteryLevel: batteryLevel,
         fillColor: fillColor,
         outlineColor: outlineColor,
-        textStyle: theme.textTheme.bodyMedium!,
+        textStyle: theme.textTheme.bodyMedium!.copyWith(color: _getTextColor(fillColor)),
       ),
     );
   }
@@ -155,7 +156,7 @@ class _BatteryPainter extends CustomPainter {
 
     final TextSpan span = TextSpan(
       text: "${batteryLevel.floor()}",
-      style: textStyle.copyWith(fontSize: min(textStyle.fontSize ?? double.infinity, size.height * 0.75), height: -1),
+      style: textStyle.copyWith(fontSize: min(textStyle.fontSize ?? double.infinity, size.height * 0.75)),
     );
     final TextPainter tp = TextPainter(
       text: span,
@@ -173,4 +174,10 @@ class _BatteryPainter extends CustomPainter {
         fillColor != oldDelegate.fillColor ||
         textStyle != oldDelegate.textStyle;
   }
+}
+
+Color _getTextColor(Color backgroundColor) {
+  final hct = Hct.fromInt(backgroundColor.toARGB32());
+  final tone = hct.tone;
+  return Color(Hct.from(hct.hue, hct.chroma, tone > 50 ? 0 : 100).toInt());
 }

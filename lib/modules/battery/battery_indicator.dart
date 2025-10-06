@@ -178,6 +178,5 @@ class _BatteryPainter extends CustomPainter {
 
 Color _getTextColor(Color backgroundColor) {
   final hct = Hct.fromInt(backgroundColor.toARGB32());
-  final tone = hct.tone;
-  return Color(Hct.from(hct.hue, hct.chroma, tone > 50 ? 0 : 100).toInt());
+  return Color(Hct.from(hct.hue, hct.chroma, hct.tone > 50 ? hct.tone - 35 : hct.tone + 35).toInt());
 }

@@ -1,3 +1,5 @@
+import "dart:math";
+
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:material_symbols_icons/symbols.varied.dart";
@@ -68,15 +70,23 @@ class SessionFeather extends Feather {
         WingedButton(
           onTap: () => popover!.togglePopover(),
           child: WingedIcon(
-            iconNames: ["distributor-logo-${osInfoService.osId}"],
+            iconNames: [osInfoService.logo ?? "", "distributor-logo-${osInfoService.osId}"],
             textIcon: osInfoService.osIcon,
             flutterIcon: SymbolsVaried.power_settings_new,
             iconPriorities: priorities,
             // TODO: 3 won't this override the fallback mechanism if the text glyph is not found?
-            textIconBuilder: (context) => TextIcon(
-              text: osInfoService.osIcon!,
-              alignment: Alignment.centerLeft, // assumes the icons are aspectRatio=1
-            ),
+            textIconBuilder: (context) {
+              return LayoutBuilder(
+                builder: (context, constraints) {
+                  print("${osInfoService.logo}");
+                  return TextIcon(
+                    text: osInfoService.osIcon!,
+                    alignment: Alignment.centerLeft, // assumes the icons are aspectRatio=1
+                    size: min(TextIcon.getIconEffectiveSize(context), constraints.maxHeight * 0.8),
+                  );
+                }
+              );
+            },
           ),
         ),
       ];
@@ -192,7 +202,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
     }
     return IntrinsicHeight(
       child: SizedBox(
-        width: 150,
+        width: 180,
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: children),

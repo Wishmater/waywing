@@ -12,6 +12,7 @@ class OsInfoService extends Service {
   String? osId;
   String? osName;
   String? osIcon;
+  String? logo;
 
   static registerService(RegisterServiceCallback registerService) {
     registerService<OsInfoService, dynamic>(
@@ -69,6 +70,14 @@ class OsInfoService extends Service {
     }
     if (osName == null) {
       logger.log(Level.warning, "Failed to parse osName");
+    }
+
+    // get LOGO
+    String? logoLine = lines.firstOrNullWhere((l) => l.startsWith("LOGO="));
+    if (logoLine == null || !logoLine.contains("=")) {
+      logger.log(Level.warning, "Failed to parse logo");
+    } else {
+      logo = logoLine.split("=")[1].trim();
     }
   }
 

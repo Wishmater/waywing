@@ -38,6 +38,7 @@ class SystemTrayIndicator extends StatelessWidget {
         item.secondaryActivate();
       },
       child: WingedButton(
+        padding: EdgeInsets.all(1),
         onTap: () async {
           if (!item.itemIsMenu) {
             try {

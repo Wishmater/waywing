@@ -1,6 +1,6 @@
 import "dart:async";
-import "dart:convert";
 import "dart:ffi";
+import "package:dartx/dartx_io.dart";
 import "package:ffi/ffi.dart";
 
 import "package:fl_linux_window_manager/widgets/input_region.dart";
@@ -13,6 +13,8 @@ import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
+
+import "./byte_line_splitter.dart";
 
 class MenuWing extends Wing {
   MenuWing._();
@@ -29,6 +31,10 @@ class MenuWing extends Wing {
   @override
   String get name => "Menu";
 
+  // TODO 1
+  // The dart ffi arena implementation is dog shit
+  // we will be better using the zig std arena for this
+  // as we seem to be expending a lot of time in allocations
   Arena _arena = Arena(malloc);
 
   @override
@@ -44,16 +50,15 @@ class MenuWing extends Wing {
         response = Completer();
 
         final subs = request.body
-            .cast<List<int>>()
-            .transform(utf8.decoder)
+            .transform(BytesLineSplitter())
             .listen(
-              (chunk) {
-                if (response == null || chunk.codeUnits.isEmpty) return;
+              (lines) {
+                if (response == null || lines.isEmpty) return;
 
-                for (final line in chunk.split("\n")) {
+                for (final line in lines) {
                   if (line.isNotEmpty) {
-                    final lineNative = line.toNativeUtf8(allocator: _arena);
-                    items.value.add((lineNative.cast(), lineNative.length));
+                    final lineNative = line.alloc(_arena);
+                    items.value.add((lineNative, line.length));
                   }
                 }
                 items.manualNotifyListeners();
@@ -179,4 +184,13 @@ class NativeStringOption extends Option<(Pointer<Uint8>, int)> {
 
   @override
   NativeOptionValue? get secondaryValue => null;
+}
+
+
+extension on Uint8List {
+  Pointer<Uint8> alloc([Allocator allocator = malloc]) {
+    final result = allocator<Uint8>(lengthInBytes);
+    result.asTypedList(lengthInBytes).setRange(0, lengthInBytes, this);
+    return result;
+  }
 }

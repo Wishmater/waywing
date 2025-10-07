@@ -82,6 +82,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
 
     final context = this.context; // declare local reference to please the linter
     final oldConfig = mainConfig;
+    final oldExclusiveSize = oldConfig.exclusiveSize.value;
     oldConfig.exclusiveSize.removeListener(updateWindows);
     String content = defaultConfig;
     final file = File(getConfigurationFilePath());
@@ -97,7 +98,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     featherRegistry.onConfigUpdated(context);
     serviceRegistry.onConfigUpdated();
 
-    if (newConfig.exclusiveSize.value != oldConfig.exclusiveSize.value || newConfig.monitor != oldConfig.monitor) {
+    if (newConfig.exclusiveSize.value != oldExclusiveSize || newConfig.monitor != oldConfig.monitor) {
       updateWindows();
     }
     newConfig.exclusiveSize.addListener(updateWindows);

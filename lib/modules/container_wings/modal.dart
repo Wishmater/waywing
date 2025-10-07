@@ -100,34 +100,35 @@ class ModalWing extends Wing<ModalConfig> {
         builder: (contex, show, _) {
           Widget result;
           if (!show) {
-            result = SizedBox.shrink();
-          } else {
-            result = KeyboardFocus(
-              mode: KeyboardFocusMode.onDemand,
-              child: CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.escape): () {
-                    this.show.value = false;
-                    focusGrabController.ungrabFocus();
-                  },
+            return SizedBox.shrink();
+          }
+
+          result = KeyboardFocus(
+            mode: KeyboardFocusMode.onDemand,
+            child: CallbackShortcuts(
+              bindings: {
+                const SingleActivator(LogicalKeyboardKey.escape): () {
+                  this.show.value = false;
+                  focusGrabController.ungrabFocus();
                 },
-                child: FocusGrab(
-                  controller: focusGrabController,
-                  child: SizedBox(
-                    width: config.width.toDouble(),
-                    height: config.height.toDouble(),
-                    child: ValueListenableBuilder(
-                      valueListenable: feather.components,
-                      builder: (context, components, _) {
-                        // TODO: 1 what to do when there are several/no components
-                        return components.first.buildPopover!(context);
-                      },
-                    ),
+              },
+              child: FocusGrab(
+                controller: focusGrabController,
+                child: SizedBox(
+                  width: config.width.toDouble(),
+                  height: config.height.toDouble(),
+                  child: ValueListenableBuilder(
+                    valueListenable: feather.components,
+                    builder: (context, components, _) {
+                      // TODO: 1 what to do when there are several/no components
+                      return components.first.buildPopover!(context);
+                    },
                   ),
                 ),
               ),
-            );
-          }
+            ),
+          );
+
           return MotionContainer(
             motion: mainConfig.motions.expressive.spatial.normal,
             alignment: Alignment.center,

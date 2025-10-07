@@ -14,25 +14,28 @@ class WorkspaceSwitcherIndicator extends StatefulWidget {
 class _WorkspaceSwitcherIndicatorState extends State<WorkspaceSwitcherIndicator> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: widget.provider.current,
-      builder: (context, current, _) {
-        return ValueListenableBuilder(
-          valueListenable: widget.provider.workspaces,
-          builder: (context, workspaces, _) {
-            return Row(
-              children: [
-                for (final workspace in workspaces)
-                  _WorkspaceWidget(
-                    workspace,
-                    workspace.id == current.id,
-                    widget.provider,
-                  ),
-              ],
-            );
-          },
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.all(1.0),
+      child: ValueListenableBuilder(
+        valueListenable: widget.provider.current,
+        builder: (context, current, _) {
+          return ValueListenableBuilder(
+            valueListenable: widget.provider.workspaces,
+            builder: (context, workspaces, _) {
+              return Row(
+                children: [
+                  for (final workspace in workspaces)
+                    _WorkspaceWidget(
+                      workspace,
+                      workspace.id == current.id,
+                      widget.provider,
+                    ),
+                ],
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

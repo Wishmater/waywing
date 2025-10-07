@@ -1,5 +1,7 @@
 import "dart:async";
 import "dart:convert";
+import "dart:ffi";
+import "package:ffi/ffi.dart";
 
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
@@ -27,6 +29,8 @@ class MenuWing extends Wing {
   @override
   String get name => "Menu";
 
+  Arena _arena = Arena(malloc);
+
   @override
   late final Map<String, WaywingAction>? actions = {
     "activate": WaywingAction(
@@ -34,25 +38,33 @@ class MenuWing extends Wing {
       (request) async {
         if (response != null) return WaywingResponse(400, "menu is already showing");
 
+        _arena = Arena(malloc);
         showMenu.value = true;
         controller.grabFocus();
         response = Completer();
 
-        final subs = request.body.cast<List<int>>().transform(utf8.decoder).listen((chunk) {
-          if (response == null || chunk.codeUnits.isEmpty) return;
+        final subs = request.body
+            .cast<List<int>>()
+            .transform(utf8.decoder)
+            .listen(
+              (chunk) {
+                if (response == null || chunk.codeUnits.isEmpty) return;
 
-          for (final line in chunk.split("\n")) {
-            if (line.isNotEmpty) {
-              items.value.add(line);
-            }
-          }
-          items.manualNotifyListeners();
-        }, onDone: () {
-          if (items.value.isEmpty && response != null) {
-            response!.complete("");
-            return;
-          }
-        });
+                for (final line in chunk.split("\n")) {
+                  if (line.isNotEmpty) {
+                    final lineNative = line.toNativeUtf8(allocator: _arena);
+                    items.value.add((lineNative.cast(), lineNative.length));
+                  }
+                }
+                items.manualNotifyListeners();
+              },
+              onDone: () {
+                if (items.value.isEmpty && response != null) {
+                  response!.complete("");
+                  return;
+                }
+              },
+            );
 
         final resp = await response!.future;
         controller.ungrabFocus();
@@ -60,6 +72,7 @@ class MenuWing extends Wing {
         showMenu.value = false;
         items.value.clear();
         subs.cancel().onError((_, _) {});
+        _arena.releaseAll();
         return WaywingResponse.ok(resp);
       },
     ),
@@ -72,7 +85,7 @@ class MenuWing extends Wing {
     },
   );
 
-  ManualValueNotifier<List<String>> items = ManualValueNotifier([]);
+  ManualValueNotifier<List<(Pointer<Uint8>, int)>> items = ManualValueNotifier([]);
   Completer<String>? response;
 
   @override
@@ -101,7 +114,7 @@ class MenuWing extends Wing {
                     child: Menu(
                       items: items,
                       onSelected: (selected) {
-                        response?.complete(selected);
+                        response?.complete(selected.$1.cast<Utf8>().toDartString(length: selected.$2));
                       },
                     ),
                   ),
@@ -116,26 +129,54 @@ class MenuWing extends Wing {
 }
 
 class Menu extends StatelessWidget {
-  final ManualValueNotifier<List<String>> items;
-  final Function(String) onSelected;
+  final ManualValueNotifier<List<(Pointer<Uint8>, int)>> items;
+  final Function((Pointer<Uint8>, int)) onSelected;
 
   const Menu({super.key, required this.items, required this.onSelected});
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: items,
-      builder: (context, value, _) {
-        return SearchOptions(
-          options: Option.fromString(value),
-          onSelected: onSelected,
-          height: 400.0,
-          width: 400.0,
-          renderOption: (context, value, config) {
-            return ListTile(title: Text(value, overflow: TextOverflow.ellipsis, maxLines: 1));
-          },
-        );
-      },
+    return KeyboardFocus(
+      mode: KeyboardFocusMode.onDemand,
+      child: ValueListenableBuilder(
+        valueListenable: items,
+        builder: (context, value, _) {
+          return SearchOptions<(Pointer<Uint8>, int)>(
+            options: value.map((e) => NativeStringOption(e.$1, e.$2)).toList(),
+            onSelected: onSelected,
+            height: 400.0,
+            width: 400.0,
+            renderOption: (context, value, config) {
+              return ListTile(
+                title: Text(
+                  value.$1.cast<Utf8>().toDartString(length: value.$2),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
+}
+
+class NativeStringOption extends Option<(Pointer<Uint8>, int)> {
+  final Pointer<Uint8> pointer;
+  final int length;
+
+  @override
+  (Pointer<Uint8>, int) get object => (pointer, length);
+
+  const NativeStringOption(this.pointer, this.length);
+
+  @override
+  int get identifier => Object.hashAll([pointer.address, length]);
+
+  @override
+  NativeOptionValue get primaryValue => NativeOptionValue(pointer, length);
+
+  @override
+  NativeOptionValue? get secondaryValue => null;
 }

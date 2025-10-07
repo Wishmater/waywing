@@ -71,10 +71,10 @@ class UserCommandOption extends Option<UserCommand> {
   int get identifier => command.hashCode;
 
   @override
-  String get primaryValue => command.name;
+  StringOptionValue get primaryValue => StringOptionValue(command.name);
 
   @override
-  String get secondaryValue => command.description ?? "";
+  StringOptionValue get secondaryValue => StringOptionValue(command.description ?? "");
 
   factory UserCommandOption.from(UserCommand app) {
     return UserCommandOption(app);

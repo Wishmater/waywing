@@ -88,10 +88,10 @@ class ApplicationOption extends Option<Application> {
   int get identifier => app.hashCode;
 
   @override
-  String get primaryValue => app.name;
+  StringOptionValue get primaryValue => StringOptionValue(app.name);
 
   @override
-  String get secondaryValue => app.comment ?? "";
+  StringOptionValue get secondaryValue => StringOptionValue(app.comment ?? "");
 
   factory ApplicationOption.from(Application app) {
     return ApplicationOption(app);

@@ -1,3 +1,5 @@
+import "dart:ffi";
+
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
@@ -27,12 +29,27 @@ class SearchSelectOptionIntent extends Intent {
   const SearchSelectOptionIntent();
 }
 
+sealed class OptionValue {
+  const OptionValue();
+}
+
+class StringOptionValue extends OptionValue {
+  final String value;
+  const StringOptionValue(this.value);
+}
+
+class NativeOptionValue extends OptionValue {
+  final Pointer<Uint8> pointer;
+  final int length;
+  const NativeOptionValue(this.pointer, this.length);
+}
+
 abstract class Option<T extends Object> {
   int get identifier;
 
-  String get primaryValue;
+  OptionValue get primaryValue;
 
-  String? get secondaryValue;
+  OptionValue? get secondaryValue;
 
   T get object;
 
@@ -59,10 +76,10 @@ class _StringOption extends Option<String> {
   String get object => _value;
 
   @override
-  String get primaryValue => _value;
+  OptionValue get primaryValue => StringOptionValue(_value);
 
   @override
-  String? get secondaryValue => null;
+  OptionValue? get secondaryValue => null;
 }
 
 class SearchOptionsRenderConfig {
@@ -167,17 +184,45 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with
     final start = oldWidget.options.length;
     final end = widget.options.length;
     // This assume that the widget change is only additional entries.
-    final iterable = widget.options.getRange(start, end);
+    // final iterable = widget.options.getRange(start, end);
     for (int i = start; i < end; i++) {
       items[i] = widget.options[i];
     }
-    nucleo.addAllAsync(iterable.map((e) => e.primaryValue).toList(), List.generate(end - start, (i) => i + start));
+    for (int i = start; i < end; i++) {
+      final e = widget.options[i];
+      final v = e.primaryValue;
+      switch (v) {
+        case StringOptionValue():
+          nucleo.add(i, v.value);
+        case NativeOptionValue():
+          nucleo.addNative(i, v.pointer, v.length);
+      }
+    }
+    // for (final e in iterable) {
+    //   switch(e.primaryValue) {
+    //     case StringOptionValue():
+    //     nucleo.add()
+    //     case NativeOptionValue():
+    //       throw UnimplementedError();
+    //   }
+    // }
+    // nucleo.addAllAsync(iterable.map((e) => e.primaryValue).toList(), List.generate(end - start, (i) => i + start));
   }
 
   void _initNucleo() {
     nucleo = NucleoDart(() {});
     // TODO maybe we can use the secondaryValue using the multicolumn feature of nucleo
-    nucleo.addAll(widget.options.map((e) => e.primaryValue));
+    // nucleo.addAll(widget.options.map((e) => e.primaryValue));
+    for (int i = 0; i < widget.options.length; i++) {
+      final e = widget.options[i];
+      final v = e.primaryValue;
+      switch (v) {
+        case StringOptionValue():
+          nucleo.add(i, v.value);
+        case NativeOptionValue():
+          nucleo.addNative(i, v.pointer, v.length);
+      }
+    }
     nucleo.reparse("");
     nucleo.tick();
 

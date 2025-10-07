@@ -104,6 +104,7 @@ dependencies:
   # code generation package
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
+  ffi: ^2.1.4
 
 dev_dependencies:
   flutter_test:

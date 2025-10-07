@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'volume_config.dart';
 
@@ -8,10 +9,19 @@ part of 'volume_config.dart';
 // **************************************************************************
 
 mixin VolumeConfigI {
+  @ConfigDocDefault<bool>(true)
   bool get showPercentageIndicator;
+
+  @ConfigDocDefault<bool>(false)
   bool get showSeparateMicIndicator;
+
+  @ConfigDocDefault<int>(100)
   int get maxVolume;
+
+  @ConfigDocDefault<int>(5)
   int get volumeStep;
+
+  @ConfigDocDefault<bool>(true)
   bool get showTooltipOnVolumeChange;
 }
 

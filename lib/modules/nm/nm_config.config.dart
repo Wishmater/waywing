@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'nm_config.dart';
 
@@ -8,10 +9,19 @@ part of 'nm_config.dart';
 // **************************************************************************
 
 mixin NetworkManagerConfigI {
+  @ConfigDocDefault<bool>(false)
   bool get showConnectionNameIndicator;
+
+  @ConfigDocDefault<bool>(false)
   bool get showUploadIndicator;
+
+  @ConfigDocDefault<bool>(false)
   bool get showDownloadIndicator;
+
+  @ConfigDocDefault<bool>(true)
   bool get showThroughputIndicator;
+
+  @ConfigDocDefault<List<String>>(<String>[])
   List<String> get deviceTypeFilter;
 }
 

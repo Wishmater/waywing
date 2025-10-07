@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'kb_layout_service.dart';
 
@@ -8,6 +9,7 @@ part of 'kb_layout_service.dart';
 // **************************************************************************
 
 mixin KbLayoutServiceConfigI {
+  @ConfigDocDefault<int>(500)
   /// pull interval in milliseconds
   int get pullInterval;
 }

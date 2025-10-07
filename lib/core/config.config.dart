@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'config.dart';
 
@@ -8,16 +9,36 @@ part of 'config.dart';
 // **************************************************************************
 
 mixin MainConfigI {
+  @ConfigDocDefault<int>(0)
   int get monitor;
+
   String? get socket;
+
+  @ConfigDocDefault<bool>(kReleaseMode)
   bool get focusGrab;
+
+  @ConfigDocDefault<bool>(true)
   bool get focusContainerOnMouseOver;
+
+  @ConfigDocDefault<bool>(true)
   bool get animationEnable;
+
+  @ConfigDocDefault<double>(1)
   double get animationSpeed;
+
+  @ConfigDocDefault<double>(1)
   double get animationDamping;
+
+  @ConfigDocDefault<AnimationFitting>(AnimationFitting.clip)
   AnimationFitting get animationFitting;
+
+  @ConfigDocDefault<AnimationSwitching>(AnimationSwitching.fadeThrough)
   AnimationSwitching get animationSwitching;
+
+  @ConfigDocDefault<bool>(false)
   bool get requestKeyboardFocus;
+
+  @ConfigDocDefault<bool>(false)
   bool get internalUsePainter;
   LoggingConfig get logging;
   ThemeConfig get theme;
@@ -46,8 +67,8 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     },
   );
 
-  static BlockSchema get schema => BlockSchema(
-    blocks: {
+  static BlockSchema get schema => LazySchema(
+    blocksGetter: () => {
       ...staticSchema.blocks,
       ...MainConfigBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
@@ -56,7 +77,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     fields: staticSchema.fields,
     validator: staticSchema.validator,
     ignoreNotInSchema: staticSchema.ignoreNotInSchema,
-    canBeMissingSchemas: <String>{
+    canBeMissingSchemasGetter: () => <String>{
       ...staticSchema.canBeMissingSchemas,
       ...MainConfigBase._getDynamicSchemaTables().keys,
     },
@@ -217,8 +238,8 @@ class FeathersContainer extends ConfigBaseI
     with FeathersContainerI, FeathersContainerBase {
   static const BlockSchema staticSchema = BlockSchema(fields: {});
 
-  static BlockSchema get schema => BlockSchema(
-    blocks: {
+  static BlockSchema get schema => LazySchema(
+    blocksGetter: () => {
       ...staticSchema.blocks,
       ...FeathersContainerBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
@@ -227,7 +248,7 @@ class FeathersContainer extends ConfigBaseI
     fields: staticSchema.fields,
     validator: staticSchema.validator,
     ignoreNotInSchema: staticSchema.ignoreNotInSchema,
-    canBeMissingSchemas: <String>{
+    canBeMissingSchemasGetter: () => <String>{
       ...staticSchema.canBeMissingSchemas,
       ...FeathersContainerBase._getDynamicSchemaTables().keys,
     },

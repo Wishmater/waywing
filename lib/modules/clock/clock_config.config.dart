@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'clock_config.dart';
 
@@ -8,6 +9,7 @@ part of 'clock_config.dart';
 // **************************************************************************
 
 mixin ClockConfigI {
+  @ConfigDocDefault<bool>(false)
   bool get militar;
 }
 

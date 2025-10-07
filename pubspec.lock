@@ -247,14 +247,14 @@ packages:
       path: "../config.dart"
       relative: true
     source: path
-    version: "0.0.10"
+    version: "0.0.11"
   config_gen:
     dependency: "direct main"
     description:
       path: "../config_gen"
       relative: true
     source: path
-    version: "0.0.11"
+    version: "0.0.15"
   convert:
     dependency: transitive
     description:

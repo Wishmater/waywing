@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'logger.dart';
 
@@ -8,8 +9,12 @@ part of 'logger.dart';
 // **************************************************************************
 
 mixin LoggingConfigI {
+  @ConfigDocDefault<Level>((kDebugMode ? Level.trace : Level.info))
   Level get levelFilter;
+
+  @ConfigDocDefault<Map<String, Level>>(<String, Level>{})
   Map<String, Level> get typeLevelFilters;
+
   String? get output;
 }
 

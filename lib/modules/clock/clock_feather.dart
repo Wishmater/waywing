@@ -1,5 +1,3 @@
-import "dart:async";
-
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -37,9 +35,9 @@ class ClockFeather extends Feather<ClockConfig> {
   }
 
   @override
-  late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([clockComponent]);
+  late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([component]);
 
-  late final clockComponent = FeatherComponent(
+  late final component = FeatherComponent(
     buildIndicators: (context, popover) {
       return [
         ClockIndicator(config: config, service: service, popover: popover!),

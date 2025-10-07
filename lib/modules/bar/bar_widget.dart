@@ -103,7 +103,6 @@ class _BarState extends State<Bar> {
           controller: barPositioningController,
           child: WingedContainer(
             motion: motion,
-            // animationDuration: config.animationDuration * 1.5,
             clipBehavior: Clip.antiAliasWithSaveLayer,
             elevation: 5,
             shadowOffset: getShadowOffset(),
@@ -261,15 +260,6 @@ class _BarState extends State<Bar> {
                     barShape: barShape,
                     builder: (context, popover) {
                       final indicators = component.buildIndicators!(context, popover);
-                      for (int i = 0; i < indicators.length; i++) {
-                        indicators[i] = ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minWidth: !widget.config.isVertical ? widget.config.indicatorMinSize : 0,
-                            minHeight: widget.config.isVertical ? widget.config.indicatorMinSize : 0,
-                          ),
-                          child: indicators[i],
-                        );
-                      }
                       if (widget.config.isVertical) {
                         return Column(
                           mainAxisSize: MainAxisSize.min,

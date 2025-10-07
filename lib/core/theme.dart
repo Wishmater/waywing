@@ -9,6 +9,7 @@ import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
+import "package:waywing/widgets/theme/button_theme.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 part "theme.config.dart";
@@ -338,6 +339,10 @@ class WaywingTheme {
       dividerTheme: DividerThemeData(
         color: Color.alphaBlend(colorScheme.onSurface.withValues(alpha: 0.2), colorScheme.surface),
       ),
+
+      extensions: <ThemeExtension<dynamic>>[
+        const WingedButtonTheme(boxConstraints: BoxConstraints(minWidth: 38, minHeight: 38)),
+      ],
     );
     return result.copyWith(
       iconTheme: result.iconTheme.copyWith(

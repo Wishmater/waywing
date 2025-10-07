@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'bar_config.dart';
 
@@ -8,18 +9,36 @@ part of 'bar_config.dart';
 // **************************************************************************
 
 mixin BarConfigI {
+  @ConfigDocDefault<ScreenEdge>(ScreenEdge.bottom)
   ScreenEdge get side;
+
+  @ConfigDocDefault<int>(30)
   int get size;
+
+  @ConfigDocDefault<double>(0)
   double get marginLeft;
+
+  @ConfigDocDefault<double>(0)
   double get marginRight;
+
+  @ConfigDocDefault<double>(0)
   double get marginTop;
+
+  @ConfigDocDefault<double>(0)
   double get marginBottom;
+
   double? get _exclusiveSizeLeft;
+
   double? get _exclusiveSizeRight;
+
   double? get _exclusiveSizeTop;
+
   double? get _exclusiveSizeBottom;
+
   double? get _rounding;
+
   double? get _indicatorMinSize;
+
   double? get _indicatorPadding;
   List<(String, Object)> get dynamicSchemas;
 }
@@ -43,8 +62,8 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     },
   );
 
-  static BlockSchema get schema => BlockSchema(
-    blocks: {
+  static BlockSchema get schema => LazySchema(
+    blocksGetter: () => {
       ...staticSchema.blocks,
       ...BarConfigBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
@@ -53,7 +72,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     fields: staticSchema.fields,
     validator: staticSchema.validator,
     ignoreNotInSchema: staticSchema.ignoreNotInSchema,
-    canBeMissingSchemas: <String>{
+    canBeMissingSchemasGetter: () => <String>{
       ...staticSchema.canBeMissingSchemas,
       ...BarConfigBase._getDynamicSchemaTables().keys,
     },
@@ -215,8 +234,8 @@ class BarFeathersContainer extends ConfigBaseI
     with BarFeathersContainerI, BarFeathersContainerBase {
   static const BlockSchema staticSchema = BlockSchema(fields: {});
 
-  static BlockSchema get schema => BlockSchema(
-    blocks: {
+  static BlockSchema get schema => LazySchema(
+    blocksGetter: () => {
       ...staticSchema.blocks,
       ...BarFeathersContainerBase._getDynamicSchemaTables().map(
         (k, v) => MapEntry(k, v.schema),
@@ -225,7 +244,7 @@ class BarFeathersContainer extends ConfigBaseI
     fields: staticSchema.fields,
     validator: staticSchema.validator,
     ignoreNotInSchema: staticSchema.ignoreNotInSchema,
-    canBeMissingSchemas: <String>{
+    canBeMissingSchemasGetter: () => <String>{
       ...staticSchema.canBeMissingSchemas,
       ...BarFeathersContainerBase._getDynamicSchemaTables().keys,
     },

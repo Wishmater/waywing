@@ -26,18 +26,12 @@ pub const WaywingClient = struct {
 
     pub fn sendCmd(self: *WaywingClient, gpa: std.mem.Allocator, cmd: []const u8, body: ?*std.fs.File.Reader) !Response {
         try self.writePath(cmd);
-        std.debug.print("ASDADS {}\n", .{body == null});
         if (body != null) {
-            std.debug.print("ASDADS Transfer-Encoding zero \n", .{});
             try self.writeHeader("Transfer-Encoding", "zero-ended");
         }
         try self.writeHeaderEnd();
         try self.writer.interface.flush();
         if (body) |b| {
-            // var buff: [2048]u8 = undefined;
-            // var ss = std.fs.File.stderr().writer(&buff);
-            // _ = try ss.interface.sendFileReadingAll(b, .unlimited);
-            // try ss.interface.flush();
             _ = try self.writer.interface.sendFileAll(b, .unlimited);
             try self.writer.interface.writeByte(0); // body end acording to the `Transfer-Encoding` zero-ended
             try self.writer.interface.flush();

@@ -13,12 +13,12 @@ dependencies:
 
   # Configuration parser
   config:
-    version: ^0.0.10
+    version: ^0.0.11
     git:
       url: https://github.com/ross96D/config.dart
       tag_pattern: "{{version}}"
   config_gen:
-    version: ^0.0.11
+    version: ^0.0.15
     git:
       url: https://github.com/Wishmater/config_gen
       tag_pattern: "{{version}}"

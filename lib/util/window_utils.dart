@@ -1,5 +1,4 @@
 import "dart:async";
-import "dart:math";
 
 import "package:fl_linux_window_manager/controller/input_region_controller.dart";
 import "package:fl_linux_window_manager/fl_linux_window_manager.dart";

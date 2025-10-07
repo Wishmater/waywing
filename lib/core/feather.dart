@@ -19,11 +19,6 @@ abstract class Feather<Conf> implements ServiceConsumer {
   late Conf config;
   late String uniqueId;
 
-  String get prettyUniqueId {
-    final prettyUniqueId = uniqueId.replaceAll("[0]", "");
-    return prettyUniqueId.replaceAll("[", "").replaceAll("]", "");
-  }
-
   String get name;
 
   Directory? _dataDir;
@@ -59,6 +54,13 @@ abstract class Feather<Conf> implements ServiceConsumer {
   ValueListenable<List<FeatherComponent>> get components;
 
   void onConfigUpdated(Conf oldConfig) {}
+
+  String get actionsPath => prettyUniqueId;
+
+  String get prettyUniqueId {
+    final prettyUniqueId = uniqueId.replaceAll("[0]", "");
+    return prettyUniqueId.replaceAll("[", "").replaceAll("]", "");
+  }
 }
 
 @immutable

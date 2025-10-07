@@ -65,7 +65,7 @@ class BetterPadding extends SingleChildRenderObjectWidget {
 
   @override
   RenderBetterPadding createRenderObject(BuildContext context) {
-    return RenderBetterPadding.RenderBetterPadding(padding: padding, textDirection: Directionality.maybeOf(context));
+    return RenderBetterPadding(padding: padding, textDirection: Directionality.maybeOf(context));
   }
 
   @override
@@ -78,7 +78,7 @@ class BetterPadding extends SingleChildRenderObjectWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding', padding));
+    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>("padding", padding));
   }
 }
 
@@ -92,7 +92,7 @@ class RenderBetterPadding extends RenderShiftedBox {
   /// Creates a render object that insets its child.
   ///
   /// The [padding] argument must have non-negative insets.
-  RenderBetterPadding.RenderBetterPadding({
+  RenderBetterPadding({
     required EdgeInsetsGeometry padding,
     TextDirection? textDirection,
     RenderBox? child,
@@ -239,7 +239,7 @@ class RenderBetterPadding extends RenderShiftedBox {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>('padding', padding));
-    properties.add(EnumProperty<TextDirection>('textDirection', textDirection, defaultValue: null));
+    properties.add(DiagnosticsProperty<EdgeInsetsGeometry>("padding", padding));
+    properties.add(EnumProperty<TextDirection>("textDirection", textDirection, defaultValue: null));
   }
 }

@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'notification_config.dart';
 
@@ -8,12 +9,25 @@ part of 'notification_config.dart';
 // **************************************************************************
 
 mixin NotificationsConfigI {
+  @ConfigDocDefault<Alignment>(Alignment.topLeft)
   Alignment get alignment;
+
+  @ConfigDocDefault<double>(32)
   double get marginLeft;
+
+  @ConfigDocDefault<double>(32)
   double get marginRight;
+
+  @ConfigDocDefault<double>(32)
   double get marginTop;
+
+  @ConfigDocDefault<double>(32)
   double get marginBottom;
+
+  @ConfigDocDefault<bool>(false)
   bool get autoExpand;
+
+  @ConfigDocDefault<bool>(false)
   bool get showProgressBar;
 }
 

@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'theme.dart';
 
@@ -8,33 +9,76 @@ part of 'theme.dart';
 // **************************************************************************
 
 mixin ThemeConfigI {
+  @ConfigDocDefault<ThemeMode>(ThemeMode.system)
   ThemeMode get mode;
 
   /// Use this to set a custom font
   String? get fontFamily;
 
+  @ConfigDocDefault<double>(kDefaultFontSize)
   /// Set the font size
   double get fontSize;
+
+  @ConfigDocDefault<List<IconType>>([
+    IconType.flutter,
+    IconType.direct,
+    IconType.linux,
+    IconType.nerdFont,
+  ])
   List<IconType> get iconPriority;
+
+  @ConfigDocDefault<ConfigIconVariation>(ConfigIconVariation.normal)
   ConfigIconVariation get iconFlutterVariation;
+
+  @ConfigDocDefault<bool>(false)
   bool get iconFlutterTwoTone;
+
+  @ConfigDocDefault<double>(0)
   double get iconFlutterFill;
+
+  @ConfigDocDefault<double>(400)
   double get iconFlutterWeight;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFF2196F3))
   MyColor get primaryColor;
+
   MyColor? get secondaryColor;
+
   MyColor? get tertiaryColor;
+
   MyColor? get errorColor;
+
   MyColor? get backgroundColor;
+
   MyColor? get foregroundColor;
+
+  @ConfigDocDefault<double>(1.0)
   double get backgroundOpacity;
+
+  @ConfigDocDefault<double>(1.0)
   double get shadows;
+
+  @ConfigDocDefault<double>(12)
   double get buttonRounding;
+
+  @ConfigDocDefault<double>(24)
   double get containerRounding;
+
+  @ConfigDocDefault<double>(2)
   double get activeBorderSize;
+
   double? get _inactiveBorderSize;
+
+  @ConfigDocDefault<List<MyColor>>([MyColor(0xee33ccff), MyColor(0xee00ff99)])
   List<MyColor> get activeBorderColors;
+
+  @ConfigDocDefault<List<MyColor>>([MyColor(0xaa595959)])
   List<MyColor> get inactiveBorderColors;
+
+  @ConfigDocDefault<double>(45)
   double get activeBorderAngle;
+
+  @ConfigDocDefault<double>(45)
   double get inactiveBorderAngle;
 }
 

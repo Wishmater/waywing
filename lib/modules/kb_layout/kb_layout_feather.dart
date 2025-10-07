@@ -69,7 +69,7 @@ class KeyboardLayoutIndicator extends StatelessWidget {
           builder: (context, layout, _) {
             final theme = Theme.of(context);
             return SplashPulse(
-              // TODO: 1 Make this configurable
+              // TODO: 2 make this configurable
               pulsing: availableLayouts.indexOf(layout) > 0,
               color: theme.colorScheme.error.withValues(alpha: 0.5),
               child: LayoutBuilder(
@@ -100,6 +100,9 @@ class KeyboardLayoutIndicator extends StatelessWidget {
                     content = Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        SizedBox(
+                          height: 2,
+                        ),
                         Text(
                           layout,
                           style: theme.textTheme.bodyMedium!.copyWith(height: 0.1),
@@ -122,7 +125,9 @@ class KeyboardLayoutIndicator extends StatelessWidget {
                       ],
                     );
                   }
-                  return WingedButton(child: content);
+                  return WingedButton(
+                    child: content,
+                  );
                 },
               ),
             );

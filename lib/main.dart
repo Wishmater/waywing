@@ -166,7 +166,7 @@ class _WingsWidgetState extends State<_WingsWidget> {
             return ValueListenableBuilder(
               valueListenable: reservedSpace,
               builder: (context, rerservedSpace, _) {
-                return wing.buildWing(rerservedSpace);
+                return wing.buildWing(context, rerservedSpace);
               },
             );
           },

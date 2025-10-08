@@ -1,5 +1,6 @@
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:path/path.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -8,6 +9,8 @@ import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/modules/app_launcher/launcher_config.dart";
 import "package:waywing/modules/app_launcher/launcher_widget.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
 class AppLauncherFeather extends Feather<LauncherConfig> {
@@ -40,31 +43,46 @@ class AppLauncherFeather extends Feather<LauncherConfig> {
 
   late final component = FeatherComponent(
     buildIndicators: (context, popover) {
-      return [];
+      return [
+        WingedButton(
+          onTap: () => popover!.togglePopover(),
+          child: WingedIcon(
+            // iconNames: [],
+            // textIcon: "",
+            flutterIcon: SymbolsVaried.apps,
+          ),
+        ),
+      ];
     },
     buildPopover: (context) {
-      return FutureBuilder(
-        future: service.applications(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return LauncherWidget(
-              service: service,
-              applications: snapshot.data!,
-              config: config,
-              close: () {
-                CloseRequestNotification().dispatch(context);
-              },
-            );
-          } else {
-            return const Center(
-              child: SizedBox(
-                height: 35,
-                width: 35,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-        },
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: 500,
+          maxWidth: 256 + 128,
+        ),
+        child: FutureBuilder(
+          future: service.applications(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return LauncherWidget(
+                service: service,
+                applications: snapshot.data!,
+                config: config,
+                close: () {
+                  CloseRequestNotification().dispatch(context);
+                },
+              );
+            } else {
+              return const Center(
+                child: SizedBox(
+                  height: 35,
+                  width: 35,
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+          },
+        ),
       );
     },
   );

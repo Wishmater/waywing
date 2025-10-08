@@ -1,11 +1,11 @@
 import "dart:math";
 
-import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/rendering.dart";
 import "package:flutter/services.dart";
 import "package:fuzzy_string/fuzzy_string.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/widgets/keyboard_focus.dart";
 import "./options_list_widgets/stack_option_list_widget.dart";
 
 /// An [Intent] to highlight the previous option in the autocomplete list.
@@ -79,7 +79,6 @@ class SearchOptions<T extends Object> extends StatefulWidget {
     required this.options,
     required this.renderOption,
     required this.onSelected,
-    required this.width,
     required this.height,
     this.focusNode,
     this.showScrollBar = true,
@@ -113,8 +112,6 @@ class SearchOptions<T extends Object> extends StatefulWidget {
   final FocusNode? focusNode;
 
   final bool showScrollBar;
-
-  final double width;
 
   final double height;
 
@@ -244,14 +241,13 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
   @override
   Widget build(BuildContext context) {
     const textFieldHeight = 64.0;
-    const itemHeight = 64.0; // TODO 3: this should be reported by the same that gives renderOption
+    const itemHeight = 64.0; // TODO: 3 this should be reported by the same that gives renderOption
 
     final height = widget.height;
-    final width = widget.width;
 
     final contentHeight = height - textFieldHeight;
     final focusableItemCount = (contentHeight / itemHeight).floor();
-    final lastItemPos = itemHeight * focusableItemCount;
+    final lastItemPos = itemHeight * (focusableItemCount + 1);
 
     Widget optionsView = StackOptionsListWidget<T>(
       key: optionsListWidgetGlobalKey,
@@ -266,28 +262,61 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
       motion: mainConfig.motions.expressive.spatial.normal,
     );
 
-    final borderRadiusTop = const BorderRadius.vertical(top: Radius.circular(10));
-    final borderRadiusBottom = const BorderRadius.vertical(bottom: Radius.circular(10));
     return Shortcuts(
       shortcuts: shortcuts,
       child: Actions(
         actions: actionMap,
-        // TODO: 2 migrate this to use WingedContainer
-        child: InputRegion(
-          child: Column(
-            children: [
-              SizedBox(
-                height: textFieldHeight,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: borderRadiusTop,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            ExcludeFocusTraversal(
+              child: ShaderMask(
+                blendMode: BlendMode.dstOut,
+                shaderCallback: (bounds) {
+                  final shaderRect = Rect.fromLTRB(0, 0, bounds.width, textFieldHeight);
+                  return const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.black, Colors.transparent],
+                  ).createShader(shaderRect);
+                },
+                child: ShaderMask(
+                  blendMode: BlendMode.dstOut,
+                  shaderCallback: (bounds) {
+                    if (bounds.height <= lastItemPos) {
+                      return LinearGradient(
+                        colors: [Colors.transparent, Colors.transparent],
+                      ).createShader(Rect.zero);
+                    }
+                    final shaderRect = Rect.fromLTRB(0, lastItemPos, bounds.width, bounds.height);
+                    return const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black],
+                    ).createShader(shaderRect);
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.only(top: textFieldHeight),
+                    child: optionsView,
                   ),
-                  child: Material(
-                    borderRadius: borderRadiusTop,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: textFieldHeight,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  KeyboardFocus(
+                    mode: KeyboardFocusMode.onDemand,
                     child: TextFormField(
                       autofocus: true,
                       focusNode: widget.focusNode,
                       decoration: const InputDecoration(
+                        border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(
                           horizontal: 32,
                           // ugly hack, but flutter TextFormField widget is dogshit
@@ -298,43 +327,20 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
                       onChanged: updateFilter,
                     ),
                   ),
-                ),
-              ),
-              Expanded(
-                child: ExcludeFocusTraversal(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: borderRadiusBottom,
-                      ),
-                      child: Material(
-                        borderRadius: borderRadiusBottom,
-                        child: ShaderMask(
-                          blendMode: BlendMode.dstOut,
-                          shaderCallback: (_) {
-                            // don't use provided bounds that change with inner size, instead use fixed constraints from the LayoutBuilder
-                            final shaderRect = Rect.fromLTRB(
-                              0,
-                              lastItemPos,
-                              width,
-                              contentHeight,
-                            );
-                            return const LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, Colors.black],
-                            ).createShader(shaderRect);
-                          },
-                          child: optionsView,
-                        ),
-                      ),
+                  Positioned(
+                    left: 24,
+                    right: 24,
+                    bottom: 8,
+                    child: Divider(
+                      thickness: 2,
+                      height: 2,
+                      radius: BorderRadius.all(Radius.circular(1)),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

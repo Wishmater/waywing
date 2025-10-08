@@ -15,7 +15,7 @@ abstract class Wing<Conf> extends Feather<Conf> {
   String toString() => "Wing($name) - $uniqueId";
 
   /// This should return a Positioned widget. It will be added to a stack that spans the whole screen.
-  Widget buildWing(EdgeInsets rerservedSpace);
+  Widget buildWing(BuildContext context, EdgeInsets rerservedSpace);
 
   /// Used by the featherRegistry to initialize feathers. If the wing fails to report a feather,
   /// it probebly won't be initialized properly.

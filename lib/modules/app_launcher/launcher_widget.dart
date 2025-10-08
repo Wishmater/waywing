@@ -52,7 +52,6 @@ class _LauncherWidgetState extends State<LauncherWidget> {
           onSelected: _run,
           showScrollBar: widget.config.showScrollBar,
           height: constraints.maxHeight.toDouble(),
-          width: constraints.maxWidth.toDouble(),
           focusNode: focusNode,
         );
       },

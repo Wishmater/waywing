@@ -39,7 +39,7 @@ class NotificationsWing extends Wing<NotificationsConfig> {
   }
 
   @override
-  Widget buildWing(EdgeInsets rerservedSpace) {
+  Widget buildWing(BuildContext context, EdgeInsets rerservedSpace) {
     final motion = mainConfig.motions.expressive.spatial.slow;
     return MotionPositioned(
       motion: motion,

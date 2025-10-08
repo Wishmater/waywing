@@ -10,6 +10,7 @@ import "package:motor/motor.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "../searchopts.dart";
 
+// TODO: 2 migrate this to use Motion, hard because some logic depends on duration
 const animationDuration = Duration(milliseconds: 250);
 
 class StackOptionsListWidget<T extends Object> extends StatefulWidget {
@@ -182,11 +183,9 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
         height: min(widget.availableHeight, widget.itemHeight * visibleAndNotRemovedItemCount),
         duration: animationDuration,
         curve: Curves.easeOutCubic,
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(), // needs to be set for clipBehavior to work for some reason
         child: Stack(
           fit: StackFit.expand,
-          clipBehavior: Clip.hardEdge,
+          clipBehavior: Clip.none,
           children: children,
         ),
       ),

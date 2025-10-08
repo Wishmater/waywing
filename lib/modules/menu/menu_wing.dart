@@ -38,21 +38,27 @@ class MenuWing extends Wing {
         controller.grabFocus();
         response = Completer();
 
-        final subs = request.body.cast<List<int>>().transform(utf8.decoder).listen((chunk) {
-          if (response == null || chunk.codeUnits.isEmpty) return;
+        final subs = request.body
+            .cast<List<int>>()
+            .transform(utf8.decoder)
+            .listen(
+              (chunk) {
+                if (response == null || chunk.codeUnits.isEmpty) return;
 
-          for (final line in chunk.split("\n")) {
-            if (line.isNotEmpty) {
-              items.value.add(line);
-            }
-          }
-          items.manualNotifyListeners();
-        }, onDone: () {
-          if (items.value.isEmpty && response != null) {
-            response!.complete("");
-            return;
-          }
-        });
+                for (final line in chunk.split("\n")) {
+                  if (line.isNotEmpty) {
+                    items.value.add(line);
+                  }
+                }
+                items.manualNotifyListeners();
+              },
+              onDone: () {
+                if (items.value.isEmpty && response != null) {
+                  response!.complete("");
+                  return;
+                }
+              },
+            );
 
         final resp = await response!.future;
         controller.ungrabFocus();
@@ -76,7 +82,7 @@ class MenuWing extends Wing {
   Completer<String>? response;
 
   @override
-  Widget buildWing(EdgeInsets rerservedSpace) {
+  Widget buildWing(BuildContext context, EdgeInsets rerservedSpace) {
     return ValueListenableBuilder(
       valueListenable: showMenu,
       builder: (context, show, _) {
@@ -130,7 +136,6 @@ class Menu extends StatelessWidget {
           options: Option.fromString(value),
           onSelected: onSelected,
           height: 400.0,
-          width: 400.0,
           renderOption: (context, value, config) {
             return ListTile(title: Text(value, overflow: TextOverflow.ellipsis, maxLines: 1));
           },

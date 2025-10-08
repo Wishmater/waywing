@@ -53,7 +53,7 @@ class CommandPaletteWing extends Wing {
   );
 
   @override
-  Widget buildWing(EdgeInsets rerservedSpace) {
+  Widget buildWing(BuildContext context, EdgeInsets rerservedSpace) {
     return ValueListenableBuilder(
       valueListenable: showCommandPalette,
       builder: (context, show, _) {

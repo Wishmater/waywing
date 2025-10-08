@@ -41,13 +41,17 @@ class CommandPaletteWidgetState extends State<CommandPaletteWidget> {
       // height: widget.config.height.toDouble(),
       height: 400.0,
       // width: widget.config.width.toDouble(),
-      width: 400.0,
       focusNode: focusNode,
     );
   }
 
   void _run(UserCommand command) {
-    Process.start(command.program, ["-c", command.path], includeParentEnvironment: true, mode: ProcessStartMode.detached);
+    Process.start(
+      command.program,
+      ["-c", command.path],
+      includeParentEnvironment: true,
+      mode: ProcessStartMode.detached,
+    );
     widget.close();
   }
 

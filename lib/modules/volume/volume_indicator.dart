@@ -8,6 +8,7 @@ import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/widgets/icons/composed_icon.dart";
 import "package:waywing/widgets/icons/symbol_icon.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/motion_widgets/motion_fractionally_sized_box.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -188,16 +189,19 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
                           }
                         }
 
-                        final volBarSize = (Theme.of(context).iconTheme.size ?? kDefaultFontSize) * 0.25;
+                        final volBarSize = TextIcon.getIconEffectiveSize(context) * 0.15;
                         Widget result = IntrinsicHeight(
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               FractionallySizedBox(
+                                // this breaks hard when changing icon size in config and i'm too tired to find out why
+                                key: ValueKey(volBarSize),
                                 heightFactor: 0.9,
-                                child: Container(
+                                child: MotionContainer(
                                   clipBehavior: Clip.antiAliasWithSaveLayer,
+                                  motion: mainConfig.motions.expressive.spatial.normal,
                                   width: volBarSize,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.all(Radius.circular(volBarSize / 2)),

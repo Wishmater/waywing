@@ -91,18 +91,22 @@ class App extends StatelessWidget {
               home: Builder(
                 builder: (context) {
                   final theme = Theme.of(context);
-
-                  /// The text size configuration needs to happen here because the default
-                  /// text has all sizes in null... aparently is MaterialApp who fill the sizes
+                  // The text/icon size configuration needs to happen here because the default
+                  // text has all sizes in null... aparently is MaterialApp who fill the sizes
+                  final defaultIconSize = TextIcon.getIconEffectiveSize(context, iconTheme: theme.iconTheme).round();
+                  final iconSize = defaultIconSize * mainConfig.theme.iconSizeScaleFactor;
                   return Theme(
                     data: theme.copyWith(
                       textTheme: theme.textTheme.apply(
                         fontSizeFactor: mainConfig.theme.fontSizeScaleFactor,
                       ),
+                      iconTheme: theme.iconTheme.copyWith(
+                        size: iconSize,
+                      ),
                     ),
                     child: XdgIconTheme(
                       data: XdgIconThemeData(
-                        size: TextIcon.getIconEffectiveSize(context).round(),
+                        size: iconSize.round(),
                       ),
                       child: Scaffold(
                         backgroundColor: Colors.transparent,

@@ -19,6 +19,8 @@ mixin ThemeConfigI {
   /// Set the font size
   double get fontSize;
 
+  double? get _iconSize;
+
   @ConfigDocDefault<List<IconType>>([
     IconType.flutter,
     IconType.direct,
@@ -88,6 +90,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
       'mode': ThemeConfigBase._mode,
       'fontFamily': ThemeConfigBase._fontFamily,
       'fontSize': ThemeConfigBase._fontSize,
+      'iconSize': ThemeConfigBase.__iconSize,
       'iconPriority': ThemeConfigBase._iconPriority,
       'iconFlutterVariation': ThemeConfigBase._iconFlutterVariation,
       'iconFlutterTwoTone': ThemeConfigBase._iconFlutterTwoTone,
@@ -120,6 +123,8 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
   final String? fontFamily;
   @override
   final double fontSize;
+  @override
+  final double? _iconSize;
   @override
   final List<IconType> iconPriority;
   @override
@@ -167,6 +172,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
     ThemeMode? mode,
     this.fontFamily,
     double? fontSize,
+    double? iconSize,
     List<IconType>? iconPriority,
     ConfigIconVariation? iconFlutterVariation,
     bool? iconFlutterTwoTone,
@@ -190,6 +196,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
     double? inactiveBorderAngle,
   }) : mode = mode ?? ThemeMode.system,
        fontSize = fontSize ?? kDefaultFontSize,
+       _iconSize = iconSize,
        iconPriority =
            iconPriority ??
            [
@@ -222,6 +229,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
       mode: fields['mode'],
       fontFamily: fields['fontFamily'],
       fontSize: fields['fontSize'],
+      iconSize: fields['iconSize'],
       iconPriority: fields['iconPriority'],
       iconFlutterVariation: fields['iconFlutterVariation'],
       iconFlutterTwoTone: fields['iconFlutterTwoTone'],
@@ -252,6 +260,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
 	mode = $mode,
 	fontFamily = $fontFamily,
 	fontSize = $fontSize,
+	_iconSize = $_iconSize,
 	iconPriority = $iconPriority,
 	iconFlutterVariation = $iconFlutterVariation,
 	iconFlutterTwoTone = $iconFlutterTwoTone,
@@ -281,6 +290,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
     return mode == other.mode &&
         fontFamily == other.fontFamily &&
         fontSize == other.fontSize &&
+        _iconSize == other._iconSize &&
         iconPriority == other.iconPriority &&
         iconFlutterVariation == other.iconFlutterVariation &&
         iconFlutterTwoTone == other.iconFlutterTwoTone &&
@@ -309,6 +319,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
     mode,
     fontFamily,
     fontSize,
+    _iconSize,
     iconPriority,
     iconFlutterVariation,
     iconFlutterTwoTone,

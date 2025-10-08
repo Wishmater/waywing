@@ -42,6 +42,10 @@ mixin ThemeConfigBase on ThemeConfigI {
   static const _fontSize = DoubleNumberField(defaultTo: kDefaultFontSize);
   double get fontSizeScaleFactor => fontSize / kDefaultFontSize;
 
+  static const __iconSize = DoubleNumberField(nullable: true);
+  double get iconSize => _iconSize ?? fontSize;
+  double get iconSizeScaleFactor => iconSize / kDefaultFontSize;
+
   //===========================================================================
   // Icons
   //===========================================================================

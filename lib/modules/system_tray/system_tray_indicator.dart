@@ -6,19 +6,21 @@ import "package:flutter/material.dart";
 import "package:path/path.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
+import "package:waywing/modules/system_tray/system_tray_feather.dart";
 import "package:waywing/widgets/argb_32_image_renderer.dart";
-import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
-import "package:xdg_icons/xdg_icons.dart";
 
 class SystemTrayIndicator extends StatelessWidget {
   final SystemTrayService service;
+  final SystemTrayConfig configuration;
   final OrgKdeStatusNotifierItemValues item;
   final WingedPopoverController popover;
 
   const SystemTrayIndicator({
     required this.service,
+    required this.configuration,
     required this.item,
     required this.popover,
     super.key,
@@ -54,7 +56,7 @@ class SystemTrayIndicator extends StatelessWidget {
         onSecondaryTap: () {
           tooglePopover();
         },
-        child: SystemTrayItemIcon(item: item),
+        child: SystemTrayItemIcon(item: item, configuration: configuration),
       ),
     );
   }
@@ -62,9 +64,11 @@ class SystemTrayIndicator extends StatelessWidget {
 
 class SystemTrayItemIcon extends StatelessWidget {
   final OrgKdeStatusNotifierItemValues item;
+  final SystemTrayConfig configuration;
 
   const SystemTrayItemIcon({
     required this.item,
+    required this.configuration,
     super.key,
   });
 
@@ -75,18 +79,22 @@ class SystemTrayItemIcon extends StatelessWidget {
       "Passive" => SystemTrayIcon(
         iconName: item.iconName,
         iconPixmap: item.iconPixmap,
+        size: configuration.iconSize,
       ),
       "Active" => SystemTrayIcon(
         iconName: item.iconName,
         iconPixmap: item.iconPixmap,
+        size: configuration.iconSize,
       ),
       "NeedsAttention" => SystemTrayIcon(
         iconName: item.attentionIconName,
         iconPixmap: item.attentionIconPixmap,
+        size: configuration.iconSize,
       ),
       _ => SystemTrayIcon(
         iconName: item.iconName,
         iconPixmap: item.iconPixmap,
+        size: configuration.iconSize,
       ),
     };
   }
@@ -95,10 +103,12 @@ class SystemTrayItemIcon extends StatelessWidget {
 class SystemTrayIcon extends StatelessWidget {
   final DBusValueSignalNotifier<String> iconName;
   final DBusValueSignalNotifier<PixmapIcons> iconPixmap;
+  final double size;
 
   const SystemTrayIcon({
     required this.iconName,
     required this.iconPixmap,
+    required this.size,
     super.key,
   });
 
@@ -110,7 +120,7 @@ class SystemTrayIcon extends StatelessWidget {
         return ValueListenableBuilder(
           valueListenable: iconPixmap,
           builder: (context, data, _) {
-            return RawSystemTrayIcon(path: path, data: data);
+            return RawSystemTrayIcon(path: path, data: data, size: size);
           },
         );
       },
@@ -122,14 +132,16 @@ class SystemTrayIcon extends StatelessWidget {
 class RawSystemTrayIcon extends StatelessWidget {
   final String path;
   final PixmapIcons data;
+  final double size;
 
   const RawSystemTrayIcon({
     required this.path,
     required this.data,
+    required this.size,
     super.key,
   });
 
-  Widget renderPixmap(BuildContext context, double size) {
+  Widget renderPixmap(BuildContext context) {
     if (data != PixmapIcons.empty() && data.icons.isNotEmpty) {
       Pixmap icon = data.icons[0];
       // TODO: 3 choose the optimal size needed, instead of just getting largest
@@ -154,21 +166,20 @@ class RawSystemTrayIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = TextIcon.getIconEffectiveSize(context);
     if (path.isNotEmpty) {
       if (isAbsolute(path)) {
         return Image.file(File(path));
       } else {
-        return XdgIcon(
-          name: path,
-          size: size.round(),
-          iconNotFoundBuilder: () {
-            return renderPixmap(context, size);
+        return WingedIcon(
+          iconNames: [path],
+          size: size,
+          notFoundBuilder: (context) {
+            return renderPixmap(context);
           },
         );
       }
     } else {
-      return renderPixmap(context, size);
+      return renderPixmap(context);
     }
   }
 }

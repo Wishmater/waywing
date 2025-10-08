@@ -249,7 +249,6 @@ class FeatherRegistry {
     ModalWing.registerFeather(registerFeather);
     BarWing.registerFeather(registerFeather);
     NotificationsWing.registerFeather(registerFeather);
-    CommandPaletteWing.registerFeather(registerFeather);
     MenuWing.registerFeather(registerFeather);
     // Feathers
     SpacerFeather.registerFeather(registerFeather);
@@ -265,6 +264,7 @@ class FeatherRegistry {
     NumLockFeather.registerFeather(registerFeather);
     WorkspaceSwitcherFeather.registerFeather(registerFeather);
     AppLauncherFeather.registerFeather(registerFeather);
+    CommandPaletteFeather.registerFeather(registerFeather);
   }
 }
 

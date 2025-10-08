@@ -140,6 +140,7 @@ class ExternalRoundedCornersBorderMotionConverter implements MotionConverter<Ext
       borderSide: GradientBorderSide(
         width: v[8],
         angle: v[9],
+        // TODO: 1 this still crashes when changing the color count in config for some reason
         colors: List.generate(v[10].round(), (i) {
           final initialIndex = 11 + i * 4;
           if (initialIndex + 3 >= v.length) return Colors.transparent;

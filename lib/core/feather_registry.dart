@@ -13,7 +13,7 @@ import "package:waywing/modules/app_launcher/launcher_feather.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
-import "package:waywing/modules/command_palette/command_palette_wing.dart";
+import "package:waywing/modules/command_palette/command_palette_feather.dart";
 import "package:waywing/modules/container_wings/modal.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_feather.dart";

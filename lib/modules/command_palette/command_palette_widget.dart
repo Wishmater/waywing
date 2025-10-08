@@ -1,5 +1,3 @@
-import "dart:io";
-
 import "package:flutter/material.dart";
 import "package:waywing/modules/command_palette/user_command_service.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
@@ -9,7 +7,7 @@ class CommandPaletteWidget extends StatefulWidget {
   final List<UserCommand> commands;
   final void Function() close;
 
-  const CommandPaletteWidget({required this.commands, required this.close});
+  const CommandPaletteWidget({super.key, required this.commands, required this.close});
 
   @override
   State<CommandPaletteWidget> createState() => CommandPaletteWidgetState();
@@ -46,13 +44,17 @@ class CommandPaletteWidgetState extends State<CommandPaletteWidget> {
   }
 
   void _run(UserCommand command) {
-    Process.start(
-      command.program,
-      ["-c", command.path],
-      includeParentEnvironment: true,
-      mode: ProcessStartMode.detached,
-    );
-    widget.close();
+    if (context.mounted) {
+
+    }
+    return;
+    // Process.start(
+    //   command.program,
+    //   ["-c", command.path],
+    //   includeParentEnvironment: true,
+    //   mode: ProcessStartMode.detached,
+    // );
+    // widget.close();
   }
 
   Widget _renderOption(BuildContext context, UserCommand command, SearchOptionsRenderConfig config) {

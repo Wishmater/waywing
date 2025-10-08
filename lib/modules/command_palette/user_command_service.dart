@@ -30,9 +30,6 @@ class UserCommand {
 
   @override
   bool operator ==(covariant UserCommand other) {
-    print(listEquals(arguments ?? [], other.arguments ?? []));
-    print("${arguments ?? []} -------- ${other.arguments ?? []}");
-    print("${arguments![0] == other.arguments![0]}");
     return program == other.program &&
         name == other.name &&
         description == other.description &&
@@ -44,9 +41,9 @@ class UserCommand {
   int get hashCode => Object.hashAll([program, name, description, path, ...(arguments ?? [])]);
 }
 
-sealed class UserCommandArgumentType2 {
+sealed class UserCommandArgumentType {
   @override
-  bool operator ==(covariant UserCommandArgumentType2 other) {
+  bool operator ==(covariant UserCommandArgumentType other) {
     if (other.runtimeType != runtimeType) return false;
     if (this is UserCommandArgumentTypeUnion) {
       return listEquals(
@@ -66,21 +63,21 @@ sealed class UserCommandArgumentType2 {
   }
 }
 
-class UserCommandArgumentTypeInt extends UserCommandArgumentType2 {}
+class UserCommandArgumentTypeInt extends UserCommandArgumentType {}
 
-class UserCommandArgumentTypeString extends UserCommandArgumentType2 {}
+class UserCommandArgumentTypeString extends UserCommandArgumentType {}
 
-class UserCommandArgumentTypeFloat extends UserCommandArgumentType2 {}
+class UserCommandArgumentTypeFloat extends UserCommandArgumentType {}
 
-class UserCommandArgumentTypeBool extends UserCommandArgumentType2 {}
+class UserCommandArgumentTypeBool extends UserCommandArgumentType {}
 
-class UserCommandArgumentTypeUnion extends UserCommandArgumentType2 {
+class UserCommandArgumentTypeUnion extends UserCommandArgumentType {
   List<String> options;
   UserCommandArgumentTypeUnion(this.options);
 }
 
 class UserCommandArgument {
-  final UserCommandArgumentType2 type;
+  final UserCommandArgumentType type;
   final String? description;
 
   const UserCommandArgument({required this.type, this.description});
@@ -264,7 +261,7 @@ class UserCommandService extends Service {
   }
 }
 
-(UserCommandArgumentType2?, String) _parseTypeAndDesc(String str) {
+(UserCommandArgumentType?, String) _parseTypeAndDesc(String str) {
   str = str.trim();
   final splitted = str.split("|");
   if (splitted.length == 1) {

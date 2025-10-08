@@ -142,7 +142,7 @@ class ExternalRoundedCornersBorderMotionConverter implements MotionConverter<Ext
         angle: v[9],
         colors: List.generate(v[10].round(), (i) {
           final initialIndex = 11 + i * 4;
-          if (initialIndex >= v.length) return Colors.transparent;
+          if (initialIndex + 3 >= v.length) return Colors.transparent;
           return Color.from(
             alpha: v[initialIndex],
             red: v[initialIndex + 1],

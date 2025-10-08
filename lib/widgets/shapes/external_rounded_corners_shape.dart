@@ -398,9 +398,11 @@ _getCornerRadius(
   // print("Calculating corner $y $x");
   final positionX = _getRectSide(position, x);
   final positionY = _getRectSide(position, y);
+  final potentialPositionX = (positionX + _getPotentialRadiusAdjustment(radius, x)).clamp(bounds.left, bounds.right);
+  final potentialPositionY = (positionY + _getPotentialRadiusAdjustment(radius, y)).clamp(bounds.top, bounds.bottom);
   // print("  position = $positionX, $positionY");
-  final closestBoundX = _getClosestBound(bounds, parentContainers, x, positionX, positionY);
-  final closestBoundY = _getClosestBound(bounds, parentContainers, y, positionY, positionX);
+  final closestBoundX = _getClosestBound(bounds, parentContainers, x, positionX, potentialPositionY);
+  final closestBoundY = _getClosestBound(bounds, parentContainers, y, positionY, potentialPositionX);
   // print("  closestBoundX = $closestBoundX");
   // print("  closestBoundY = $closestBoundY");
   final isDockedX = closestBoundX == positionX;
@@ -409,8 +411,10 @@ _getCornerRadius(
     return Radius.zero;
   }
   final result = Radius.elliptical(
-    !isDockedY ? radius.x : (positionX - closestBoundX).negative.clamp(-radius.x, 0),
-    !isDockedX ? radius.y : (positionY - closestBoundY).negative.clamp(-radius.y, 0),
+    !isDockedY ? radius.x : -radius.x,
+    !isDockedX ? radius.y : -radius.y,
+    // !isDockedY ? radius.x : (positionX - closestBoundX).negative.clamp(-radius.x, 0),
+    // !isDockedX ? radius.y : (positionY - closestBoundY).negative.clamp(-radius.y, 0),
   );
   // print("  result = $result");
   return result;
@@ -446,6 +450,15 @@ double _getRectSide(Rect rect, Side side) {
     Side.right => rect.right,
     Side.top => rect.top,
     Side.bottom => rect.bottom,
+  };
+}
+
+double _getPotentialRadiusAdjustment(Radius radius, Side side) {
+  return switch (side) {
+    Side.left => -radius.x,
+    Side.right => radius.x,
+    Side.top => -radius.y,
+    Side.bottom => radius.y,
   };
 }
 

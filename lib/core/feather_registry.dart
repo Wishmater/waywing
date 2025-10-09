@@ -15,6 +15,7 @@ import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
 import "package:waywing/modules/command_palette/command_palette_feather.dart";
 import "package:waywing/modules/container_wings/modal.dart";
+import "package:waywing/modules/frame/frame_wing.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_feather.dart";
 import "package:waywing/modules/kb_layout/num_lock_feather.dart";
@@ -250,6 +251,7 @@ class FeatherRegistry {
     BarWing.registerFeather(registerFeather);
     NotificationsWing.registerFeather(registerFeather);
     MenuWing.registerFeather(registerFeather);
+    FrameWing.registerFeather(registerFeather);
     // Feathers
     SpacerFeather.registerFeather(registerFeather);
     DividerFeather.registerFeather(registerFeather);

@@ -9,7 +9,6 @@ import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
-import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
@@ -21,8 +20,6 @@ import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 part "modal.config.dart";
 
 class ModalWing extends Wing<ModalConfig> {
-  late ApplicationService service;
-
   ModalWing._();
 
   static void registerFeather(RegisterFeatherCallback<ModalWing, ModalConfig> registerFeather) {

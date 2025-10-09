@@ -48,7 +48,7 @@ class BarWing extends Wing<BarConfig> {
   @override
   ValueListenable<EdgeInsets> get exclusiveSize => _exclusiveSize;
   late final ValueNotifier<EdgeInsets> _exclusiveSize = ValueNotifier(_getExclusiveSize());
-  _getExclusiveSize() => EdgeInsets.fromLTRB(
+  EdgeInsets _getExclusiveSize() => EdgeInsets.fromLTRB(
     config.exclusiveSizeLeft,
     config.exclusiveSizeTop,
     config.exclusiveSizeRight,

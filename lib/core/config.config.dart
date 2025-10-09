@@ -38,8 +38,11 @@ mixin MainConfigI {
   @ConfigDocDefault<bool>(false)
   bool get requestKeyboardFocus;
 
-  @ConfigDocDefault<bool>(false)
+  @ConfigDocDefault<bool>(true)
   bool get internalUsePainter;
+
+  @ConfigDocDefault<bool>(false)
+  bool get internalDebugIcons;
   LoggingConfig get logging;
   ThemeConfig get theme;
   List<(String, Object)> get dynamicSchemas;
@@ -64,6 +67,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
       'animationSwitching': MainConfigBase._animationSwitching,
       'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
       'internalUsePainter': MainConfigBase._internalUsePainter,
+      'internalDebugIcons': MainConfigBase._internalDebugIcons,
     },
   );
 
@@ -108,6 +112,8 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   final bool requestKeyboardFocus;
   @override
   final bool internalUsePainter;
+  @override
+  final bool internalDebugIcons;
 
   @override
   final LoggingConfig logging;
@@ -126,6 +132,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     AnimationSwitching? animationSwitching,
     bool? requestKeyboardFocus,
     bool? internalUsePainter,
+    bool? internalDebugIcons,
     required this.logging,
     required this.theme,
     required this.dynamicSchemas,
@@ -139,7 +146,8 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
        animationSwitching =
            animationSwitching ?? AnimationSwitching.fadeThrough,
        requestKeyboardFocus = requestKeyboardFocus ?? false,
-       internalUsePainter = internalUsePainter ?? false;
+       internalUsePainter = internalUsePainter ?? true,
+       internalDebugIcons = internalDebugIcons ?? false;
 
   factory MainConfig.fromBlock(BlockData data) {
     Map<String, dynamic> fields = data.fields;
@@ -168,6 +176,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
       animationSwitching: fields['animationSwitching'],
       requestKeyboardFocus: fields['requestKeyboardFocus'],
       internalUsePainter: fields['internalUsePainter'],
+      internalDebugIcons: fields['internalDebugIcons'],
       logging: LoggingConfig.fromBlock(data.firstBlockWith('Logging')!),
       theme: ThemeConfig.fromBlock(data.firstBlockWith('Theme')!),
     );
@@ -187,6 +196,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
 	animationSwitching = $animationSwitching,
 	requestKeyboardFocus = $requestKeyboardFocus,
 	internalUsePainter = $internalUsePainter,
+	internalDebugIcons = $internalDebugIcons,
 	logging = ${logging.toString().split("\n").join("\n\t")},
 	theme = ${theme.toString().split("\n").join("\n\t")},
 	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
@@ -206,6 +216,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
         animationSwitching == other.animationSwitching &&
         requestKeyboardFocus == other.requestKeyboardFocus &&
         internalUsePainter == other.internalUsePainter &&
+        internalDebugIcons == other.internalDebugIcons &&
         logging == other.logging &&
         theme == other.theme &&
         configListEqual(dynamicSchemas, other.dynamicSchemas);
@@ -224,6 +235,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     animationSwitching,
     requestKeyboardFocus,
     internalUsePainter,
+    internalDebugIcons,
     logging,
     theme,
     dynamicSchemas,

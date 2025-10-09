@@ -78,6 +78,8 @@ class OsInfoService extends Service {
       logger.log(Level.warning, "Failed to parse logo");
     } else {
       logo = logoLine.split("=")[1].trim();
+      if (logo!.startsWith('"')) logo = logo!.substring(1);
+      if (logo!.endsWith('"')) logo = logo!.substring(0, logo!.length - 1);
     }
   }
 

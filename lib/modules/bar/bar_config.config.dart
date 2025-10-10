@@ -37,6 +37,8 @@ mixin BarConfigI {
 
   double? get _rounding;
 
+  double? get _shadows;
+
   double? get _indicatorMinSize;
 
   double? get _indicatorPadding;
@@ -57,6 +59,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
       'exclusiveSizeTop': BarConfigBase.__exclusiveSizeTop,
       'exclusiveSizeBottom': BarConfigBase.__exclusiveSizeBottom,
       'rounding': BarConfigBase.__rounding,
+      'shadows': BarConfigBase.__shadows,
       'indicatorMinSize': BarConfigBase.__indicatorMinSize,
       'indicatorPadding': BarConfigBase.__indicatorPadding,
     },
@@ -104,6 +107,8 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
   @override
   final double? _rounding;
   @override
+  final double? _shadows;
+  @override
   final double? _indicatorMinSize;
   @override
   final double? _indicatorPadding;
@@ -120,6 +125,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     double? exclusiveSizeTop,
     double? exclusiveSizeBottom,
     double? rounding,
+    double? shadows,
     double? indicatorMinSize,
     double? indicatorPadding,
     required this.dynamicSchemas,
@@ -134,6 +140,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
        _exclusiveSizeTop = exclusiveSizeTop,
        _exclusiveSizeBottom = exclusiveSizeBottom,
        _rounding = rounding,
+       _shadows = shadows,
        _indicatorMinSize = indicatorMinSize,
        _indicatorPadding = indicatorPadding;
 
@@ -164,6 +171,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
       exclusiveSizeTop: fields['exclusiveSizeTop'],
       exclusiveSizeBottom: fields['exclusiveSizeBottom'],
       rounding: fields['rounding'],
+      shadows: fields['shadows'],
       indicatorMinSize: fields['indicatorMinSize'],
       indicatorPadding: fields['indicatorPadding'],
     );
@@ -183,6 +191,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
 	_exclusiveSizeTop = $_exclusiveSizeTop,
 	_exclusiveSizeBottom = $_exclusiveSizeBottom,
 	_rounding = $_rounding,
+	_shadows = $_shadows,
 	_indicatorMinSize = $_indicatorMinSize,
 	_indicatorPadding = $_indicatorPadding,
 	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
@@ -202,6 +211,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
         _exclusiveSizeTop == other._exclusiveSizeTop &&
         _exclusiveSizeBottom == other._exclusiveSizeBottom &&
         _rounding == other._rounding &&
+        _shadows == other._shadows &&
         _indicatorMinSize == other._indicatorMinSize &&
         _indicatorPadding == other._indicatorPadding &&
         configListEqual(dynamicSchemas, other.dynamicSchemas);
@@ -220,6 +230,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     _exclusiveSizeTop,
     _exclusiveSizeBottom,
     _rounding,
+    _shadows,
     _indicatorMinSize,
     _indicatorPadding,
     dynamicSchemas,

@@ -68,9 +68,12 @@ mixin BarConfigBase on BarConfigI {
   //===========================================================================
 
   // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const __rounding = DoubleNumberField(nullable: true); // defaults to mainConfig.theme.containerRounding
+  static const __rounding = DoubleNumberField(nullable: true);
   double get rounding => _rounding ?? mainConfig.theme.containerRounding;
   // TODO: 3 do we want to expose different rounding values for each corner? or at least horizontal/vertical?
+
+  static const __shadows = DoubleNumberField(nullable: true);
+  double get shadows => _shadows ?? 1; // mainConfig.theme.shadows;
 
   // Derived
 

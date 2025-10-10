@@ -20,7 +20,7 @@ import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class Bar extends StatefulWidget {
   final BarWing wing;
-  final EdgeInsets rerservedSpace;
+  final EdgeInsets reservedSpace;
 
   BarConfig get config => wing.config;
   List<Feather> get startFeathers => wing.startFeathers;
@@ -33,7 +33,7 @@ class Bar extends StatefulWidget {
 
   const Bar({
     required this.wing,
-    required this.rerservedSpace,
+    required this.reservedSpace,
     super.key,
   });
 
@@ -76,12 +76,12 @@ class _BarState extends State<Bar> {
         top = monitorSize.height - height - widget.config.marginBottom;
       }
     }
-    left += widget.rerservedSpace.left;
-    top += widget.rerservedSpace.top;
+    left += widget.reservedSpace.left;
+    top += widget.reservedSpace.top;
     if (widget.config.isVertical) {
-      height -= widget.rerservedSpace.vertical;
+      height -= widget.reservedSpace.vertical;
     } else {
-      width -= widget.rerservedSpace.horizontal;
+      width -= widget.reservedSpace.horizontal;
     }
 
     final shape = ExternalRoundedCornersBorder.docked(
@@ -104,7 +104,8 @@ class _BarState extends State<Bar> {
           child: WingedContainer(
             motion: motion,
             clipBehavior: Clip.antiAliasWithSaveLayer,
-            elevation: 5,
+            // TODO: 3 this is a weird hack, ideally, shadow multiplier would come for a theme that we can override
+            elevation: 5 * widget.config.shadows,
             shadowOffset: getShadowOffset(),
             shape: shape,
             // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
@@ -464,51 +465,62 @@ class _BarState extends State<Bar> {
           valueListenable: targetChildContainerPositioning,
           child: child,
           builder: (context, targetChildContainerPositioning, child) {
-            if (isClosed) {
-              return buildContainer(
-                context,
-                child!,
-                buttonShape,
-                isTooltip: false,
-                isClosed: isClosed,
-              );
-            }
-            final ExternalRoundedCornersBorder popoverShape;
-            if (targetChildContainerPositioning == null) {
-              popoverShape = ExternalRoundedCornersBorder(
-                borderRadius: popoverBorderRadius,
-              );
-            } else {
-              final screenSize = MediaQuery.sizeOf(context);
-              final barInnerPadding = barShape.innerDimensions;
-              popoverShape = ExternalRoundedCornersBorder.positioned(
-                borderRadius: popoverBorderRadius,
-                position: targetChildContainerPositioning.toRect(),
-                bounds: Rect.fromLTWH(0, 0, screenSize.width, screenSize.height),
-                parentContainers: [
-                  if (barPositioning != null)
-                    Rect.fromLTWH(
-                      barPositioning.offset.dx + barInnerPadding.left,
-                      barPositioning.offset.dy,
-                      barPositioning.size.width - barInnerPadding.horizontal,
-                      barPositioning.size.height,
+            return ValueListenableBuilder(
+              valueListenable: mainConfig.exclusiveSize,
+              child: child,
+              builder: (context, exclusiveSize, child) {
+                if (isClosed) {
+                  return buildContainer(
+                    context,
+                    child!,
+                    buttonShape,
+                    isTooltip: false,
+                    isClosed: isClosed,
+                  );
+                }
+                final ExternalRoundedCornersBorder popoverShape;
+                if (targetChildContainerPositioning == null) {
+                  popoverShape = ExternalRoundedCornersBorder(
+                    borderRadius: popoverBorderRadius,
+                  );
+                } else {
+                  final screenSize = MediaQuery.sizeOf(context);
+                  final barInnerPadding = barShape.innerDimensions;
+                  popoverShape = ExternalRoundedCornersBorder.positioned(
+                    borderRadius: popoverBorderRadius,
+                    position: targetChildContainerPositioning.toRect(),
+                    bounds: Rect.fromLTWH(
+                      exclusiveSize.left,
+                      exclusiveSize.right,
+                      screenSize.width - exclusiveSize.horizontal,
+                      screenSize.height - exclusiveSize.vertical,
                     ),
-                  if (barPositioning != null)
-                    Rect.fromLTWH(
-                      barPositioning.offset.dx,
-                      barPositioning.offset.dy + barInnerPadding.top,
-                      barPositioning.size.width,
-                      barPositioning.size.height - barInnerPadding.vertical,
-                    ),
-                ], // TODO 1 we probably need to substract shape radius from barPositioning
-              );
-            }
-            return buildContainer(
-              context,
-              child!,
-              popoverShape,
-              isTooltip: false,
-              isClosed: isClosed,
+                    parentContainers: [
+                      if (barPositioning != null)
+                        Rect.fromLTWH(
+                          barPositioning.offset.dx + barInnerPadding.left,
+                          barPositioning.offset.dy,
+                          barPositioning.size.width - barInnerPadding.horizontal,
+                          barPositioning.size.height,
+                        ),
+                      if (barPositioning != null)
+                        Rect.fromLTWH(
+                          barPositioning.offset.dx,
+                          barPositioning.offset.dy + barInnerPadding.top,
+                          barPositioning.size.width,
+                          barPositioning.size.height - barInnerPadding.vertical,
+                        ),
+                    ], // TODO 1 we probably need to substract shape radius from barPositioning
+                  );
+                }
+                return buildContainer(
+                  context,
+                  child!,
+                  popoverShape,
+                  isTooltip: false,
+                  isClosed: isClosed,
+                );
+              },
             );
           },
         );

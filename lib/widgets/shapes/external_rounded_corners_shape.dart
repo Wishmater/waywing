@@ -13,7 +13,7 @@ class GradientBorderSide {
   late final Alignment alignmentBegin = Alignment(-cos(angleRadians), -sin(angleRadians));
   late final Alignment alignmentEnd = Alignment(cos(angleRadians), sin(angleRadians));
 
-  // TODO: 3 make this const somehow
+  // TODO: 3 make this const somehow. The problem is that sin() and cos() can't be called
   GradientBorderSide({
     required this.colors,
     this.width = 1,

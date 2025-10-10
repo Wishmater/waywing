@@ -1,3 +1,5 @@
+import "dart:ui";
+
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:flutter/foundation.dart";
@@ -44,21 +46,22 @@ class FrameWing extends Wing<FrameConfig> {
 
   @override
   Widget buildWing(BuildContext context, EdgeInsets rerservedSpace) {
-    // TODO: 2 implement shadows. Implementing it here is easy, but we also need Bar to play nice with it
     return MotionPositioned(
       motion: mainConfig.motions.expressive.spatial.slow,
       left: rerservedSpace.left,
       right: rerservedSpace.right,
       top: rerservedSpace.top,
       bottom: rerservedSpace.bottom,
-      child: Material(
+      child: WingedContainer(
         color: Theme.of(context).canvasColor,
+        addInputRegion: false,
+        focusContainerOnMouseOver: false,
+        activeBorder: null,
+        inactiveBorder: null,
+        elevation: 5,
         shape: FrameShape(
           borderRadius: BorderRadius.all(Radius.circular(config.rounding)),
-          sizeLeft: config.sizeLeft,
-          sizeRight: config.sizeRight,
-          sizeTop: config.sizeTop,
-          sizeBottom: config.sizeBottom,
+          edgeInsets: config.edgeInsets,
         ),
       ),
     );
@@ -77,6 +80,7 @@ mixin FrameConfigBase on FrameConfigI {
   double get sizeTop => _sizeTop ?? size;
   static const __sizeBottom = DoubleNumberField(nullable: true);
   double get sizeBottom => _sizeBottom ?? size;
+  EdgeInsets get edgeInsets => EdgeInsets.fromLTRB(sizeLeft, sizeTop, sizeRight, sizeBottom);
 
   static const __rounding = DoubleNumberField(nullable: true);
   double get rounding => _rounding ?? mainConfig.theme.containerRounding;
@@ -84,35 +88,31 @@ mixin FrameConfigBase on FrameConfigI {
 
 class FrameShape extends ShapeBorder {
   final BorderRadius borderRadius;
-  final double sizeLeft;
-  final double sizeRight;
-  final double sizeTop;
-  final double sizeBottom;
+  final EdgeInsets edgeInsets;
 
   const FrameShape({
     required this.borderRadius,
-    required this.sizeLeft,
-    required this.sizeRight,
-    required this.sizeTop,
-    required this.sizeBottom,
+    required this.edgeInsets,
   });
 
   @override
-  EdgeInsetsGeometry get dimensions => EdgeInsets.zero; // doesn't matter
+  // EdgeInsetsGeometry get dimensions => edgeInsets; // this causes WingedContainer to misbehave
+  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
 
   @override
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
     final innerRect = Rect.fromLTRB(
-      rect.left + sizeLeft,
-      rect.top + sizeTop,
-      rect.right - sizeRight,
-      rect.bottom - sizeBottom,
+      rect.left + edgeInsets.left,
+      rect.top + edgeInsets.top,
+      rect.right - edgeInsets.right,
+      rect.bottom - edgeInsets.bottom,
     );
     final innerPath = ExternalRoundedCornersBorder(
       borderRadius: borderRadius,
     ).getOuterPath(innerRect);
     final outerPath = Path();
-    outerPath.addRect(rect);
+    // inflating outerPath is a hack to make fram always have thick shadows even when it's thin
+    outerPath.addRect(rect.inflate(10000));
     return Path.combine(PathOperation.difference, outerPath, innerPath);
   }
 
@@ -128,12 +128,51 @@ class FrameShape extends ShapeBorder {
   ShapeBorder scale(double t) {
     return FrameShape(
       borderRadius: borderRadius * t,
-      sizeLeft: sizeLeft * t,
-      sizeRight: sizeRight * t,
-      sizeTop: sizeTop * t,
-      sizeBottom: sizeBottom * t,
+      edgeInsets: edgeInsets * t,
     );
   }
 
-  // TODO: 1 do we need anything else? lerp?
+  @override
+  ShapeBorder? lerpTo(ShapeBorder? b, double t) {
+    if (b == null) {
+      return super.lerpTo(b, t);
+    }
+    if (b is FrameShape) {
+      return null; // defer to lerpFrom of b
+    }
+    if (t < 0.5) {
+      return scale(1 - (t * 2));
+    }
+    return b.scale((t - 0.5) * 2);
+  }
+
+  @override
+  ShapeBorder? lerpFrom(ShapeBorder? a, double t) {
+    if (a == null) {
+      return super.lerpFrom(a, t);
+    }
+    if (a is FrameShape) {
+      return FrameShape(
+        borderRadius: BorderRadiusGeometry.lerp(a.borderRadius, borderRadius, t)!.resolve(TextDirection.ltr),
+        edgeInsets: EdgeInsets.lerp(a.edgeInsets, edgeInsets, t)!,
+      );
+    }
+    if (t < 0.5) {
+      return a.scale(1 - (t * 2));
+    }
+    return scale((t - 0.5) * 2);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is FrameShape && other.borderRadius == borderRadius && other.edgeInsets == edgeInsets;
+  }
+
+  @override
+  int get hashCode => Object.hash(borderRadius, edgeInsets);
+
+  @override
+  String toString() {
+    return "$runtimeType($borderRadius, $edgeInsets)";
+  }
 }

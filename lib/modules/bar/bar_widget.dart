@@ -1,21 +1,19 @@
-import "dart:math";
-
+import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
 import "package:motor/motor.dart";
-import "package:tronco/tronco.dart";
-import "package:waywing/core/feather_registry.dart";
 import "package:waywing/modules/bar/bar_config.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
+import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/motion_layout/motion_flex.dart";
+import "package:waywing/widgets/motion_layout/motion_layout.dart";
 import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
-import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class Bar extends StatefulWidget {
@@ -26,10 +24,6 @@ class Bar extends StatefulWidget {
   List<Feather> get startFeathers => wing.startFeathers;
   List<Feather> get centerFeathers => wing.centerFeathers;
   List<Feather> get endFeathers => wing.endFeathers;
-
-  // TODO: 2 there should never be a need to log in the widgets, it's probably
-  // a skill issue that can be validated before getting here
-  Logger get logger => wing.logger; // ignore: invalid_use_of_protected_member
 
   const Bar({
     required this.wing,
@@ -42,20 +36,16 @@ class Bar extends StatefulWidget {
 }
 
 class _BarState extends State<Bar> {
-  // adding global keys to feathers ensures their state
-  // won't be lost when reloading config, including popover and tooltip state
-  Map<String, List<GlobalKey>> featherGlobalKeys = {};
   final PositioningNotifierController barPositioningController = PositioningNotifierController();
+
+  Motion get motion => mainConfig.motions.expressive.spatial.normal;
 
   // TODO: 2 ANIMATION animate entrance of the bar when it is initialized
   @override
   Widget build(BuildContext context) {
     final monitorSize = MediaQuery.sizeOf(context);
     double left, top, width, height;
-    Alignment startAlignment, endAlignment;
     if (widget.config.isVertical) {
-      startAlignment = Alignment.topCenter;
-      endAlignment = Alignment.bottomCenter;
       top = widget.config.marginTop;
       height = monitorSize.height - widget.config.marginTop - widget.config.marginBottom;
       width = widget.config.size.toDouble();
@@ -65,8 +55,6 @@ class _BarState extends State<Bar> {
         left = monitorSize.width - width - widget.config.marginRight;
       }
     } else {
-      startAlignment = Alignment.centerLeft;
-      endAlignment = Alignment.centerRight;
       left = widget.config.marginLeft;
       width = monitorSize.width - widget.config.marginLeft - widget.config.marginRight;
       height = widget.config.size.toDouble();
@@ -84,14 +72,13 @@ class _BarState extends State<Bar> {
       width -= widget.reservedSpace.horizontal;
     }
 
-    final shape = ExternalRoundedCornersBorder.docked(
+    final barShape = ExternalRoundedCornersBorder.docked(
       borderRadius: BorderRadius.all(Radius.circular(widget.config.rounding)),
       isDockedTop: widget.config.side != ScreenEdge.bottom && widget.config.marginTop == 0,
       isDockedBottom: widget.config.side != ScreenEdge.top && widget.config.marginBottom == 0,
       isDockedLeft: widget.config.side != ScreenEdge.right && widget.config.marginLeft == 0,
       isDockedRight: widget.config.side != ScreenEdge.left && widget.config.marginRight == 0,
     );
-    Map<String, int> feathersCount = {};
     return MotionPositioned(
       motion: motion,
       left: left,
@@ -107,10 +94,7 @@ class _BarState extends State<Bar> {
             // TODO: 3 this is a weird hack, ideally, shadow multiplier would come for a theme that we can override
             elevation: 5 * widget.config.shadows,
             shadowOffset: getShadowOffset(),
-            shape: shape,
-            // TODO: 1 implement a proper layout that handles gracefully when widgets overflow
-            // this should also solve the issue of widgets being disposed when switching vertical
-            // to horizontal bar (or viceversa) because we switched Row / Column
+            shape: barShape,
             child: Theme(
               data: Theme.of(context).copyWith(
                 buttonTheme: Theme.of(context).buttonTheme.copyWith(
@@ -120,57 +104,134 @@ class _BarState extends State<Bar> {
                   ),
                 ),
               ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                fit: StackFit.expand,
-                children: [
-                  Container(
-                    alignment: endAlignment,
-                    padding: EdgeInsets.only(
-                      right: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                      bottom: widget.config.isVertical ? widget.config.size * 0.2 : 0,
+              child: ValueListenableBuilder(
+                valueListenable: widget.wing.allFeathersInitialized,
+                builder: (context, allFeathersInitialized, _) {
+                  return ValueListenableBuilder(
+                    valueListenable: DerivedValueNotifier(
+                      dependencies: allFeathersInitialized.map((e) => e.item.components).toList(),
+                      derive: () => allFeathersInitialized
+                          .map((e) {
+                            return e.item.components.value.where((c) => c.buildIndicators != null).mapIndexed((i, c) {
+                              return BarPositionedItem(
+                                c,
+                                e.position,
+                                c.uniqueIdentifier == null ? "${e.item.uniqueId} - $i" : null,
+                              );
+                            });
+                          })
+                          .flatten()
+                          .toList(),
                     ),
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(
-                        context: context,
-                        feathers: widget.endFeathers,
-                        feathersCount: feathersCount,
-                        barShape: shape,
-                      ),
-                    ),
-                  ),
-
-                  Align(
-                    alignment: Alignment.center,
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(
-                        context: context,
-                        feathers: widget.centerFeathers,
-                        feathersCount: feathersCount,
-                        barShape: shape,
-                      ),
-                    ),
-                  ),
-
-                  Container(
-                    alignment: startAlignment,
-                    padding: EdgeInsets.only(
-                      left: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                      top: widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                    ),
-                    child: buildLayoutWidget(
-                      context,
-                      buildFeatherWidgets(
-                        context: context,
-                        feathers: widget.startFeathers,
-                        feathersCount: feathersCount,
-                        barShape: shape,
-                      ),
-                    ),
-                  ),
-                ],
+                    builder: (context, allComponentsInitialized, _) {
+                      return ValueListenableBuilder(
+                        valueListenable: DerivedValueNotifier(
+                          dependencies: allComponentsInitialized.map((e) => e.item.isIndicatorsEnabled).toList(),
+                          derive: () => allComponentsInitialized
+                              .where((e) => e.item.isIndicatorsEnabled.value && e.item.buildIndicators != null)
+                              .toList(),
+                        ),
+                        builder: (context, allComponentsInitializedAndEnabled, _) {
+                          return MotionLayout(
+                            motion: motion,
+                            data: allComponentsInitializedAndEnabled,
+                            animateIndexChanges: true,
+                            itemBuilder: (context, component) {
+                              return buildPopover(
+                                context: context,
+                                component: component.item,
+                                barShape: barShape,
+                                builder: (context, popover) {
+                                  final indicators = component.item.buildIndicators!(context, popover);
+                                  return Flex(
+                                    direction: widget.config.isVertical ? Axis.vertical : Axis.horizontal,
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: indicators,
+                                  );
+                                },
+                              );
+                            },
+                            layoutBuilder: (context, children, data) {
+                              final direction = widget.config.isVertical ? Axis.vertical : Axis.horizontal;
+                              final startScrollController = ScrollController();
+                              final endScrollController = ScrollController();
+                              final List<Widget> startWidgets = [], centerWidgets = [], endWidgets = [];
+                              for (int i = 0; i < children.length; i++) {
+                                switch (data[i].position) {
+                                  case BarPosition.start:
+                                    startWidgets.add(children[i]);
+                                  case BarPosition.center:
+                                    centerWidgets.add(children[i]);
+                                  case BarPosition.end:
+                                    endWidgets.add(children[i]);
+                                }
+                              }
+                              final padding = EdgeInsets.symmetric(
+                                horizontal: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                                vertical: widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                              );
+                              return Flex(
+                                direction: direction,
+                                children: [
+                                  Expanded(
+                                    child: Scrollbar(
+                                      controller: startScrollController,
+                                      child: SingleChildScrollView(
+                                        controller: startScrollController,
+                                        scrollDirection: direction,
+                                        child: Padding(
+                                          padding: padding,
+                                          child: Flex(
+                                            direction: direction,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: startWidgets,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: padding,
+                                    child: Flex(
+                                      direction: direction,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: centerWidgets,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Scrollbar(
+                                      controller: endScrollController,
+                                      child: SingleChildScrollView(
+                                        controller: endScrollController,
+                                        scrollDirection: direction,
+                                        reverse: true,
+                                        child: Padding(
+                                          padding: padding,
+                                          child: Flex(
+                                            direction: direction,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: endWidgets,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                            transitionBuilder: MotionFlex(
+                              data: const [],
+                              itemBuilder: (_, _) => SizedBox.shrink(),
+                              motion: motion,
+                              direction: widget.config.isVertical ? Axis.vertical : Axis.horizontal,
+                            ).defaultTransitionBuilder,
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ),
@@ -178,124 +239,6 @@ class _BarState extends State<Bar> {
       ),
     );
   }
-
-  Widget buildLayoutWidget(BuildContext context, List<Widget> children) {
-    // TODO: 1 add animations to bar components layout
-    return Flex(
-      direction: widget.config.isVertical ? Axis.vertical : Axis.horizontal,
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: children,
-    );
-  }
-
-  List<Widget> buildFeatherWidgets({
-    required BuildContext context,
-    required List<Feather> feathers,
-    required Map<String, int> feathersCount,
-    required ExternalRoundedCornersBorder barShape,
-  }) {
-    final result = <Widget>[];
-    for (final feather in feathers) {
-      result.add(
-        FutureBuilder(
-          future: featherRegistry.awaitInitialization(feather),
-          builder: (context, snapshot) {
-            // TODO: 2 ANIMATIONS animate when switching out of loading state,
-            if (snapshot.hasError) {
-              // TODO: 1 Implement proper error handling in featherRegistry and remove this
-              widget.logger.log(
-                Level.error,
-                "Error caught in bar when awaiting feather initialization for feather ${feather.name}",
-                error: snapshot.error,
-                stackTrace: snapshot.stackTrace,
-              );
-              return SizedBox(
-                height: widget.config.isVertical ? widget.config.indicatorMinSize : null,
-                width: !widget.config.isVertical ? widget.config.indicatorMinSize : null,
-                child: WingedIcon(
-                  flutterIcon: SymbolsVaried.error,
-                  iconNames: ["dialog-error"],
-                  textIcon: "󰗖", // nf-md-alert_circle_outline
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              );
-            }
-
-            if (snapshot.connectionState != ConnectionState.done) {
-              return Container(
-                height: widget.config.isVertical ? widget.config.indicatorMinSize : widget.config.size.toDouble(),
-                width: !widget.config.isVertical ? widget.config.indicatorMinSize : widget.config.size.toDouble(),
-                padding: EdgeInsets.all(0.25 * min(widget.config.indicatorMinSize, widget.config.size)),
-                alignment: Alignment.center,
-                child: AspectRatio(aspectRatio: 1, child: CircularProgressIndicator()),
-              );
-            }
-
-            return ValueListenableBuilder(
-              valueListenable: feather.components,
-              builder: (context, components, child) {
-                if (components.isEmpty) SizedBox.shrink();
-                final result = <Widget>[];
-                // TODO: 3 maybe add some visual indication that widgets belong to the same feather
-                feathersCount[feather.name] ??= 0;
-                final featherIndex = feathersCount[feather.name]!;
-                feathersCount[feather.name] = featherIndex + 1;
-                final featherName = "${feather.name}$featherIndex";
-                featherGlobalKeys[featherName] ??= [GlobalKey()];
-                final featherKeys = featherGlobalKeys[featherName]!;
-                while (featherKeys.length <= components.length) {
-                  featherKeys.add(GlobalKey());
-                }
-                // TODO: 3 PERFORMANCE remove unused keys from featherKeys ???
-                // TODO: 3 ERROR HANDLING bar should throw an error if it is assigned a feather
-                // that doesn't support indicators (probably do this on handling config)
-                for (int i = 0; i < components.length; i++) {
-                  final component = components[i];
-                  if (component.buildIndicators == null) continue;
-                  final key = featherKeys[i];
-
-                  var componentWidget = buildPopover(
-                    context: context,
-                    component: component,
-                    barShape: barShape,
-                    builder: (context, popover) {
-                      final indicators = component.buildIndicators!(context, popover);
-                      if (widget.config.isVertical) {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: indicators,
-                        );
-                      } else {
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: indicators,
-                        );
-                      }
-                    },
-                  );
-
-                  // TODO: 2 listen to component.enabled to have some kind of different decoration?
-
-                  // TODO: 2 PERFORMANCE maybe pass a builder instead if a Widget to _buildVisibility
-                  // so children aren't build unnecessarily for hidden feathers
-                  componentWidget = buildVisibility(context, component, componentWidget);
-
-                  result.add(KeyedSubtree(key: key, child: componentWidget));
-                }
-                return buildLayoutWidget(context, result);
-              },
-            );
-          },
-        ),
-      );
-    }
-    return result;
-  }
-
-  Motion get motion => mainConfig.motions.expressive.spatial.normal;
 
   Widget buildPopover({
     required BuildContext context,
@@ -510,7 +453,7 @@ class _BarState extends State<Bar> {
                           barPositioning.size.width,
                           barPositioning.size.height - barInnerPadding.vertical,
                         ),
-                    ], // TODO 1 we probably need to substract shape radius from barPositioning
+                    ],
                   );
                 }
                 return buildContainer(
@@ -537,7 +480,7 @@ class _BarState extends State<Bar> {
   }) {
     return WingedContainer(
       // default to mainConfig.motions.expressive.spatial.slow.multiplySpeed(0.2), doesn't matter if it's different
-      motion: motion,
+      // motion: motion,
       elevation: isClosed ? 0 : 3.5,
       shadowOffset: getShadowOffset(),
       clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -556,23 +499,6 @@ class _BarState extends State<Bar> {
       ScreenEdge.left => Offset(1, 0.66),
       ScreenEdge.right => Offset(-1, 0.66),
     };
-  }
-
-  /// hides widget if component.isIndicatorsVisible is false
-  Widget buildVisibility(
-    BuildContext context,
-    FeatherComponent component,
-    Widget child,
-  ) {
-    return ValueListenableBuilder(
-      valueListenable: component.isIndicatorsVisible,
-      child: child,
-      builder: (context, isVisible, child) {
-        if (!isVisible) return SizedBox.shrink();
-        // TODO: 2 maybe add animation to featherComponent visibility change (size and opacity)
-        return child!;
-      },
-    );
   }
 }
 

@@ -51,6 +51,7 @@ class SystemTrayFeather extends Feather<SystemTrayConfig> {
           // TODO: 2 implement reordering system tray icons
           // TODO: 2 implement overflow menu for hidden tray icons
           FeatherComponent(
+            uniqueIdentifier: "$uniqueId - ${item.id}",
             buildIndicators: (context, popover) {
               return [
                 SystemTrayIndicator(

@@ -1,7 +1,7 @@
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/focus_grab/widget.dart";
@@ -113,8 +113,8 @@ class TooltipParams extends PopoverParams {
     super.extraPadding = EdgeInsets.zero,
     super.motion,
     super.stickToHost = false,
-    this.showDelay = const Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
-    this.hideDelay = Duration.zero, // TODO: 3 add tooltip delay to config
+    this.showDelay = const Duration(milliseconds: 300), // TODO: 1 add tooltip delay to config
+    this.hideDelay = Duration.zero, // TODO: 1 add tooltip delay to config
   });
 }
 
@@ -123,7 +123,7 @@ class WingedPopover extends StatefulWidget {
   final Widget? child;
   final PopoverParams? popoverParams;
   final TooltipParams? tooltipParams;
-  final List<(ShapeBorder, ValueNotifier<Positioning?>)> extraClientClippers;
+  final List<(ShapeBorder, ValueListenable<Positioning?>)> extraClientClippers;
 
   const WingedPopover({
     required this.builder,

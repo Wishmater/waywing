@@ -49,7 +49,7 @@ class MotionFlex<T> extends StatelessWidget {
       motion: motion,
       addGlobalKeys: addGlobalKeys,
       animateIndexChanges: animateIndexChanges,
-      layoutBuilder: (context, children) {
+      layoutBuilder: (context, children, _) {
         return Flex(
           direction: direction,
           mainAxisAlignment: mainAxisAlignment,

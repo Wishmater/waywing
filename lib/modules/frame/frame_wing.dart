@@ -1,5 +1,3 @@
-import "dart:ui";
-
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:flutter/foundation.dart";
@@ -52,16 +50,18 @@ class FrameWing extends Wing<FrameConfig> {
       right: rerservedSpace.right,
       top: rerservedSpace.top,
       bottom: rerservedSpace.bottom,
-      child: WingedContainer(
-        color: Theme.of(context).canvasColor,
-        addInputRegion: false,
-        focusContainerOnMouseOver: false,
-        activeBorder: null,
-        inactiveBorder: null,
-        elevation: 5,
-        shape: FrameShape(
-          borderRadius: BorderRadius.all(Radius.circular(config.rounding)),
-          edgeInsets: config.edgeInsets,
+      child: IgnorePointer(
+        child: WingedContainer(
+          color: Theme.of(context).canvasColor,
+          addInputRegion: false,
+          focusContainerOnMouseOver: false,
+          activeBorder: null,
+          inactiveBorder: null,
+          elevation: 5,
+          shape: FrameShape(
+            borderRadius: BorderRadius.all(Radius.circular(config.rounding)),
+            edgeInsets: config.edgeInsets,
+          ),
         ),
       ),
     );

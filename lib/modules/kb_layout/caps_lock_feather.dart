@@ -38,7 +38,7 @@ class CapsLockFeather extends Feather {
   @override
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([
     FeatherComponent(
-      isIndicatorVisible: service.capsLockActive,
+      isIndicatorEnabled: service.capsLockActive,
       buildIndicators: (context, popover) {
         return [
           ErrorStateIndicator(

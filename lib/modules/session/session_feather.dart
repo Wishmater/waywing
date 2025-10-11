@@ -78,13 +78,12 @@ class SessionFeather extends Feather {
             textIconBuilder: (context) {
               return LayoutBuilder(
                 builder: (context, constraints) {
-                  print("${osInfoService.logo}");
                   return TextIcon(
                     text: osInfoService.osIcon!,
                     alignment: Alignment.centerLeft, // assumes the icons are aspectRatio=1
                     size: min(TextIcon.getIconEffectiveSize(context), constraints.maxHeight * 0.8),
                   );
-                }
+                },
               );
             },
           ),

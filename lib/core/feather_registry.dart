@@ -14,6 +14,7 @@ import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
 import "package:waywing/modules/command_palette/command_palette_feather.dart";
+import "package:waywing/modules/container_wings/drawer.dart";
 import "package:waywing/modules/container_wings/modal.dart";
 import "package:waywing/modules/frame/frame_wing.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
@@ -202,7 +203,7 @@ class FeatherRegistry {
     feather.logger = mainLogger.clone(properties: [LogType(feather.uniqueId)]);
     // add feather routes actions
     if (feather.actions case final actions?) {
-      // TODO: 1 router declarations don't react to config reload
+      // TODO: 1 router declarations don't react to config reload (modal)
       for (final entry in actions.entries) {
         WaywingServer.instance.router.register(
           join(feather.actionsPath, entry.key),
@@ -212,7 +213,19 @@ class FeatherRegistry {
     }
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
-    await initFuture;
+    try {
+      await initFuture;
+    } catch (e, st) {
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      feather.logger.error(
+        "Error thrown while initializing ${feather.name} (${feather.uniqueId})",
+        error: e,
+        stackTrace: st,
+      );
+      feather.hasInitializationError = true;
+      // TODO: 1 show error notification, and temove it when the feather is disposed
+    }
+    feather.isInitialized = true;
     _logger.trace("finished initializing feather $feather");
   }
 
@@ -225,7 +238,7 @@ class FeatherRegistry {
     // remove feather routes
     if (feather.actions case final actions?) {
       for (final entry in actions.entries) {
-        WaywingServer.instance.router.unregister(join(feather.name, entry.key));
+        WaywingServer.instance.router.unregister(join(feather.actionsPath, entry.key));
       }
     }
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
@@ -248,6 +261,7 @@ class FeatherRegistry {
   void _registerDefaultFeathers() {
     // Wings
     ModalWing.registerFeather(registerFeather);
+    DrawerWing.registerFeather(registerFeather);
     BarWing.registerFeather(registerFeather);
     NotificationsWing.registerFeather(registerFeather);
     MenuWing.registerFeather(registerFeather);

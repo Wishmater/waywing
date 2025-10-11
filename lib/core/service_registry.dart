@@ -102,7 +102,19 @@ class ServiceRegistry {
     }
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
-    await service.init();
+    try {
+      await service.init();
+    } catch (e, st) {
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      service.logger.error(
+        "Error thrown while initializing service $serviceType",
+        error: e,
+        stackTrace: st,
+      );
+      service.hasInitializationError = true;
+      // TODO: 1 show error notification, and temove it when the service is disposed
+    }
+    service.isInitialized = true;
     return service;
   }
 

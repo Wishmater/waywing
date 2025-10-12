@@ -31,17 +31,17 @@ class BarWing extends Wing<BarConfig> {
   ValueListenable<List<Feather>> get initializedStartFeathers => _initializedStartFeathers;
   late final LazyManualValueNotifier<List<Feather>> _initializedStartFeathers = LazyManualValueNotifier(() {
     _feathersInitializationNotifier.value; // make sure it re-builds lazily if necessary
-    return startFeathers.where((e) => e.isInitialized).toList();
+    return startFeathers.where((e) => e.isInitialized && !e.hasInitializationError).toList();
   });
   ValueListenable<List<Feather>> get initializedCenterFeathers => _initializedCenterFeathers;
   late final LazyManualValueNotifier<List<Feather>> _initializedCenterFeathers = LazyManualValueNotifier(() {
     _feathersInitializationNotifier.value; // make sure it re-builds lazily if necessary
-    return centerFeathers.where((e) => e.isInitialized).toList();
+    return centerFeathers.where((e) => e.isInitialized && !e.hasInitializationError).toList();
   });
   ValueListenable<List<Feather>> get initializedEndFeathers => _initializedEndFeathers;
   late final LazyManualValueNotifier<List<Feather>> _initializedEndFeathers = LazyManualValueNotifier(() {
     _feathersInitializationNotifier.value; // make sure it re-builds lazily if necessary
-    return endFeathers.where((e) => e.isInitialized).toList();
+    return endFeathers.where((e) => e.isInitialized && !e.hasInitializationError).toList();
   });
 
   ValueListenable<List<BarPositionedItem<Feather>>> get allFeathersInitialized => _allFeathersInitialized;

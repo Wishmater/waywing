@@ -10,6 +10,7 @@ import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/modules/app_launcher/launcher_feather.dart";
+import "package:waywing/modules/aria2/aria2_feather.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
@@ -281,6 +282,7 @@ class FeatherRegistry {
     WorkspaceSwitcherFeather.registerFeather(registerFeather);
     AppLauncherFeather.registerFeather(registerFeather);
     CommandPaletteFeather.registerFeather(registerFeather);
+    Aria2Feather.registerFeather(registerFeather);
   }
 }
 

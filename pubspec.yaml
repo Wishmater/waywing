@@ -98,6 +98,7 @@ dependencies:
   # plays audio in notifications
   audioplayers: ^6.5.0
   sembast: ^3.8.5+1
+  aria2c: ^0.0.5
 
   # code generation package
   freezed_annotation: ^3.1.0

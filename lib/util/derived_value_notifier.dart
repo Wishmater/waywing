@@ -69,7 +69,7 @@ class LazyValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> 
 
 class DummyValueNotifier<T> extends ChangeNotifier implements ValueListenable<T> {
   @override
-  final T value;
+  T value;
   DummyValueNotifier(this.value);
 }
 

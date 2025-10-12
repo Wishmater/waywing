@@ -1,9 +1,10 @@
 import "package:config/config.dart";
-import "package:dartx/dartx_io.dart";
+import "package:dartx/dartx.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
+import "package:waywing/modules/aria2/aria2_service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/modules/command_palette/user_command_service.dart";
@@ -113,6 +114,7 @@ class ServiceRegistry {
       );
       service.hasInitializationError = true;
       // TODO: 1 show error notification, and temove it when the service is disposed
+      rethrow; // we want this error to bubble up, so that feather initializations that depend on this service also fail
     }
     service.isInitialized = true;
     return service;
@@ -207,6 +209,7 @@ class ServiceRegistry {
     ApplicationService.registerService(registerService);
     HyprlandService.registerService(registerService);
     UserCommandService.registerService(registerService);
+    Aria2Service.registerService(registerService);
   }
 }
 

@@ -40,6 +40,16 @@
       "source": "hosted",
       "version": "2.7.0"
     },
+    "aria2c": {
+      "dependency": "direct main",
+      "description": {
+        "name": "aria2c",
+        "sha256": "aa5ee54be72b25ae75eb78da3d88367022a7e38d3a7dfa8fb85555a1c5758174",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "0.0.5"
+    },
     "async": {
       "dependency": "transitive",
       "description": {

@@ -78,7 +78,7 @@ class Aria2Service extends Service<Aria2ServiceConfig> {
     // TODO: 2 add an option to set update timer delay
     _timer = Timer.periodic(Duration(seconds: 1), (_) async {
       final globalStat = (await _rpc.getGlobalStat())["result"];
-      print(globalStat);
+      logger.trace("GlobalStat: $globalStat");
       _downloadSpeed.value = int.parse(globalStat["downloadSpeed"]);
       _uploadSpeed.value = int.parse(globalStat["uploadSpeed"]);
       _numActive.value = int.parse(globalStat["numActive"]);

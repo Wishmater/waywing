@@ -28,6 +28,7 @@ class Aria2Indicator extends StatelessWidget {
         final padding = isVertical
             ? const EdgeInsets.only(top: 6) //
             : const EdgeInsets.only(left: 6);
+        // TODO: 1 implement autohiding indicators at zero if option is set to true
         result = Flex(
           direction: isVertical ? Axis.vertical : Axis.horizontal,
           children: [

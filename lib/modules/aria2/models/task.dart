@@ -107,8 +107,14 @@ enum Aria2TaskBittorrentMode {
 }
 
 enum Aria2TaskStatus {
+  // active
   active,
+
+  // waiting
   waiting,
+  paused,
+
+  // stopped
   stopped,
   complete,
   error;
@@ -117,6 +123,7 @@ enum Aria2TaskStatus {
     return switch (value) {
       "active" => active,
       "waiting" => waiting,
+      "paused" => paused,
       "stopped" => stopped,
       "complete" => complete,
       "error" => error,

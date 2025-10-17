@@ -63,6 +63,7 @@ class PopoverParams {
   final EdgeInsets extraPadding;
   final Motion? motion;
   final bool enableIntrinsicSizeAnimation;
+  final bool ignorePointer;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -91,6 +92,7 @@ class PopoverParams {
     this.motion,
     this.stickToHost = false,
     this.enableIntrinsicSizeAnimation = false,
+    this.ignorePointer = false,
   });
 }
 
@@ -113,6 +115,8 @@ class TooltipParams extends PopoverParams {
     super.extraPadding = EdgeInsets.zero,
     super.motion,
     super.stickToHost = false,
+    super.enableIntrinsicSizeAnimation = false,
+    super.ignorePointer = false,
     this.showDelay = const Duration(milliseconds: 300), // TODO: 1 add tooltip delay to config
     this.hideDelay = Duration.zero, // TODO: 1 add tooltip delay to config
   });
@@ -307,6 +311,7 @@ class WingedTooltip extends StatelessWidget {
   final Alignment alignment;
   final EdgeInsets padding;
   final Duration? showDelay;
+  final bool ignorePointer;
 
   const WingedTooltip({
     required this.child,
@@ -315,6 +320,7 @@ class WingedTooltip extends StatelessWidget {
     this.alignment = Alignment.bottomCenter,
     this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     this.showDelay,
+    this.ignorePointer = true,
     super.key,
   });
 
@@ -327,6 +333,7 @@ class WingedTooltip extends StatelessWidget {
         anchorAlignment: alignment,
         popupAlignment: alignment,
         zIndex: 999999,
+        ignorePointer: ignorePointer,
         builder: (context, controller, _, _) {
           return Padding(
             padding: padding,

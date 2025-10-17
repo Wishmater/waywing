@@ -2,15 +2,13 @@ import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/modules/aria2/aria2_service.dart";
+import "package:waywing/modules/aria2/widgets/aria2_indicator.dart";
 import "package:waywing/modules/aria2/widgets/aria2_tooltip.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/winged_widgets/winged_button.dart";
-import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 part "aria2_feather.config.dart";
 
@@ -42,15 +40,7 @@ class Aria2Feather extends Feather<Aria2Config> {
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([component]);
 
   late final component = FeatherComponent(
-    buildIndicators: (context, popover) {
-      return [
-        WingedButton(
-          child: WingedIcon(
-            flutterIcon: SymbolsVaried.cloud,
-          ),
-        ),
-      ];
-    },
+    buildIndicators: (context, popover) => [Aria2Indicator(feather: this)],
     buildTooltip: (context) => Aria2Tooltip(feather: this),
     // buildPopover: (context) {
     //   return Aria2Popover(service: service);
@@ -60,5 +50,12 @@ class Aria2Feather extends Feather<Aria2Config> {
 
 @Config()
 mixin Aria2ConfigBase on Aria2ConfigI {
-  static const _showUploadsSeparate = BooleanField(defaultTo: true);
+  static const _showDownloadSpeed = BooleanField(defaultTo: true);
+  static const _showUploadSpeed = BooleanField(defaultTo: true);
+
+  static const _showActiveCount = BooleanField(defaultTo: false);
+  static const _showWaitingCount = BooleanField(defaultTo: false);
+  static const _showStoppedCount = BooleanField(defaultTo: false);
+
+  static const _showIndicatorsOnlyWhenNotZero = BooleanField(defaultTo: false);
 }

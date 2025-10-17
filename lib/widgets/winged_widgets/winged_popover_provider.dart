@@ -625,12 +625,9 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               ),
             ),
           ),
-        IgnorePointer(
-          ignoring: widget.isRemoved,
-          child: ExcludeFocus(
-            excluding: widget.isRemoved,
-            child: currentContent,
-          ),
+        ExcludeFocus(
+          excluding: widget.isRemoved,
+          child: currentContent,
         ),
       ],
     );
@@ -785,7 +782,10 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                       }
                     }
                   },
-                  child: result,
+                  child: IgnorePointer(
+                    ignoring: widget.isRemoved || popoverParams.ignorePointer,
+                    child: result,
+                  ),
                 ),
               );
 

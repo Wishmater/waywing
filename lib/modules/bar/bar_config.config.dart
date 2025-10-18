@@ -35,6 +35,9 @@ mixin BarConfigI {
 
   double? get _exclusiveSizeBottom;
 
+  @ConfigDocDefault<BarContainerType>(BarContainerType.full)
+  BarContainerType get containerType;
+
   double? get _rounding;
 
   double? get _shadows;
@@ -58,6 +61,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
       'exclusiveSizeRight': BarConfigBase.__exclusiveSizeRight,
       'exclusiveSizeTop': BarConfigBase.__exclusiveSizeTop,
       'exclusiveSizeBottom': BarConfigBase.__exclusiveSizeBottom,
+      'containerType': BarConfigBase._containerType,
       'rounding': BarConfigBase.__rounding,
       'shadows': BarConfigBase.__shadows,
       'indicatorMinSize': BarConfigBase.__indicatorMinSize,
@@ -105,6 +109,8 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
   @override
   final double? _exclusiveSizeBottom;
   @override
+  final BarContainerType containerType;
+  @override
   final double? _rounding;
   @override
   final double? _shadows;
@@ -124,6 +130,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     double? exclusiveSizeRight,
     double? exclusiveSizeTop,
     double? exclusiveSizeBottom,
+    BarContainerType? containerType,
     double? rounding,
     double? shadows,
     double? indicatorMinSize,
@@ -139,6 +146,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
        _exclusiveSizeRight = exclusiveSizeRight,
        _exclusiveSizeTop = exclusiveSizeTop,
        _exclusiveSizeBottom = exclusiveSizeBottom,
+       containerType = containerType ?? BarContainerType.full,
        _rounding = rounding,
        _shadows = shadows,
        _indicatorMinSize = indicatorMinSize,
@@ -170,6 +178,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
       exclusiveSizeRight: fields['exclusiveSizeRight'],
       exclusiveSizeTop: fields['exclusiveSizeTop'],
       exclusiveSizeBottom: fields['exclusiveSizeBottom'],
+      containerType: fields['containerType'],
       rounding: fields['rounding'],
       shadows: fields['shadows'],
       indicatorMinSize: fields['indicatorMinSize'],
@@ -190,6 +199,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
 	_exclusiveSizeRight = $_exclusiveSizeRight,
 	_exclusiveSizeTop = $_exclusiveSizeTop,
 	_exclusiveSizeBottom = $_exclusiveSizeBottom,
+	containerType = $containerType,
 	_rounding = $_rounding,
 	_shadows = $_shadows,
 	_indicatorMinSize = $_indicatorMinSize,
@@ -210,6 +220,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
         _exclusiveSizeRight == other._exclusiveSizeRight &&
         _exclusiveSizeTop == other._exclusiveSizeTop &&
         _exclusiveSizeBottom == other._exclusiveSizeBottom &&
+        containerType == other.containerType &&
         _rounding == other._rounding &&
         _shadows == other._shadows &&
         _indicatorMinSize == other._indicatorMinSize &&
@@ -229,6 +240,7 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     _exclusiveSizeRight,
     _exclusiveSizeTop,
     _exclusiveSizeBottom,
+    containerType,
     _rounding,
     _shadows,
     _indicatorMinSize,

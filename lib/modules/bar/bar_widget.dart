@@ -1,5 +1,6 @@
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/models/screen_edge.dart";
+import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:waywing/modules/bar/bar_config.dart";
@@ -15,6 +16,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
 class Bar extends StatefulWidget {
   final BarWing wing;
@@ -36,9 +38,50 @@ class Bar extends StatefulWidget {
 }
 
 class _BarState extends State<Bar> {
-  final PositioningNotifierController barPositioningController = PositioningNotifierController();
-
   Motion get motion => mainConfig.motions.expressive.spatial.normal;
+
+  late final Map<String, (ExternalRoundedCornersBorder, PositioningNotifierController)> builtContainers = {};
+
+  late final fullBarContainerId = "${widget.wing.uniqueId}.--FullBar--";
+  late final barStartContainerId = "${widget.wing.uniqueId}.--BarStart--";
+  late final barCenterContainerId = "${widget.wing.uniqueId}.--BarCenter--";
+  late final barEndContainerId = "${widget.wing.uniqueId}.--BarEnd--";
+
+  (ExternalRoundedCornersBorder, PositioningNotifierController)? get fullBarContainer =>
+      builtContainers[fullBarContainerId];
+  (ExternalRoundedCornersBorder, PositioningNotifierController)? get barStartContainer =>
+      builtContainers[barStartContainerId];
+  (ExternalRoundedCornersBorder, PositioningNotifierController)? get barCenterContainer =>
+      builtContainers[barCenterContainerId];
+  (ExternalRoundedCornersBorder, PositioningNotifierController)? get barEndContainer =>
+      builtContainers[barEndContainerId];
+
+  List<(ExternalRoundedCornersBorder, PositioningNotifierController)> get containers {
+    return switch (widget.config.containerType) {
+      BarContainerType.full => [fullBarContainer].whereNotNull().toList(),
+      BarContainerType.section => [barStartContainer, barCenterContainer, barEndContainer].whereNotNull().toList(),
+      BarContainerType.none => [],
+      BarContainerType.button =>
+        builtContainers.entries
+            .where(
+              (e) =>
+                  e.key != fullBarContainerId &&
+                  e.key != barStartContainerId &&
+                  e.key != barCenterContainerId &&
+                  e.key != barEndContainerId,
+            )
+            .map((e) => e.value)
+            .toList(),
+    };
+  }
+
+  @override
+  void didUpdateWidget(covariant Bar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.config.containerType != oldWidget.config.containerType) {
+      builtContainers.clear();
+    }
+  }
 
   // TODO: 2 ANIMATION animate entrance of the bar when it is initialized
   @override
@@ -72,13 +115,211 @@ class _BarState extends State<Bar> {
       width -= widget.reservedSpace.horizontal;
     }
 
-    final barShape = ExternalRoundedCornersBorder.docked(
-      borderRadius: BorderRadius.all(Radius.circular(widget.config.rounding)),
-      isDockedTop: widget.config.side != ScreenEdge.bottom && widget.config.marginTop == 0,
-      isDockedBottom: widget.config.side != ScreenEdge.top && widget.config.marginBottom == 0,
-      isDockedLeft: widget.config.side != ScreenEdge.right && widget.config.marginLeft == 0,
-      isDockedRight: widget.config.side != ScreenEdge.left && widget.config.marginRight == 0,
+    Widget result = Theme(
+      data: Theme.of(context).copyWith(
+        buttonTheme: Theme.of(context).buttonTheme.copyWith(
+          padding: EdgeInsets.symmetric(
+            horizontal: !widget.config.isVertical ? widget.config.indicatorPadding : 0,
+            vertical: widget.config.isVertical ? widget.config.indicatorPadding : 0,
+          ),
+        ),
+      ),
+      child: ValueListenableBuilder(
+        valueListenable: widget.wing.allFeathersInitialized,
+        builder: (context, allFeathersInitialized, _) {
+          return ValueListenableBuilder(
+            valueListenable: DerivedValueNotifier(
+              dependencies: allFeathersInitialized.map((e) => e.item.components).toList(),
+              derive: () => allFeathersInitialized
+                  .map((e) {
+                    return e.item.components.value.where((c) => c.buildIndicators != null).mapIndexed((i, c) {
+                      return BarPositionedItem(
+                        c,
+                        e.position,
+                        c.uniqueIdentifier == null ? "${e.item.uniqueId} - $i" : null,
+                      );
+                    });
+                  })
+                  .flatten()
+                  .toList(),
+            ),
+            builder: (context, allComponentsInitialized, _) {
+              return ValueListenableBuilder(
+                valueListenable: DerivedValueNotifier(
+                  dependencies: allComponentsInitialized.map((e) => e.item.isIndicatorsEnabled).toList(),
+                  derive: () => allComponentsInitialized
+                      .where((e) => e.item.isIndicatorsEnabled.value && e.item.buildIndicators != null)
+                      .toList(),
+                ),
+                builder: (context, allComponentsInitializedAndEnabled, _) {
+                  return MotionLayout(
+                    motion: motion,
+                    data: allComponentsInitializedAndEnabled,
+                    animateIndexChanges: true,
+                    itemBuilder: (context, component) {
+                      return buildPopover(
+                        context: context,
+                        component: component.item,
+                        uniqueId: component.extraId ?? component.item.uniqueIdentifier!,
+                        // isDockedStart:
+                        //     component.position == BarPosition.start &&
+                        //     component == allComponentsInitializedAndEnabled.first,
+                        // isDockedEnd:
+                        //     component.position == BarPosition.end &&
+                        //     component == allComponentsInitializedAndEnabled.last,
+                        containerGetter:
+                            widget.config.containerType == BarContainerType.full ||
+                                widget.config.containerType == BarContainerType.section
+                            ? () => switch (widget.config.containerType) {
+                                BarContainerType.full => fullBarContainer,
+                                BarContainerType.section => switch (component.position) {
+                                  BarPosition.start => barStartContainer,
+                                  BarPosition.center => barCenterContainer,
+                                  BarPosition.end => barEndContainer,
+                                },
+                                _ => null,
+                              }
+                            : null,
+                        builder: (context, popover) {
+                          final indicators = component.item.buildIndicators!(context, popover);
+                          return Flex(
+                            direction: widget.config.isVertical ? Axis.vertical : Axis.horizontal,
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: indicators,
+                          );
+                        },
+                      );
+                    },
+                    layoutBuilder: (context, children, data) {
+                      final direction = widget.config.isVertical ? Axis.vertical : Axis.horizontal;
+                      final startScrollController = ScrollController();
+                      final endScrollController = ScrollController();
+                      final List<Widget> startWidgets = [], centerWidgets = [], endWidgets = [];
+                      for (int i = 0; i < children.length; i++) {
+                        switch (data[i].position) {
+                          case BarPosition.start:
+                            startWidgets.add(children[i]);
+                          case BarPosition.center:
+                            centerWidgets.add(children[i]);
+                          case BarPosition.end:
+                            endWidgets.add(children[i]);
+                        }
+                      }
+                      final padding = EdgeInsets.symmetric(
+                        horizontal: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                        vertical: widget.config.isVertical ? widget.config.size * 0.2 : 0,
+                      );
+                      Widget startWidget, centerWidget, endWidget;
+                      if (startWidgets.isNotEmpty) {
+                        startWidget = Padding(
+                          padding: padding,
+                          child: Flex(
+                            direction: direction,
+                            mainAxisSize: MainAxisSize.min,
+                            children: startWidgets,
+                          ),
+                        );
+                        if (widget.config.containerType == BarContainerType.section) {
+                          startWidget = buildBarContainer(
+                            context: context,
+                            id: barStartContainerId,
+                            child: startWidget,
+                            isDockedEnd: false,
+                          );
+                        }
+                        startWidget = Expanded(
+                          child: Scrollbar(
+                            controller: startScrollController,
+                            child: SingleChildScrollView(
+                              controller: startScrollController,
+                              scrollDirection: direction,
+                              child: startWidget,
+                            ),
+                          ),
+                        );
+                      } else {
+                        startWidget = Expanded(child: SizedBox.shrink());
+                      }
+                      if (centerWidgets.isNotEmpty) {
+                        centerWidget = Padding(
+                          padding: padding,
+                          child: Flex(
+                            direction: direction,
+                            mainAxisSize: MainAxisSize.min,
+                            children: centerWidgets,
+                          ),
+                        );
+                        if (widget.config.containerType == BarContainerType.section) {
+                          centerWidget = buildBarContainer(
+                            context: context,
+                            id: barCenterContainerId,
+                            child: centerWidget,
+                            isDockedStart: false,
+                            isDockedEnd: false,
+                          );
+                        }
+                      } else {
+                        centerWidget = SizedBox.shrink();
+                      }
+                      if (endWidgets.isNotEmpty) {
+                        endWidget = Padding(
+                          padding: padding,
+                          child: Flex(
+                            direction: direction,
+                            mainAxisSize: MainAxisSize.min,
+                            children: endWidgets,
+                          ),
+                        );
+                        if (widget.config.containerType == BarContainerType.section) {
+                          endWidget = buildBarContainer(
+                            context: context,
+                            id: barEndContainerId,
+                            child: endWidget,
+                            isDockedStart: false,
+                          );
+                        }
+                        endWidget = Expanded(
+                          child: Scrollbar(
+                            controller: endScrollController,
+                            child: SingleChildScrollView(
+                              controller: endScrollController,
+                              scrollDirection: direction,
+                              reverse: true,
+                              child: endWidget,
+                            ),
+                          ),
+                        );
+                      } else {
+                        endWidget = Expanded(child: SizedBox.shrink());
+                      }
+                      return Flex(
+                        direction: direction,
+                        children: [
+                          startWidget,
+                          centerWidget,
+                          endWidget,
+                        ],
+                      );
+                    },
+                    transitionBuilder: MotionFlex(
+                      data: const [],
+                      itemBuilder: (_, _) => SizedBox.shrink(),
+                      motion: motion,
+                      direction: widget.config.isVertical ? Axis.vertical : Axis.horizontal,
+                    ).defaultTransitionBuilder,
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
     );
+    if (widget.config.containerType == BarContainerType.full) {
+      result = buildBarContainer(context: context, id: fullBarContainerId, child: result);
+    }
+
     return MotionPositioned(
       motion: motion,
       left: left,
@@ -86,309 +327,260 @@ class _BarState extends State<Bar> {
       width: width,
       height: height,
       child: FocusScope(
-        child: PositioningNotifierMonitor(
-          controller: barPositioningController,
-          child: WingedContainer(
-            motion: motion,
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            // TODO: 3 this is a weird hack, ideally, shadow multiplier would come for a theme that we can override
-            elevation: 5 * widget.config.shadows,
-            shadowOffset: getShadowOffset(),
-            shape: barShape,
-            child: Theme(
-              data: Theme.of(context).copyWith(
-                buttonTheme: Theme.of(context).buttonTheme.copyWith(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: !widget.config.isVertical ? widget.config.indicatorPadding : 0,
-                    vertical: widget.config.isVertical ? widget.config.indicatorPadding : 0,
-                  ),
-                ),
-              ),
-              child: ValueListenableBuilder(
-                valueListenable: widget.wing.allFeathersInitialized,
-                builder: (context, allFeathersInitialized, _) {
-                  return ValueListenableBuilder(
-                    valueListenable: DerivedValueNotifier(
-                      dependencies: allFeathersInitialized.map((e) => e.item.components).toList(),
-                      derive: () => allFeathersInitialized
-                          .map((e) {
-                            return e.item.components.value.where((c) => c.buildIndicators != null).mapIndexed((i, c) {
-                              return BarPositionedItem(
-                                c,
-                                e.position,
-                                c.uniqueIdentifier == null ? "${e.item.uniqueId} - $i" : null,
-                              );
-                            });
-                          })
-                          .flatten()
-                          .toList(),
-                    ),
-                    builder: (context, allComponentsInitialized, _) {
-                      return ValueListenableBuilder(
-                        valueListenable: DerivedValueNotifier(
-                          dependencies: allComponentsInitialized.map((e) => e.item.isIndicatorsEnabled).toList(),
-                          derive: () => allComponentsInitialized
-                              .where((e) => e.item.isIndicatorsEnabled.value && e.item.buildIndicators != null)
-                              .toList(),
-                        ),
-                        builder: (context, allComponentsInitializedAndEnabled, _) {
-                          return MotionLayout(
-                            motion: motion,
-                            data: allComponentsInitializedAndEnabled,
-                            animateIndexChanges: true,
-                            itemBuilder: (context, component) {
-                              return buildPopover(
-                                context: context,
-                                component: component.item,
-                                barShape: barShape,
-                                builder: (context, popover) {
-                                  final indicators = component.item.buildIndicators!(context, popover);
-                                  return Flex(
-                                    direction: widget.config.isVertical ? Axis.vertical : Axis.horizontal,
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: indicators,
-                                  );
-                                },
-                              );
-                            },
-                            layoutBuilder: (context, children, data) {
-                              final direction = widget.config.isVertical ? Axis.vertical : Axis.horizontal;
-                              final startScrollController = ScrollController();
-                              final endScrollController = ScrollController();
-                              final List<Widget> startWidgets = [], centerWidgets = [], endWidgets = [];
-                              for (int i = 0; i < children.length; i++) {
-                                switch (data[i].position) {
-                                  case BarPosition.start:
-                                    startWidgets.add(children[i]);
-                                  case BarPosition.center:
-                                    centerWidgets.add(children[i]);
-                                  case BarPosition.end:
-                                    endWidgets.add(children[i]);
-                                }
-                              }
-                              final padding = EdgeInsets.symmetric(
-                                horizontal: !widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                                vertical: widget.config.isVertical ? widget.config.size * 0.2 : 0,
-                              );
-                              return Flex(
-                                direction: direction,
-                                children: [
-                                  Expanded(
-                                    child: Scrollbar(
-                                      controller: startScrollController,
-                                      child: SingleChildScrollView(
-                                        controller: startScrollController,
-                                        scrollDirection: direction,
-                                        child: Padding(
-                                          padding: padding,
-                                          child: Flex(
-                                            direction: direction,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: startWidgets,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: padding,
-                                    child: Flex(
-                                      direction: direction,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: centerWidgets,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Scrollbar(
-                                      controller: endScrollController,
-                                      child: SingleChildScrollView(
-                                        controller: endScrollController,
-                                        scrollDirection: direction,
-                                        reverse: true,
-                                        child: Padding(
-                                          padding: padding,
-                                          child: Flex(
-                                            direction: direction,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: endWidgets,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                            transitionBuilder: MotionFlex(
-                              data: const [],
-                              itemBuilder: (_, _) => SizedBox.shrink(),
-                              motion: motion,
-                              direction: widget.config.isVertical ? Axis.vertical : Axis.horizontal,
-                            ).defaultTransitionBuilder,
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
+        child: result,
+      ),
+    );
+  }
+
+  Widget buildBarContainer({
+    required BuildContext context,
+    required String id,
+    required Widget child,
+    bool isDockedStart = true,
+    bool isDockedEnd = true,
+    bool isDockedSide = true,
+  }) {
+    final shape = ExternalRoundedCornersBorder.docked(
+      borderRadius: BorderRadius.all(Radius.circular(widget.config.rounding)),
+      isDockedTop:
+          (widget.config.isVertical ? isDockedStart : isDockedSide) &&
+          widget.config.side != ScreenEdge.bottom &&
+          widget.config.marginTop == 0,
+      isDockedBottom:
+          (widget.config.isVertical ? isDockedEnd : isDockedSide) &&
+          widget.config.side != ScreenEdge.top &&
+          widget.config.marginBottom == 0,
+      isDockedLeft:
+          (widget.config.isVertical ? isDockedSide : isDockedStart) &&
+          widget.config.side != ScreenEdge.right &&
+          widget.config.marginLeft == 0,
+      isDockedRight:
+          (widget.config.isVertical ? isDockedSide : isDockedEnd) &&
+          widget.config.side != ScreenEdge.left &&
+          widget.config.marginRight == 0,
+    );
+    final controller = PositioningNotifierController();
+    builtContainers[id] = (shape, controller);
+    return PositioningNotifierMonitor(
+      controller: controller,
+      child: WingedContainer(
+        motion: motion,
+        // TODO: 3 this is a weird hack, ideally, shadow multiplier would come from a theme that we can override
+        elevation: 5 * widget.config.shadows,
+        shadowOffset: getShadowOffset(),
+        shape: shape,
+        clipBehavior: Clip.antiAlias,
+        child: child,
       ),
     );
   }
 
   Widget buildPopover({
     required BuildContext context,
+    required String uniqueId,
     required FeatherComponent component,
     required PopoverBuilder builder,
-    required ExternalRoundedCornersBorder barShape,
+    required ContainerDataGetter? containerGetter,
+    // required bool isDockedStart,
+    // required bool isDockedEnd,
   }) {
-    if (component.buildPopover == null && component.buildTooltip == null) {
-      return builder(context, null);
-    }
-    final popoverAlignment = switch (widget.config.side) {
-      ScreenEdge.top => Alignment.bottomCenter,
-      ScreenEdge.right => Alignment.centerLeft,
-      ScreenEdge.bottom => Alignment.topCenter,
-      ScreenEdge.left => Alignment.centerRight,
-    };
-    final overflowAlignment = switch (widget.config.side) {
-      ScreenEdge.top => Alignment.topCenter,
-      ScreenEdge.right => Alignment.centerRight,
-      ScreenEdge.bottom => Alignment.bottomCenter,
-      ScreenEdge.left => Alignment.centerLeft,
-    };
-    final tooltipShape = ExternalRoundedCornersBorder(
-      borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
-    );
     final buttonShape = RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.buttonRounding)),
     );
-    // TODO: 2 we should probably listen to this, or have PopoverProvider receive the listenable and listen to it
-    final screenPadding = mainConfig.exclusiveSize.value;
-    // // this limits the popovers to have the same margin as the Bar. This was necessary with
-    // // the old Shapes model because it didn't support going over. Now it is not necessary, but
-    // // maybe it can still be optional??
-    // screenPadding: EdgeInsets.only(
-    //   left: widget.config.isVertical ? 0 : widget.config.marginLeft + widget.config.radiusInMain,
-    //   right: widget.config.isVertical ? 0 : widget.config.marginRight + widget.config.radiusInMain,
-    //   top: !widget.config.isVertical ? 0 : widget.config.marginTop + widget.config.radiusInMain,
-    //   bottom: !widget.config.isVertical ? 0 : widget.config.marginBottom + widget.config.radiusInMain,
-    // ),
-    return ValueListenableBuilder(
-      valueListenable: component.isPopoverEnabled,
-      builder: (context, isPopoverEnabled, _) {
-        return ValueListenableBuilder(
-          valueListenable: component.isTooltipEnabled,
-          builder: (context, isTooltipEnabled, _) {
-            return WingedPopover(
-              builder: (context, controller, _) => builder(context, controller),
-              extraClientClippers: [(barShape, barPositioningController.positioningNotifier)],
-              popoverParams: component.buildPopover == null
-                  ? null
-                  : PopoverParams(
-                      enabled: isPopoverEnabled,
-                      containerId: "${widget.wing.uniqueId}.Popover",
-                      motion: motion,
-                      // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
-                      zIndex: -10,
-                      popupAlignment: popoverAlignment,
-                      anchorAlignment: popoverAlignment,
-                      overflowAlignment: overflowAlignment,
-                      screenPadding: screenPadding,
-                      stickToHost: true,
-                      builder: (context, controller, _, targetChildContainerPositioning) {
-                        return ValueListenableBuilder(
-                          valueListenable: controller.hostState.sizeNotifier,
-                          child: component.buildPopover!(context),
-                          builder: (context, hostSize, child) {
-                            return ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minWidth: !widget.config.isVertical ? hostSize?.height ?? 0 : 0,
-                                minHeight: widget.config.isVertical ? hostSize?.width ?? 0 : 0,
-                              ),
-                              child: child,
+    Widget result;
+    if (component.buildPopover == null && component.buildTooltip == null) {
+      result = builder(context, null);
+    } else {
+      final popoverAlignment = switch (widget.config.side) {
+        ScreenEdge.top => Alignment.bottomCenter,
+        ScreenEdge.right => Alignment.centerLeft,
+        ScreenEdge.bottom => Alignment.topCenter,
+        ScreenEdge.left => Alignment.centerRight,
+      };
+      final overflowAlignment = switch (widget.config.side) {
+        ScreenEdge.top => Alignment.topCenter,
+        ScreenEdge.right => Alignment.centerRight,
+        ScreenEdge.bottom => Alignment.bottomCenter,
+        ScreenEdge.left => Alignment.centerLeft,
+      };
+      final tooltipShape = ExternalRoundedCornersBorder(
+        borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
+      );
+      // TODO: 2 we should probably listen to this, or have PopoverProvider receive the listenable and listen to it
+      final screenPadding = mainConfig.exclusiveSize.value;
+      // // this limits the popovers to have the same margin as the Bar. This was necessary with
+      // // the old Shapes model because it didn't support going over. Now it is not necessary, but
+      // // maybe it can still be optional??
+      // screenPadding = EdgeInsets.only(
+      //   left: widget.config.isVertical ? 0 : widget.config.marginLeft + widget.config.radiusInMain,
+      //   right: widget.config.isVertical ? 0 : widget.config.marginRight + widget.config.radiusInMain,
+      //   top: !widget.config.isVertical ? 0 : widget.config.marginTop + widget.config.radiusInMain,
+      //   bottom: !widget.config.isVertical ? 0 : widget.config.marginBottom + widget.config.radiusInMain,
+      // ),
+      result = ValueListenableBuilder(
+        valueListenable: component.isPopoverEnabled,
+        builder: (context, isPopoverEnabled, _) {
+          return ValueListenableBuilder(
+            valueListenable: component.isTooltipEnabled,
+            builder: (context, isTooltipEnabled, _) {
+              return WingedPopover(
+                builder: (context, controller, _) => builder(context, controller),
+                extraClientClipperBuilder:
+                    mainConfig.theme.backgroundOpacity >= 1 || widget.config.containerType == BarContainerType.none
+                    ? null
+                    : (context, {required child}) {
+                        return buildDefaultContainerClipper(
+                          context,
+                          child: child,
+                          containers: containers.map((e) => (e.$1, e.$2.positioningNotifier)).toList(),
+                        );
+                      },
+                popoverParams: component.buildPopover == null
+                    ? null
+                    : PopoverParams(
+                        enabled: isPopoverEnabled,
+                        containerId: "${widget.wing.uniqueId}.Popover",
+                        motion: motion,
+                        // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
+                        zIndex: -10,
+                        popupAlignment: popoverAlignment,
+                        anchorAlignment: popoverAlignment,
+                        overflowAlignment: overflowAlignment,
+                        screenPadding: screenPadding,
+                        stickToHost: true,
+                        builder: (context, controller, _, targetChildContainerPositioning) {
+                          return ValueListenableBuilder(
+                            valueListenable: controller.hostState.sizeNotifier,
+                            child: component.buildPopover!(context),
+                            builder: (context, hostSize, child) {
+                              return ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: !widget.config.isVertical ? hostSize?.height ?? 0 : 0,
+                                  minHeight: widget.config.isVertical ? hostSize?.width ?? 0 : 0,
+                                ),
+                                child: child,
+                              );
+                            },
+                          );
+                        },
+                        containerBuilder: (context, child, _, _, targetChildContainerPositioning) {
+                          Widget result = buildPopoverContainer(
+                            context,
+                            child,
+                            buttonShape,
+                            targetChildContainerPositioning,
+                            isClosed: false,
+                            containerGetter: containerGetter ?? () => builtContainers["$uniqueId.--BarContainer--"],
+                          );
+                          if (widget.config.containerType == BarContainerType.none) {
+                            result = MotionOpacity(
+                              motion: motion,
+                              opacity: 1,
+                              child: result,
                             );
-                          },
-                        );
-                      },
-                      containerBuilder: (context, child, _, _, targetChildContainerPositioning) {
-                        return buildPopoverContainer(
-                          context,
-                          child,
-                          buttonShape,
-                          targetChildContainerPositioning,
-                          isClosed: false,
-                          barShape: barShape,
-                        );
-                      },
-                      closedContainerBuilder: (context, child, _, _, targetChildContainerPositioning) {
-                        return buildPopoverContainer(
-                          context,
-                          child,
-                          buttonShape,
-                          targetChildContainerPositioning,
-                          isClosed: true,
-                          barShape: barShape,
-                        );
-                      },
-                    ),
-              tooltipParams: component.buildTooltip == null
-                  ? null
-                  : TooltipParams(
-                      enabled: isTooltipEnabled,
-                      containerId: "${widget.wing.uniqueId}.Tooltip",
-                      motion: motion,
-                      // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
-                      zIndex: -5,
-                      popupAlignment: popoverAlignment,
-                      anchorAlignment: popoverAlignment,
-                      overflowAlignment: overflowAlignment,
-                      screenPadding: screenPadding,
-                      extraPadding: EdgeInsets.only(
-                        top: widget.config.side == ScreenEdge.top ? widget.config.size / 2 : 0,
-                        bottom: widget.config.side == ScreenEdge.bottom ? widget.config.size / 2 : 0,
-                        left: widget.config.side == ScreenEdge.left ? widget.config.size / 2 : 0,
-                        right: widget.config.side == ScreenEdge.right ? widget.config.size / 2 : 0,
+                          }
+                          return result;
+                        },
+                        closedContainerBuilder: (context, child, _, _, targetChildContainerPositioning) {
+                          Widget result = buildPopoverContainer(
+                            context,
+                            child,
+                            buttonShape,
+                            targetChildContainerPositioning,
+                            isClosed: true,
+                            containerGetter: containerGetter ?? () => builtContainers["$uniqueId.--BarContainer--"],
+                          );
+                          if (widget.config.containerType == BarContainerType.none) {
+                            result = MotionOpacity(
+                              motion: motion,
+                              opacity: 0,
+                              child: result,
+                            );
+                          }
+                          return result;
+                        },
                       ),
-                      builder: (context, controller, _, _) {
-                        return ValueListenableBuilder(
-                          valueListenable: controller.hostState.sizeNotifier,
-                          child: component.buildTooltip!(context),
-                          builder: (context, hostSize, child) {
-                            return ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minWidth: !widget.config.isVertical ? hostSize?.height ?? 0 : 0,
-                                minHeight: widget.config.isVertical ? hostSize?.width ?? 0 : 0,
-                              ),
-                              child: child,
-                            );
-                          },
-                        );
-                      },
-                      containerBuilder: (context, child, _, _, _) {
-                        return MotionOpacity(
-                          motion: motion,
-                          opacity: 1,
-                          child: buildContainer(context, child, tooltipShape, isTooltip: true, isClosed: false),
-                        );
-                      },
-                      closedContainerBuilder: (context, child, _, _, _) {
-                        return MotionOpacity(
-                          motion: motion,
-                          opacity: 0,
-                          child: buildContainer(context, child, buttonShape, isTooltip: true, isClosed: true),
-                        );
-                      },
-                    ),
-            );
-          },
-        );
-      },
-    );
+                tooltipParams: component.buildTooltip == null
+                    ? null
+                    : TooltipParams(
+                        enabled: isTooltipEnabled,
+                        containerId: "${widget.wing.uniqueId}.Tooltip",
+                        motion: motion,
+                        // TODO: 3 briefly document how zIndex is used and what the default values are for Bar and other core widgets
+                        zIndex: -5,
+                        popupAlignment: popoverAlignment,
+                        anchorAlignment: popoverAlignment,
+                        overflowAlignment: overflowAlignment,
+                        screenPadding: screenPadding,
+                        extraPadding: EdgeInsets.only(
+                          top: widget.config.side == ScreenEdge.top ? widget.config.size / 2 : 0,
+                          bottom: widget.config.side == ScreenEdge.bottom ? widget.config.size / 2 : 0,
+                          left: widget.config.side == ScreenEdge.left ? widget.config.size / 2 : 0,
+                          right: widget.config.side == ScreenEdge.right ? widget.config.size / 2 : 0,
+                        ),
+                        builder: (context, controller, _, _) {
+                          return ValueListenableBuilder(
+                            valueListenable: controller.hostState.sizeNotifier,
+                            child: component.buildTooltip!(context),
+                            builder: (context, hostSize, child) {
+                              return ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  minWidth: !widget.config.isVertical ? hostSize?.height ?? 0 : 0,
+                                  minHeight: widget.config.isVertical ? hostSize?.width ?? 0 : 0,
+                                ),
+                                child: child,
+                              );
+                            },
+                          );
+                        },
+                        containerBuilder: (context, child, _, _, _) {
+                          return MotionOpacity(
+                            motion: motion,
+                            opacity: 1,
+                            child: buildContainer(context, child, tooltipShape, isTooltip: true, isClosed: false),
+                          );
+                        },
+                        closedContainerBuilder: (context, child, _, _, _) {
+                          return MotionOpacity(
+                            motion: motion,
+                            opacity: 0,
+                            child: buildContainer(context, child, buttonShape, isTooltip: true, isClosed: true),
+                          );
+                        },
+                      ),
+              );
+            },
+          );
+        },
+      );
+    }
+
+    if (widget.config.containerType == BarContainerType.button && component.wantsContainer) {
+      result = Padding(
+        padding: widget.config.isVertical
+            ? EdgeInsets.symmetric(vertical: widget.config.indicatorPadding / 2)
+            : EdgeInsets.symmetric(horizontal: widget.config.indicatorPadding / 2),
+        child: buildBarContainer(
+          context: context,
+          id: "$uniqueId.--BarContainer--",
+          child: result,
+          isDockedStart: false,
+          isDockedEnd: false,
+          isDockedSide: false,
+        ),
+      );
+    } else if (widget.config.containerType == BarContainerType.none) {
+      result = InputRegion(
+        child: Material(
+          type: MaterialType.transparency,
+          shape: buttonShape,
+          clipBehavior: Clip.hardEdge,
+          child: result,
+        ),
+      );
+    }
+
+    return result;
   }
 
   Widget buildPopoverContainer(
@@ -396,14 +588,15 @@ class _BarState extends State<Bar> {
     Widget child,
     ShapeBorder buttonShape,
     ValueNotifier<Positioning?> targetChildContainerPositioning, {
-    required ExternalRoundedCornersBorder barShape,
+    required ContainerDataGetter containerGetter,
     required isClosed,
   }) {
+    final container = containerGetter();
     final popoverBorderRadius = BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding));
-    return ValueListenableBuilder(
-      valueListenable: barPositioningController.positioningNotifier,
+    return ValueListenableBuilder<Positioning?>(
+      valueListenable: container?.$2.positioningNotifier ?? DummyValueNotifier(null),
       child: child,
-      builder: (context, barPositioning, child) {
+      builder: (context, containerPositioning, child) {
         return ValueListenableBuilder(
           valueListenable: targetChildContainerPositioning,
           child: child,
@@ -411,7 +604,7 @@ class _BarState extends State<Bar> {
             return ValueListenableBuilder(
               valueListenable: mainConfig.exclusiveSize,
               child: child,
-              builder: (context, exclusiveSize, child) {
+              builder: (context, mainExclusiveSize, child) {
                 if (isClosed) {
                   return buildContainer(
                     context,
@@ -428,30 +621,36 @@ class _BarState extends State<Bar> {
                   );
                 } else {
                   final screenSize = MediaQuery.sizeOf(context);
-                  final barInnerPadding = barShape.innerDimensions;
+                  final barInnerPadding = container?.$1.innerDimensions ?? EdgeInsets.zero;
                   popoverShape = ExternalRoundedCornersBorder.positioned(
                     borderRadius: popoverBorderRadius,
                     position: targetChildContainerPositioning.toRect(),
                     bounds: Rect.fromLTWH(
-                      exclusiveSize.left,
-                      exclusiveSize.right,
-                      screenSize.width - exclusiveSize.horizontal,
-                      screenSize.height - exclusiveSize.vertical,
+                      widget.config.side == ScreenEdge.left ? widget.reservedSpace.left : mainExclusiveSize.left,
+                      widget.config.side == ScreenEdge.top ? widget.reservedSpace.top : mainExclusiveSize.top,
+                      screenSize.width -
+                          (widget.config.side == ScreenEdge.right
+                              ? (widget.reservedSpace.right + mainExclusiveSize.left)
+                              : mainExclusiveSize.horizontal),
+                      screenSize.height -
+                          (widget.config.side == ScreenEdge.bottom
+                              ? (widget.reservedSpace.bottom + mainExclusiveSize.top)
+                              : mainExclusiveSize.vertical),
                     ),
                     parentContainers: [
-                      if (barPositioning != null)
+                      if (containerPositioning != null)
                         Rect.fromLTWH(
-                          barPositioning.offset.dx + barInnerPadding.left,
-                          barPositioning.offset.dy,
-                          barPositioning.size.width - barInnerPadding.horizontal,
-                          barPositioning.size.height,
+                          containerPositioning.offset.dx + barInnerPadding.left,
+                          containerPositioning.offset.dy,
+                          containerPositioning.size.width - barInnerPadding.horizontal,
+                          containerPositioning.size.height,
                         ),
-                      if (barPositioning != null)
+                      if (containerPositioning != null)
                         Rect.fromLTWH(
-                          barPositioning.offset.dx,
-                          barPositioning.offset.dy + barInnerPadding.top,
-                          barPositioning.size.width,
-                          barPositioning.size.height - barInnerPadding.vertical,
+                          containerPositioning.offset.dx,
+                          containerPositioning.offset.dy + barInnerPadding.top,
+                          containerPositioning.size.width,
+                          containerPositioning.size.height - barInnerPadding.vertical,
                         ),
                     ],
                   );
@@ -503,3 +702,6 @@ class _BarState extends State<Bar> {
 }
 
 typedef PopoverBuilder = Widget Function(BuildContext context, WingedPopoverController? controller);
+
+typedef ContainerData = (ExternalRoundedCornersBorder, PositioningNotifierController);
+typedef ContainerDataGetter = ContainerData? Function();

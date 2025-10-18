@@ -1,5 +1,6 @@
 import "dart:math";
 
+import "package:collection/equality.dart";
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 
@@ -28,6 +29,39 @@ class ShapeClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(ShapeClipper oldClipper) => shape != oldClipper.shape;
+}
+
+class MultiShapeClipper extends CustomClipper<Path> {
+  final List<(ShapeBorder, Rect?)> shapes;
+  final bool contain;
+
+  MultiShapeClipper({
+    required this.shapes,
+    this.contain = true,
+  }) : assert(shapes.isNotEmpty);
+
+  @override
+  Path getClip(Size size) {
+    Path outerPath;
+    if (contain) {
+      outerPath = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    } else {
+      outerPath = Path()..addRect(Rect.fromLTRB(-10000000, -10000000, 10000000, 10000000));
+    }
+
+    for (final e in shapes) {
+      final shape = e.$1;
+      final rectOverride = e.$2;
+
+      final innerPath = shape.getOuterPath(rectOverride ?? Rect.fromLTWH(0, 0, size.width, size.height));
+      outerPath = Path.combine(PathOperation.difference, outerPath, innerPath);
+    }
+    return outerPath;
+  }
+
+  @override
+  bool shouldReclip(MultiShapeClipper oldClipper) =>
+      DeepCollectionEquality.unordered().equals(shapes, oldClipper.shapes);
 }
 
 class ShapeShadowClipper extends CustomClipper<Path> {

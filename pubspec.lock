@@ -684,6 +684,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0-dev.9"
+  multi_value_listenable_builder_typed:
+    dependency: "direct main"
+    description:
+      name: multi_value_listenable_builder_typed
+      sha256: fc10232523852021df2f9e8b8f660a137f8659d79084b694f016df5214e6433e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   mutex:
     dependency: "direct main"
     description:

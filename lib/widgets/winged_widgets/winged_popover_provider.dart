@@ -2,9 +2,11 @@ import "dart:async";
 
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:motor/motor.dart";
+import "package:multi_value_listenable_builder_typed/multi_value_listenable_builder_typed.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/animation_utils.dart";
@@ -790,44 +792,17 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               );
 
               // add extra client clippers
-              if (widget.host.widget.extraClientClippers.isNotEmpty) {
-                result = Stack(
-                  fit: StackFit.expand,
-                  clipBehavior: Clip.none,
-                  children: [result],
+              if (widget.host.widget.extraClientClipperBuilder != null) {
+                result = Positioned.fill(
+                  child: widget.host.widget.extraClientClipperBuilder!(
+                    context,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      clipBehavior: Clip.none,
+                      children: [result],
+                    ),
+                  ),
                 );
-                // TODO: 3 maybe refactor this to instead just be a clientClippersBuilder,
-                // pass in everything needed and let the caller build the clipper with more freedom.
-                // Maybe provide a default implementation so the caller doesn't need to do same 20
-                // lines of code every time.
-                for (final e in widget.host.widget.extraClientClippers) {
-                  result = ValueListenableBuilder(
-                    valueListenable: e.$2,
-                    child: result,
-                    builder: (context, positioning, child) {
-                      Rect? rect;
-                      if (positioning != null) {
-                        final offset = positioning.offset;
-                        final size = positioning.size;
-                        final shapePadding = e.$1.dimensions.resolve(TextDirection.ltr);
-                        rect = Rect.fromLTWH(
-                          offset.dx - shapePadding.left,
-                          offset.dy - shapePadding.top,
-                          size.width + shapePadding.horizontal,
-                          size.height + shapePadding.vertical,
-                        );
-                      }
-                      // TODO: 2 PERFOMANCE if background opacity is 1 then there is no need to use clip,
-                      // probably handle this in the host (Bar, ContextMenu, etc.) and just dont pass any
-                      // extraClientClippers if ressolved backgroundOpacity==1
-                      return ClipPath(
-                        clipper: ShapeClipper(shape: e.$1, rectOverride: rect),
-                        child: child,
-                      );
-                    },
-                  );
-                }
-                result = Positioned.fill(child: result);
               }
 
               return result;
@@ -837,6 +812,47 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       ),
     );
   }
+}
+
+Widget buildDefaultContainerClipper(
+  BuildContext context, {
+  required Widget child,
+  required List<(ShapeBorder, ValueListenable<Positioning?>)> containers,
+}) {
+  if (containers.isEmpty) {
+    return child;
+  }
+  return MultiValueListenableBuilder(
+    valueListenables: containers.map((e) => e.$2).toList(),
+    child: child,
+    builder: (context, positionings, child) {
+      final List<(ShapeBorder, Rect?)> shapes = [];
+      for (int i = 0; i < positionings.length; i++) {
+        final positioning = positionings[i];
+        final shape = containers[i].$1;
+        Rect? rect;
+        if (positioning != null) {
+          final offset = positioning.offset;
+          final size = positioning.size;
+          final shapePadding = shape.dimensions.resolve(TextDirection.ltr);
+          rect = Rect.fromLTWH(
+            offset.dx - shapePadding.left,
+            offset.dy - shapePadding.top,
+            size.width + shapePadding.horizontal,
+            size.height + shapePadding.vertical,
+          );
+        }
+        shapes.add((shape, rect));
+      }
+      // TODO: 2 PERFOMANCE if background opacity is 1 then there is no need to use clip,
+      // probably handle this in the host (Bar, ContextMenu, etc.) and just dont pass any
+      // extraClientClippers if ressolved backgroundOpacity==1
+      return ClipPath(
+        clipper: MultiShapeClipper(shapes: shapes),
+        child: child,
+      );
+    },
+  );
 }
 
 class TooltipStatus {

@@ -51,6 +51,7 @@ dependencies:
   animations: ^2.0.11
   auto_size_text: ^3.0.0
   implicitly_animated_list: ^2.3.0
+  multi_value_listenable_builder_typed: ^0.1.1
   motor: ^1.0.0-dev.4
   # color scheme creation
   flex_seed_scheme: ^3.5.1

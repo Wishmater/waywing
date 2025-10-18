@@ -67,6 +67,8 @@ mixin BarConfigBase on BarConfigI {
   // Style
   //===========================================================================
 
+  static const _containerType = EnumField(BarContainerType.values, defaultTo: BarContainerType.full);
+
   // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
   static const __rounding = DoubleNumberField(nullable: true);
   double get rounding => _rounding ?? mainConfig.theme.containerRounding;
@@ -112,4 +114,11 @@ mixin BarFeathersContainerBase on BarFeathersContainerI {
   List<T> getFeatherInstances<T extends Feather>(String uniqueIdPrefix) {
     return getFeatherInstancesStatic<T>(rawFeathers, uniqueIdPrefix);
   }
+}
+
+enum BarContainerType {
+  full,
+  section,
+  button,
+  none,
 }

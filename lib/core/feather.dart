@@ -77,6 +77,7 @@ class FeatherComponent {
   final ValueListenable<bool> isTooltipEnabled;
 
   final String? uniqueIdentifier;
+  final bool wantsContainer;
 
   FeatherComponent({
     this.buildIndicators,
@@ -85,6 +86,7 @@ class FeatherComponent {
     ValueListenable<bool>? isPopoverEnabled,
     this.buildTooltip,
     ValueListenable<bool>? isTooltipEnabled,
+    this.wantsContainer = true,
     this.uniqueIdentifier,
   }) : isIndicatorsEnabled = isIndicatorEnabled ?? DummyValueNotifier(buildIndicators != null),
        isPopoverEnabled = isPopoverEnabled ?? DummyValueNotifier(buildPopover != null),

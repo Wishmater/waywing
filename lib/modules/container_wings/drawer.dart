@@ -13,6 +13,7 @@ import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
 part "drawer.config.dart";
 
@@ -122,12 +123,18 @@ class DrawerWing extends Wing<DrawerConfig> {
                 return SizedBox.expand();
               },
               // TODO: 3 PERFORMANCE is this needed ??
-              extraClientClippers: [
-                (
-                  RoundedRectangleBorder(),
-                  DummyValueNotifier(Positioning(Offset(absLeft, absTop), Size(absWidth, absHeight))),
-                ),
-              ],
+              extraClientClipperBuilder: (context, {required child}) {
+                return buildDefaultContainerClipper(
+                  context,
+                  child: child,
+                  containers: [
+                    (
+                      RoundedRectangleBorder(),
+                      DummyValueNotifier(Positioning(Offset(absLeft, absTop), Size(absWidth, absHeight))),
+                    ),
+                  ],
+                );
+              },
               tooltipParams: TooltipParams(
                 motion: mainConfig.motions.expressive.spatial.slow,
                 zIndex: -5,

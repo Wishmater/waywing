@@ -35,6 +35,12 @@ typedef WingedPopoverChildBuilder =
       ValueNotifier<Positioning?> targetChildContainerPositioning,
     );
 
+typedef ExtraClippersBuilder =
+    Widget Function(
+      BuildContext context, {
+      required Widget child,
+    });
+
 abstract class WingedPopoverController {
   bool get isPopoverEnabled;
   bool get isTooltipEnabled;
@@ -127,13 +133,13 @@ class WingedPopover extends StatefulWidget {
   final Widget? child;
   final PopoverParams? popoverParams;
   final TooltipParams? tooltipParams;
-  final List<(ShapeBorder, ValueListenable<Positioning?>)> extraClientClippers;
+  final ExtraClippersBuilder? extraClientClipperBuilder;
 
   const WingedPopover({
     required this.builder,
     this.popoverParams,
     this.tooltipParams,
-    this.extraClientClippers = const [],
+    this.extraClientClipperBuilder,
     this.child,
     super.key,
   }) : assert(popoverParams != null || tooltipParams != null);

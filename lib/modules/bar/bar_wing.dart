@@ -134,7 +134,7 @@ enum BarPosition { start, center, end }
 class BarPositionedItem<T> {
   final T item;
   final BarPosition position;
-  final Object? extraId;
+  final String? extraId;
   BarPositionedItem(this.item, this.position, [this.extraId]);
 
   @override

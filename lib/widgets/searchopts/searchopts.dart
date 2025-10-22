@@ -212,8 +212,14 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
   }
 
   static double _getSimilarityScore<T extends Object>(Option<T> obj, String v, FuzzyStringMatcher matcher) {
-    final primaryScore = obj.primaryValue.similarityScoreTo(v, ignoreCase: true, matcher: matcher);
-    final secondaryScore = obj.secondaryValue?.similarityScoreTo(v, ignoreCase: true, matcher: matcher) ?? 0;
+    var primaryScore = obj.primaryValue.similarityScoreTo(v, ignoreCase: true, matcher: matcher);
+    var secondaryScore = obj.secondaryValue?.similarityScoreTo(v, ignoreCase: true, matcher: matcher) ?? 0;
+    if (primaryScore.isNaN) {
+      primaryScore = 0;
+    }
+    if (secondaryScore.isNaN) {
+      secondaryScore = 0;
+    }
     return max(primaryScore, secondaryScore * 0.75);
   }
 

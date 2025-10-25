@@ -60,6 +60,7 @@ class WingedContainer extends StatefulWidget {
 
 class WingedContainerState extends State<WingedContainer> {
   final focusNode = FocusScopeNode();
+  late bool addInputRegionWidget = widget.addInputRegion;
 
   @override
   void initState() {
@@ -85,6 +86,7 @@ class WingedContainerState extends State<WingedContainer> {
         focusNode.removeListener(onFocusChanged);
       }
     }
+    addInputRegionWidget = addInputRegionWidget || widget.addInputRegion;
   }
 
   void onFocusChanged() => setState(() {});
@@ -143,8 +145,11 @@ class WingedContainerState extends State<WingedContainer> {
         child: result,
       );
     }
-    if (widget.addInputRegion) {
-      result = InputRegion(child: result);
+    if (addInputRegionWidget) {
+      result = InputRegion(
+        active: widget.addInputRegion,
+        child: result,
+      );
     }
     return result;
   }

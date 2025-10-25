@@ -106,7 +106,7 @@ class WingedContainerState extends State<WingedContainer> {
           if (client != null) {
             client.onEscapePressed();
           } else {
-            focusNode.requestFocus();
+            focusNode.requestScopeFocus();
           }
         },
       },

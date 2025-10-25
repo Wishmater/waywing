@@ -1,5 +1,6 @@
 import "package:flutter/widgets.dart";
 import "package:motor/motor.dart";
+import "package:waywing/widgets/better_size_transition.dart";
 import "package:waywing/widgets/motion_layout/motion_layout.dart";
 
 class MotionFlex<T> extends StatelessWidget {
@@ -68,17 +69,17 @@ class MotionFlex<T> extends StatelessWidget {
 
   Widget defaultTransitionBuilder(BuildContext context, T data, Widget child, Animation<double> animation) {
     // hack to prevent SizeTransition from breaking cross-axis sizing when inside IntrinsicWidth/Height
-    child = Flex(
-      direction: direction,
-      crossAxisAlignment: crossAxisAlignment,
-      mainAxisSize: MainAxisSize.min,
-      children: [child],
-    );
+    // child = Flex(
+    //   direction: direction,
+    //   crossAxisAlignment: crossAxisAlignment,
+    //   mainAxisSize: MainAxisSize.min,
+    //   children: [child],
+    // );
     child = FadeTransition(
       opacity: animation,
       child: child,
     );
-    child = SizeTransition(
+    child = BetterSizeTransition(
       sizeFactor: animation,
       axis: direction,
       child: child,

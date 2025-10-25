@@ -1,4 +1,4 @@
-import 'package:path/path.dart' as p;
+import "package:path/path.dart" as p;
 
 class Aria2Task {
   final String gid;

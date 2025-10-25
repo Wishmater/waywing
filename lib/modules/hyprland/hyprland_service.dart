@@ -48,6 +48,7 @@ class HyprlandService extends Service {
     });
     final cmd =
         "${flags.isNotEmpty ? "${flags.join(' ')}/" : ''}$command${args.isNotEmpty ? " ${args.join(' ')}" : ''}";
+    // TODO 3: this throw sometimes...
     socket.write(cmd);
     logger.debug("send command to hyprland: $cmd");
     final response = await completer.future;

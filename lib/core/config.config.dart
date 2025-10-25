@@ -38,9 +38,6 @@ mixin MainConfigI {
   @ConfigDocDefault<bool>(false)
   bool get requestKeyboardFocus;
 
-  @ConfigDocDefault<bool>(true)
-  bool get internalUsePainter;
-
   @ConfigDocDefault<bool>(false)
   bool get internalDebugIcons;
   LoggingConfig get logging;
@@ -66,7 +63,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
       'animationFitting': MainConfigBase._animationFitting,
       'animationSwitching': MainConfigBase._animationSwitching,
       'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
-      'internalUsePainter': MainConfigBase._internalUsePainter,
       'internalDebugIcons': MainConfigBase._internalDebugIcons,
     },
   );
@@ -111,8 +107,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   @override
   final bool requestKeyboardFocus;
   @override
-  final bool internalUsePainter;
-  @override
   final bool internalDebugIcons;
 
   @override
@@ -131,7 +125,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     AnimationFitting? animationFitting,
     AnimationSwitching? animationSwitching,
     bool? requestKeyboardFocus,
-    bool? internalUsePainter,
     bool? internalDebugIcons,
     required this.logging,
     required this.theme,
@@ -146,7 +139,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
        animationSwitching =
            animationSwitching ?? AnimationSwitching.fadeThrough,
        requestKeyboardFocus = requestKeyboardFocus ?? false,
-       internalUsePainter = internalUsePainter ?? true,
        internalDebugIcons = internalDebugIcons ?? false;
 
   factory MainConfig.fromBlock(BlockData data) {
@@ -175,7 +167,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
       animationFitting: fields['animationFitting'],
       animationSwitching: fields['animationSwitching'],
       requestKeyboardFocus: fields['requestKeyboardFocus'],
-      internalUsePainter: fields['internalUsePainter'],
       internalDebugIcons: fields['internalDebugIcons'],
       logging: LoggingConfig.fromBlock(data.firstBlockWith('Logging')!),
       theme: ThemeConfig.fromBlock(data.firstBlockWith('Theme')!),
@@ -195,7 +186,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
 	animationFitting = $animationFitting,
 	animationSwitching = $animationSwitching,
 	requestKeyboardFocus = $requestKeyboardFocus,
-	internalUsePainter = $internalUsePainter,
 	internalDebugIcons = $internalDebugIcons,
 	logging = ${logging.toString().split("\n").join("\n\t")},
 	theme = ${theme.toString().split("\n").join("\n\t")},
@@ -215,7 +205,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
         animationFitting == other.animationFitting &&
         animationSwitching == other.animationSwitching &&
         requestKeyboardFocus == other.requestKeyboardFocus &&
-        internalUsePainter == other.internalUsePainter &&
         internalDebugIcons == other.internalDebugIcons &&
         logging == other.logging &&
         theme == other.theme &&
@@ -234,7 +223,6 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     animationFitting,
     animationSwitching,
     requestKeyboardFocus,
-    internalUsePainter,
     internalDebugIcons,
     logging,
     theme,

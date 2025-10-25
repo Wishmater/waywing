@@ -203,26 +203,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
 
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
-    // TODO: 1 right now, the border paints on top of the container background color. This will warp
-    // the intended border colors if they have transparency. We probably need to implement proper getInnerPath
-    // to fix this
-    if (borderSide.width == 0) return;
-    if (borderSide.colors.isEmpty) return;
-    if (borderSide.colors.all((e) => e.a == 0)) return;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = borderSide.width * 2;
-    if (borderSide.colors.length == 1) {
-      paint.color = borderSide.colors.first;
-    } else {
-      paint.shader = LinearGradient(
-        colors: borderSide.colors,
-        begin: borderSide.alignmentBegin,
-        end: borderSide.alignmentEnd,
-      ).createShader(rect);
-    }
-    final path = getOuterPath(rect, textDirection: textDirection);
-    canvas.drawPath(path, paint);
+    // border must be painted externally, WingedContainer takes care of that
   }
 
   @override

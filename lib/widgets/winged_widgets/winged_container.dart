@@ -122,7 +122,6 @@ class WingedContainerState extends State<WingedContainer> {
           shadowOffset: widget.shadowOffset,
           clipBehavior: widget.clipBehavior,
           color: widget.color,
-          usePainter: mainConfig.internalUsePainter,
           child: widget.child,
         ),
       ),
@@ -161,9 +160,6 @@ class _WingedContainer extends StatefulWidget {
   final Color? color;
   final Widget? child;
 
-  /// temporary option to use ShapeShadowPainter instead of ShapeShadorClipper
-  final bool usePainter;
-
   const _WingedContainer({
     required this.motion,
     required this.active,
@@ -174,7 +170,6 @@ class _WingedContainer extends StatefulWidget {
     required this.shadowOffset,
     required this.clipBehavior,
     required this.color,
-    required this.usePainter,
     required this.child,
   });
 
@@ -328,44 +323,17 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
         if (shape != null && elevation > 0)
           Positioned.fromRelativeRect(
             rect: shapePaddingRect,
-            child: widget.usePainter
-                ? IgnorePointer(
-                    child: CustomPaint(
-                      painter: ShapeShadowPainter(
-                        shape: shape,
-                        elevation: elevation,
-                        offset: offset,
-                        color: color,
-                      ),
-                    ),
-                  )
-                : ClipPath(
-                    clipper: ShapeClipper(
-                      shape: shape,
-                      contain: false,
-                    ),
-                    child: ImageFiltered(
-                      imageFilter: ImageFilter.blur(
-                        sigmaX: elevation,
-                        sigmaY: elevation,
-                      ),
-                      child: ClipPath(
-                        clipper: ShapeShadowClipper(
-                          shape: shape,
-                          offset: offset,
-                        ),
-                        child: ColoredBox(
-                          color: color,
-                          child: Transform.translate(
-                            offset: offset,
-                            child: ColoredBox(
-                              color: color,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: ShapeBorderAndShadowPainter(
+                  shape: shape,
+                  border: (shape is ExternalRoundedCornersBorder) ? shape.borderSide : null,
+                  elevation: elevation,
+                  shadowOffset: offset,
+                  shadowColor: color,
+                ),
+              ),
+            ),
           ),
       ],
     );
@@ -378,37 +346,29 @@ class _DefaultBorderSide implements GradientBorderSide {
 
   @override
   GradientBorderSide operator *(num multiplier) {
-    // TODO: implement *
     throw UnimplementedError();
   }
 
   @override
-  // TODO: implement alignmentBegin
   Alignment get alignmentBegin => throw UnimplementedError();
 
   @override
-  // TODO: implement alignmentEnd
   Alignment get alignmentEnd => throw UnimplementedError();
 
   @override
-  // TODO: implement angle
   double get angle => throw UnimplementedError();
 
   @override
-  // TODO: implement angleRadians
   double get angleRadians => throw UnimplementedError();
 
   @override
-  // TODO: implement colors
   List<Color> get colors => throw UnimplementedError();
 
   @override
   GradientBorderSide copyWith({List<Color>? colors, double? width, double? angle}) {
-    // TODO: implement copyWith
     throw UnimplementedError();
   }
 
   @override
-  // TODO: implement width
   double get width => throw UnimplementedError();
 }

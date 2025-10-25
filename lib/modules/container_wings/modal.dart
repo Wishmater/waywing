@@ -11,6 +11,7 @@ import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/focus_grab/widget.dart";
+import "package:waywing/widgets/hideable.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
@@ -99,52 +100,52 @@ class ModalWing extends Wing<ModalConfig> {
       child: ValueListenableBuilder(
         valueListenable: show,
         builder: (contex, show, _) {
-          Widget result;
-          if (!show) {
-            result = SizedBox.shrink();
-          } else {
-            // TODO: 1 await feather initialization, to comply with the standard set by Bar
-            // TODO: 1 animate modal
-            final screenSize = MediaQuery.sizeOf(context);
-            final avalilableSize = Size(
-              screenSize.width - rerservedSpace.horizontal,
-              screenSize.height - rerservedSpace.vertical,
-            );
-            result = WingedContainer(
-              motion: mainConfig.motions.expressive.spatial.slow,
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              shape: ExternalRoundedCornersBorder(
-                borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
-              ),
-              child: KeyboardFocus(
-                mode: KeyboardFocusMode.onDemand,
-                child: CallbackShortcuts(
-                  bindings: {
-                    const SingleActivator(LogicalKeyboardKey.escape): () {
-                      this.show.value = false;
-                      focusGrabController.ungrabFocus();
+          final result = Hideable(
+            show: show,
+            builder: (context, _) {
+              // TODO: 1 await feather initialization, to comply with the standard set by Bar
+              final screenSize = MediaQuery.sizeOf(context);
+              final avalilableSize = Size(
+                screenSize.width - rerservedSpace.horizontal,
+                screenSize.height - rerservedSpace.vertical,
+              );
+              return WingedContainer(
+                motion: mainConfig.motions.expressive.spatial.slow,
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                addInputRegion: show,
+                shape: ExternalRoundedCornersBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
+                ),
+                child: KeyboardFocus(
+                  mode: KeyboardFocusMode.onDemand,
+                  child: CallbackShortcuts(
+                    bindings: {
+                      const SingleActivator(LogicalKeyboardKey.escape): () {
+                        this.show.value = false;
+                        focusGrabController.ungrabFocus();
+                      },
                     },
-                  },
-                  child: FocusGrab(
-                    controller: focusGrabController,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: min(avalilableSize.width, config.maxWidth?.toDouble() ?? double.infinity),
-                        maxHeight: max(avalilableSize.width, config.maxHeight?.toDouble() ?? double.infinity),
-                      ),
-                      child: ValueListenableBuilder(
-                        valueListenable: feather.components,
-                        builder: (context, components, _) {
-                          // TODO: 1 what to do when there are several/no components
-                          return components.first.buildPopover!(context);
-                        },
+                    child: FocusGrab(
+                      controller: focusGrabController,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: min(avalilableSize.width, config.maxWidth?.toDouble() ?? double.infinity),
+                          maxHeight: max(avalilableSize.width, config.maxHeight?.toDouble() ?? double.infinity),
+                        ),
+                        child: ValueListenableBuilder(
+                          valueListenable: feather.components,
+                          builder: (context, components, _) {
+                            // TODO: 1 what to do when there are several/no components
+                            return components.first.buildPopover!(context);
+                          },
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            );
-          }
+              );
+            },
+          );
 
           return IgnorePointer(
             ignoring: !show,

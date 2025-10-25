@@ -38,19 +38,19 @@ mixin BarConfigBase on BarConfigI {
   static const __exclusiveSizeLeft = DoubleNumberField(nullable: true);
   double get exclusiveSizeLeft =>
       _exclusiveSizeLeft ?? //
-      (side == ScreenEdge.left ? size.toDouble() + marginLeft : 0);
+      (side == ScreenEdge.left ? size.toDouble() + marginLeft + mainConfig.theme.inactiveBorderSize : 0);
   static const __exclusiveSizeRight = DoubleNumberField(nullable: true);
   double get exclusiveSizeRight =>
       _exclusiveSizeRight ?? //
-      (side == ScreenEdge.right ? size.toDouble() + marginRight : 0);
+      (side == ScreenEdge.right ? size.toDouble() + marginRight + mainConfig.theme.inactiveBorderSize : 0);
   static const __exclusiveSizeTop = DoubleNumberField(nullable: true);
   double get exclusiveSizeTop =>
       _exclusiveSizeTop ?? //
-      (side == ScreenEdge.top ? size.toDouble() + marginTop : 0);
+      (side == ScreenEdge.top ? size.toDouble() + marginTop + mainConfig.theme.inactiveBorderSize : 0);
   static const __exclusiveSizeBottom = DoubleNumberField(nullable: true);
   double get exclusiveSizeBottom =>
       _exclusiveSizeBottom ?? //
-      (side == ScreenEdge.bottom ? size.toDouble() + marginBottom : 0);
+      (side == ScreenEdge.bottom ? size.toDouble() + marginBottom + mainConfig.theme.inactiveBorderSize : 0);
 
   // Note (add to readme when it exists): explicitly set exclusiveSice will have priority over Bar size.
   // Set exclusiveSize to zero on same side bar is on to remove autoExclusiveSize on Bar.

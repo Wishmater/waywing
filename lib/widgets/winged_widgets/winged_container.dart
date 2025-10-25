@@ -1,5 +1,3 @@
-import "dart:ui";
-
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -320,7 +318,7 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
         ),
 
         // paint shadows
-        if (shape != null && elevation > 0)
+        if (shape != null && (elevation > 0 || (shape is ExternalRoundedCornersBorder && shape.borderSide.width > 0)))
           Positioned.fromRelativeRect(
             rect: shapePaddingRect,
             child: IgnorePointer(

@@ -369,7 +369,7 @@ class _BarState extends State<Bar> {
         elevation: 5 * widget.config.shadows,
         shadowOffset: getShadowOffset(),
         shape: shape,
-        clipBehavior: Clip.antiAlias,
+        clipBehavior: Clip.hardEdge,
         child: child,
       ),
     );
@@ -448,6 +448,12 @@ class _BarState extends State<Bar> {
                         overflowAlignment: overflowAlignment,
                         screenPadding: screenPadding,
                         stickToHost: true,
+                        extraPadding: EdgeInsets.only(
+                          left: widget.config.side == ScreenEdge.left ? mainConfig.theme.inactiveBorderSize : 0,
+                          right: widget.config.side == ScreenEdge.right ? mainConfig.theme.inactiveBorderSize : 0,
+                          top: widget.config.side == ScreenEdge.top ? mainConfig.theme.inactiveBorderSize : 0,
+                          bottom: widget.config.side == ScreenEdge.bottom ? mainConfig.theme.inactiveBorderSize : 0,
+                        ),
                         builder: (context, controller, _, targetChildContainerPositioning) {
                           return ValueListenableBuilder(
                             valueListenable: controller.hostState.sizeNotifier,
@@ -641,15 +647,19 @@ class _BarState extends State<Bar> {
                       if (containerPositioning != null)
                         Rect.fromLTWH(
                           containerPositioning.offset.dx + barInnerPadding.left,
-                          containerPositioning.offset.dy,
+                          containerPositioning.offset.dy -
+                              (widget.config.side == ScreenEdge.bottom ? mainConfig.theme.inactiveBorderSize : 0),
                           containerPositioning.size.width - barInnerPadding.horizontal,
-                          containerPositioning.size.height,
+                          containerPositioning.size.height +
+                              (widget.config.side == ScreenEdge.top ? mainConfig.theme.inactiveBorderSize : 0),
                         ),
                       if (containerPositioning != null)
                         Rect.fromLTWH(
-                          containerPositioning.offset.dx,
+                          containerPositioning.offset.dx -
+                              (widget.config.side == ScreenEdge.right ? mainConfig.theme.inactiveBorderSize : 0),
                           containerPositioning.offset.dy + barInnerPadding.top,
-                          containerPositioning.size.width,
+                          containerPositioning.size.width +
+                              (widget.config.side == ScreenEdge.left ? mainConfig.theme.inactiveBorderSize : 0),
                           containerPositioning.size.height - barInnerPadding.vertical,
                         ),
                     ],
@@ -682,7 +692,7 @@ class _BarState extends State<Bar> {
       // motion: motion,
       elevation: isClosed ? 0 : 3.5,
       shadowOffset: getShadowOffset(),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
+      clipBehavior: Clip.hardEdge,
       shape: shape,
       color: isTooltip
           ? Theme.of(context).colorScheme.surfaceContainerLow

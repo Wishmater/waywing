@@ -146,17 +146,6 @@ class ShapeBorderAndShadowPainter extends CustomPainter {
     // Path of the shape (container) that we want to draw a shadow on
     final shapePath = shape.getOuterPath(rect);
 
-    // Calculate the path of the shadow, by progressively translating the original path in
-    // the direction of the offset and getting the union of all steps. This can probably be
-    // done in a better way, but this is what I came up with and it works.
-    var shadowPath = shapePath;
-    final steps = max(shadowOffset.dx, shadowOffset.dy);
-    for (int i = 1; i <= steps; i++) {
-      final adjustedOffset = shadowOffset * (i / steps);
-      final offsetPath = shapePath.shift(adjustedOffset);
-      shadowPath = Path.combine(PathOperation.union, shadowPath, offsetPath);
-    }
-
     // Caclulate shapeClipPath, which is the inverse of shapePath, used to clip shadow below
     // the container, so it works properly for containers with transparent background
     final outerPath = Path()..addRect(Rect.fromLTRB(-10000000, -10000000, 10000000, 10000000));
@@ -168,12 +157,24 @@ class ShapeBorderAndShadowPainter extends CustomPainter {
     // Apply clipping
     canvas.clipPath(shapeClipPath);
 
-    // Paint shadow with solid color and blur
-    Paint paint = Paint()
-      ..color = shadowColor
-      ..style = PaintingStyle.fill
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, Shadow.convertRadiusToSigma(elevation));
-    canvas.drawPath(shadowPath, paint);
+    if (elevation > 0) {
+      // Calculate the path of the shadow, by progressively translating the original path in
+      // the direction of the offset and getting the union of all steps. This can probably be
+      // done in a better way, but this is what I came up with and it works.
+      var shadowPath = shapePath;
+      final steps = max(shadowOffset.dx, shadowOffset.dy);
+      for (int i = 1; i <= steps; i++) {
+        final adjustedOffset = shadowOffset * (i / steps);
+        final offsetPath = shapePath.shift(adjustedOffset);
+        shadowPath = Path.combine(PathOperation.union, shadowPath, offsetPath);
+      }
+      // Paint shadow with solid color and blur
+      Paint paint = Paint()
+        ..color = shadowColor
+        ..style = PaintingStyle.fill
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, Shadow.convertRadiusToSigma(elevation));
+      canvas.drawPath(shadowPath, paint);
+    }
 
     // Paint border
     if (border case final border?) {

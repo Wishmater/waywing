@@ -1,6 +1,5 @@
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/wing.dart";
@@ -116,10 +115,10 @@ class BarWing extends Wing<BarConfig> {
   ValueListenable<EdgeInsets> get exclusiveSize => _exclusiveSize;
   late final LazyManualValueNotifier<EdgeInsets> _exclusiveSize = LazyManualValueNotifier(
     () => EdgeInsets.fromLTRB(
-      config.exclusiveSizeLeft + mainConfig.theme.inactiveBorderSize,
-      config.exclusiveSizeTop + mainConfig.theme.inactiveBorderSize,
-      config.exclusiveSizeRight + mainConfig.theme.inactiveBorderSize,
-      config.exclusiveSizeBottom + mainConfig.theme.inactiveBorderSize,
+      config.exclusiveSizeLeft,
+      config.exclusiveSizeTop,
+      config.exclusiveSizeRight,
+      config.exclusiveSizeBottom,
     ),
   );
 

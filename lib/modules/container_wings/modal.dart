@@ -116,6 +116,7 @@ class ModalWing extends Wing<ModalConfig> {
                 shape: ExternalRoundedCornersBorder(
                   borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
                 ),
+                unfocusContainerOnMouseExit: false,
                 child: KeyboardFocus(
                   mode: KeyboardFocusMode.onDemand,
                   child: CallbackShortcuts(
@@ -151,7 +152,7 @@ class ModalWing extends Wing<ModalConfig> {
             ignoring: !show,
             child: MotionContainer(
               motion: mainConfig.motions.expressive.spatial.normal,
-              alignment: Alignment.center,
+              alignment: Alignment.center, // TODO: 1 allow user to change alignment, including fractional alignments
               padding: rerservedSpace,
               color: !show ? Colors.transparent : config.barrierColor,
               child: result,

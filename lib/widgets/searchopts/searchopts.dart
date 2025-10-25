@@ -318,19 +318,21 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
                 children: [
                   KeyboardFocus(
                     mode: KeyboardFocusMode.onDemand,
-                    child: TextFormField(
-                      autofocus: true,
-                      focusNode: widget.focusNode,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          // ugly hack, but flutter TextFormField widget is dogshit
-                          // and doesn't allow me to set a fixed height, so it is what it is
-                          vertical: (textFieldHeight - 16) / 2,
+                    child: FocusScope(
+                      child: TextFormField(
+                        autofocus: true,
+                        focusNode: widget.focusNode,
+                        onChanged: updateFilter,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            // ugly hack, but flutter TextFormField widget is dogshit
+                            // and doesn't allow me to set a fixed height, so it is what it is
+                            vertical: (textFieldHeight - 16) / 2,
+                          ),
                         ),
                       ),
-                      onChanged: updateFilter,
                     ),
                   ),
                   Positioned(

@@ -26,20 +26,9 @@ class LauncherWidget extends StatefulWidget {
 }
 
 class _LauncherWidgetState extends State<LauncherWidget> {
-  late final FocusNode focusNode;
-
   @override
   void initState() {
     super.initState();
-
-    focusNode = FocusNode(debugLabel: "launcher");
-    // TODO FIX THIS (Maybe with the hyprpland focus grab protocol this is not needed
-    focusNode.requestFocus();
-    focusNode.addListener(() {
-      if (!focusNode.hasFocus) {
-        focusNode.requestFocus();
-      }
-    });
   }
 
   @override
@@ -52,7 +41,6 @@ class _LauncherWidgetState extends State<LauncherWidget> {
           onSelected: _run,
           showScrollBar: widget.config.showScrollBar,
           height: constraints.maxHeight.toDouble(),
-          focusNode: focusNode,
         );
       },
     );

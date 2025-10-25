@@ -28,6 +28,7 @@ class WingedContainer extends StatefulWidget {
   final Color? color;
   final bool addInputRegion;
   final bool? focusContainerOnMouseOver;
+  final bool? unfocusContainerOnMouseExit;
   final Widget? child;
 
   const WingedContainer({
@@ -44,6 +45,7 @@ class WingedContainer extends StatefulWidget {
     this.color,
     this.addInputRegion = true,
     this.focusContainerOnMouseOver,
+    this.unfocusContainerOnMouseExit,
     this.child,
 
     super.key,
@@ -57,7 +59,7 @@ class WingedContainer extends StatefulWidget {
 }
 
 class WingedContainerState extends State<WingedContainer> {
-  final focusNode = FocusNode();
+  final focusNode = FocusScopeNode();
 
   @override
   void initState() {
@@ -108,8 +110,8 @@ class WingedContainerState extends State<WingedContainer> {
           }
         },
       },
-      child: Focus(
-        focusNode: focusNode,
+      child: FocusScope(
+        node: focusNode,
         child: _WingedContainer(
           motion: widget.motion ?? mainConfig.motions.expressive.spatial.slow.multiplySpeed(0.2),
           active: widget.active,
@@ -124,14 +126,19 @@ class WingedContainerState extends State<WingedContainer> {
         ),
       ),
     );
-    if (widget.focusContainerOnMouseOver ?? mainConfig.focusContainerOnMouseOver) {
+    if ((widget.focusContainerOnMouseOver ?? mainConfig.focusContainerOnMouseOver) ||
+        (widget.unfocusContainerOnMouseExit ?? mainConfig.focusContainerOnMouseOver)) {
       result = MouseRegion(
         opaque: false,
         onEnter: (_) {
-          focusNode.requestFocus();
+          if (widget.focusContainerOnMouseOver ?? mainConfig.focusContainerOnMouseOver) {
+            focusNode.requestFocus();
+          }
         },
         onExit: (_) {
-          focusNode.unfocus();
+          if (widget.unfocusContainerOnMouseExit ?? mainConfig.focusContainerOnMouseOver) {
+            focusNode.unfocus();
+          }
         },
         child: result,
       );

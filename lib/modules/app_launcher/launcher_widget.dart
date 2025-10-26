@@ -7,7 +7,7 @@ import "package:waywing/modules/app_launcher/launcher_config.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
-class LauncherWidget extends StatefulWidget {
+class LauncherWidget extends StatelessWidget {
   final List<Application> applications;
   final ApplicationService service;
   final LauncherConfig config;
@@ -22,44 +22,34 @@ class LauncherWidget extends StatefulWidget {
   });
 
   @override
-  State<LauncherWidget> createState() => _LauncherWidgetState();
-}
-
-class _LauncherWidgetState extends State<LauncherWidget> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SearchOptions(
-          options: Option.from(widget.applications, ApplicationOption.from),
+          options: Option.from(applications, ApplicationOption.from),
           renderOption: _renderOption,
           onSelected: _run,
-          showScrollBar: widget.config.showScrollBar,
+          showScrollBar: config.showScrollBar,
           height: constraints.maxHeight.toDouble(),
         );
       },
     );
   }
 
-  Widget _renderOption(BuildContext context, Application app, SearchOptionsRenderConfig config) {
+  Widget _renderOption(BuildContext context, Application app, SearchOptionsRenderConfig searchoptConfig) {
     return ListTileOptionWidget(
       app: app,
-      config: config,
-      iconSize: widget.config.iconSize,
+      config: searchoptConfig,
+      iconSize: config.iconSize,
       onTap: () => _run(app),
     );
   }
 
   void _run(Application app) async {
     try {
-      await widget.service.run(app);
+      await service.run(app);
     } finally {
-      widget.close();
+      close();
     }
   }
 }

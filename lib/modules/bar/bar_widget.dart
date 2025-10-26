@@ -461,8 +461,10 @@ class _BarState extends State<Bar> {
                             builder: (context, hostSize, child) {
                               return ConstrainedBox(
                                 constraints: BoxConstraints(
-                                  minWidth: !widget.config.isVertical ? hostSize?.height ?? 0 : 0,
-                                  minHeight: widget.config.isVertical ? hostSize?.width ?? 0 : 0,
+                                  // minWidth: !widget.config.isVertical ? hostSize?.width ?? 0 : 0,
+                                  // minHeight: widget.config.isVertical ? hostSize?.height ?? 0 : 0,
+                                  minWidth: !widget.config.isVertical ? widget.config.indicatorMinSize : 0,
+                                  minHeight: widget.config.isVertical ? widget.config.indicatorMinSize : 0,
                                 ),
                                 child: child,
                               );
@@ -531,8 +533,10 @@ class _BarState extends State<Bar> {
                             builder: (context, hostSize, child) {
                               return ConstrainedBox(
                                 constraints: BoxConstraints(
-                                  minWidth: !widget.config.isVertical ? hostSize?.height ?? 0 : 0,
-                                  minHeight: widget.config.isVertical ? hostSize?.width ?? 0 : 0,
+                                  // minWidth: !widget.config.isVertical ? hostSize?.width ?? 0 : 0,
+                                  // minHeight: widget.config.isVertical ? hostSize?.height ?? 0 : 0,
+                                  minWidth: !widget.config.isVertical ? widget.config.indicatorMinSize : 0,
+                                  minHeight: widget.config.isVertical ? widget.config.indicatorMinSize : 0,
                                 ),
                                 child: child,
                               );

@@ -219,7 +219,7 @@ class FeatherRegistry {
     } catch (e, st) {
       // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
       feather.logger.error(
-        "Error thrown while initializing ${feather.name} (${feather.uniqueId})",
+        "Error thrown while initializing ${feather is Wing ? 'wing' : 'feather'} ${feather.name} (${feather.uniqueId})",
         error: e,
         stackTrace: st,
       );

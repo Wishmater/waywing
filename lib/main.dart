@@ -152,13 +152,6 @@ class _WingsWidgetState extends State<_WingsWidget> {
           future: featherRegistry.awaitInitialization(wing),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              // TODO: 1 Implement proper error handling in featherRegistry and remove this
-              mainLogger.log(
-                Level.error,
-                "Error caught when initializing wing ${wing.name}",
-                error: snapshot.error,
-                stackTrace: snapshot.stackTrace,
-              );
               return SizedBox.shrink();
             }
             if (snapshot.connectionState != ConnectionState.done) {

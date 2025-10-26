@@ -92,6 +92,7 @@ class MenuWing extends Wing {
         return Center(
           child: InputRegion(
             child: KeyboardFocus(
+              debugLabel: "Menu",
               mode: KeyboardFocusMode.onDemand,
               child: CallbackShortcuts(
                 bindings: {

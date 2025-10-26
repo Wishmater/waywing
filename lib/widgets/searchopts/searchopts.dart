@@ -317,6 +317,7 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
                 clipBehavior: Clip.none,
                 children: [
                   KeyboardFocus(
+                    debugLabel: "Searchopts",
                     mode: KeyboardFocusMode.onDemand,
                     child: FocusScope(
                       child: TextFormField(

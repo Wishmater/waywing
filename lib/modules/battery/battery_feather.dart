@@ -120,6 +120,7 @@ class _ProfileSelector extends StatelessWidget {
         final profiles = profile.profiles.value;
         final activeProfile = profile.activeProfile.value;
         return KeyboardFocus(
+          debugLabel: "ProfileSelector",
           mode: KeyboardFocusMode.onDemand,
           child: RadioGroup<String>(
             groupValue: activeProfile,

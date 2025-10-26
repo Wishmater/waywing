@@ -192,6 +192,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
         };
         return FocusTraversalGroup(
           child: KeyboardFocus(
+            debugLabel: "Notification",
             mode: KeyboardFocusMode.onDemand,
             child: DraggableWidget(
               onSwipeStart: (details) {

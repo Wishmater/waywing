@@ -13,6 +13,7 @@ import "package:waywing/modules/app_launcher/launcher_feather.dart";
 import "package:waywing/modules/aria2/aria2_feather.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
+import "package:waywing/modules/bitwarden/bitwarden_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
 import "package:waywing/modules/command_palette/command_palette_feather.dart";
 import "package:waywing/modules/container_wings/drawer.dart";
@@ -283,6 +284,7 @@ class FeatherRegistry {
     AppLauncherFeather.registerFeather(registerFeather);
     CommandPaletteFeather.registerFeather(registerFeather);
     Aria2Feather.registerFeather(registerFeather);
+    BitwardenLauncherFeather.registerFeather(registerFeather);
   }
 }
 

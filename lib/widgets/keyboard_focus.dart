@@ -10,10 +10,12 @@ final _logger = mainLogger.clone(properties: [LogType("KeyboardFocus")]);
 class KeyboardFocus extends StatefulWidget {
   final Widget child;
   final KeyboardFocusMode mode;
+  final String? debugLabel;
 
   const KeyboardFocus({
     required this.child,
     required this.mode,
+    this.debugLabel,
     super.key,
   });
 
@@ -27,6 +29,7 @@ class _KeyboardFocusState extends State<KeyboardFocus> {
 
   @override
   void initState() {
+    _logger.debug("Initialization of _KeyboardFocusState ${widget.debugLabel ?? ''}");
     super.initState();
     // assumes the provider won't change during the lifetime of this widget, which should be true
     provider = context.findAncestorStateOfType<_KeyboardFocusProviderState>()!;
@@ -34,6 +37,7 @@ class _KeyboardFocusState extends State<KeyboardFocus> {
 
   @override
   void dispose() {
+    _logger.debug("Deinitialization of _KeyboardFocusState ${widget.debugLabel ?? ''}");
     super.dispose();
     requestId?.then((id) => provider.removeFocus(id));
   }

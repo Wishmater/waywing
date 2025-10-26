@@ -214,9 +214,7 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
                 }
                 return WingedIcon(
                   iconNames: [iconName],
-                  notFoundBuilder: (context) {
-                    return SizedBox.square(dimension: TextIcon.getIconEffectiveSize(context));
-                  },
+                  notFoundBuilder: (context) => IconSpacer(),
                 );
               },
             ),

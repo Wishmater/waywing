@@ -13,7 +13,7 @@ class GradientBorderSide {
   late final Alignment alignmentBegin = Alignment(-cos(angleRadians), -sin(angleRadians));
   late final Alignment alignmentEnd = Alignment(cos(angleRadians), sin(angleRadians));
 
-  // TODO: 3 make this const somehow
+  // TODO: 3 make this const somehow. The problem is that sin() and cos() can't be called
   GradientBorderSide({
     required this.colors,
     this.width = 1,
@@ -130,7 +130,6 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
 
   @override
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    // TODO: 1 if radius*2 > size, this missclips in a weird way. Clamp the radius somehow
     final width = rect.width;
     final height = rect.height;
     final padding = dimensions;
@@ -138,6 +137,48 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
     final right = rect.left + width - padding.right;
     final top = rect.top + padding.top;
     final bottom = rect.top + height - padding.bottom;
+    final actualWidth = rect.width - padding.horizontal;
+    final actualHeight = rect.height - padding.vertical;
+    final leftTotal = this.borderRadius.topLeft.y + this.borderRadius.bottomLeft.y;
+    final rightTotal = this.borderRadius.topRight.y + this.borderRadius.bottomRight.y;
+    final topTotal = this.borderRadius.topLeft.x + this.borderRadius.topRight.x;
+    final bottomTotal = this.borderRadius.bottomLeft.x + this.borderRadius.bottomRight.x;
+
+    final borderRadius = BorderRadius.only(
+      topLeft: Radius.elliptical(
+        topTotal <= actualWidth
+            ? this.borderRadius.topLeft.x
+            : this.borderRadius.topLeft.x * (actualWidth / topTotal), ////
+        leftTotal <= actualHeight
+            ? this.borderRadius.topLeft.y
+            : this.borderRadius.topLeft.y * (actualHeight / leftTotal),
+      ),
+      topRight: Radius.elliptical(
+        topTotal <= actualWidth
+            ? this.borderRadius.topRight.x
+            : this.borderRadius.topRight.x * (actualWidth / topTotal), //
+        rightTotal <= actualHeight
+            ? this.borderRadius.topRight.y
+            : this.borderRadius.topRight.y * (actualHeight / rightTotal),
+      ),
+      bottomLeft: Radius.elliptical(
+        bottomTotal <= actualWidth
+            ? this.borderRadius.bottomLeft.x
+            : this.borderRadius.bottomLeft.x * (actualWidth / bottomTotal),
+        leftTotal <= actualHeight
+            ? this.borderRadius.bottomLeft.y
+            : this.borderRadius.bottomLeft.y * (actualHeight / leftTotal),
+      ),
+      bottomRight: Radius.elliptical(
+        bottomTotal <= actualWidth
+            ? this.borderRadius.bottomRight.x
+            : this.borderRadius.bottomRight.x * (actualWidth / bottomTotal),
+        rightTotal <= actualHeight
+            ? this.borderRadius.bottomRight.y
+            : this.borderRadius.bottomRight.y * (actualHeight / rightTotal),
+      ),
+    );
+
     final path = Path();
     // Top-left corner
     path.moveTo(left, top + borderRadius.topLeft.y);
@@ -162,26 +203,7 @@ class ExternalRoundedCornersBorder extends ShapeBorder {
 
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
-    // TODO: 1 right now, the border paints on top of the container background color. This will warp
-    // the intended border colors if they have transparency. We probably need to implement proper getInnerPath
-    // to fix this
-    if (borderSide.width == 0) return;
-    if (borderSide.colors.isEmpty) return;
-    if (borderSide.colors.all((e) => e.a == 0)) return;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = borderSide.width * 2;
-    if (borderSide.colors.length == 1) {
-      paint.color = borderSide.colors.first;
-    } else {
-      paint.shader = LinearGradient(
-        colors: borderSide.colors,
-        begin: borderSide.alignmentBegin,
-        end: borderSide.alignmentEnd,
-      ).createShader(rect);
-    }
-    final path = getOuterPath(rect, textDirection: textDirection);
-    canvas.drawPath(path, paint);
+    // border must be painted externally, WingedContainer takes care of that
   }
 
   @override

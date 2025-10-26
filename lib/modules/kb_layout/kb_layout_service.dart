@@ -31,7 +31,7 @@ class KeyboardLayoutService extends Service<KbLayoutServiceConfig> {
   ValueNotifier<String> layout = ValueNotifier("");
   ValueNotifier<List<String>> availableLayouts = ValueNotifier([]);
   ValueNotifier<bool> capsLockActive = ValueNotifier(false);
-  ValueNotifier<bool> numsLockActive = ValueNotifier(false);
+  ValueNotifier<bool> numsLockActive = ValueNotifier(true);
   late HyprlandKeyboardDevice currentKeyboard;
   bool _disposed = false;
   bool _requestedNumCapsLockPull = false;
@@ -112,7 +112,6 @@ class KeyboardLayoutService extends Service<KbLayoutServiceConfig> {
         availableLayouts.value = keyboard.layouts;
       }
     });
-
   }
 
   void requestNumCapsPull() {
@@ -125,7 +124,7 @@ class KeyboardLayoutService extends Service<KbLayoutServiceConfig> {
   }
 
   Future<void> _pullNumCaps() async {
-    if (config.pullInterval < 0)  {
+    if (config.pullInterval < 0) {
       /// TODO 2: if config changes this wont reload. Needs fix
       return;
     }
@@ -160,7 +159,6 @@ class KeyboardLayoutService extends Service<KbLayoutServiceConfig> {
     return null;
   }
 }
-
 
 @Config()
 mixin KbLayoutServiceConfigBase {

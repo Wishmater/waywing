@@ -212,10 +212,12 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                 },
                 child: WingedContainer(
                   color: surfaceColor,
+                  clipBehavior: timer != null && widget.config.showProgressBar ? Clip.antiAlias : Clip.none,
                   shape: ExternalRoundedCornersBorder(
                     borderRadius: BorderRadius.circular(mainConfig.theme.containerRounding),
                   ),
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       Positioned.fill(
                         child: InkWell(
@@ -235,22 +237,6 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (timer != null && widget.config.showProgressBar)
-                            ListenableBuilder(
-                              listenable: timer,
-                              builder: (context, _) {
-                                // TODO: 1 position progress bar better, probably with a stack, remove padding, test clipping
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                                  child: LinearProgressIndicator(
-                                    backgroundColor: surfaceColor,
-                                    color: urgencyColor,
-                                    value: timer.percentageCompleted,
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                                  ),
-                                );
-                              },
-                            ),
                           _NotificationTitle(
                             notification,
                             isHovered,
@@ -266,6 +252,23 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                           ),
                         ],
                       ),
+                      if (timer != null && widget.config.showProgressBar)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: ListenableBuilder(
+                            listenable: timer,
+                            builder: (context, _) {
+                              // TODO: 1 position progress bar better, probably with a stack, remove padding, test clipping
+                              return LinearProgressIndicator(
+                                backgroundColor: surfaceColor,
+                                color: urgencyColor,
+                                value: timer.percentageCompleted,
+                              );
+                            },
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -403,7 +406,7 @@ class _NotificationTitle extends StatelessWidget {
                                 } else {
                                   return SizedBox.shrink();
                                 }
-                              }
+                              },
                             ),
                           },
                         ),

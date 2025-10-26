@@ -112,7 +112,7 @@ mixin MainConfigBase on MainConfigI {
   //===========================================================================
   // Internal experimental options
   //===========================================================================
-  static const _internalUsePainter = BooleanField(defaultTo: false);
+  static const _internalDebugIcons = BooleanField(defaultTo: false);
 
   //===========================================================================
   // Wings

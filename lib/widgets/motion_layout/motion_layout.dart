@@ -9,7 +9,7 @@ import "package:waywing/util/state_positioning.dart";
 typedef ItemBuilder<T> = Widget Function(BuildContext context, T data);
 typedef ItemTransitionBuilder<T> =
     Widget Function(BuildContext context, T data, Widget child, Animation<double> animation);
-typedef LayoutBuilder<T> = Widget Function(BuildContext context, List<Widget> items);
+typedef LayoutBuilder<T> = Widget Function(BuildContext context, List<Widget> items, List<T> data);
 
 class MotionLayout<T> extends StatefulWidget {
   /// T must implement equals and hashCode properly
@@ -239,6 +239,7 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
   @override
   Widget build(BuildContext context) {
     final List<Widget> widgets = [];
+    final List<T> data = [];
     final List<Widget> overlayWidgets = [];
 
     // build currently existing item widgets
@@ -261,6 +262,7 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
         itemWidget = buildMovingTargetWidget(movingAnim, _findOutgoingAnim(e), e);
       }
       widgets.add(itemWidget);
+      data.add(e);
     }
 
     for (int batchIndex = 0; batchIndex < updateBatches.length; batchIndex++) {
@@ -285,8 +287,9 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
           outgoingWidget = buildMovingOriginWidget(movingAnim, _findIncomingAnim(e), e);
         }
         final indexOffset = getIndexOffset(batchIndex, outgoingAnim.oldIndex);
-        final adjustedIndex = outgoingAnim.oldIndex + indexOffset;
-        widgets.insert(adjustedIndex.clamp(0, widgets.length), outgoingWidget);
+        final adjustedIndex = (outgoingAnim.oldIndex + indexOffset).clamp(0, widgets.length);
+        widgets.insert(adjustedIndex, outgoingWidget);
+        data.insert(adjustedIndex, e);
       }
 
       // build moving item widgets, this is the cause for 90% of the complexity
@@ -317,6 +320,7 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
           final outgoingIndexOffset = getIndexOffset(batchIndex, movingAnim.originIndex);
           final outgoingAdjustedIndex = movingAnim.originIndex + outgoingIndexOffset;
           widgets.insert(outgoingAdjustedIndex, originWidget);
+          data.insert(outgoingAdjustedIndex, e);
         }
         // add a sized proxy to the target index,
         // only if it wasn't already added (item was removed from the list).
@@ -327,13 +331,14 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
           final targetIndexOffset = getIndexOffset(batchIndex, movingAnim.targetIndex);
           final targetAdjustedIndex = movingAnim.originIndex + targetIndexOffset;
           widgets.insert(targetAdjustedIndex, targetWidget);
+          data.insert(targetAdjustedIndex, e);
         }
       }
     }
 
     return Stack(
       children: [
-        widget.layoutBuilder(context, widgets),
+        widget.layoutBuilder(context, widgets, data),
         ...overlayWidgets,
       ],
     );

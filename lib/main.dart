@@ -16,7 +16,6 @@ import "package:waywing/util/logger.dart";
 import "package:waywing/widgets/config_changes_watcher.dart";
 import "package:waywing/util/window_utils.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
-import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
@@ -93,20 +92,18 @@ class App extends StatelessWidget {
                   final theme = Theme.of(context);
                   // The text/icon size configuration needs to happen here because the default
                   // text has all sizes in null... aparently is MaterialApp who fill the sizes
-                  final defaultIconSize = TextIcon.getIconEffectiveSize(context, iconTheme: theme.iconTheme).round();
-                  final iconSize = defaultIconSize * mainConfig.theme.iconSizeScaleFactor;
                   return Theme(
                     data: theme.copyWith(
                       textTheme: theme.textTheme.apply(
                         fontSizeFactor: mainConfig.theme.fontSizeScaleFactor,
                       ),
                       iconTheme: theme.iconTheme.copyWith(
-                        size: iconSize,
+                        size: mainConfig.theme.iconSizeAdapted,
                       ),
                     ),
                     child: XdgIconTheme(
                       data: XdgIconThemeData(
-                        size: iconSize.round(),
+                        size: mainConfig.theme.iconSizeAdapted.round(),
                       ),
                       child: Scaffold(
                         backgroundColor: Colors.transparent,

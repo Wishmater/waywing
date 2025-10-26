@@ -1,9 +1,10 @@
 import "package:config/config.dart";
-import "package:dartx/dartx_io.dart";
+import "package:dartx/dartx.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
+import "package:waywing/modules/aria2/aria2_service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/modules/command_palette/user_command_service.dart";
@@ -102,7 +103,20 @@ class ServiceRegistry {
     }
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
-    await service.init();
+    try {
+      await service.init();
+    } catch (e, st) {
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      service.logger.error(
+        "Error thrown while initializing service $serviceType",
+        error: e,
+        stackTrace: st,
+      );
+      service.hasInitializationError = true;
+      // TODO: 1 show error notification, and temove it when the service is disposed
+      rethrow; // we want this error to bubble up, so that feather initializations that depend on this service also fail
+    }
+    service.isInitialized = true;
     return service;
   }
 
@@ -195,6 +209,7 @@ class ServiceRegistry {
     ApplicationService.registerService(registerService);
     HyprlandService.registerService(registerService);
     UserCommandService.registerService(registerService);
+    Aria2Service.registerService(registerService);
   }
 }
 

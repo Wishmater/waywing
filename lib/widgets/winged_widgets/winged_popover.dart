@@ -1,10 +1,11 @@
-// ignore_for_file: invalid_use_of_visible_for_testing_member
-
-import "package:flutter/widgets.dart";
+import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
+import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
+import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
 typedef WingedPopoverHostContentBuilder =
@@ -30,6 +31,12 @@ typedef WingedPopoverChildBuilder =
       PositioningNotifierController childPositioningController,
       ValueNotifier<Positioning?> targetChildContainerPositioning,
     );
+
+typedef ExtraClippersBuilder =
+    Widget Function(
+      BuildContext context, {
+      required Widget child,
+    });
 
 abstract class WingedPopoverController {
   bool get isPopoverEnabled;
@@ -59,6 +66,7 @@ class PopoverParams {
   final EdgeInsets extraPadding;
   final Motion? motion;
   final bool enableIntrinsicSizeAnimation;
+  final bool ignorePointer;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -87,6 +95,7 @@ class PopoverParams {
     this.motion,
     this.stickToHost = false,
     this.enableIntrinsicSizeAnimation = false,
+    this.ignorePointer = false,
   });
 }
 
@@ -109,8 +118,10 @@ class TooltipParams extends PopoverParams {
     super.extraPadding = EdgeInsets.zero,
     super.motion,
     super.stickToHost = false,
-    this.showDelay = const Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
-    this.hideDelay = Duration.zero, // TODO: 3 add tooltip delay to config
+    super.enableIntrinsicSizeAnimation = false,
+    super.ignorePointer = false,
+    this.showDelay = const Duration(milliseconds: 300), // TODO: 1 add tooltip delay to config
+    this.hideDelay = Duration.zero, // TODO: 1 add tooltip delay to config
   });
 }
 
@@ -119,13 +130,13 @@ class WingedPopover extends StatefulWidget {
   final Widget? child;
   final PopoverParams? popoverParams;
   final TooltipParams? tooltipParams;
-  final List<(ShapeBorder, ValueNotifier<Positioning?>)> extraClientClippers;
+  final ExtraClippersBuilder? extraClientClipperBuilder;
 
   const WingedPopover({
     required this.builder,
     this.popoverParams,
     this.tooltipParams,
-    this.extraClientClippers = const [],
+    this.extraClientClipperBuilder,
     this.child,
     super.key,
   }) : assert(popoverParams != null || tooltipParams != null);
@@ -292,6 +303,83 @@ class WingedPopoverState extends State<WingedPopover>
     return FocusGrab(
       controller: focusGrabController,
       child: result,
+    );
+  }
+}
+
+class WingedTooltip extends StatelessWidget {
+  final Widget child;
+  final WidgetBuilder tooltipBuilder;
+  final Motion? motion;
+  final Alignment alignment;
+  final EdgeInsets padding;
+  final Duration? showDelay;
+  final bool ignorePointer;
+
+  const WingedTooltip({
+    required this.child,
+    required this.tooltipBuilder,
+    this.motion,
+    this.alignment = Alignment.bottomCenter,
+    this.padding = const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    this.showDelay,
+    this.ignorePointer = true,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final motion = this.motion ?? mainConfig.motions.standard.spatial.fast;
+    return WingedPopover(
+      tooltipParams: TooltipParams(
+        motion: motion,
+        anchorAlignment: alignment,
+        popupAlignment: alignment,
+        zIndex: 999999,
+        ignorePointer: ignorePointer,
+        builder: (context, controller, _, _) {
+          return Padding(
+            padding: padding,
+            child: tooltipBuilder(context),
+          );
+        },
+        closedContainerBuilder: (context, child, _, _, _) {
+          return MotionOpacity(
+            motion: motion,
+            opacity: 0,
+            child: WingedContainer(
+              motion: motion,
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              // activeBorder: GradientBorderSide.none,
+              // inactiveBorder: GradientBorderSide.none,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              shape: ExternalRoundedCornersBorder(
+                borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
+              ),
+              child: child,
+            ),
+          );
+        },
+        containerBuilder: (context, child, _, _, _) {
+          return MotionOpacity(
+            motion: motion,
+            opacity: 1,
+            child: WingedContainer(
+              motion: motion,
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              // activeBorder: GradientBorderSide.none,
+              // inactiveBorder: GradientBorderSide.none,
+              color: Theme.of(context).colorScheme.surfaceContainerHigh,
+              shape: ExternalRoundedCornersBorder(
+                borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
+              ),
+              child: child,
+            ),
+          );
+        },
+      ),
+      child: child,
+      builder: (_, _, child) => child!,
     );
   }
 }

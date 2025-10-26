@@ -175,6 +175,7 @@ class VolumeSlider extends StatelessWidget {
                             thumbShape: LabeledRoundSliderThumbShape(
                               text: label,
                               textStyle: Theme.of(context).textTheme.labelLarge!.copyWith(
+                                height: 1,
                                 color: Colors.white,
                                 letterSpacing: -0.5,
                                 fontWeight: FontWeight.w500,

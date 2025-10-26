@@ -37,7 +37,7 @@ class NumLockFeather extends Feather {
   @override
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([
     FeatherComponent(
-      isIndicatorVisible: DerivedValueNotifier(
+      isIndicatorEnabled: DerivedValueNotifier(
         dependencies: [service.numsLockActive],
         derive: () => !service.numsLockActive.value,
       ),

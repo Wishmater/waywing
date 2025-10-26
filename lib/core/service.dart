@@ -26,6 +26,8 @@ abstract class Service<Conf> implements ServiceConsumer {
     return _dataDir!;
   }
 
+  bool isInitialized = false;
+  bool hasInitializationError = false;
   Future<void> init();
 
   Future<void> dispose();

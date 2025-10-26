@@ -29,6 +29,7 @@ class DividerFeather extends Feather<DividerConfig> {
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([component]);
 
   late final component = FeatherComponent(
+    wantsContainer: false,
     buildIndicators: (context, popover) {
       return [
         // TODO: 2 PERFORMANCE here, and everywhere that uses LayoutBuilder only to check isVertical,

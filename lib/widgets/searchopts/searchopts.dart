@@ -212,8 +212,14 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
   }
 
   static double _getSimilarityScore<T extends Object>(Option<T> obj, String v, FuzzyStringMatcher matcher) {
-    final primaryScore = obj.primaryValue.similarityScoreTo(v, ignoreCase: true, matcher: matcher);
-    final secondaryScore = obj.secondaryValue?.similarityScoreTo(v, ignoreCase: true, matcher: matcher) ?? 0;
+    var primaryScore = obj.primaryValue.similarityScoreTo(v, ignoreCase: true, matcher: matcher);
+    var secondaryScore = obj.secondaryValue?.similarityScoreTo(v, ignoreCase: true, matcher: matcher) ?? 0;
+    if (primaryScore.isNaN) {
+      primaryScore = 0;
+    }
+    if (secondaryScore.isNaN) {
+      secondaryScore = 0;
+    }
     return max(primaryScore, secondaryScore * 0.75);
   }
 
@@ -312,19 +318,21 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
                 children: [
                   KeyboardFocus(
                     mode: KeyboardFocusMode.onDemand,
-                    child: TextFormField(
-                      autofocus: true,
-                      focusNode: widget.focusNode,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 32,
-                          // ugly hack, but flutter TextFormField widget is dogshit
-                          // and doesn't allow me to set a fixed height, so it is what it is
-                          vertical: (textFieldHeight - 16) / 2,
+                    child: FocusScope(
+                      child: TextFormField(
+                        autofocus: true,
+                        focusNode: widget.focusNode,
+                        onChanged: updateFilter,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            // ugly hack, but flutter TextFormField widget is dogshit
+                            // and doesn't allow me to set a fixed height, so it is what it is
+                            vertical: (textFieldHeight - 16) / 2,
+                          ),
                         ),
                       ),
-                      onChanged: updateFilter,
                     ),
                   ),
                   Positioned(

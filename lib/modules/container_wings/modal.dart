@@ -4,25 +4,25 @@ import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
+import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
-import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/util/focus_grab/widget.dart";
+import "package:waywing/widgets/hideable.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
 part "modal.config.dart";
 
 class ModalWing extends Wing<ModalConfig> {
-  late ApplicationService service;
-
   ModalWing._();
 
   static void registerFeather(RegisterFeatherCallback<ModalWing, ModalConfig> registerFeather) {
@@ -102,35 +102,45 @@ class ModalWing extends Wing<ModalConfig> {
       child: ValueListenableBuilder(
         valueListenable: show,
         builder: (contex, show, _) {
-          Widget result;
-          if (!show) {
-            result = SizedBox.shrink();
-          } else {
-            // TODO: 1 await feather initialization, to comply with the standard set by Bar
-            // TODO: 1 animate modal
-            final screenSize = MediaQuery.sizeOf(context);
-            final avalilableSize = Size(
-              screenSize.width - rerservedSpace.horizontal,
-              screenSize.height - rerservedSpace.vertical,
-            );
-            result = WingedContainer(
-              motion: mainConfig.motions.expressive.spatial.slow,
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              shape: ExternalRoundedCornersBorder(
-                borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
-              ),
-              child: KeyboardFocus(
-                mode: KeyboardFocusMode.onDemand,
-                child: CallbackShortcuts(
-                  bindings: {
-                    const SingleActivator(LogicalKeyboardKey.escape): () {
-                      this.show.value = false;
-                      focusGrabController.ungrabFocus();
-                    },
-                  },
-                  child: FocusGrab(
-                    controller: focusGrabController,
-                    child: ConstrainedBox(
+          final result = Hideable(
+            show: show,
+            builder: (context, _) {
+              return FutureBuilder(
+                future: featherRegistry.awaitInitialization(feather),
+                builder: (context, snapshot) {
+                  Widget result;
+                  // TODO: 3 add animation to snapshot status change
+                  if (snapshot.hasError) {
+                    result = Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Focus(
+                        autofocus: true,
+                        child: WingedIcon(
+                          // TODO: 3 add details of the error, maybe show extract this feather error-handling
+                          // logic into a widget that can be used in multiple places
+                          flutterIcon: SymbolsVaried.error,
+                          color: mainConfig.theme.errorColor,
+                        ),
+                      ),
+                    );
+                  } else if (snapshot.connectionState != ConnectionState.done) {
+                    result = Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SizedBox.square(
+                        dimension: 32,
+                        child: Focus(
+                          autofocus: true,
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+                    );
+                  } else {
+                    final screenSize = MediaQuery.sizeOf(context);
+                    final avalilableSize = Size(
+                      screenSize.width - rerservedSpace.horizontal,
+                      screenSize.height - rerservedSpace.vertical,
+                    );
+                    result = ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: min(avalilableSize.width, config.maxWidth?.toDouble() ?? double.infinity),
                         maxHeight: max(avalilableSize.width, config.maxHeight?.toDouble() ?? double.infinity),
@@ -142,18 +152,42 @@ class ModalWing extends Wing<ModalConfig> {
                           return components.first.buildPopover!(context);
                         },
                       ),
+                    );
+                  }
+                  return WingedContainer(
+                    motion: mainConfig.motions.expressive.spatial.slow,
+                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                    addInputRegion: show,
+                    shape: ExternalRoundedCornersBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
                     ),
-                  ),
-                ),
-              ),
-            );
-          }
+                    unfocusContainerOnMouseExit: false,
+                    child: KeyboardFocus(
+                      mode: KeyboardFocusMode.onDemand,
+                      child: CallbackShortcuts(
+                        bindings: {
+                          const SingleActivator(LogicalKeyboardKey.escape): () {
+                            this.show.value = false;
+                            focusGrabController.ungrabFocus();
+                          },
+                        },
+                        child: FocusGrab(
+                          controller: focusGrabController,
+                          child: result,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
 
           return IgnorePointer(
             ignoring: !show,
             child: MotionContainer(
               motion: mainConfig.motions.expressive.spatial.normal,
-              alignment: Alignment.center,
+              alignment: Alignment.center, // TODO: 1 allow user to change alignment, including fractional alignments
               padding: rerservedSpace,
               color: !show ? Colors.transparent : config.barrierColor,
               child: result,

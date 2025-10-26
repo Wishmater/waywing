@@ -13,6 +13,7 @@ import "package:waywing/core/feather.dart";
 import "package:waywing/modules/system_tray/system_tray_popover.dart";
 import "package:waywing/modules/system_tray/system_tray_tooltip.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 
 part "system_tray_feather.config.dart";
 
@@ -50,6 +51,7 @@ class SystemTrayFeather extends Feather<SystemTrayConfig> {
           // TODO: 2 implement reordering system tray icons
           // TODO: 2 implement overflow menu for hidden tray icons
           FeatherComponent(
+            uniqueIdentifier: "$uniqueId - ${item.id}",
             buildIndicators: (context, popover) {
               return [
                 SystemTrayIndicator(
@@ -79,5 +81,7 @@ class SystemTrayFeather extends Feather<SystemTrayConfig> {
 mixin SystemTrayConfigBase on SystemTrayConfigI {
   /// Set the tray icon size
   static const __iconSize = DoubleNumberField(nullable: true);
-  double get iconSize => _iconSize ?? mainConfig.theme.iconSize;
+  late final double iconSize = _iconSize ?? mainConfig.theme.iconSize;
+  late final double iconSizeScaleFactor = iconSize / kDefaultFontSize;
+  late final double iconSizeAdapted = iconSize * TextIcon.fontToIconSizeRatio;
 }

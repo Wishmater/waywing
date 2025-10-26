@@ -38,19 +38,19 @@ mixin BarConfigBase on BarConfigI {
   static const __exclusiveSizeLeft = DoubleNumberField(nullable: true);
   double get exclusiveSizeLeft =>
       _exclusiveSizeLeft ?? //
-      (side == ScreenEdge.left ? size.toDouble() + marginLeft : 0);
+      (side == ScreenEdge.left ? size.toDouble() + marginLeft + mainConfig.theme.inactiveBorderSize : 0);
   static const __exclusiveSizeRight = DoubleNumberField(nullable: true);
   double get exclusiveSizeRight =>
       _exclusiveSizeRight ?? //
-      (side == ScreenEdge.right ? size.toDouble() + marginRight : 0);
+      (side == ScreenEdge.right ? size.toDouble() + marginRight + mainConfig.theme.inactiveBorderSize : 0);
   static const __exclusiveSizeTop = DoubleNumberField(nullable: true);
   double get exclusiveSizeTop =>
       _exclusiveSizeTop ?? //
-      (side == ScreenEdge.top ? size.toDouble() + marginTop : 0);
+      (side == ScreenEdge.top ? size.toDouble() + marginTop + mainConfig.theme.inactiveBorderSize : 0);
   static const __exclusiveSizeBottom = DoubleNumberField(nullable: true);
   double get exclusiveSizeBottom =>
       _exclusiveSizeBottom ?? //
-      (side == ScreenEdge.bottom ? size.toDouble() + marginBottom : 0);
+      (side == ScreenEdge.bottom ? size.toDouble() + marginBottom + mainConfig.theme.inactiveBorderSize : 0);
 
   // Note (add to readme when it exists): explicitly set exclusiveSice will have priority over Bar size.
   // Set exclusiveSize to zero on same side bar is on to remove autoExclusiveSize on Bar.
@@ -67,10 +67,15 @@ mixin BarConfigBase on BarConfigI {
   // Style
   //===========================================================================
 
+  static const _containerType = EnumField(BarContainerType.values, defaultTo: BarContainerType.full);
+
   // in flutter DIP, maybe also make in pixels so it's consistent ??? is it the same ???
-  static const __rounding = DoubleNumberField(nullable: true); // defaults to mainConfig.theme.containerRounding
+  static const __rounding = DoubleNumberField(nullable: true);
   double get rounding => _rounding ?? mainConfig.theme.containerRounding;
   // TODO: 3 do we want to expose different rounding values for each corner? or at least horizontal/vertical?
+
+  static const __shadows = DoubleNumberField(nullable: true);
+  double get shadows => _shadows ?? 1; // mainConfig.theme.shadows;
 
   // Derived
 
@@ -109,4 +114,11 @@ mixin BarFeathersContainerBase on BarFeathersContainerI {
   List<T> getFeatherInstances<T extends Feather>(String uniqueIdPrefix) {
     return getFeatherInstancesStatic<T>(rawFeathers, uniqueIdPrefix);
   }
+}
+
+enum BarContainerType {
+  full,
+  section,
+  button,
+  none,
 }

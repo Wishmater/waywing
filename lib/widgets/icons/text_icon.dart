@@ -36,14 +36,16 @@ class TextIcon extends StatelessWidget {
     );
   }
 
+  static const fontToIconSizeRatio = 24 / 14;
+
   static double getIconEffectiveSize(BuildContext context, {double? size, IconThemeData? iconTheme}) {
     if (size != null) {
-      return size * (24 / 14);
+      return size * fontToIconSizeRatio;
     }
     iconTheme ??= IconTheme.of(context);
     if (iconTheme.size != null) {
       return iconTheme.size!;
     }
-    return kDefaultFontSize * (24 / 14);
+    return kDefaultFontSize * fontToIconSizeRatio;
   }
 }

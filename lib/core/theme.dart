@@ -8,6 +8,7 @@ import "package:flex_seed_scheme/flex_seed_scheme.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/config_fields.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/theme/button_theme.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
@@ -43,8 +44,9 @@ mixin ThemeConfigBase on ThemeConfigI {
   double get fontSizeScaleFactor => fontSize / kDefaultFontSize;
 
   static const __iconSize = DoubleNumberField(nullable: true);
-  double get iconSize => _iconSize ?? fontSize;
-  double get iconSizeScaleFactor => iconSize / kDefaultFontSize;
+  late final double iconSize = _iconSize ?? fontSize;
+  late final double iconSizeScaleFactor = iconSize / kDefaultFontSize;
+  late final double iconSizeAdapted = iconSize * TextIcon.fontToIconSizeRatio;
 
   //===========================================================================
   // Icons

@@ -33,6 +33,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
+  aria2c:
+    dependency: "direct main"
+    description:
+      name: aria2c
+      sha256: aa5ee54be72b25ae75eb78da3d88367022a7e38d3a7dfa8fb85555a1c5758174
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.5"
   asn1lib:
     dependency: transitive
     description:
@@ -243,17 +251,21 @@ packages:
   config:
     dependency: "direct main"
     description:
-      path: "../config.dart"
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "8dc585ceb1918b7c1149b069f790d550b5c1e664"
+      url: "https://github.com/ross96D/config.dart"
+    source: git
     version: "0.0.11"
   config_gen:
     dependency: "direct main"
     description:
-      path: "../config_gen"
-      relative: true
-    source: path
-    version: "0.0.15"
+      path: "."
+      ref: HEAD
+      resolved-ref: ca513e08b690a1961247a3d72d402cfa6566bbb6
+      url: "https://github.com/Wishmater/config_gen"
+    source: git
+    version: "0.0.16"
   convert:
     dependency: transitive
     description:
@@ -363,10 +375,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: b1850e0cefe93da3d11afa0061e7237b90f8153a
+      resolved-ref: "63de052faa72c4a9a21d44352f914434a00317aa"
       url: "https://github.com/Wishmater/fl-linux-window-manager"
     source: git
-    version: "2.0.6"
+    version: "2.0.7"
   flex_seed_scheme:
     dependency: "direct main"
     description:
@@ -702,6 +714,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0-dev.9"
+  multi_value_listenable_builder_typed:
+    dependency: "direct main"
+    description:
+      name: multi_value_listenable_builder_typed
+      sha256: fc10232523852021df2f9e8b8f660a137f8659d79084b694f016df5214e6433e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   mutex:
     dependency: "direct main"
     description:

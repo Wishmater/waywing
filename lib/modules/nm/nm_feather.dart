@@ -59,7 +59,8 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
         }
         result.add(
           FeatherComponent(
-            isIndicatorVisible: device.deviceType == NetworkManagerDeviceType.wifi
+            uniqueIdentifier: "$uniqueId - ${device.path}",
+            isIndicatorEnabled: device.deviceType == NetworkManagerDeviceType.wifi
                 ? DummyValueNotifier(true)
                 : device.isConnected,
             buildIndicators: (context, popover) {

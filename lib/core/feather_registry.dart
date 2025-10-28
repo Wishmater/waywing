@@ -221,10 +221,11 @@ class FeatherRegistry {
       feather.logger.error(
         "Error thrown while initializing ${feather is Wing ? 'wing' : 'feather'} ${feather.name} (${feather.uniqueId})",
         error: e,
-        stackTrace: st,
+        stackTrace: e is ServiceInitializationError ? null : st,
       );
       feather.hasInitializationError = true;
-      // TODO: 1 show error notification, and temove it when the feather is disposed
+
+      // TODO: 1 show error notification, and remove it when the feather is disposed
     }
     feather.isInitialized = true;
     _logger.trace("finished initializing feather $feather");

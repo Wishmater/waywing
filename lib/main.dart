@@ -5,7 +5,6 @@ import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:path/path.dart" as path;
-import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
@@ -53,14 +52,12 @@ void main(List<String> args) async {
   mainLogger.debug("Done setting initial window config, running app...");
 
   FlutterError.onError = (details) {
-    if (kReleaseMode) {
-      mainLogger.error(
-        "${details.context?.toDescription()} ${details.summary.toDescription()}",
-        error: details.exception,
-        stackTrace: details.stack,
-      );
-      exit(1);
-    } else {
+    mainLogger.error(
+      "${details.context?.toDescription()} ${details.summary.toDescription()}",
+      error: details.exception,
+      stackTrace: details.stack,
+    );
+    if (!kReleaseMode) {
       FlutterError.presentError(details);
     }
   };

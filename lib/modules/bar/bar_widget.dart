@@ -49,11 +49,7 @@ class _BarSwitcherState extends State<BarSwitcher> {
   @override
   void didUpdateWidget(covariant BarSwitcher oldWidget) {
     super.didUpdateWidget(oldWidget);
-    print("didUpdateWidget");
-    print(widget.wing.config.containerType);
-    print(oldWidget.wing.config.containerType);
     if (widget.wing.config.containerType != config.containerType) {
-      print("ANIMATION START");
       animatingFrom = config;
     }
     config = widget.wing.config;
@@ -67,9 +63,7 @@ class _BarSwitcherState extends State<BarSwitcher> {
       isHidden: animatingFrom != null,
       config: animatingFrom ?? widget.wing.config,
       onPositionAnimationStatusChanged: (status) {
-        print(status);
         if (!status.isAnimating && animatingFrom != null) {
-          print("ANIMATION FINISHED, SET TO NULL");
           setState(() {
             animatingFrom = null;
           });
@@ -160,14 +154,16 @@ class _BarState extends State<Bar> {
       height = monitorSize.height - widget.config.marginTop - widget.config.marginBottom;
       width = widget.config.size.toDouble();
       if (widget.config.side == ScreenEdge.left) {
-        left = widget.config.marginLeft;
         if (widget.isHidden) {
-          left -= (width + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+          left = -(width + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+        } else {
+          left = widget.config.marginLeft;
         }
       } else {
-        left = monitorSize.width - width - widget.config.marginRight;
         if (widget.isHidden) {
-          left += (width + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+          left = monitorSize.width + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5;
+        } else {
+          left = monitorSize.width - width - widget.config.marginRight;
         }
       }
     } else {
@@ -175,14 +171,16 @@ class _BarState extends State<Bar> {
       width = monitorSize.width - widget.config.marginLeft - widget.config.marginRight;
       height = widget.config.size.toDouble();
       if (widget.config.side == ScreenEdge.top) {
-        top = widget.config.marginTop;
         if (widget.isHidden) {
-          top -= (height + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+          top = -(height + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+        } else {
+          top = widget.config.marginTop;
         }
       } else {
-        top = monitorSize.height - height - widget.config.marginBottom;
         if (widget.isHidden) {
-          top += (height + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+          top = monitorSize.height + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5;
+        } else {
+          top = monitorSize.height - height - widget.config.marginBottom;
         }
       }
     }

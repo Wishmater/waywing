@@ -1,3 +1,4 @@
+import "dart:async";
 import "dart:io";
 
 import "package:args/args.dart";
@@ -21,6 +22,7 @@ import "package:xdg_icons/xdg_icons.dart";
 void main(List<String> args) async {
   final cliparser = ArgParser()
     ..addFlag(
+      // TODO: 2 remove this option once we have proper implementation of non-flutter layers
       "dummy-layer",
       hide: true,
       help: "Used internally only. Extra layer created just to add exclusive side size.",
@@ -30,6 +32,7 @@ void main(List<String> args) async {
       abbr: "c",
       help: "Optional custom path to config file",
     );
+
   final results = cliparser.parse(args);
   final dummyLayer = results["dummy-layer"] as bool?;
   if (dummyLayer ?? false) {
@@ -37,6 +40,19 @@ void main(List<String> args) async {
   }
   customConfigPath = results["config"];
 
+  runZonedGuarded(
+    startApp,
+    (dynamic error, StackTrace stackTrace) {
+      mainLogger.error(
+        "TOP LEVEL RUN ZONE GUARDED ERROR",
+        error: error,
+        stackTrace: stackTrace,
+      );
+    },
+  );
+}
+
+Future<void> startApp() async {
   await initializeLogger();
   await reloadConfig(await getConfigurationString());
 

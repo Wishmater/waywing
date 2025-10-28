@@ -117,7 +117,7 @@ class BarWing extends Wing<BarConfig> {
 
   @override
   Widget buildWing(BuildContext context, EdgeInsets rerservedSpace) {
-    return Bar(wing: this, reservedSpace: rerservedSpace);
+    return BarSwitcher(wing: this, reservedSpace: rerservedSpace);
   }
 
   @override

@@ -18,11 +18,75 @@ import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
+class BarSwitcher extends StatefulWidget {
+  final BarWing wing;
+  final EdgeInsets reservedSpace;
+  const BarSwitcher({
+    required this.wing,
+    required this.reservedSpace,
+    super.key,
+  });
+
+  @override
+  State<BarSwitcher> createState() => _BarSwitcherState();
+}
+
+class _BarSwitcherState extends State<BarSwitcher> {
+  late BarConfig config;
+  BarConfig? animatingFrom;
+  @override
+  void initState() {
+    super.initState();
+    config = widget.wing.config;
+    animatingFrom = widget.wing.config;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() {
+        animatingFrom = null;
+      });
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant BarSwitcher oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print("didUpdateWidget");
+    print(widget.wing.config.containerType);
+    print(oldWidget.wing.config.containerType);
+    if (widget.wing.config.containerType != config.containerType) {
+      print("ANIMATION START");
+      animatingFrom = config;
+    }
+    config = widget.wing.config;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Bar(
+      wing: widget.wing,
+      reservedSpace: widget.reservedSpace,
+      isHidden: animatingFrom != null,
+      config: animatingFrom ?? widget.wing.config,
+      onPositionAnimationStatusChanged: (status) {
+        print(status);
+        if (!status.isAnimating && animatingFrom != null) {
+          print("ANIMATION FINISHED, SET TO NULL");
+          setState(() {
+            animatingFrom = null;
+          });
+        }
+      },
+    );
+  }
+}
+
 class Bar extends StatefulWidget {
   final BarWing wing;
   final EdgeInsets reservedSpace;
+  final bool isHidden;
 
-  BarConfig get config => wing.config;
+  final BarConfig config;
+  final AnimationStatusListener? onPositionAnimationStatusChanged;
+
   List<Feather> get startFeathers => wing.startFeathers;
   List<Feather> get centerFeathers => wing.centerFeathers;
   List<Feather> get endFeathers => wing.endFeathers;
@@ -30,6 +94,9 @@ class Bar extends StatefulWidget {
   const Bar({
     required this.wing,
     required this.reservedSpace,
+    required this.isHidden,
+    required this.config,
+    this.onPositionAnimationStatusChanged,
     super.key,
   });
 
@@ -94,8 +161,14 @@ class _BarState extends State<Bar> {
       width = widget.config.size.toDouble();
       if (widget.config.side == ScreenEdge.left) {
         left = widget.config.marginLeft;
+        if (widget.isHidden) {
+          left -= (width + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+        }
       } else {
         left = monitorSize.width - width - widget.config.marginRight;
+        if (widget.isHidden) {
+          left += (width + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+        }
       }
     } else {
       left = widget.config.marginLeft;
@@ -103,8 +176,14 @@ class _BarState extends State<Bar> {
       height = widget.config.size.toDouble();
       if (widget.config.side == ScreenEdge.top) {
         top = widget.config.marginTop;
+        if (widget.isHidden) {
+          top -= (height + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+        }
       } else {
         top = monitorSize.height - height - widget.config.marginBottom;
+        if (widget.isHidden) {
+          top += (height + mainConfig.theme.inactiveBorderSize + mainConfig.theme.shadows * 5);
+        }
       }
     }
     left += widget.reservedSpace.left;
@@ -326,6 +405,7 @@ class _BarState extends State<Bar> {
       top: top,
       width: width,
       height: height,
+      onAnimationStatusChanged: widget.onPositionAnimationStatusChanged,
       child: FocusScope(
         child: result,
       ),

@@ -1,3 +1,4 @@
+import "package:dartx/dartx_io.dart";
 import "package:flutter/cupertino.dart";
 import "package:flutter/foundation.dart";
 import "package:nm/nm.dart";
@@ -53,13 +54,20 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
     dependencies: [service.devices, configChangeNotifier],
     derive: () {
       final result = <FeatherComponent>[];
+      final seenDeviceCounts = <NetworkManagerDeviceType, int>{};
       for (final device in service.devices.value) {
         if (config.deviceTypeFilter.contains(device.deviceType.name)) {
           continue;
         }
+        String deviceUniqueId = device.path;
+        if (deviceUniqueId.isBlank) {
+          final seenCount = seenDeviceCounts[device.deviceType] ?? 0;
+          deviceUniqueId = "${device.deviceType.name}[$seenCount]";
+          seenDeviceCounts[device.deviceType] = seenCount + 1;
+        }
         result.add(
           FeatherComponent(
-            uniqueIdentifier: "$uniqueId - ${device.path}",
+            uniqueIdentifier: "$uniqueId - $deviceUniqueId",
             isIndicatorEnabled: device.deviceType == NetworkManagerDeviceType.wifi
                 ? DummyValueNotifier(true)
                 : device.isConnected,

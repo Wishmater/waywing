@@ -1,3 +1,4 @@
+import "dart:async";
 import "dart:io";
 
 import "package:args/args.dart";
@@ -5,7 +6,6 @@ import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:path/path.dart" as path;
-import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
@@ -22,6 +22,7 @@ import "package:xdg_icons/xdg_icons.dart";
 void main(List<String> args) async {
   final cliparser = ArgParser()
     ..addFlag(
+      // TODO: 2 remove this option once we have proper implementation of non-flutter layers
       "dummy-layer",
       hide: true,
       help: "Used internally only. Extra layer created just to add exclusive side size.",
@@ -31,6 +32,7 @@ void main(List<String> args) async {
       abbr: "c",
       help: "Optional custom path to config file",
     );
+
   final results = cliparser.parse(args);
   final dummyLayer = results["dummy-layer"] as bool?;
   if (dummyLayer ?? false) {
@@ -38,6 +40,19 @@ void main(List<String> args) async {
   }
   customConfigPath = results["config"];
 
+  runZonedGuarded(
+    startApp,
+    (dynamic error, StackTrace stackTrace) {
+      mainLogger.error(
+        "TOP LEVEL RUN ZONE GUARDED ERROR",
+        error: error,
+        stackTrace: stackTrace,
+      );
+    },
+  );
+}
+
+Future<void> startApp() async {
   await initializeLogger();
   await reloadConfig(await getConfigurationString());
 
@@ -53,14 +68,12 @@ void main(List<String> args) async {
   mainLogger.debug("Done setting initial window config, running app...");
 
   FlutterError.onError = (details) {
-    if (kReleaseMode) {
-      mainLogger.error(
-        "${details.context?.toDescription()} ${details.summary.toDescription()}",
-        error: details.exception,
-        stackTrace: details.stack,
-      );
-      exit(1);
-    } else {
+    mainLogger.error(
+      "${details.context?.toDescription()} ${details.summary.toDescription()}",
+      error: details.exception,
+      stackTrace: details.stack,
+    );
+    if (!kReleaseMode) {
       FlutterError.presentError(details);
     }
   };
@@ -152,13 +165,6 @@ class _WingsWidgetState extends State<_WingsWidget> {
           future: featherRegistry.awaitInitialization(wing),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              // TODO: 1 Implement proper error handling in featherRegistry and remove this
-              mainLogger.log(
-                Level.error,
-                "Error caught when initializing wing ${wing.name}",
-                error: snapshot.error,
-                stackTrace: snapshot.stackTrace,
-              );
               return SizedBox.shrink();
             }
             if (snapshot.connectionState != ConnectionState.done) {

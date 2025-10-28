@@ -114,8 +114,12 @@ class ServiceRegistry {
         stackTrace: st,
       );
       service.hasInitializationError = true;
-      // TODO: 1 show error notification, and temove it when the service is disposed
-      rethrow; // we want this error to bubble up, so that feather initializations that depend on this service also fail
+
+      // TODO: 1 show error notification, and remove it when the service is disposed
+
+      // we want this error to bubble up, so that feather initializations that depend on this service also fail
+      throw ServiceInitializationError(service);
+      // rethrow; // better th throw a different error instead of rethrowing, so the same stacktrace isn't logged twice
     }
     service.isInitialized = true;
     return service;
@@ -217,3 +221,12 @@ class ServiceRegistry {
 
 typedef RegisterServiceCallback =
     void Function<T extends Service<Conf>, Conf>(ServiceRegistration<T, Conf> constructor);
+
+class ServiceInitializationError<T> extends Error {
+  final Service<T> service;
+
+  ServiceInitializationError(this.service);
+
+  @override
+  String toString() => "Error while initializing service $service";
+}

@@ -85,30 +85,39 @@ class BarWing extends Wing<BarConfig> {
     _activeCallbackIdentity = callbackIdentity;
     for (final e in startFeathers) {
       if (e.isInitialized) continue;
-      featherRegistry.awaitInitialization(e).then((_) {
-        if (callbackIdentity != _activeCallbackIdentity) return;
-        _initializedStartFeathers.manualNotifyListeners();
-      });
+      featherRegistry
+          .awaitInitialization(e)
+          .then((_) {
+            if (callbackIdentity != _activeCallbackIdentity) return;
+            _initializedStartFeathers.manualNotifyListeners();
+          })
+          .catchError((_) => null);
     }
     for (final e in centerFeathers) {
       if (e.isInitialized) continue;
-      featherRegistry.awaitInitialization(e).then((_) {
-        if (callbackIdentity != _activeCallbackIdentity) return;
-        _initializedCenterFeathers.manualNotifyListeners();
-      });
+      featherRegistry
+          .awaitInitialization(e)
+          .then((_) {
+            if (callbackIdentity != _activeCallbackIdentity) return;
+            _initializedCenterFeathers.manualNotifyListeners();
+          })
+          .catchError((_) => null);
     }
     for (final e in endFeathers) {
       if (e.isInitialized) continue;
-      featherRegistry.awaitInitialization(e).then((_) {
-        if (callbackIdentity != _activeCallbackIdentity) return;
-        _initializedEndFeathers.manualNotifyListeners();
-      });
+      featherRegistry
+          .awaitInitialization(e)
+          .then((_) {
+            if (callbackIdentity != _activeCallbackIdentity) return;
+            _initializedEndFeathers.manualNotifyListeners();
+          })
+          .catchError((_) => null);
     }
   });
 
   @override
   Widget buildWing(BuildContext context, EdgeInsets rerservedSpace) {
-    return Bar(wing: this, reservedSpace: rerservedSpace);
+    return BarSwitcher(wing: this, reservedSpace: rerservedSpace);
   }
 
   @override

@@ -82,9 +82,12 @@ class SearchOptions<T extends Object> extends StatefulWidget {
     required this.height,
     this.focusNode,
     this.showScrollBar = true,
-    this.previousOptionActivator = const SingleActivator(LogicalKeyboardKey.arrowUp),
-    this.nextOptionActivator = const SingleActivator(LogicalKeyboardKey.arrowDown),
-    this.selectOptionActivator = const SingleActivator(LogicalKeyboardKey.enter),
+    this.previousOptionActivators = const [SingleActivator(LogicalKeyboardKey.arrowUp)],
+    this.nextOptionActivators = const [SingleActivator(LogicalKeyboardKey.arrowDown)],
+    this.selectOptionActivators = const [
+      SingleActivator(LogicalKeyboardKey.enter),
+      SingleActivator(LogicalKeyboardKey.numpadEnter),
+    ],
     this.prototypeItem,
     this.matcher = const SmithWaterman(),
   });
@@ -98,13 +101,13 @@ class SearchOptions<T extends Object> extends StatefulWidget {
   final Widget? prototypeItem;
 
   /// Shorcut activator to highlight the previous option
-  final ShortcutActivator previousOptionActivator;
+  final List<ShortcutActivator> previousOptionActivators;
 
   /// Shorcut activator to highlight the next option
-  final ShortcutActivator nextOptionActivator;
+  final List<ShortcutActivator> nextOptionActivators;
 
   /// Shorcut activator to select the current highlighted option
-  final ShortcutActivator selectOptionActivator;
+  final List<ShortcutActivator> selectOptionActivators;
 
   /// fuzzy matching alghorithm used to filter
   final FuzzyStringMatcher matcher;
@@ -151,9 +154,12 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
     filtered = widget.options;
 
     shortcuts = <ShortcutActivator, Intent>{
-      widget.previousOptionActivator: const SearchPreviousOptionIntent(),
-      widget.nextOptionActivator: const SearchNextOptionIntent(),
-      widget.selectOptionActivator: const SearchSelectOptionIntent(),
+      for (final e in widget.previousOptionActivators) //
+        e: const SearchPreviousOptionIntent(),
+      for (final e in widget.nextOptionActivators) //
+        e: const SearchNextOptionIntent(),
+      for (final e in widget.selectOptionActivators) //
+        e: const SearchSelectOptionIntent(),
     };
 
     previousOptionAction = CallbackAction<SearchPreviousOptionIntent>(onInvoke: highlightPreviousOption);
@@ -208,6 +214,7 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
   }
 
   void selectOption(SearchSelectOptionIntent intent) {
+    if (filtered.isEmpty) return;
     widget.onSelected(filtered[highlighted.value].object);
   }
 

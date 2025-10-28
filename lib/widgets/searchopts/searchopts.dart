@@ -208,6 +208,7 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> {
   }
 
   void selectOption(SearchSelectOptionIntent intent) {
+    if (filtered.isEmpty) return;
     widget.onSelected(filtered[highlighted.value].object);
   }
 

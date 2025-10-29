@@ -1,52 +1,44 @@
 import "dart:math";
 
-import "package:flex_seed_scheme/flex_seed_scheme.dart";
 import "package:flutter/material.dart";
 import "package:upower/upower.dart";
+import "package:waywing/modules/battery/battery_config.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
-class BatteryIndicator extends StatefulWidget {
+class BatteryIndicator extends StatelessWidget {
   final BatteryValues battery;
+  final BatteryConfig config;
 
-  const BatteryIndicator({super.key, required this.battery});
-
-  @override
-  State<BatteryIndicator> createState() => BatteryIndicatorState();
-}
-
-class BatteryIndicatorState extends State<BatteryIndicator> {
-  BatteryValues get values => widget.battery;
+  const BatteryIndicator({super.key, required this.battery, required this.config});
 
   @override
   Widget build(BuildContext context) {
-    if (!values.isPresent.value) {
+    if (!battery.isPresent.value) {
       return SizedBox.shrink();
     }
-    final theme = Theme.of(context);
     return LayoutBuilder(
       builder: (context, constrains) {
         final width = 35.0.clamp(constrains.minWidth, constrains.maxWidth);
         final height = (15.0 * width / 35).clamp(constrains.minHeight, constrains.maxHeight);
         return ValueListenableBuilder(
           valueListenable: DerivedValueNotifier(
-            dependencies: [values.energy, values.energyFull, values.state],
-            derive: () => (values.energy.value / values.energyFull.value) * 100,
+            dependencies: [battery.energy, battery.energyFull, battery.state],
+            derive: () => (battery.energy.value / battery.energyFull.value) * 100,
           ),
           builder: (context, energy, _) {
             return _BatteryIndicator(
               size: Size(width, height),
               batteryLevel: energy,
               isCharging:
-                  values.state.value == UPowerDeviceState.charging ||
-                  values.state.value == UPowerDeviceState.fullyCharged,
-              outlineColor: theme.colorScheme.primaryFixedDim,
-              chargingColor: theme.colorScheme.primary,
-              dischargingColor: theme.brightness == Brightness.light
-                  ? theme.colorScheme.surfaceDim
-                  : theme.colorScheme.surfaceBright,
-              warningColor: theme.colorScheme.tertiary,
-              criticalColor: theme.colorScheme.error,
+                  battery.state.value == UPowerDeviceState.charging ||
+                  battery.state.value == UPowerDeviceState.fullyCharged,
+              outlineColor: config.textColor,
+              chargingColor: config.chargingColor,
+              dischargingColor: config.dischargingColor,
+              warningColor: config.warningColor,
+              criticalColor: config.criticalColor,
+              lightningColor: config.lightningColor,
             );
           },
         );
@@ -63,6 +55,7 @@ class _BatteryIndicator extends StatelessWidget {
   final Color dischargingColor;
   final Color warningColor;
   final Color criticalColor;
+  final Color lightningColor;
   final Size size;
 
   const _BatteryIndicator({
@@ -73,6 +66,7 @@ class _BatteryIndicator extends StatelessWidget {
     required this.dischargingColor,
     required this.warningColor,
     required this.criticalColor,
+    required this.lightningColor,
     required this.size,
   });
 
@@ -95,7 +89,9 @@ class _BatteryIndicator extends StatelessWidget {
         batteryLevel: batteryLevel,
         fillColor: fillColor,
         outlineColor: outlineColor,
-        textStyle: theme.textTheme.bodyMedium!.copyWith(color: _getTextColor(fillColor)),
+        lightningColor: lightningColor,
+        textStyle: theme.textTheme.bodyMedium!.copyWith(color: Colors.white),
+        isCharging: true,
       ),
     );
   }
@@ -105,13 +101,17 @@ class _BatteryPainter extends CustomPainter {
   final double batteryLevel;
   final Color fillColor;
   final Color outlineColor;
+  final Color lightningColor;
   final TextStyle textStyle;
+  final bool isCharging;
 
   const _BatteryPainter({
     required this.outlineColor,
     required this.batteryLevel,
     required this.fillColor,
+    required this.lightningColor,
     required this.textStyle,
+    required this.isCharging,
   });
 
   @override
@@ -130,23 +130,25 @@ class _BatteryPainter extends CustomPainter {
     fillPaint.color = fillColor;
 
     // Draw battery body
-    final double bodyWidth = size.width * 0.9;
-    final double bodyHeight = size.height;
-    final double bodyCornerRadius = size.height * 0.2;
-    final Rect bodyRect = Rect.fromLTWH(0, 0, bodyWidth, bodyHeight);
+    final double bodyWidth = size.width * 0.7;
+    final double bodyHeight = min(size.height, bodyWidth * 0.5);
+    final double bodyCornerRadius = bodyHeight * 0.2;
+    final double topPosition = (size.height - bodyHeight) / 2;
+
+    final Rect bodyRect = Rect.fromLTWH(0, topPosition, bodyWidth, bodyHeight);
     final RRect bodyRRect = RRect.fromRectAndRadius(bodyRect, Radius.circular(bodyCornerRadius));
 
     // Draw battery tip
     final double tipWidth = size.width * 0.1;
-    final double tipHeight = size.height * 0.4;
-    final Rect tipRect = Rect.fromLTWH(bodyWidth, (bodyHeight - tipHeight) / 2, tipWidth, tipHeight);
+    final double tipHeight = bodyHeight * 0.4;
+    final Rect tipRect = Rect.fromLTWH(bodyWidth, topPosition + (bodyHeight - tipHeight) / 2, tipWidth, tipHeight);
     final RRect tipRRect = RRect.fromRectAndRadius(tipRect, Radius.circular(2));
 
     // Draw battery fill
     final double fillPadding = size.height * 0.1;
     final double fillWidth = (bodyWidth - fillPadding * 2) * (batteryLevel / 100).clamp(0.0, 1.0);
     final double fillHeight = bodyHeight - fillPadding * 2;
-    final Rect fillRect = Rect.fromLTWH(fillPadding, fillPadding, fillWidth, fillHeight);
+    final Rect fillRect = Rect.fromLTWH(fillPadding, topPosition + fillPadding, fillWidth, fillHeight);
     final RRect fillRRect = RRect.fromRectAndRadius(fillRect, Radius.circular(bodyCornerRadius * 0.7));
 
     // Draw the battery
@@ -156,7 +158,7 @@ class _BatteryPainter extends CustomPainter {
 
     final TextSpan span = TextSpan(
       text: "${batteryLevel.floor()}",
-      style: textStyle.copyWith(fontSize: min(textStyle.fontSize ?? double.infinity, size.height * 0.75)),
+      style: textStyle.copyWith(fontSize: min(textStyle.fontSize ?? double.infinity, bodyHeight * 0.75)),
     );
     final TextPainter tp = TextPainter(
       text: span,
@@ -164,7 +166,31 @@ class _BatteryPainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
     tp.layout();
-    tp.paint(canvas, Offset((bodyWidth - tp.width) / 2, (bodyHeight - tp.height) / 2));
+    tp.paint(canvas, Offset(0, topPosition) + Offset((bodyWidth - tp.width) / 2, (bodyHeight - tp.height) / 2));
+
+    final fontSizeLightning = min(textStyle.fontSize ?? double.infinity, bodyHeight * 0.7);
+    final TextSpan spanLightning = TextSpan(
+      text: "🗲",
+      style: textStyle.copyWith(
+        fontSize: fontSizeLightning,
+        color: lightningColor,
+      ),
+    );
+    if (isCharging) {
+      final TextPainter tpLightning = TextPainter(
+        text: spanLightning,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      );
+      tpLightning.layout();
+      tpLightning.paint(
+        canvas,
+        Offset(
+          size.width * 0.9,
+          topPosition + (bodyHeight - fontSizeLightning) / 2,
+        ),
+      );
+    }
   }
 
   @override
@@ -172,11 +198,7 @@ class _BatteryPainter extends CustomPainter {
     return batteryLevel != oldDelegate.batteryLevel ||
         outlineColor != oldDelegate.outlineColor ||
         fillColor != oldDelegate.fillColor ||
-        textStyle != oldDelegate.textStyle;
+        textStyle != oldDelegate.textStyle ||
+        isCharging != oldDelegate.isCharging;
   }
-}
-
-Color _getTextColor(Color backgroundColor) {
-  final hct = Hct.fromInt(backgroundColor.toARGB32());
-  return Color(Hct.from(hct.hue, hct.chroma, hct.tone > 50 ? hct.tone - 35 : hct.tone + 35).toInt());
 }

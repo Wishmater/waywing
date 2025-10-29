@@ -29,8 +29,32 @@ mixin BatteryConfigI {
   String get normalProfile;
 
   @ConfigDocDefault<double>(30)
-  /// Battery level threshold
+  /// Battery level threshold.
   double get batteryThreshold;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFF43A047))
+  /// Battery color when charging
+  MyColor get chargingColor;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFF424242))
+  /// Battery color when discharging
+  MyColor get dischargingColor;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFFFF6E40))
+  /// Battery color when the battery level is low and is discharging
+  MyColor get warningColor;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFFF44336))
+  /// Battery color when the battery level is very low and is discharging
+  MyColor get criticalColor;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFFEEEEEE))
+  /// Text color of the battery percentage inside the battery
+  MyColor get textColor;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFFFFC107))
+  /// Color of the lightning that indicates that the battery is charging
+  MyColor get lightningColor;
 }
 
 class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
@@ -41,6 +65,12 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
       'saverProfile': BatteryConfigBase._saverProfile,
       'normalProfile': BatteryConfigBase._normalProfile,
       'batteryThreshold': BatteryConfigBase._batteryThreshold,
+      'chargingColor': BatteryConfigBase._chargingColor,
+      'dischargingColor': BatteryConfigBase._dischargingColor,
+      'warningColor': BatteryConfigBase._warningColor,
+      'criticalColor': BatteryConfigBase._criticalColor,
+      'textColor': BatteryConfigBase._textColor,
+      'lightningColor': BatteryConfigBase._lightningColor,
     },
   );
 
@@ -56,6 +86,18 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
   final String normalProfile;
   @override
   final double batteryThreshold;
+  @override
+  final MyColor chargingColor;
+  @override
+  final MyColor dischargingColor;
+  @override
+  final MyColor warningColor;
+  @override
+  final MyColor criticalColor;
+  @override
+  final MyColor textColor;
+  @override
+  final MyColor lightningColor;
 
   BatteryConfig({
     bool? enableProfile,
@@ -63,11 +105,23 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
     String? saverProfile,
     String? normalProfile,
     double? batteryThreshold,
+    MyColor? chargingColor,
+    MyColor? dischargingColor,
+    MyColor? warningColor,
+    MyColor? criticalColor,
+    MyColor? textColor,
+    MyColor? lightningColor,
   }) : enableProfile = enableProfile ?? true,
        automaticProfileChanging = automaticProfileChanging ?? true,
        saverProfile = saverProfile ?? "power-saver",
        normalProfile = normalProfile ?? "balanced",
-       batteryThreshold = batteryThreshold ?? 30;
+       batteryThreshold = batteryThreshold ?? 30,
+       chargingColor = chargingColor ?? MyColor(0xFF43A047),
+       dischargingColor = dischargingColor ?? MyColor(0xFF424242),
+       warningColor = warningColor ?? MyColor(0xFFFF6E40),
+       criticalColor = criticalColor ?? MyColor(0xFFF44336),
+       textColor = textColor ?? MyColor(0xFFEEEEEE),
+       lightningColor = lightningColor ?? MyColor(0xFFFFC107);
 
   factory BatteryConfig.fromBlock(BlockData data) {
     Map<String, dynamic> fields = data.fields;
@@ -77,6 +131,12 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
       saverProfile: fields['saverProfile'],
       normalProfile: fields['normalProfile'],
       batteryThreshold: fields['batteryThreshold'],
+      chargingColor: fields['chargingColor'],
+      dischargingColor: fields['dischargingColor'],
+      warningColor: fields['warningColor'],
+      criticalColor: fields['criticalColor'],
+      textColor: fields['textColor'],
+      lightningColor: fields['lightningColor'],
     );
   }
 
@@ -87,7 +147,13 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
 	automaticProfileChanging = $automaticProfileChanging,
 	saverProfile = $saverProfile,
 	normalProfile = $normalProfile,
-	batteryThreshold = $batteryThreshold
+	batteryThreshold = $batteryThreshold,
+	chargingColor = $chargingColor,
+	dischargingColor = $dischargingColor,
+	warningColor = $warningColor,
+	criticalColor = $criticalColor,
+	textColor = $textColor,
+	lightningColor = $lightningColor
 )''';
   }
 
@@ -97,7 +163,13 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
         automaticProfileChanging == other.automaticProfileChanging &&
         saverProfile == other.saverProfile &&
         normalProfile == other.normalProfile &&
-        batteryThreshold == other.batteryThreshold;
+        batteryThreshold == other.batteryThreshold &&
+        chargingColor == other.chargingColor &&
+        dischargingColor == other.dischargingColor &&
+        warningColor == other.warningColor &&
+        criticalColor == other.criticalColor &&
+        textColor == other.textColor &&
+        lightningColor == other.lightningColor;
   }
 
   @override
@@ -107,5 +179,11 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
     saverProfile,
     normalProfile,
     batteryThreshold,
+    chargingColor,
+    dischargingColor,
+    warningColor,
+    criticalColor,
+    textColor,
+    lightningColor,
   ]);
 }

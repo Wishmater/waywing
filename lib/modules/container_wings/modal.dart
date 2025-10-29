@@ -164,7 +164,7 @@ class ModalWing extends Wing<ModalConfig> {
                     unfocusContainerOnMouseExit: false,
                     child: KeyboardFocus(
                       debugLabel: "Modal",
-                      mode: KeyboardFocusMode.onDemand,
+                      mode: KeyboardFocusMode.exclusive,
                       child: CallbackShortcuts(
                         bindings: {
                           const SingleActivator(LogicalKeyboardKey.escape): () {

@@ -34,7 +34,7 @@ class BitwardenService extends Service {
 
     final _ = await getMasterPassword();
     if (hasMasterPassword) {
-      unlock();
+      await unlock();
     }
   }
 

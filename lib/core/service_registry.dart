@@ -1,5 +1,6 @@
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
+import "package:flutter/foundation.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/service.dart";
@@ -215,7 +216,7 @@ class ServiceRegistry {
     HyprlandService.registerService(registerService);
     UserCommandService.registerService(registerService);
     Aria2Service.registerService(registerService);
-    BitwardenService.registerService(registerService);
+    if (!kReleaseMode) BitwardenService.registerService(registerService);
   }
 }
 

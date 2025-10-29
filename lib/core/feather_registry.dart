@@ -2,6 +2,7 @@ import "dart:math";
 
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:path/path.dart";
 import "package:waywing/core/config.dart";
@@ -285,7 +286,7 @@ class FeatherRegistry {
     AppLauncherFeather.registerFeather(registerFeather);
     CommandPaletteFeather.registerFeather(registerFeather);
     Aria2Feather.registerFeather(registerFeather);
-    BitwardenLauncherFeather.registerFeather(registerFeather);
+    if (!kReleaseMode) BitwardenLauncherFeather.registerFeather(registerFeather);
   }
 }
 

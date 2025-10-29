@@ -261,7 +261,7 @@ class _APWidgetState extends State<APWidget> {
                         height: 32,
                         child: KeyboardFocus(
                           debugLabel: "NetworkManager popover",
-                          mode: KeyboardFocusMode.onDemand,
+                          mode: KeyboardFocusMode.exclusive,
                           child: TextFormField(
                             autofocus: true,
                             controller: passwordController,

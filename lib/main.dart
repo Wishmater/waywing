@@ -77,7 +77,7 @@ Future<void> startApp() async {
       FlutterError.presentError(details);
     }
   };
-  print("RUNNING APP");
+
   runApp(App());
 }
 

@@ -268,7 +268,7 @@ class FeatherRegistry {
     DrawerWing.registerFeather(registerFeather);
     BarWing.registerFeather(registerFeather);
     NotificationsWing.registerFeather(registerFeather);
-    MenuWing.registerFeather(registerFeather);
+    if (!kReleaseMode) MenuWing.registerFeather(registerFeather);
     FrameWing.registerFeather(registerFeather);
     // Feathers
     SpacerFeather.registerFeather(registerFeather);
@@ -284,7 +284,7 @@ class FeatherRegistry {
     NumLockFeather.registerFeather(registerFeather);
     WorkspaceSwitcherFeather.registerFeather(registerFeather);
     AppLauncherFeather.registerFeather(registerFeather);
-    CommandPaletteFeather.registerFeather(registerFeather);
+    if (!kReleaseMode) CommandPaletteFeather.registerFeather(registerFeather);
     Aria2Feather.registerFeather(registerFeather);
     if (!kReleaseMode) BitwardenLauncherFeather.registerFeather(registerFeather);
   }

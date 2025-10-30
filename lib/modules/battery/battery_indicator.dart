@@ -91,7 +91,7 @@ class _BatteryIndicator extends StatelessWidget {
         outlineColor: outlineColor,
         lightningColor: lightningColor,
         textStyle: theme.textTheme.bodyMedium!.copyWith(color: Colors.white),
-        isCharging: true,
+        isCharging: isCharging,
       ),
     );
   }

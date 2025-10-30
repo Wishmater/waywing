@@ -38,13 +38,13 @@ class SessionFeather extends Feather {
         return WaywingResponse.ok();
       },
     ),
-    "lock": WaywingAction(
-      "Activate screen lock",
-      (_) {
-        Future.delayed(Duration.zero, () => service.lock());
-        return WaywingResponse.ok();
-      },
-    ),
+    // "lock": WaywingAction(
+    //   "Activate screen lock",
+    //   (_) {
+    //     Future.delayed(Duration.zero, () => service.lock());
+    //     return WaywingResponse.ok();
+    //   },
+    // ),
   };
 
   @override
@@ -123,7 +123,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
               Text("lock"),
             ],
           ),
-          onTap: () => service.lock(),
+          // onTap: () => service.lock(),
         ),
       );
     }

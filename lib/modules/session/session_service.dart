@@ -1,10 +1,9 @@
-import "dart:io" as io;
+import "dart:async";
 
 import "package:dbus/dbus.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/session/specs/login1.dart";
-import "package:waywing/modules/session/specs/login1.session.dart";
 
 enum CanAction {
   yes,
@@ -25,8 +24,14 @@ enum CanAction {
   }
 }
 
+enum SleepState { sleeping, awaking }
+
 class SessionService extends Service {
-  SessionService._();
+  final StreamController<SleepState> _preparingForSleepController;
+  late final StreamSubscription<OrgFreedesktopLogin1ManagerPrepareForSleep> _prepareForSleepSubscription;
+  Stream<SleepState> get preparingForSleep => _preparingForSleepController.stream;
+
+  SessionService._() : _preparingForSleepController = StreamController.broadcast();
 
   static registerService(RegisterServiceCallback registerService) {
     registerService<SessionService, dynamic>(
@@ -38,7 +43,7 @@ class SessionService extends Service {
 
   late DBusClient _client;
   late final OrgFreedesktopLogin1Manager _manager;
-  late final OrgFreedesktopLogin1Session _session;
+  // late final OrgFreedesktopLogin1Session _session;
   // late final OrgFreedesktopLogin1User _user;
 
   late final String name;
@@ -59,16 +64,16 @@ class SessionService extends Service {
     _manager = OrgFreedesktopLogin1Manager(
       _client,
       "org.freedesktop.login1",
-    DBusObjectPath("/org/freedesktop/login1"),
+      DBusObjectPath("/org/freedesktop/login1"),
     );
-    final sessionPath = await _manager.callGetSessionByPID(io.pid);
+    // final sessionPath = await _manager.callGetSessionByPID(io.pid);
     // final userPath = await _manager.callGetSessionByPID(pid);
-    _session = OrgFreedesktopLogin1Session(_client, "org.freedesktop.login1", sessionPath);
+    // _session = OrgFreedesktopLogin1Session(_client, "org.freedesktop.login1", sessionPath);
     // _user = OrgFreedesktopLogin1User(_client, "org.freedesktop.login1", userPath);
 
-    name = await _session.getName();
+    // name = await _session.getName();
 
-    canLock = await _session.getCanLock();
+    // canLock = await _session.getCanLock();
 
     canHalt = CanAction.fromString(await _manager.callCanHalt());
     canHibernate = CanAction.fromString(await _manager.callCanHibernate());
@@ -77,19 +82,28 @@ class SessionService extends Service {
     canReboot = CanAction.fromString(await _manager.callCanReboot());
     canPowerOff = CanAction.fromString(await _manager.callCanPowerOff());
     canHybridSleep = CanAction.fromString(await _manager.callCanHybridSleep());
+
+    _prepareForSleepSubscription = _manager.prepareForSleep.listen((v) {
+      logger.debug("Prepare for sleep event with value $v");
+      _preparingForSleepController.add(v.start ? SleepState.sleeping : SleepState.awaking);
+    });
   }
 
   @override
   Future<void> dispose() async {
-    _client.close();
+    await Future.wait([
+      _preparingForSleepController.close(),
+      _prepareForSleepSubscription.cancel(),
+      _client.close(),
+    ]);
   }
 
-  Future<void> lock() async {
-    if (!canLock) {
-      return;
-    }
-    await _session.callLock();
-  }
+  // Future<void> lock() async {
+  //   if (!canLock) {
+  //     return;
+  //   }
+  //   await _session.callLock();
+  // }
 
   Future<void> halt() async {
     if (canHalt == CanAction.na || canHalt == CanAction.no) {
@@ -138,5 +152,4 @@ class SessionService extends Service {
     }
     await _manager.callHybridSleep(true);
   }
-
 }

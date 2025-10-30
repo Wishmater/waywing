@@ -5,10 +5,13 @@ import "package:flutter/foundation.dart";
 import "package:pulseaudio/pulseaudio.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/session/session_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:dartx/dartx.dart";
 
 class VolumeService extends Service {
+  late final SessionService _sessionService;
+
   ValueListenable<VolumeOutputInterface?> get defaultOutput => _defaultOutput;
   late final ValueNotifier<VolumeOutputInterface?> _defaultOutput;
 
@@ -44,8 +47,17 @@ class VolumeService extends Service {
     );
   }
 
+  late final StreamSubscription<SleepState> _preparingForSleepSubs;
   @override
   Future<void> init() async {
+    _sessionService = await serviceRegistry.requestService<SessionService>(this);
+    _preparingForSleepSubs = _sessionService.preparingForSleep.listen((v) {
+      if (v == SleepState.awaking) {
+        // TODO 1: I could resolve this service issues when awaking from sleep
+        // if i reload all values from scratch when awaking
+      }
+    });
+
     _client = PulseAudio();
     await _client.initialize("waywing");
 
@@ -73,7 +85,7 @@ class VolumeService extends Service {
       if (i != -1) {
         final app = _apps.value.removeAt(i);
         _apps.manualNotifyListeners();
-        app.dispose();
+        await app.dispose();
       }
     });
 
@@ -183,6 +195,7 @@ class VolumeService extends Service {
       _sinkRemovedSubscription.cancel(),
       _sinkInputChangedSubscription.cancel(),
       _sinkInputRemovedSubscription.cancel(),
+      _preparingForSleepSubs.cancel(),
       ...apps.value.map((e) => e.dispose()),
       ...outputs.value.map((e) => e.dispose()),
       ...inputs.value.map((e) => e.dispose()),

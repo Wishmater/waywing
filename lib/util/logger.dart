@@ -343,3 +343,60 @@ String listToString(Iterable list) {
   if (list.isEmpty) return "[]";
   return "[${list.map((e) => e.toString()).reduce((a, b) => "$a, $b")}";
 }
+
+class ConsoleOutput extends LogOutput {
+  final IOSink _output = stdout;
+
+  Future<void>? _flushFuture;
+  final List<OutputEvent> _buffer;
+
+  ConsoleOutput(): _buffer = [];
+
+  @override
+  Future<void> destroy() async {
+    while(_flushFuture != null) {
+      await _flushFuture;
+      await Future.delayed(Duration(microseconds: 100));
+    }
+  }
+
+  void _flushBuffer() {
+    if (_buffer.isEmpty) {
+      return;
+    }
+    for (final event in _buffer) {
+      _addEvent(event);
+    }
+    _buffer.clear();
+    _flush();
+  }
+
+  void _addEvent(OutputEvent event) {
+    _output.add(event.lines.join("\n").toUtf8());
+    _output.add("\n".toUtf8());
+  }
+
+  void _flush() {
+    assert(_flushFuture == null);
+    final flush = _output.flush().catchError((e) {
+      // TODO 1: will this still report in onError callbacks in the future listeners?
+      // TODO 1: how to report this error?
+    });
+    _flushFuture = flush;
+    flush.then((_) {
+      _flushFuture = null;
+      _flushBuffer();
+    });
+  }
+
+  @override
+  void output(OutputEvent event) {
+    if (_flushFuture != null) {
+      _buffer.add(event);
+      return;
+    }
+
+    _addEvent(event);
+    _flush();
+  }
+}

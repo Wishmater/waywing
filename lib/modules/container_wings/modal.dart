@@ -2,6 +2,7 @@ import "dart:math";
 
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
+import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:material_symbols_icons/material_symbols_icons.dart";
@@ -11,7 +12,6 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/config_fields.dart";
-import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/widgets/hideable.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
@@ -50,11 +50,6 @@ class ModalWing extends Wing<ModalConfig> {
   }
 
   final show = ValueNotifier(false);
-  late final focusGrabController = FocusGrabController(
-    onCleared: () {
-      show.value = false;
-    },
-  );
 
   @override
   String get actionsPath => feather.prettyUniqueId.replaceAll("${prettyUniqueId.split(".").last}.", "");
@@ -65,7 +60,6 @@ class ModalWing extends Wing<ModalConfig> {
       "Show the modal",
       (request) {
         show.value = true;
-        focusGrabController.grabFocus();
         return WaywingResponse.ok();
       },
     ),
@@ -73,7 +67,6 @@ class ModalWing extends Wing<ModalConfig> {
       "Hide the modal",
       (request) {
         show.value = false;
-        focusGrabController.ungrabFocus();
         return WaywingResponse.ok();
       },
     ),
@@ -81,11 +74,6 @@ class ModalWing extends Wing<ModalConfig> {
       "Toggle the modal",
       (request) {
         show.value = !show.value;
-        if (show.value) {
-          focusGrabController.grabFocus();
-        } else {
-          focusGrabController.ungrabFocus();
-        }
         return WaywingResponse.ok();
       },
     ),
@@ -96,7 +84,6 @@ class ModalWing extends Wing<ModalConfig> {
     return NotificationListener<CloseRequestNotification>(
       onNotification: (_) {
         show.value = false;
-        focusGrabController.ungrabFocus();
         return true;
       },
       child: ValueListenableBuilder(
@@ -157,7 +144,7 @@ class ModalWing extends Wing<ModalConfig> {
                   return WingedContainer(
                     motion: mainConfig.motions.expressive.spatial.slow,
                     clipBehavior: Clip.antiAliasWithSaveLayer,
-                    addInputRegion: show,
+                    addInputRegion: false,
                     shape: ExternalRoundedCornersBorder(
                       borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
                     ),
@@ -171,13 +158,9 @@ class ModalWing extends Wing<ModalConfig> {
                           bindings: {
                             const SingleActivator(LogicalKeyboardKey.escape): () {
                               this.show.value = false;
-                              focusGrabController.ungrabFocus();
                             },
                           },
-                          child: FocusGrab(
-                            controller: focusGrabController,
-                            child: result,
-                          ),
+                          child: result,
                         ),
                       ),
                     ),
@@ -187,14 +170,21 @@ class ModalWing extends Wing<ModalConfig> {
             },
           );
 
-          return IgnorePointer(
-            ignoring: !show,
-            child: MotionContainer(
-              motion: mainConfig.motions.expressive.spatial.normal,
-              alignment: Alignment.center, // TODO: 1 allow user to change alignment, including fractional alignments
-              padding: rerservedSpace,
-              color: !show ? Colors.transparent : config.barrierColor,
-              child: result,
+          return InputRegion(
+            active: show,
+            child: IgnorePointer(
+              ignoring: !show,
+              child: GestureDetector(
+                onTap: () => this.show.value = false,
+                child: MotionContainer(
+                  motion: mainConfig.motions.expressive.spatial.normal,
+                  // TODO: 1 allow user to change alignment, including fractional alignments
+                  alignment: Alignment.center,
+                  padding: rerservedSpace,
+                  color: !show ? Colors.transparent : config.barrierColor,
+                  child: result,
+                ),
+              ),
             ),
           );
         },

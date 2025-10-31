@@ -298,6 +298,9 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     );
     final widgetsBelow = widgetsBelowMap.keys.sortedBy((e) => widgetsBelowMap[e]!);
     final widgetsAbove = widgetsAboveMap.keys.sortedBy((e) => widgetsAboveMap[e]!);
+    if (mainConfig.focusGrab && activeHosts.isNotEmpty) {
+      widgetsBelow.insert(0, buildBarrier(context));
+    }
     return Stack(
       children: [
         ...widgetsBelow,
@@ -343,6 +346,21 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     } else {
       return host.clientKey;
     }
+  }
+
+  Widget buildBarrier(BuildContext context) {
+    return InputRegion(
+      child: GestureDetector(
+        onTap: () {
+          for (final e in List<WingedPopoverState>.from(activeHosts)) {
+            hideHost(e);
+          }
+          for (final e in List<WingedPopoverState>.from(tooltipHosts.keys)) {
+            hideHost(e);
+          }
+        },
+      ),
+    );
   }
 }
 

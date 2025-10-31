@@ -1,7 +1,6 @@
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
-import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
@@ -156,20 +155,8 @@ class WingedPopoverState extends State<WingedPopover>
 
   late WingedPopoverClientState? parent;
 
-  bool _isPopoverShown = false;
   @override
-  bool get isPopoverShown => _isPopoverShown;
-  set isPopoverShown(bool value) {
-    if (value == false && _isPopoverShown) {
-      focusGrabController.ungrabFocus();
-    } else if (value == true && !_isPopoverShown) {
-      if (mainConfig.focusGrab) {
-        focusGrabController.grabFocus();
-      }
-    }
-    _isPopoverShown = value;
-  }
-
+  bool isPopoverShown = false;
   @override
   bool isTooltipShown = false;
   @override
@@ -180,8 +167,6 @@ class WingedPopoverState extends State<WingedPopover>
   WingedPopoverState get hostState => this;
 
   WingedPopoverClientState? clientState;
-
-  late final FocusGrabController focusGrabController = FocusGrabController(onCleared: hidePopover);
 
   @override
   void initState() {
@@ -300,10 +285,7 @@ class WingedPopoverState extends State<WingedPopover>
         child: result,
       );
     }
-    return FocusGrab(
-      controller: focusGrabController,
-      child: result,
-    );
+    return result;
   }
 }
 

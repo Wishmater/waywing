@@ -5,6 +5,14 @@ import "package:flutter/widgets.dart";
 import "package:waywing/util/logger.dart";
 import "./handler.dart";
 
+const deprecationMessage =
+    "This has a lot of bugs, and limited compositor support.\n"
+    "We can achieve the same by just declaring an InputRegion "
+    "that covers the whole screen and handling clicks ourselves.\n"
+    "It would make sense to go through this trouble if focusGrab protocol "
+    "at least didn't eat the click, but the way it is implemented in hyprland "
+    "at least offers no advantage over manually handling clicks with a screen-wide input region";
+
 /// {@template request}
 /// An active request means that the focus grab is currently active
 ///
@@ -12,6 +20,7 @@ import "./handler.dart";
 /// instead means that this widget does not need the focus grab anymore
 /// {@endtemplate}
 
+@Deprecated(deprecationMessage)
 class _FocusGrabControllerInternal {
   final _handler = FocusGrabHandler();
 
@@ -34,6 +43,7 @@ class _FocusGrabControllerInternal {
   }
 }
 
+@Deprecated(deprecationMessage)
 class FocusGrabController {
   static final Finalizer<_FocusGrabControllerInternal> _finalizer = Finalizer((internal) {
     if (internal._removeFocusGrab()) {
@@ -81,6 +91,7 @@ class FocusGrabController {
   }
 }
 
+@Deprecated(deprecationMessage)
 class FocusGrab extends StatefulWidget {
   const FocusGrab({
     super.key,
@@ -96,6 +107,7 @@ class FocusGrab extends StatefulWidget {
   State<FocusGrab> createState() => FocusGrabState();
 }
 
+@Deprecated(deprecationMessage)
 class FocusGrabState extends State<FocusGrab> {
   @override
   void initState() {

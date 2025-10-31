@@ -8,10 +8,10 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
 
+// TODO: 1 this shouldn't be a Wing, it should instead be used in a modal, like AppLauncher
 class MenuWing extends Wing {
   MenuWing._();
 
@@ -35,7 +35,6 @@ class MenuWing extends Wing {
         if (response != null) return WaywingResponse(400, "menu is already showing");
 
         showMenu.value = true;
-        controller.grabFocus();
         response = Completer();
 
         final subs = request.body
@@ -61,7 +60,6 @@ class MenuWing extends Wing {
             );
 
         final resp = await response!.future;
-        controller.ungrabFocus();
         response = null;
         showMenu.value = false;
         items.value.clear();
@@ -72,11 +70,6 @@ class MenuWing extends Wing {
   };
 
   ValueNotifier<bool> showMenu = ValueNotifier(false);
-  late final controller = FocusGrabController(
-    onCleared: () {
-      response?.complete("");
-    },
-  );
 
   ManualValueNotifier<List<String>> items = ManualValueNotifier([]);
   Completer<String>? response;
@@ -100,17 +93,14 @@ class MenuWing extends Wing {
                     response?.complete("");
                   },
                 },
-                child: FocusGrab(
-                  controller: controller,
-                  child: SizedBox(
-                    width: 400,
-                    height: 400,
-                    child: Menu(
-                      items: items,
-                      onSelected: (selected) {
-                        response?.complete(selected);
-                      },
-                    ),
+                child: SizedBox(
+                  width: 400,
+                  height: 400,
+                  child: Menu(
+                    items: items,
+                    onSelected: (selected) {
+                      response?.complete(selected);
+                    },
                   ),
                 ),
               ),

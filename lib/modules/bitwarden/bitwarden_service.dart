@@ -17,19 +17,31 @@ class BitwardenService extends Service {
   }
 
   late final bw.ApiClient apiClient;
-  late final FreedesktopSecretsClient secretsClient;
-  late final FreedesktopSecretsCollection defaultCollection;
+  late final FreedesktopSecretsClient? secretsClient;
+  late final FreedesktopSecretsCollection? defaultCollection;
 
   @override
   Future<void> init() async {
     apiClient = bw.ApiClient(basePath: "http://localhost:8087");
-    secretsClient = FreedesktopSecretsClient();
-    await secretsClient.session.open();
 
-    defaultCollection = (await secretsClient.defaultCollection())!;
-
-    if (await defaultCollection.locked) {
-      throw DefaultCollectionLockedException(await defaultCollection.label);
+    try {
+      final secretsClient = FreedesktopSecretsClient();
+      await secretsClient.session.open();
+      final defaultCollection = (await secretsClient.defaultCollection())!;
+      this.secretsClient = secretsClient;
+      this.defaultCollection = defaultCollection;
+      if (await defaultCollection.locked) {
+        throw DefaultCollectionLockedException(await defaultCollection.label);
+      }
+    } catch (e, st) {
+      logger.warning(
+        "Error while setting up secrets access.\n"
+        "The Bitwarden feather will work, but it will have to ask for password every time.",
+        error: e,
+        stackTrace: st,
+      );
+      secretsClient = null;
+      defaultCollection = null;
     }
 
     final _ = await getMasterPassword();
@@ -43,11 +55,12 @@ class BitwardenService extends Service {
 
   Future<String?> getMasterPassword() async {
     if (_masterPassword != null) return _masterPassword;
+    if (secretsClient == null || defaultCollection == null) return null;
 
-    final secrets = await defaultCollection.search({"id": "waywing_bitwarden"});
+    final secrets = await defaultCollection!.search({"id": "waywing_bitwarden"});
     if (secrets.isEmpty) return null;
 
-    final secret = await secrets[0].getSecret(secretsClient.session);
+    final secret = await secrets[0].getSecret(secretsClient!.session);
     _masterPassword = utf8.decode(secret.decrypt().value);
     return _masterPassword;
   }
@@ -55,9 +68,10 @@ class BitwardenService extends Service {
   Future<void> setMasterPassword(String password) async {
     if (_masterPassword == password) return;
     _masterPassword = password;
+    if (secretsClient == null || defaultCollection == null) return;
 
-    final secret = FreedesktopSecretDecrypted(session: secretsClient.session, value: utf8.encode(password));
-    final (item, prompt) = await defaultCollection.createItem(
+    final secret = FreedesktopSecretDecrypted(session: secretsClient!.session, value: utf8.encode(password));
+    final (item, prompt) = await defaultCollection!.createItem(
       secret,
       FreedesktopSecretsCreateItemProps("waywing_bitwarden", {"id": "waywing_bitwarden"}),
       true,
@@ -86,7 +100,7 @@ class BitwardenService extends Service {
   @override
   Future<void> dispose() async {
     await lock();
-    await secretsClient.close();
+    await secretsClient?.close();
     apiClient.client.close();
   }
 }

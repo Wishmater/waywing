@@ -152,14 +152,13 @@ class KeyboardFocusService {
   int? _currentId;
   mut.Mutex mutex;
 
+  KeyboardMode getDefaultMode() => mainConfig.requestKeyboardFocus ? KeyboardMode.onDemand : KeyboardMode.none;
+
   KeyboardMode get _currentMode {
     if (_currentId != null) {
       return _modes[_currentId]!.kMode();
     }
-    if (mainConfig.requestKeyboardFocus) {
-      return KeyboardMode.onDemand;
-    }
-    return KeyboardMode.none;
+    return getDefaultMode();
   }
 
   KeyboardFocusService._() : _modes = {}, _currentId = null, mutex = mut.Mutex();
@@ -178,6 +177,10 @@ class KeyboardFocusService {
   /// widget request onDemand and the current mode is exclusive, the request will be ignored until
   /// the request expires (removeMode is called with the request id).
   Future<int> setMode(KeyboardFocusMode mode) async {
+    assert(
+      mode.kMode().isPriorityGreater(KeyboardMode.none),
+      "all KeyboardFocusMode KeyboardMode must be greater than KeyboardMode.none",
+    );
     return await mutex.protect(() async {
       final id = _GenerateId.generate;
       _modes[id] = mode;
@@ -204,13 +207,12 @@ class KeyboardFocusService {
         final id = _searchMaxPriorityMode().$1;
         if (id == -1) {
           assert(_modes.isEmpty, "modes is not empty but searchMaxPriorityMode return -1");
-          assert(
-            prevMode.isPriorityGreater(KeyboardMode.none),
-            "all KeyboardFocusMode KeyboardMode must be greater than KeyboardMode.none",
-          );
           _currentId = null;
-          _logger.trace("Setting keyboard interactivity mode fallback (id==-1): ${KeyboardMode.none}");
-          await FlLinuxWindowManager.instance.setKeyboardInteractivity(KeyboardMode.none);
+          final fallbackMode = getDefaultMode();
+          if (fallbackMode != prevMode) {
+            _logger.trace("Setting keyboard interactivity mode fallback (id==-1): $fallbackMode");
+            await FlLinuxWindowManager.instance.setKeyboardInteractivity(fallbackMode);
+          }
         } else {
           _currentId = id;
           if (prevMode.isPriorityGreater(_currentMode)) {
@@ -224,7 +226,7 @@ class KeyboardFocusService {
 
   (int, KeyboardMode) _searchMaxPriorityMode() {
     int id = -1;
-    KeyboardMode mode = mainConfig.requestKeyboardFocus ? KeyboardMode.onDemand : KeyboardMode.none;
+    KeyboardMode mode = getDefaultMode();
     for (final entry in _modes.entries) {
       final key = entry.key;
       final value = entry.value;

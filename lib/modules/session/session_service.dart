@@ -73,6 +73,7 @@ class SessionService extends Service {
 
     // name = await _session.getName();
 
+    canLock = false; // TODO: 1 WTF ???
     // canLock = await _session.getCanLock();
 
     canHalt = CanAction.fromString(await _manager.callCanHalt());

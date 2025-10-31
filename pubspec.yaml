@@ -105,9 +105,17 @@ dependencies:
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
   bitwarden_vault_api:
-    path: ../../repos/bitwarden_api
+    # path: ../../repos/bitwarden_api
+    version: ^0.0.1
+    git:
+      url: https://github.com/ross96D/bitwarden_vault_api
+      tag_pattern: "{{version}}"
   freedesktop_secrets:
-    path: ../../my/freedesktop_secrets.dart
+    # path: ../../my/freedesktop_secrets.dart
+    version: ^0.0.1
+    git:
+      url: https://github.com/ross96D/freedesktop_secrets.dart
+      tag_pattern: "{{version}}"
 
 dev_dependencies:
   flutter_test:

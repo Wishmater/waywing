@@ -76,7 +76,8 @@ dependencies:
   # network manager
   nm: ^0.5.0
   # render icons from string as defined in xdg icons spec
-  xdg_icons: ^0.1.2
+  xdg_icons:
+    path: vendor/xdg_icon
   flutter_svg: ^2.2.1
   # battery and other power options
   upower: # battery and other power options

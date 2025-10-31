@@ -1435,11 +1435,10 @@
     "xdg_icons": {
       "dependency": "direct main",
       "description": {
-        "name": "xdg_icons",
-        "sha256": "a7eac97d7dd6c85e1b295d8fe4e6be93976709f785f3cfc81e8b3d2f3d61101f",
-        "url": "https://pub.dev"
+        "path": "packages/xdg_icon",
+        "relative": true
       },
-      "source": "hosted",
+      "source": "path",
       "version": "0.1.2"
     },
     "xml": {
@@ -1465,6 +1464,6 @@
   },
   "sdks": {
     "dart": ">=3.9.0 <4.0.0",
-    "flutter": ">=3.32.0"
+    "flutter": ">=3.35.2"
   }
 }

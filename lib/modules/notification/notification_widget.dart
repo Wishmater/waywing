@@ -261,7 +261,6 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                           child: ListenableBuilder(
                             listenable: timer,
                             builder: (context, _) {
-                              // TODO: 1 position progress bar better, probably with a stack, remove padding, test clipping
                               return LinearProgressIndicator(
                                 backgroundColor: surfaceColor,
                                 color: urgencyColor,

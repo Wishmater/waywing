@@ -591,6 +591,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
         },
         child: FocusScope(
           node: focusNode,
+          canRequestFocus: !widget.isRemoved,
           child: PositioningNotifierMonitor(
             controller: childPositioningController,
             child: _lastContent,

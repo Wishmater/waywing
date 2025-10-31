@@ -171,10 +171,10 @@ class ModalWing extends Wing<ModalConfig> {
                             this.show.value = false;
                             focusGrabController.ungrabFocus();
                           },
-                        },
-                        child: FocusGrab(
-                          controller: focusGrabController,
-                          child: result,
+                          child: FocusGrab(
+                            controller: focusGrabController,
+                            child: result,
+                          ),
                         ),
                       ),
                     ),

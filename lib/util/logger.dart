@@ -4,7 +4,6 @@ import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx.dart";
 import "package:flutter/foundation.dart";
-import "package:path/path.dart";
 import "package:tronco/tronco.dart";
 import "package:chalkdart/chalk.dart";
 
@@ -120,12 +119,11 @@ class Output extends LogOutput {
     if (_filePath == v) return;
 
     _filePath = v;
-    if (v == null) {
-      _fileOutput?.destroy();
-      _fileOutput = kReleaseMode ? FileOutput(join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "log")) : null;
-    } else {
-      _fileOutput?.destroy();
+    _fileOutput?.destroy();
+    if (v != null) {
       _fileOutput = FileOutput(v);
+    } else {
+      _fileOutput = null;
     }
   }
 
@@ -133,9 +131,9 @@ class Output extends LogOutput {
   final ConsoleOutput? _consoleOutput;
 
   Output(this._filePath)
-    : _consoleOutput = kReleaseMode ? null : ConsoleOutput(),
-      _fileOutput = kReleaseMode || _filePath != null
-          ? FileOutput(_filePath ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "log"))
+    : _consoleOutput = _filePath == null ? ConsoleOutput() : null,
+      _fileOutput = _filePath != null
+          ? FileOutput(_filePath) // ?? join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "log")
           : null;
 
   @override

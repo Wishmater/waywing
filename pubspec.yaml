@@ -107,7 +107,7 @@ dependencies:
   json_annotation: ^4.9.0
   bitwarden_vault_api:
     # path: ../../repos/bitwarden_api
-    version: ^0.0.1
+    version: ^0.0.2
     git:
       url: https://github.com/ross96D/bitwarden_vault_api
       tag_pattern: "{{version}}"
@@ -117,6 +117,8 @@ dependencies:
     git:
       url: https://github.com/ross96D/freedesktop_secrets.dart
       tag_pattern: "{{version}}"
+  http: ^1.5.0
+  html: ^0.15.6
 
 dev_dependencies:
   flutter_test:

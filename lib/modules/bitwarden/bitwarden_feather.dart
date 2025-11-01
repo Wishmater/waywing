@@ -7,6 +7,7 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/bitwarden/bitwarden_popover.dart";
 import "package:waywing/modules/bitwarden/bitwarden_service.dart";
+import "package:waywing/services/network_icon/network_icon_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
@@ -14,6 +15,7 @@ import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
 class BitwardenLauncherFeather extends Feather {
   late BitwardenService service;
+  late final NetworkIconService iconService;
 
   BitwardenLauncherFeather._();
 
@@ -29,6 +31,7 @@ class BitwardenLauncherFeather extends Feather {
   @override
   Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<BitwardenService>(this);
+    iconService = await serviceRegistry.requestService<NetworkIconService>(this);
   }
 
   @override
@@ -58,6 +61,7 @@ class BitwardenLauncherFeather extends Feather {
         ),
         child: BitwardenPopover(
           service: service,
+          iconService: iconService,
           close: () {
             CloseRequestNotification().dispatch(context);
           },

@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:io";
 
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
@@ -6,14 +7,22 @@ import "package:flutter/scheduler.dart";
 import "package:flutter/services.dart";
 import "package:waywing/modules/bitwarden/bitwarden_service.dart";
 import "package:bitwarden_vault_api/bitwarden_api.dart" as bw;
+import "package:waywing/services/network_icon/network_icon_service.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class BitwardenPopover extends StatefulWidget {
   final BitwardenService service;
+  final NetworkIconService iconService;
   final VoidCallback close;
 
-  const BitwardenPopover({super.key, required this.service, required this.close});
+  const BitwardenPopover({
+    super.key,
+    required this.service,
+    required this.close,
+    required this.iconService,
+  });
 
   @override
   State<StatefulWidget> createState() => BitwardenPopoverState();
@@ -133,17 +142,105 @@ class BitwardenPopoverState extends State<BitwardenPopover> {
   }
 
   Widget _renderOption(BuildContext context, bw.Item item, SearchOptionsRenderConfig searchoptConfig) {
+    String? url;
+    if (item.login?.uris != null && item.login!.uris!.isNotEmpty) {
+      url = item.login!.uris![0].uri;
+    }
+    return _BitwardenTile(
+      name: item.name,
+      username: item.login?.username,
+      websiteUrl: url,
+      onTap: () {
+        _onSelected(item);
+      },
+      iconService: widget.iconService,
+    );
+  }
+}
+
+class _BitwardenTile extends StatefulWidget {
+  final String? name;
+  final String? username;
+  final String? websiteUrl;
+  final NetworkIconService iconService;
+  final VoidCallback onTap;
+
+  const _BitwardenTile({
+    required this.iconService,
+    required this.name,
+    required this.username,
+    required this.websiteUrl,
+    required this.onTap,
+  });
+
+  @override
+  State<_BitwardenTile> createState() => _BitwardenTileState();
+}
+
+class _BitwardenTileState extends State<_BitwardenTile> {
+  File? ___ico;
+  set ico(File? newIco) {
+    if (___ico != newIco) {
+      ___ico = newIco;
+      setStateSafe();
+    }
+  }
+
+  File? get ico => ___ico;
+
+  @override
+  void initState() {
+    super.initState();
+    _fileFromWebsite();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BitwardenTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.websiteUrl != widget.websiteUrl) {
+      _fileFromWebsite();
+    }
+  }
+
+  void setStateSafe() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _fileFromWebsite() async {
+    print("${widget.name} - ${widget.websiteUrl}");
+    if (widget.websiteUrl == null) {
+      ico = null;
+      return;
+    }
+    final uri = Uri.tryParse(widget.websiteUrl!);
+    if (uri == null) {
+      ico = null;
+      return;
+    }
+
+    ico = await widget.iconService.fromUrl(uri);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ListTile(
+      leading: ico != null
+          ? WingedIcon(
+              directImageData: [AbsolutePathFileImageData(ico!.absolute.path)],
+            )
+          : SizedBox.shrink(),
       title: Text(
-        item.name ?? "unknown",
+        widget.name ?? "unknown",
         style: theme.textTheme.bodyLarge,
         softWrap: false,
         overflow: TextOverflow.fade,
       ),
-      onTap: () {
-        _onSelected(item);
-      },
+      subtitle: widget.username != null ? Text(widget.username!) : null,
+      onTap: widget.onTap,
     );
   }
 }

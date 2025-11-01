@@ -125,11 +125,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "9fb01eb43876b7a1075d19f7026f7713d8886269"
+      resolved-ref: "9a126358ca5839d4851fb4d14085ddf68c01e688"
+      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/bitwarden_vault_api"
     source: git
-    version: "0.0.1"
+    version: "0.0.2"
   boolean_selector:
     dependency: transitive
     description:
@@ -376,8 +376,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: "516fe016740332a456a855167e9dd9a9c5efa63b"
-      tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/fl-linux-window-manager"
     source: git
     version: "2.0.9"
@@ -494,7 +494,7 @@ packages:
     source: hosted
     version: "2.3.2"
   html:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: html
       sha256: "6d1264f2dffa1b1101c25a91dff0dc2daee4c18e87cd8538729773c073dbf602"
@@ -502,7 +502,7 @@ packages:
     source: hosted
     version: "0.15.6"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: bb2ce4590bc2667c96f318d68cac1b5a7987ec819351d32b1c987239a815e007

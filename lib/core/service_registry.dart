@@ -18,6 +18,7 @@ import "package:waywing/modules/session/os_info_service.dart";
 import "package:waywing/modules/session/session_service.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "package:waywing/modules/volume/volume_service.dart";
+import "package:waywing/services/network_icon/network_icon_service.dart";
 import "package:waywing/util/logger.dart";
 
 final serviceRegistry = ServiceRegistry._();
@@ -216,6 +217,7 @@ class ServiceRegistry {
     HyprlandService.registerService(registerService);
     UserCommandService.registerService(registerService);
     Aria2Service.registerService(registerService);
+    NetworkIconService.registerService(registerService);
     if (!kReleaseMode) BitwardenService.registerService(registerService);
   }
 }

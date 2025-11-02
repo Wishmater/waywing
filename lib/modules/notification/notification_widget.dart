@@ -1,5 +1,6 @@
 import "dart:io";
 
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart" hide Notification, Action, Actions;
 import "package:intl/intl.dart";
 import "package:material_symbols_icons/symbols.varied.dart";
@@ -40,7 +41,7 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
     return NotificationServiceInheritedWidget(
       service: widget.service,
       child: ValueListenableBuilder(
-        valueListenable: widget.service.notifications.notifications,
+        valueListenable: widget.service.activeNotifications.notifications,
         builder: (context, notifications, _) {
           final scrollController = ScrollController();
           return FocusScope(
@@ -235,23 +236,12 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                           },
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _NotificationTitle(
-                            notification,
-                            isHovered,
-                            isExpanded,
-                            onToggleExpand: _toggleExpansion,
-                          ),
-                          SizedBox(height: 4),
-                          _AnimatedNotificationContent(
-                            animation: _animationController,
-                            fadeAnimation: _animationController,
-                            notification: notification,
-                            isExpanded: isExpanded,
-                          ),
-                        ],
+                      NotificationTile(
+                        notification: notification,
+                        isExpanded: isExpanded,
+                        isHovered: isHovered,
+                        onToggleExpand: _toggleExpansion,
+                        animation: _animationController,
                       ),
                       if (timer != null && widget.config.showProgressBar)
                         Positioned(
@@ -277,6 +267,49 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
           ),
         );
       },
+    );
+  }
+}
+
+class NotificationTile extends StatelessWidget {
+  const NotificationTile({
+    super.key,
+    required this.notification,
+    required this.isHovered,
+    required this.isExpanded,
+    required this.onToggleExpand,
+    required this.animation,
+  });
+
+  final Notification notification;
+
+  final ValueListenable<bool> isHovered;
+
+  final bool isExpanded;
+
+  final VoidCallback onToggleExpand;
+
+  final Animation<double> animation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _NotificationTitle(
+          notification,
+          isHovered,
+          isExpanded,
+          onToggleExpand: onToggleExpand,
+        ),
+        SizedBox(height: 4),
+        _AnimatedNotificationContent(
+          animation: animation,
+          fadeAnimation: animation,
+          notification: notification,
+          isExpanded: isExpanded,
+        ),
+      ],
     );
   }
 }
@@ -324,7 +357,7 @@ class _AnimatedNotificationContent extends StatelessWidget {
 
 class _NotificationTitle extends StatelessWidget {
   final Notification notification;
-  final ValueNotifier<bool> isHovered;
+  final ValueListenable<bool> isHovered;
   final bool isExpanded;
   final VoidCallback onToggleExpand;
 

@@ -15,7 +15,9 @@ class NotificationsService extends Service {
 
   late final OrgFreedesktopNotifications server;
   late final DBusClient client;
-  late final NotificationsList notifications;
+  late final ActiveNotificationsList activeNotifications;
+
+  final ManualNotifier storedNotificationChange = ManualNotifier();
 
   static const String dbusName = "org.freedesktop.Notifications";
 
@@ -48,7 +50,11 @@ class NotificationsService extends Service {
       case DBusRequestNameReply.inQueue:
         throw StateError("unreachable: flag doNotQueue was added");
     }
-    notifications = NotificationsList(server);
+    activeNotifications = ActiveNotificationsList(server);
+
+    server.storedNotifiactionChange.listen((_) {
+      storedNotificationChange.manualNotifyListeners();
+    });
   }
 
   @override
@@ -81,10 +87,10 @@ class NotificationsService extends Service {
   }
 }
 
-class NotificationsList {
+class ActiveNotificationsList {
   final ValueListenable<List<ValueNotifier<Notification>>> notifications;
 
-  NotificationsList(OrgFreedesktopNotifications server)
+  ActiveNotificationsList(OrgFreedesktopNotifications server)
     : notifications = ManualValueNotifier(
         server.activeNotifications.values.map((e) => NotificationValueNotifier(e)).toList(),
       ) {

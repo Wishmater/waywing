@@ -202,53 +202,116 @@ class Notification {
   }
 }
 
+enum NotificationChange { add, remove, change }
+
 /// Main Notification object that expose an org.freedesktop.Notifications dbus interface
 ///
 /// Also this object manage all notifications
 class OrgFreedesktopNotifications extends DBusObject {
   final Logger logger;
 
+  /// TODO 1: we should save the stored notifications in the file system
+  final LinkedHashMap<int, Notification> storedNotifications;
   final LinkedHashMap<int, Notification> activeNotifications;
   final Map<String, int> synchronousIds;
   final Map<int, NotificationTimer> _timers;
 
-  final StreamController<Notification> _notificationCreated;
+  final StreamController<({int id, NotificationChange type})> _activeNotificationsSignal;
   late Stream<Notification> notificationCreated;
-  final StreamController<int> _notificationChanged;
   late final Stream<int> notificationChanged;
-  final StreamController<int> _notificationRemoved;
   late final Stream<int> notificationRemoved;
+
+  final StreamController<({int id, NotificationChange type})> _storedNotificationsSignal;
+  late Stream<({int id, NotificationChange type})> storedNotifiactionChange;
 
   /// Creates a new object to expose on [path].
   OrgFreedesktopNotifications({
     required this.logger,
     DBusObjectPath path = const DBusObjectPath.unchecked("/"),
   }) : activeNotifications = LinkedHashMap(),
+       storedNotifications = LinkedHashMap(),
        synchronousIds = {},
        _timers = {},
-       _notificationCreated = StreamController(),
-       _notificationChanged = StreamController(),
-       _notificationRemoved = StreamController(),
+       _storedNotificationsSignal = StreamController.broadcast(),
+       _activeNotificationsSignal = StreamController.broadcast(),
        super(path) {
-    notificationCreated = _notificationCreated.stream.asBroadcastStream();
-    notificationChanged = _notificationChanged.stream.asBroadcastStream();
-    notificationRemoved = _notificationRemoved.stream.asBroadcastStream();
+    notificationCreated = _activeNotificationsSignal.stream
+        .where((v) => v.type == NotificationChange.add)
+        .map((v) => activeNotifications[v.id])
+        .where((v) => v != null)
+        .cast();
+    notificationChanged = _activeNotificationsSignal.stream
+        .where((v) => v.type == NotificationChange.change)
+        .map((v) => v.id);
+    notificationRemoved = _activeNotificationsSignal.stream
+        .where((v) => v.type == NotificationChange.remove)
+        .map((v) => v.id);
+
+    storedNotifiactionChange = _storedNotificationsSignal.stream;
   }
 
   void dispose() {
-    _notificationCreated.close();
-    _notificationRemoved.close();
-    _notificationChanged.close();
+    _activeNotificationsSignal.close();
+    _storedNotificationsSignal.close();
     _timers.forEach((k, v) => v.dispose());
     _timers.clear();
   }
 
+  void _setNotification(int key, Notification value) {
+    final storedContains = storedNotifications.containsKey(key);
+    final activeContains = activeNotifications.containsKey(key);
+
+    activeNotifications[key] = value;
+    storedNotifications[key] = value;
+
+    if (storedContains) {
+      _storedNotificationsSignal.add((id: key, type: NotificationChange.change));
+    } else {
+      _storedNotificationsSignal.add((id: key, type: NotificationChange.add));
+    }
+
+    if (activeContains) {
+      _activeNotificationsSignal.add((id: value.id, type: NotificationChange.change));
+    } else {
+      _activeNotificationsSignal.add((id: value.id, type: NotificationChange.add));
+    }
+  }
+
+  Notification? _removeNotification(int key, NotificationsCloseReason reason, bool storedRemoval) {
+    if (storedRemoval) {
+      storedNotifications.remove(key);
+      _storedNotificationsSignal.add((id: key, type: NotificationChange.remove));
+    } else {
+      switch (reason) {
+        case NotificationsCloseReason.user || NotificationsCloseReason.dbus:
+          // TODO 3: maybe the removal of the stored notification on user or app action
+          // should be exposed as a configuration value
+          storedNotifications.remove(key);
+          _storedNotificationsSignal.add((id: key, type: NotificationChange.remove));
+        case NotificationsCloseReason.expired || NotificationsCloseReason.undefined:
+      }
+    }
+
+    final activeRemoved = activeNotifications.remove(key);
+
+    if (activeRemoved != null) {
+      if (activeRemoved.hints.synchronous?.isNotEmpty == true) {
+        synchronousIds.remove(activeRemoved.hints.synchronous!);
+      }
+      _activeNotificationsSignal.add((id: key, type: NotificationChange.remove));
+
+      emitNotificationClosed(key, reason.value);
+    }
+    _timers.remove(key)?.dispose();
+
+    return activeRemoved;
+  }
+
   void addOrReplaceNotification(Notification notification) {
-    bool contains = activeNotifications.containsKey(notification.id);
     if (activeNotifications.isEmpty || activeNotifications.values.first.id == notification.id) {
       notification = notification.copyWith(isFirst: true);
     }
-    activeNotifications[notification.id] = notification;
+    _setNotification(notification.id, notification);
 
     bool isSynchronous = notification.hints.synchronous?.isNotEmpty == true;
     if (isSynchronous) {
@@ -263,12 +326,6 @@ class OrgFreedesktopNotifications extends DBusObject {
         Duration(milliseconds: notification.timeout),
       );
     }
-
-    if (contains) {
-      _notificationChanged.add(notification.id);
-    } else {
-      _notificationCreated.add(notification);
-    }
   }
 
   // return type has to be nullable because the UI can call this with
@@ -277,22 +334,22 @@ class OrgFreedesktopNotifications extends DBusObject {
     return _timers[notification.id];
   }
 
-  void removeNotification(int id, NotificationsCloseReason reason) {
+  /// Simplified call to removeNotification when the action meant to remove an stored notification
+  void removeStoredNotification(int id) {
+    return removeNotification(id, NotificationsCloseReason.user, true);
+  }
+
+  /// Remove the notification from the active and stored notifications.
+  ///
+  /// If this is called with the intention of the stored one removal then it should be called with
+  /// reason user and storedRemoval true.
+  void removeNotification(int id, NotificationsCloseReason reason, [bool storedRemoval = false]) {
     final isFirst = activeNotifications.values.firstOrNull?.id == id;
-    final removed = activeNotifications.remove(id);
+    _removeNotification(id, reason, storedRemoval);
     if (isFirst && activeNotifications.isNotEmpty) {
       final notification = activeNotifications.values.first;
-      activeNotifications[notification.id] = notification.copyWith(isFirst: true);
-      _notificationChanged.add(notification.id);
+      _setNotification(notification.id, notification.copyWith(isFirst: true));
     }
-    if (removed != null) {
-      if (removed.hints.synchronous?.isNotEmpty == true) {
-        synchronousIds.remove(removed.hints.synchronous!);
-      }
-      _notificationRemoved.add(id);
-      emitNotificationClosed(id, reason.value);
-    }
-    _timers.remove(id)?.dispose();
   }
 
   /// Implementation of org.freedesktop.Notifications.GetCapabilities()

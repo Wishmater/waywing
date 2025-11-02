@@ -25,6 +25,7 @@ import "package:waywing/modules/kb_layout/kb_layout_feather.dart";
 import "package:waywing/modules/kb_layout/num_lock_feather.dart";
 import "package:waywing/modules/menu/menu_wing.dart";
 import "package:waywing/modules/nm/nm_feather.dart";
+import "package:waywing/modules/notification/notification_manager_feather.dart";
 import "package:waywing/modules/notification/notification_wing.dart";
 import "package:waywing/modules/session/session_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_feather.dart";
@@ -268,7 +269,6 @@ class FeatherRegistry {
     DrawerWing.registerFeather(registerFeather);
     BarWing.registerFeather(registerFeather);
     NotificationsWing.registerFeather(registerFeather);
-    if (!kReleaseMode) MenuWing.registerFeather(registerFeather);
     FrameWing.registerFeather(registerFeather);
     // Feathers
     SpacerFeather.registerFeather(registerFeather);
@@ -284,8 +284,11 @@ class FeatherRegistry {
     NumLockFeather.registerFeather(registerFeather);
     WorkspaceSwitcherFeather.registerFeather(registerFeather);
     AppLauncherFeather.registerFeather(registerFeather);
-    if (!kReleaseMode) CommandPaletteFeather.registerFeather(registerFeather);
     Aria2Feather.registerFeather(registerFeather);
+    NotificationsManagerFeather.registerFeather(registerFeather);
+
+    if (!kReleaseMode) MenuWing.registerFeather(registerFeather);
+    if (!kReleaseMode) CommandPaletteFeather.registerFeather(registerFeather);
     if (!kReleaseMode) BitwardenLauncherFeather.registerFeather(registerFeather);
   }
 }

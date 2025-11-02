@@ -725,6 +725,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                   screenSize: screenSize,
                   padding: popoverParams.screenPadding,
                   extraOffset: popoverParams.extraOffset,
+                  fallbackToOppositeAlignmentOnOverflowX: popoverParams.fallbackToOppositeAlignmentOnOverflowX,
+                  fallbackToOppositeAlignmentOnOverflowY: popoverParams.fallbackToOppositeAlignmentOnOverflowY,
                 );
                 passedMeaningfulPaint = true;
               }

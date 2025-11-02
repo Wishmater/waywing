@@ -1,5 +1,5 @@
 import "package:flutter/cupertino.dart";
-import "package:flutter/src/foundation/change_notifier.dart";
+import "package:flutter/foundation.dart";
 import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";

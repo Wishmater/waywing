@@ -28,6 +28,8 @@ class WingedContextMenu extends StatelessWidget {
   final Alignment overflowAlignment;
   final WingedPopoverChildBuilder? containerBuilder;
   final ExtraClippersBuilder? extraClientClipperBuilder;
+  final bool fallbackToOppositeAlignmentOnOverflowX;
+  final bool fallbackToOppositeAlignmentOnOverflowY;
 
   const WingedContextMenu({
     required this.builder,
@@ -42,6 +44,8 @@ class WingedContextMenu extends StatelessWidget {
     this.overflowAlignment = Alignment.topLeft,
     this.containerBuilder,
     this.extraClientClipperBuilder,
+    this.fallbackToOppositeAlignmentOnOverflowX = true,
+    this.fallbackToOppositeAlignmentOnOverflowY = false,
     this.child,
     super.key,
   });
@@ -59,6 +63,8 @@ class WingedContextMenu extends StatelessWidget {
         popupAlignment: Alignment.bottomRight,
         overflowAlignment: Alignment.topLeft,
         containerId: containerId,
+        fallbackToOppositeAlignmentOnOverflowX: fallbackToOppositeAlignmentOnOverflowX,
+        fallbackToOppositeAlignmentOnOverflowY: fallbackToOppositeAlignmentOnOverflowY,
         extraOffset: Offset(0, -padding.top),
         stickToHost: true,
         hideDelay: Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
@@ -195,6 +201,14 @@ class WingedContextMenuItem<T> extends StatelessWidget {
         anchorAlignment: submenu!.anchorAlignment ?? parentMenu?.anchorAlignment ?? Alignment.topRight,
         popupAlignment: submenu!.popupAlignment ?? parentMenu?.popupAlignment ?? Alignment.bottomRight,
         overflowAlignment: submenu!.overflowAlignment ?? parentMenu?.overflowAlignment ?? Alignment.topLeft,
+        fallbackToOppositeAlignmentOnOverflowX:
+            submenu!.fallbackToOppositeAlignmentOnOverflowX ??
+            parentMenu?.fallbackToOppositeAlignmentOnOverflowX ??
+            true,
+        fallbackToOppositeAlignmentOnOverflowY:
+            submenu!.fallbackToOppositeAlignmentOnOverflowY ??
+            parentMenu?.fallbackToOppositeAlignmentOnOverflowY ??
+            false,
         containerBuilder: submenu!.containerBuilder ?? parentMenu?.containerBuilder,
         constraints:
             submenu!.constraints ?? parentMenu?.constraints ?? const BoxConstraints(maxWidth: 256, maxHeight: 512),
@@ -284,6 +298,8 @@ class WingedSubmenu {
   final Alignment? popupAlignment;
   final Alignment? overflowAlignment;
   final WingedPopoverChildBuilder? containerBuilder;
+  final bool? fallbackToOppositeAlignmentOnOverflowX;
+  final bool? fallbackToOppositeAlignmentOnOverflowY;
 
   WingedSubmenu({
     required this.itemsBuilder,
@@ -296,5 +312,7 @@ class WingedSubmenu {
     this.popupAlignment,
     this.overflowAlignment,
     this.containerBuilder,
+    this.fallbackToOppositeAlignmentOnOverflowX,
+    this.fallbackToOppositeAlignmentOnOverflowY,
   });
 }

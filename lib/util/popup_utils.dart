@@ -11,6 +11,8 @@ Offset getPopoverPosition({
   required Size screenSize,
   Offset extraOffset = Offset.zero,
   EdgeInsets padding = EdgeInsets.zero,
+  bool fallbackToOppositeAlignmentOnOverflowX = false,
+  bool fallbackToOppositeAlignmentOnOverflowY = false,
 }) {
   const animationValue = 1; // probably not needed in this project
   final maxWidth = screenSize.width - padding.horizontal;
@@ -22,66 +24,110 @@ Offset getPopoverPosition({
   double currentChildHeight = childSize.height * animationValue;
   double x;
   double y;
-  x = hostPosition.dx
-      + hostSize.width*((anchorAlignment.x+1)/2)
-      - popupWidth*((popupAlignment.x-1)/-2)
-      + extraOffset.dx;
-  y = hostPosition.dy
-      + hostSize.height*((anchorAlignment.y+1)/2)
-      - childSize.height*((popupAlignment.y-1)/-2)
-      + extraOffset.dy;
+  x =
+      hostPosition.dx +
+      hostSize.width * ((anchorAlignment.x + 1) / 2) -
+      popupWidth * ((popupAlignment.x - 1) / -2) +
+      extraOffset.dx;
+  y =
+      hostPosition.dy +
+      hostSize.height * ((anchorAlignment.y + 1) / 2) -
+      childSize.height * ((popupAlignment.y - 1) / -2) +
+      extraOffset.dy;
   x = x.clamp(padding.left, maxWidthWithPaddingLeft);
   y = y.clamp(padding.top, maxHeightWithPaddingTop);
-  if (maxWidthWithPaddingLeft-x < popupWidth) {
+  if (maxWidthWithPaddingLeft - x < popupWidth) {
     x = maxWidthWithPaddingLeft - popupWidth;
+    if (fallbackToOppositeAlignmentOnOverflowX) {
+      return getPopoverPosition(
+        anchorAlignment: Alignment(anchorAlignment.x.isNegative ? 1 : -1, anchorAlignment.y),
+        popupAlignment: Alignment(popupAlignment.x.isNegative ? 1 : -1, popupAlignment.y),
+        hostPosition: hostPosition,
+        hostSize: hostSize,
+        childSize: childSize,
+        screenSize: screenSize,
+        extraOffset: extraOffset,
+        padding: padding,
+        fallbackToOppositeAlignmentOnOverflowX: false,
+        fallbackToOppositeAlignmentOnOverflowY: fallbackToOppositeAlignmentOnOverflowY,
+      );
+    }
   }
-  if (maxHeightWithPaddingTop-y < childSize.height) {
+  if (maxHeightWithPaddingTop - y < childSize.height) {
     y = maxHeightWithPaddingTop - childSize.height;
+    if (fallbackToOppositeAlignmentOnOverflowY) {
+      return getPopoverPosition(
+        anchorAlignment: Alignment(anchorAlignment.x, anchorAlignment.y.isNegative ? 1 : -1),
+        popupAlignment: Alignment(popupAlignment.x, popupAlignment.y.isNegative ? 1 : -1),
+        hostPosition: hostPosition,
+        hostSize: hostSize,
+        childSize: childSize,
+        screenSize: screenSize,
+        extraOffset: extraOffset,
+        padding: padding,
+        fallbackToOppositeAlignmentOnOverflowX: fallbackToOppositeAlignmentOnOverflowX,
+        fallbackToOppositeAlignmentOnOverflowY: false,
+      );
+    }
   }
-  final overlappingWidth = Rectangle(hostPosition.dx, 0, hostSize.width, 1)
-      .intersection(Rectangle(x, 0, popupWidth, 1))?.width.toDouble() ?? 0;
-  final overlappingHeight = Rectangle(0, hostPosition.dy, 1, hostSize.height)
-      .intersection(Rectangle(0, y, 1, childSize.height))?.height.toDouble() ?? 0;
-  currentChildWidth = overlappingWidth + ((popupWidth-overlappingWidth) * animationValue);
-  currentChildHeight = overlappingHeight + ((childSize.height-overlappingHeight) * animationValue);
-  final overlappingCorrectionX = (x < hostPosition.dx  // add offsetCorrection only if not already accounted for in overlappingMeassure
-      ? x - hostPosition.dx
-      : x - (hostPosition.dx + hostSize.width)).smartClamp(0, extraOffset.dx);
-  final overlappingCorrectionY = (y < hostPosition.dy  // add offsetCorrection only if not already accounted for in overlappingMeassure
-      ? y - hostPosition.dy
-      : y - (hostPosition.dy + hostSize.height)).smartClamp(0, extraOffset.dy);
+  final overlappingWidth =
+      Rectangle(hostPosition.dx, 0, hostSize.width, 1).intersection(Rectangle(x, 0, popupWidth, 1))?.width.toDouble() ??
+      0;
+  final overlappingHeight =
+      Rectangle(
+        0,
+        hostPosition.dy,
+        1,
+        hostSize.height,
+      ).intersection(Rectangle(0, y, 1, childSize.height))?.height.toDouble() ??
+      0;
+  currentChildWidth = overlappingWidth + ((popupWidth - overlappingWidth) * animationValue);
+  currentChildHeight = overlappingHeight + ((childSize.height - overlappingHeight) * animationValue);
+  final overlappingCorrectionX =
+      (x <
+                  hostPosition
+                      .dx // add offsetCorrection only if not already accounted for in overlappingMeassure
+              ? x - hostPosition.dx
+              : x - (hostPosition.dx + hostSize.width))
+          .smartClamp(0, extraOffset.dx);
+  final overlappingCorrectionY =
+      (y <
+                  hostPosition
+                      .dy // add offsetCorrection only if not already accounted for in overlappingMeassure
+              ? y - hostPosition.dy
+              : y - (hostPosition.dy + hostSize.height))
+          .smartClamp(0, extraOffset.dy);
   if (overlappingWidth >= hostSize.width) {
-    x = hostPosition.dx - ((currentChildWidth-hostSize.width) * ((popupAlignment.x-1)/-2));
+    x = hostPosition.dx - ((currentChildWidth - hostSize.width) * ((popupAlignment.x - 1) / -2));
   } else if (overlappingWidth >= childSize.width) {
-    x = hostPosition.dx + ((-currentChildWidth+hostSize.width) * ((popupAlignment.x-1)/-2));
+    x = hostPosition.dx + ((-currentChildWidth + hostSize.width) * ((popupAlignment.x - 1) / -2));
   } else if (hostPosition.dx < x) {
     x = hostPosition.dx + hostSize.width - overlappingWidth;
   } else {
-    x = hostPosition.dx - ((currentChildWidth-overlappingWidth) * ((popupAlignment.x-1)/-2));
+    x = hostPosition.dx - ((currentChildWidth - overlappingWidth) * ((popupAlignment.x - 1) / -2));
   }
   if (overlappingHeight >= hostSize.height) {
-    y = hostPosition.dy - ((currentChildHeight-hostSize.height) * ((popupAlignment.y-1)/-2));
+    y = hostPosition.dy - ((currentChildHeight - hostSize.height) * ((popupAlignment.y - 1) / -2));
   } else if (overlappingHeight >= childSize.height) {
-    y = hostPosition.dy + ((-currentChildHeight+hostSize.height) * ((popupAlignment.y-1)/-2));
+    y = hostPosition.dy + ((-currentChildHeight + hostSize.height) * ((popupAlignment.y - 1) / -2));
   } else if (hostPosition.dy < y) {
     y = hostPosition.dy + hostSize.height - overlappingHeight;
   } else {
-    y = hostPosition.dy - ((currentChildHeight-overlappingHeight) * ((popupAlignment.y-1)/-2));
+    y = hostPosition.dy - ((currentChildHeight - overlappingHeight) * ((popupAlignment.y - 1) / -2));
   }
   x = (x + overlappingCorrectionX).clamp(padding.left, maxWidthWithPaddingLeft);
   y = (y + overlappingCorrectionY).clamp(padding.top, maxHeightWithPaddingTop);
-  if (maxWidthWithPaddingLeft-x < currentChildWidth) {
+  if (maxWidthWithPaddingLeft - x < currentChildWidth) {
     x = (maxWidthWithPaddingLeft - currentChildWidth).clamp(padding.left, maxWidthWithPaddingLeft);
   }
-  if (maxHeightWithPaddingTop-y < currentChildHeight) {
+  if (maxHeightWithPaddingTop - y < currentChildHeight) {
     y = (maxHeightWithPaddingTop - currentChildHeight).clamp(padding.top, maxHeightWithPaddingTop);
   }
   return Offset(x, y);
 }
 
-
 extension SmartClamp on double {
   num smartClamp(double x, double y) {
-    return x<y ? clamp(x, y) : clamp(y, x);
+    return x < y ? clamp(x, y) : clamp(y, x);
   }
 }

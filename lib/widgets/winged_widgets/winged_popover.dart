@@ -66,6 +66,8 @@ class PopoverParams {
   final Motion? motion;
   final bool enableIntrinsicSizeAnimation;
   final bool ignorePointer;
+  final bool fallbackToOppositeAlignmentOnOverflowX;
+  final bool fallbackToOppositeAlignmentOnOverflowY;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -95,6 +97,8 @@ class PopoverParams {
     this.stickToHost = false,
     this.enableIntrinsicSizeAnimation = false,
     this.ignorePointer = false,
+    this.fallbackToOppositeAlignmentOnOverflowX = false,
+    this.fallbackToOppositeAlignmentOnOverflowY = false,
   });
 }
 
@@ -119,6 +123,8 @@ class TooltipParams extends PopoverParams {
     super.stickToHost = false,
     super.enableIntrinsicSizeAnimation = false,
     super.ignorePointer = false,
+    super.fallbackToOppositeAlignmentOnOverflowX,
+    super.fallbackToOppositeAlignmentOnOverflowY,
     this.showDelay = const Duration(milliseconds: 300), // TODO: 1 add tooltip delay to config
     this.hideDelay = Duration.zero, // TODO: 1 add tooltip delay to config
   });

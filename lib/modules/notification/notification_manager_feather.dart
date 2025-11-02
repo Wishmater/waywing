@@ -1,5 +1,6 @@
 import "package:flutter/cupertino.dart";
 import "package:flutter/src/foundation/change_notifier.dart";
+import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
@@ -38,7 +39,7 @@ class NotificationsManagerFeather extends Feather {
         return [
           WingedButton(
             child: WingedIcon(
-              // TODO: 1 add flutter and text icons
+              flutterIcon: SymbolsVaried.notifications,
               iconNames: ["notifications"],
             ),
             onTap: () => popoverCtr?.togglePopover(),

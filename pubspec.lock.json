@@ -154,8 +154,8 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
+        "ref": "HEAD",
         "resolved-ref": "9a126358ca5839d4851fb4d14085ddf68c01e688",
-        "tag-pattern": "{{version}}",
         "url": "https://github.com/ross96D/bitwarden_vault_api",
         "sha256": "sha256-NWqi01ahZbL7isNtpFIcWH8S+bWk9Rvno4v80AA39RE="
       },

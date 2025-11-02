@@ -38,7 +38,8 @@ class NotificationsManagerFeather extends Feather {
         return [
           WingedButton(
             child: WingedIcon(
-              iconNames: ["notifications"]
+              // TODO: 1 add flutter and text icons
+              iconNames: ["notifications"],
             ),
             onTap: () => popoverCtr?.togglePopover(),
           ),

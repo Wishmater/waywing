@@ -14,16 +14,36 @@ class NotificationManagerPopover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NotificationServiceInheritedWidget(
-      service: service,
-      child: ListenableBuilder(
-        listenable: service.storedNotificationChange,
-        builder: (context, _) {
-          final notifiactions = service.server.storedNotifications.entries;
-          return ListView(
-            children: [for (final entry in notifiactions) _NotificationWidget(entry.value)],
-          );
-        },
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: 256,
+        maxWidth: 384,
+        maxHeight: 512,
+      ),
+      child: NotificationServiceInheritedWidget(
+        service: service,
+        child: ListenableBuilder(
+          listenable: service.storedNotificationChange,
+          builder: (context, _) {
+            final notifications = service.server.storedNotifications.entries.toList();
+            if (notifications.isEmpty) {
+              return Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  "No notifications yet",
+                  textAlign: TextAlign.center,
+                ),
+              );
+            }
+            return ListView.builder(
+              shrinkWrap: true,
+              itemCount: notifications.length,
+              itemBuilder: (context, index) {
+                return _NotificationWidget(notifications[index].value);
+              },
+            );
+          },
+        ),
       ),
     );
   }

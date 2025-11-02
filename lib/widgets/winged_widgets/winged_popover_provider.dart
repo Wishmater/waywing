@@ -586,6 +586,10 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     }
     final popoverParams = this.popoverParams;
     widget.host.clientState = this;
+    // TODO: 1 limit to active scren (excluding exclussiveSize).
+    // Maybe add an option to only do it sometimes, since this could break things if done always.
+    // The implementation is also kinda hard because positioning util function would need to take a Rect instead of Size.
+    // This breaks context menues on bar when docked to the bottom of the screen
     final screenSize = MediaQuery.sizeOf(context);
 
     _lastContent = popoverParams.builder(

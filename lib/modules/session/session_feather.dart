@@ -109,7 +109,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
   @override
   Widget build(BuildContext context) {
     final children = <Widget>[];
-    if (service.canLock) {
+    if (service.canLock.canDo) {
       children.add(
         WingedButton(
           child: Row(
@@ -123,7 +123,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
               Text("lock"),
             ],
           ),
-          // onTap: () => service.lock(),
+          onTap: () => service.lock(),
         ),
       );
     }
@@ -140,24 +140,6 @@ class _SessionPopoverState extends State<_SessionPopover> {
                 textIcon: "󰒲", // nf-md-sleep
               ),
               Text("sleep"),
-            ],
-          ),
-        ),
-      );
-    }
-    if (service.canSuspend.canDo) {
-      children.add(
-        WingedButton(
-          onTap: service.suspend,
-          child: Row(
-            spacing: 2,
-            children: [
-              WingedIcon(
-                flutterIcon: SymbolsVaried.sleep,
-                iconNames: ["system-suspend"],
-                textIcon: "󰒲", // nf-md-sleep
-              ),
-              Text("suspend"),
             ],
           ),
         ),

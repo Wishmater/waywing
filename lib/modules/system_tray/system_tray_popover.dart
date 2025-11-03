@@ -189,10 +189,13 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
             zIndex: widget.depth == 0 ? -11 : null, // null will default to (parent-1)
             containerId: widget.uniqueID,
             containerBuilder: (context, child, _, _, _) {
+              final parentContainer = this.context.findAncestorWidgetOfExactType<WingedContainer>();
               return WingedContainer(
                 clipBehavior: Clip.hardEdge,
                 // this mirrors BarWidget's color for popovers. If that changes we need to get it maybe from context.find<WingedContainer>
-                color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                color: parentContainer?.color,
+                elevation: parentContainer?.elevation ?? 0,
+                shadowOffset: parentContainer?.shadowOffset ?? const Offset(0.66, 1),
                 shape: ExternalRoundedCornersBorder(
                   borderRadius: BorderRadius.circular(mainConfig.theme.containerRounding),
                 ),

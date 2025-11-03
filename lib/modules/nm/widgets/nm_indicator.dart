@@ -11,6 +11,7 @@ import "package:waywing/widgets/icons/composed_icon.dart";
 import "package:waywing/widgets/icons/symbol_icon.dart";
 import "package:waywing/widgets/winged_widgets/icon_indicator.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_context_menu.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
@@ -142,8 +143,26 @@ class NetworkManagerIndicator extends StatelessWidget {
               }
             }
 
-            return WingedButton(
-              onTap: popover?.isPopoverEnabled ?? false ? () => popover!.togglePopover() : null,
+            return WingedContextMenu(
+              itemsBuilder: (context) {
+                return [
+                  WingedContextMenuItem(
+                    child: Text("Hide device"),
+                    onTap: (_, _) => null,
+                  ),
+                ];
+              },
+              builder: (context, contextMenu, child) {
+                return WingedButton(
+                  onTap: popover?.isPopoverEnabled ?? false ? (_, _) => popover!.togglePopover() : null,
+                  onSecondaryTap: (tapDownDetails, tapUpDetails) {
+                    popover?.hidePopover();
+                    popover?.hideTooltip();
+                    contextMenu.togglePopover(localPosition: tapUpDetails.localPosition);
+                  },
+                  child: child!,
+                );
+              },
               child: result,
             );
           },

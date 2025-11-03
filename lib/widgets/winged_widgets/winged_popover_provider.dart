@@ -43,7 +43,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   void showHost(WingedPopoverState host) {
     assert(
-      host.widget.popoverParams != null,
+      host.popoverParams != null,
       "Trying to show popover for a host that doesn't specify popoverParams",
     );
     if (activeHosts.contains(host)) {
@@ -53,7 +53,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (tooltipHosts.containsKey(host) || removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    if (host.widget.popoverParams!.containerId case final containerId?) {
+    if (host.popoverParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }
     activeHosts.add(host);
@@ -92,7 +92,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       return; // this shouldn't happen, but whatever...
     }
     tooltipHosts[host]!.host = false;
-    if (host.widget.tooltipParams!.hideDelay > Duration.zero) {
+    if (host.tooltipParams!.hideDelay > Duration.zero) {
       hideTooltip(host);
     } else {
       _scheduleCheckHideTooltip(host);
@@ -111,7 +111,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       return; // the tooltip client is in animation of being removed
     }
     tooltipHosts[client.widget.host]!.client = false;
-    if (client.widget.host.widget.tooltipParams!.hideDelay > Duration.zero) {
+    if (client.widget.host.tooltipParams!.hideDelay > Duration.zero) {
       hideTooltip(client.widget.host);
     } else {
       _scheduleCheckHideTooltip(client.widget.host);
@@ -137,13 +137,13 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (activeHosts.contains(host)) {
       return; // ignore tooltip calls if it's already manually shown
     }
-    showDelay ??= host.widget.tooltipParams!.showDelay;
+    showDelay ??= host.tooltipParams!.showDelay;
     if (showDelay > Duration.zero) {
-      final containerId = host.widget.tooltipParams!.containerId;
+      final containerId = host.tooltipParams!.containerId;
       final isContainerShown =
           containerId != null &&
-          (tooltipHosts.keys.any((e) => e.widget.tooltipParams!.containerId == containerId) ||
-              removedHosts.entries.any((e) => e.value && e.key.widget.tooltipParams!.containerId == containerId));
+          (tooltipHosts.keys.any((e) => e.tooltipParams!.containerId == containerId) ||
+              removedHosts.entries.any((e) => e.value && e.key.tooltipParams!.containerId == containerId));
       if (!isContainerShown) {
         final completer = Completer<void>();
         Timer(showDelay, () async {
@@ -157,7 +157,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    if (host.widget.tooltipParams!.containerId case final containerId?) {
+    if (host.tooltipParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }
     final status = initialStatus ?? TooltipStatus();
@@ -168,18 +168,16 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   void _removeAllWithContainerId(String containerId) {
     final toRemove = activeHosts.where((e) {
-      return e.widget.popoverParams!.containerId == containerId;
+      return e.popoverParams!.containerId == containerId;
     }).toList();
     toRemove.addAll(
       tooltipHosts.keys.where((e) {
-        return e.widget.tooltipParams!.containerId == containerId;
+        return e.tooltipParams!.containerId == containerId;
       }),
     );
     toRemove.addAll(
       removedHosts.keys.where((e) {
-        final removedContainerId = removedHosts[e]!
-            ? e.widget.tooltipParams!.containerId
-            : e.widget.popoverParams!.containerId;
+        final removedContainerId = removedHosts[e]! ? e.tooltipParams!.containerId : e.popoverParams!.containerId;
         return removedContainerId == containerId;
       }),
     );
@@ -257,7 +255,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (activeHosts.contains(host)) {
       return; // if popover is shown, ignore hideTooltip call
     }
-    hideDelay ??= host.widget.tooltipParams!.hideDelay;
+    hideDelay ??= host.tooltipParams!.hideDelay;
     final status = tooltipHosts[host];
     if (status != null && hideDelay > Duration.zero) {
       status.hideTimer?.cancel();
@@ -326,7 +324,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
         isRemoved: isRemoved,
         isTooltip: isTooltipValue,
       );
-      final popoverParams = isTooltipValue ? host.widget.tooltipParams : host.widget.popoverParams;
+      final popoverParams = isTooltipValue ? host.tooltipParams : host.popoverParams;
       if (popoverParams!.zIndex < 0) {
         widgetsBelowMap[widget] = popoverParams.zIndex;
       } else {
@@ -339,7 +337,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     WingedPopoverState host, {
     required bool isTooltip,
   }) {
-    final popoverParams = isTooltip ? host.widget.tooltipParams : host.widget.popoverParams;
+    final popoverParams = isTooltip ? host.tooltipParams : host.popoverParams;
     if (popoverParams!.containerId != null) {
       containerGlobalKeys[popoverParams.containerId!] ??= GlobalKey();
       return containerGlobalKeys[popoverParams.containerId!]!;
@@ -396,8 +394,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
   late MotionController<Offset> contentOffsetMotionController;
   final List<_OutgoingChild> _outgoingChildren = [];
 
-  PopoverParams get popoverParams =>
-      (widget.isTooltip ? widget.host.widget.tooltipParams : widget.host.widget.popoverParams)!;
+  PopoverParams get popoverParams => (widget.isTooltip ? widget.host.tooltipParams : widget.host.popoverParams)!;
 
   Motion get motion => popoverParams.motion ?? mainConfig.motions.expressive.spatial.slow;
 

@@ -42,7 +42,7 @@ class NotificationsManagerFeather extends Feather {
               flutterIcon: SymbolsVaried.notifications,
               iconNames: ["notifications"],
             ),
-            onTap: () => popoverCtr?.togglePopover(),
+            onTap: (_, _) => popoverCtr?.togglePopover(),
           ),
         ];
       },

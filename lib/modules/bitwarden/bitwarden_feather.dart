@@ -44,7 +44,7 @@ class BitwardenLauncherFeather extends Feather {
     buildIndicators: (context, popover) {
       return [
         WingedButton(
-          onTap: () => popover!.togglePopover(),
+          onTap: (_, _) => popover!.togglePopover(),
           child: WingedIcon(
             // iconNames: [],
             // textIcon: "",

@@ -44,11 +44,12 @@ class SystemTrayIndicator extends StatelessWidget {
           size: configuration.iconSizeAdapted.round(),
         ),
         child: GestureDetector(
+          // TODO: 2 should onTertiaryTap be added to WingedButton?
           onTertiaryTapDown: (_) {
             item.secondaryActivate();
           },
           child: WingedButton(
-            onTap: () async {
+            onTap: (_, _) async {
               if (!item.itemIsMenu) {
                 try {
                   await item.primaryActivate();
@@ -61,7 +62,7 @@ class SystemTrayIndicator extends StatelessWidget {
                 tooglePopover();
               }
             },
-            onSecondaryTap: () {
+            onSecondaryTap: (_, _) {
               tooglePopover();
             },
             child: SystemTrayItemIcon(item: item, configuration: configuration),

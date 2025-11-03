@@ -33,7 +33,7 @@ class ClockIndicator extends StatelessWidget {
               value = DateFormat("${config.militar ? "HH" : "hh"}:mm").format(time);
             }
             return WingedButton(
-              onTap: () {
+              onTap: (_, _) {
                 popover.togglePopover();
               },
               child: Text(value),

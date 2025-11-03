@@ -1,9 +1,8 @@
-import "dart:async";
-
 import "package:flutter/material.dart";
 import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -12,6 +11,11 @@ import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover_provider.dart";
 
+enum ContextMenuType {
+  manual,
+  tooltip,
+}
+
 class WingedContextMenu extends StatelessWidget {
   final WingedPopoverHostContentBuilder builder;
   final Widget? child;
@@ -19,6 +23,8 @@ class WingedContextMenu extends StatelessWidget {
   final bool enabled;
   final EdgeInsets padding;
   final BoxConstraints constraints;
+  final ContextMenuType type;
+  final bool animateOpacity;
 
   // popover params
   final int zIndex;
@@ -27,9 +33,12 @@ class WingedContextMenu extends StatelessWidget {
   final Alignment popupAlignment;
   final Alignment overflowAlignment;
   final WingedPopoverChildBuilder? containerBuilder;
+  final WingedPopoverChildBuilder? closedContainerBuilder;
   final ExtraClippersBuilder? extraClientClipperBuilder;
   final bool fallbackToOppositeAlignmentOnOverflowX;
   final bool fallbackToOppositeAlignmentOnOverflowY;
+  final Offset extraOffset;
+  final EdgeInsets extraPadding;
 
   const WingedContextMenu({
     required this.builder,
@@ -38,58 +47,84 @@ class WingedContextMenu extends StatelessWidget {
     this.padding = const EdgeInsets.symmetric(vertical: 8),
     this.constraints = const BoxConstraints(maxWidth: 256, maxHeight: 512),
     this.zIndex = 20,
-    this.containerId,
+    this.containerId = "ContextMenu",
     this.anchorAlignment = Alignment.bottomLeft,
     this.popupAlignment = Alignment.bottomRight,
     this.overflowAlignment = Alignment.topLeft,
     this.containerBuilder,
+    this.closedContainerBuilder,
     this.extraClientClipperBuilder,
     this.fallbackToOppositeAlignmentOnOverflowX = true,
     this.fallbackToOppositeAlignmentOnOverflowY = false,
+    this.type = ContextMenuType.manual,
+    this.extraOffset = Offset.zero,
+    this.animateOpacity = true,
+    this.extraPadding = EdgeInsets.zero,
     this.child,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    final popoverParams = TooltipParams(
+      motion: mainConfig.motions.standard.spatial.normal,
+      enabled: enabled,
+      zIndex: zIndex,
+      anchorAlignment: anchorAlignment,
+      popupAlignment: popupAlignment,
+      overflowAlignment: overflowAlignment,
+      containerId: containerId,
+      fallbackToOppositeAlignmentOnOverflowX: fallbackToOppositeAlignmentOnOverflowX,
+      fallbackToOppositeAlignmentOnOverflowY: fallbackToOppositeAlignmentOnOverflowY,
+      extraOffset: extraOffset,
+      extraPadding: extraPadding,
+      stickToHost: true,
+      hideDelay: Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
+      builder: (context, _, _, _) {
+        return WingedContextMenuContent(
+          padding: padding,
+          constraints: constraints,
+          children: itemsBuilder(context),
+        );
+      },
+      containerBuilder:
+          containerBuilder ??
+          (context, child, _, _, _) {
+            return buildContainer(context, child, isClosed: false);
+          },
+      closedContainerBuilder:
+          closedContainerBuilder ??
+          (containerBuilder != null
+              ? null
+              : (context, child, _, _, _) {
+                  return buildContainer(context, child, isClosed: true);
+                }),
+    );
     return WingedPopover(
-      // TODO: 1 ContextMenu: handle menu overflowing when too close to the right
       extraClientClipperBuilder: extraClientClipperBuilder,
-      tooltipParams: TooltipParams(
-        motion: mainConfig.motions.standard.spatial.normal,
-        enabled: enabled,
-        zIndex: zIndex,
-        anchorAlignment: Alignment.topRight,
-        popupAlignment: Alignment.bottomRight,
-        overflowAlignment: Alignment.topLeft,
-        containerId: containerId,
-        fallbackToOppositeAlignmentOnOverflowX: fallbackToOppositeAlignmentOnOverflowX,
-        fallbackToOppositeAlignmentOnOverflowY: fallbackToOppositeAlignmentOnOverflowY,
-        extraOffset: Offset(0, -padding.top),
-        stickToHost: true,
-        hideDelay: Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
-        builder: (context, _, _, _) {
-          return WingedContextMenuContent(
-            padding: padding,
-            constraints: constraints,
-            children: itemsBuilder(context),
-          );
-        },
-        containerBuilder:
-            containerBuilder ??
-            (context, child, _, _, _) {
-              return WingedContainer(
-                clipBehavior: Clip.hardEdge,
-                shape: ExternalRoundedCornersBorder(
-                  borderRadius: BorderRadius.circular(mainConfig.theme.containerRounding),
-                ),
-                child: child,
-              );
-            },
-      ),
+      tooltipParams: type == ContextMenuType.tooltip ? popoverParams : null,
+      popoverParams: type == ContextMenuType.manual ? popoverParams : null,
       builder: builder,
       child: child,
     );
+  }
+
+  Widget buildContainer(BuildContext context, Widget child, {required bool isClosed}) {
+    Widget result = WingedContainer(
+      clipBehavior: Clip.hardEdge,
+      shape: ExternalRoundedCornersBorder(
+        borderRadius: BorderRadius.circular(mainConfig.theme.containerRounding),
+      ),
+      child: child,
+    );
+    if (animateOpacity) {
+      result = MotionOpacity(
+        motion: mainConfig.motions.standard.effects.normal,
+        opacity: isClosed ? 0 : 1,
+        child: result,
+      );
+    }
+    return result;
   }
 }
 
@@ -164,7 +199,7 @@ typedef ContextMenuItemContentBuilder =
 class WingedContextMenuItem<T> extends StatelessWidget {
   final Widget? child;
   final Widget? icon;
-  final FutureOr<T>? Function()? onTap;
+  final WingedActionCallback<T>? onTap;
   final WingedSubmenu? submenu;
 
   /// overrides default WingedButton, use if more customization is needed
@@ -192,15 +227,19 @@ class WingedContextMenuItem<T> extends StatelessWidget {
       final parentContainer = context.findAncestorWidgetOfExactType<WingedContainer>();
       final parentMenu = context.findAncestorWidgetOfExactType<WingedContextMenu>();
       final parentMenuContent = context.findAncestorStateOfType<WingedContextMenuContentState>();
+      final padding = submenu!.padding ?? parentMenu?.padding ?? const EdgeInsets.symmetric(vertical: 8);
       result = WingedContextMenu(
         enabled: submenu!.enabled,
         itemsBuilder: submenu!.itemsBuilder,
+        type: submenu!.type,
         containerId: submenu!.containerId,
-        padding: submenu!.padding ?? parentMenu?.padding ?? const EdgeInsets.symmetric(vertical: 8),
+        padding: padding,
         zIndex: submenu!.zIndex ?? (parentMenu == null ? 20 : parentMenu.zIndex - 1),
         anchorAlignment: submenu!.anchorAlignment ?? parentMenu?.anchorAlignment ?? Alignment.topRight,
         popupAlignment: submenu!.popupAlignment ?? parentMenu?.popupAlignment ?? Alignment.bottomRight,
         overflowAlignment: submenu!.overflowAlignment ?? parentMenu?.overflowAlignment ?? Alignment.topLeft,
+        extraOffset: submenu!.extraOffset ?? Offset(-padding.left, -padding.top),
+        extraPadding: submenu!.extraPadding ?? EdgeInsets.symmetric(horizontal: mainConfig.theme.activeBorderSize),
         fallbackToOppositeAlignmentOnOverflowX:
             submenu!.fallbackToOppositeAlignmentOnOverflowX ??
             parentMenu?.fallbackToOppositeAlignmentOnOverflowX ??
@@ -210,6 +249,8 @@ class WingedContextMenuItem<T> extends StatelessWidget {
             parentMenu?.fallbackToOppositeAlignmentOnOverflowY ??
             false,
         containerBuilder: submenu!.containerBuilder ?? parentMenu?.containerBuilder,
+        closedContainerBuilder: submenu!.closedContainerBuilder ?? parentMenu?.closedContainerBuilder,
+        animateOpacity: submenu!.animateOpacity ?? false,
         constraints:
             submenu!.constraints ?? parentMenu?.constraints ?? const BoxConstraints(maxWidth: 256, maxHeight: 512),
         extraClientClipperBuilder: parentMenuContent == null
@@ -256,7 +297,7 @@ class WingedContextMenuItem<T> extends StatelessWidget {
         onTap: onTap != null
             ? onTap
             : submenu != null && popover != null
-            ? () {
+            ? (_, _) {
                 popover.showTooltip(showDelay: Duration.zero);
               }
             : null,
@@ -288,7 +329,9 @@ class WingedContextMenuItem<T> extends StatelessWidget {
 class WingedSubmenu {
   final List<Widget> Function(BuildContext context) itemsBuilder;
   final bool enabled;
+  final ContextMenuType type;
   final String? containerId;
+  final bool? animateOpacity;
 
   // default to parent
   final int? zIndex;
@@ -298,8 +341,11 @@ class WingedSubmenu {
   final Alignment? popupAlignment;
   final Alignment? overflowAlignment;
   final WingedPopoverChildBuilder? containerBuilder;
+  final WingedPopoverChildBuilder? closedContainerBuilder;
   final bool? fallbackToOppositeAlignmentOnOverflowX;
   final bool? fallbackToOppositeAlignmentOnOverflowY;
+  final Offset? extraOffset;
+  final EdgeInsets? extraPadding;
 
   WingedSubmenu({
     required this.itemsBuilder,
@@ -312,7 +358,12 @@ class WingedSubmenu {
     this.popupAlignment,
     this.overflowAlignment,
     this.containerBuilder,
+    this.closedContainerBuilder,
     this.fallbackToOppositeAlignmentOnOverflowX,
     this.fallbackToOppositeAlignmentOnOverflowY,
+    this.type = ContextMenuType.tooltip,
+    this.extraOffset,
+    this.extraPadding,
+    this.animateOpacity,
   });
 }

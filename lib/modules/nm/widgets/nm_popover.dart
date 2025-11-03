@@ -75,7 +75,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                             child: child,
                           );
                         },
-                        onTap: requestScan,
+                        onTap: (_, _) => requestScan,
                         initialFuture: initialRefreshFuture,
                         child: WingedIcon(
                           flutterIcon: SymbolsVaried.refresh,
@@ -287,7 +287,7 @@ class _APWidgetState extends State<APWidget> {
                         valueListenable: autoConnect,
                         builder: (context, value, _) {
                           return WingedButton(
-                            onTap: () => autoConnect.value = !value,
+                            onTap: (_, _) => autoConnect.value = !value,
                             padding: EdgeInsets.symmetric(horizontal: 4),
                             alignment: null,
                             child: IntrinsicWidth(
@@ -322,7 +322,7 @@ class _APWidgetState extends State<APWidget> {
               ),
             ),
             WingedButton(
-              onTap: onConnectTap,
+              onTap: (_, _) => onConnectTap,
               child: Text(
                 widget.isConnected ? "DISCONNECT" : "CONNECT",
                 style: TextStyle(color: Theme.of(context).colorScheme.primary),

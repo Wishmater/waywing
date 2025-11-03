@@ -55,7 +55,7 @@ class BatteryFeather extends Feather<BatteryConfig> {
           builder: (context, _) {
             if (service.profile != null && config.enableProfile) {
               return WingedButton(
-                onTap: () => popover!.togglePopover(),
+                onTap: (_, _) => popover!.togglePopover(),
                 child: BatteryIndicator(battery: service.battery, config: config),
               );
             } else {

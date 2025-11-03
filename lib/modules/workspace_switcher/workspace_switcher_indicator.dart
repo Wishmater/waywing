@@ -56,7 +56,7 @@ class _WorkspaceWidget extends StatelessWidget {
     final theme = Theme.of(context);
     return WingedButton(
       color: isCurrent ? theme.colorScheme.primaryContainer : null,
-      onTap: changeWorkspace,
+      onTap: (_, _) => changeWorkspace,
       child: Text(workspace.name),
     );
   }

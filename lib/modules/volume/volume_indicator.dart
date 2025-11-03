@@ -289,8 +289,10 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
               );
             }
             return WingedButton(
-              onTap: () => widget.popover.togglePopover(),
-              onSecondaryTap: defaultOutput == null ? null : () => defaultOutput.setMuted(!defaultOutput.isMuted.value),
+              onTap: (_, _) => widget.popover.togglePopover(),
+              onSecondaryTap: defaultOutput == null
+                  ? null
+                  : (_, _) => defaultOutput.setMuted(!defaultOutput.isMuted.value),
               child: result,
             );
           },

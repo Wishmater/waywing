@@ -42,12 +42,12 @@ abstract class WingedPopoverController {
   bool get isTooltipEnabled;
   bool get isPopoverShown;
   bool get isTooltipShown;
-  void showPopover();
+  void showPopover({Offset? localPosition});
   void hidePopover();
-  void togglePopover();
-  Future<void> showTooltip({Duration? showDelay});
+  void togglePopover({Offset? localPosition});
+  Future<void> showTooltip({Duration? showDelay, Offset? localPosition});
   Future<void> hideTooltip({Duration? hideDelay});
-  Future<void> toggleTooltip({Duration? showDelay, Duration? hideDelay});
+  Future<void> toggleTooltip({Duration? showDelay, Duration? hideDelay, Offset? localPosition});
   StatePositioningNotifierMixin get hostState;
 }
 
@@ -100,6 +100,50 @@ class PopoverParams {
     this.fallbackToOppositeAlignmentOnOverflowX = false,
     this.fallbackToOppositeAlignmentOnOverflowY = false,
   });
+
+  PopoverParams copyWith({
+    WingedPopoverBuilder? builder,
+    WingedPopoverChildBuilder? containerBuilder,
+    EdgeInsets? screenPadding,
+    Alignment? anchorAlignment,
+    Alignment? popupAlignment,
+    Alignment? overflowAlignment,
+    String? containerId,
+    WingedPopoverChildBuilder? closedContainerBuilder,
+    int? zIndex,
+    bool? enabled,
+    Offset? extraOffset,
+    EdgeInsets? extraPadding,
+    Motion? motion,
+    bool? stickToHost,
+    bool? enableIntrinsicSizeAnimation,
+    bool? ignorePointer,
+    bool? fallbackToOppositeAlignmentOnOverflowX,
+    bool? fallbackToOppositeAlignmentOnOverflowY,
+  }) {
+    return PopoverParams(
+      builder: builder ?? this.builder,
+      containerBuilder: containerBuilder ?? this.containerBuilder,
+      screenPadding: screenPadding ?? this.screenPadding,
+      anchorAlignment: anchorAlignment ?? this.anchorAlignment,
+      popupAlignment: popupAlignment ?? this.popupAlignment,
+      overflowAlignment: overflowAlignment ?? this.overflowAlignment,
+      containerId: containerId ?? this.containerId,
+      closedContainerBuilder: closedContainerBuilder ?? this.closedContainerBuilder,
+      zIndex: zIndex ?? this.zIndex,
+      enabled: enabled ?? this.enabled,
+      extraOffset: extraOffset ?? this.extraOffset,
+      extraPadding: extraPadding ?? this.extraPadding,
+      motion: motion ?? this.motion,
+      stickToHost: stickToHost ?? this.stickToHost,
+      enableIntrinsicSizeAnimation: enableIntrinsicSizeAnimation ?? this.enableIntrinsicSizeAnimation,
+      ignorePointer: ignorePointer ?? this.ignorePointer,
+      fallbackToOppositeAlignmentOnOverflowX:
+          fallbackToOppositeAlignmentOnOverflowX ?? this.fallbackToOppositeAlignmentOnOverflowX,
+      fallbackToOppositeAlignmentOnOverflowY:
+          fallbackToOppositeAlignmentOnOverflowY ?? this.fallbackToOppositeAlignmentOnOverflowY,
+    );
+  }
 }
 
 class TooltipParams extends PopoverParams {
@@ -109,25 +153,74 @@ class TooltipParams extends PopoverParams {
   const TooltipParams({
     required super.builder,
     required super.containerBuilder,
-    super.screenPadding = EdgeInsets.zero,
-    super.anchorAlignment = Alignment.center,
-    super.popupAlignment = Alignment.center,
-    super.overflowAlignment = Alignment.center,
+    super.screenPadding,
+    super.anchorAlignment,
+    super.popupAlignment,
+    super.overflowAlignment,
     super.containerId,
     super.closedContainerBuilder,
-    super.zIndex = 10,
-    super.enabled = true,
-    super.extraOffset = Offset.zero,
-    super.extraPadding = EdgeInsets.zero,
+    super.zIndex,
+    super.enabled,
+    super.extraOffset,
+    super.extraPadding,
     super.motion,
-    super.stickToHost = false,
-    super.enableIntrinsicSizeAnimation = false,
-    super.ignorePointer = false,
+    super.stickToHost,
+    super.enableIntrinsicSizeAnimation,
+    super.ignorePointer,
     super.fallbackToOppositeAlignmentOnOverflowX,
     super.fallbackToOppositeAlignmentOnOverflowY,
     this.showDelay = const Duration(milliseconds: 300), // TODO: 1 add tooltip delay to config
     this.hideDelay = Duration.zero, // TODO: 1 add tooltip delay to config
   });
+
+  @override
+  TooltipParams copyWith({
+    WingedPopoverBuilder? builder,
+    WingedPopoverChildBuilder? containerBuilder,
+    EdgeInsets? screenPadding,
+    Alignment? anchorAlignment,
+    Alignment? popupAlignment,
+    Alignment? overflowAlignment,
+    String? containerId,
+    WingedPopoverChildBuilder? closedContainerBuilder,
+    int? zIndex,
+    bool? enabled,
+    Offset? extraOffset,
+    EdgeInsets? extraPadding,
+    Motion? motion,
+    bool? stickToHost,
+    bool? enableIntrinsicSizeAnimation,
+    bool? ignorePointer,
+    bool? fallbackToOppositeAlignmentOnOverflowX,
+    bool? fallbackToOppositeAlignmentOnOverflowY,
+    Duration? showDelay,
+    Duration? hideDelay,
+  }) {
+    return TooltipParams(
+      builder: builder ?? this.builder,
+      containerBuilder: containerBuilder ?? this.containerBuilder,
+      screenPadding: screenPadding ?? this.screenPadding,
+      anchorAlignment: anchorAlignment ?? this.anchorAlignment,
+      popupAlignment: popupAlignment ?? this.popupAlignment,
+      overflowAlignment: overflowAlignment ?? this.overflowAlignment,
+      containerId: containerId ?? this.containerId,
+      closedContainerBuilder: closedContainerBuilder ?? this.closedContainerBuilder,
+      zIndex: zIndex ?? this.zIndex,
+      enabled: enabled ?? this.enabled,
+      extraOffset: extraOffset ?? this.extraOffset,
+      extraPadding: extraPadding ?? this.extraPadding,
+      motion: motion ?? this.motion,
+      stickToHost: stickToHost ?? this.stickToHost,
+      enableIntrinsicSizeAnimation: enableIntrinsicSizeAnimation ?? this.enableIntrinsicSizeAnimation,
+      ignorePointer: ignorePointer ?? this.ignorePointer,
+      fallbackToOppositeAlignmentOnOverflowX:
+          fallbackToOppositeAlignmentOnOverflowX ?? this.fallbackToOppositeAlignmentOnOverflowX,
+      fallbackToOppositeAlignmentOnOverflowY:
+          fallbackToOppositeAlignmentOnOverflowY ?? this.fallbackToOppositeAlignmentOnOverflowY,
+      showDelay: showDelay ?? this.showDelay,
+      hideDelay: hideDelay ?? this.hideDelay,
+    );
+  }
 }
 
 class WingedPopover extends StatefulWidget {
@@ -221,26 +314,52 @@ class WingedPopoverState extends State<WingedPopover>
   void didChangeDependencies() {
     super.didChangeDependencies();
     parent = context.findAncestorStateOfType<WingedPopoverClientState>();
+    // TODO: 1 reset local popober/tooltip params if necessary
   }
 
+  PopoverParams? _popoverParams;
+  PopoverParams? get popoverParams => _popoverParams ?? widget.popoverParams;
+  TooltipParams? _tooltipParams;
+  TooltipParams? get tooltipParams => _tooltipParams ?? widget.tooltipParams;
+
   @override
-  void showPopover() => _provider.showHost(this);
+  void showPopover({Offset? localPosition}) {
+    assert(widget.popoverParams != null);
+    _provider.showHost(this);
+  }
 
   @override
   void hidePopover() => _provider.hideHost(this);
 
   @override
-  void togglePopover() => _provider.toggleHost(this);
+  void togglePopover({Offset? localPosition}) {
+    assert(widget.popoverParams != null);
+    if (localPosition != null) {
+      final localAlignment = Alignment(
+        (localPosition.dx / positioningNotifier.value!.size.width) * 2 - 1,
+        (localPosition.dy / positioningNotifier.value!.size.height) * 2 - 1,
+      );
+      _popoverParams = popoverParams!.copyWith(
+        anchorAlignment: localAlignment,
+      );
+    }
+    _provider.toggleHost(this);
+  }
 
   @override
-  Future<void> showTooltip({Duration? showDelay}) => _provider.showTooltip(this, showDelay: showDelay);
+  Future<void> showTooltip({Duration? showDelay, Offset? localPosition}) {
+    assert(widget.tooltipParams != null);
+    return _provider.showTooltip(this, showDelay: showDelay);
+  }
 
   @override
   Future<void> hideTooltip({Duration? hideDelay}) => _provider.hideTooltip(this, hideDelay: hideDelay);
 
   @override
-  Future<void> toggleTooltip({Duration? showDelay, Duration? hideDelay}) =>
-      _provider.toggleTooltip(this, showDelay: showDelay, hideDelay: hideDelay);
+  Future<void> toggleTooltip({Duration? showDelay, Duration? hideDelay, Offset? localPosition}) {
+    assert(widget.tooltipParams != null);
+    return _provider.toggleTooltip(this, showDelay: showDelay, hideDelay: hideDelay);
+  }
 
   /// override getPositioning to further constraint positioning/size to that of the parent
   /// if the parent is being removed

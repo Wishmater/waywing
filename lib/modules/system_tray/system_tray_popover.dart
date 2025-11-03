@@ -179,7 +179,7 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
         return WingedContextMenuItem(
           onTap: widget.item.submenu.isNotEmpty
               ? null
-              : () => widget.trayItem.dbusmenu!.sendEvent(widget.item, DBusMenuEventType.clicked),
+              : (_, _) => widget.trayItem.dbusmenu!.sendEvent(widget.item, DBusMenuEventType.clicked),
           submenu: WingedSubmenu(
             enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
             // -10 is the zIndex of Bar popups, it's not ideal to have it hardcoded here, but whatever

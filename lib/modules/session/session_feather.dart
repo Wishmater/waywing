@@ -68,7 +68,7 @@ class SessionFeather extends Feather {
       ];
       return [
         WingedButton(
-          onTap: () => popover!.togglePopover(),
+          onTap: (_, _) => popover!.togglePopover(),
           child: WingedIcon(
             iconNames: [osInfoService.logo ?? "", "distributor-logo-${osInfoService.osId}"],
             textIcon: osInfoService.osIcon,
@@ -123,14 +123,14 @@ class _SessionPopoverState extends State<_SessionPopover> {
               Text("lock"),
             ],
           ),
-          onTap: () => service.lock(),
+          onTap: (_, _) => service.lock(),
         ),
       );
     }
     if (service.canSleep.canDo) {
       children.add(
         WingedButton(
-          onTap: service.sleep,
+          onTap: (_, _) => service.sleep,
           child: Row(
             spacing: 2,
             children: [
@@ -148,7 +148,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
     if (service.canReboot.canDo) {
       children.add(
         WingedButton(
-          onTap: service.reboot,
+          onTap: (_, _) => service.reboot,
           child: Row(
             spacing: 2,
             children: [
@@ -166,7 +166,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
     if (service.canPowerOff.canDo) {
       children.add(
         WingedButton(
-          onTap: service.powerOff,
+          onTap: (_, _) => service.powerOff,
           child: Row(
             spacing: 2,
             children: [

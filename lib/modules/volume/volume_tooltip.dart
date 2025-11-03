@@ -150,7 +150,7 @@ class VolumeSlider extends StatelessWidget {
                               color: Theme.of(context).textTheme.bodyLarge!.color,
                             ),
                           ),
-                          onTap: () {
+                          onTap: (_, _) {
                             model.setMuted(!isMuted);
                           },
                         );

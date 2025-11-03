@@ -45,7 +45,7 @@ class AppLauncherFeather extends Feather<LauncherConfig> {
     buildIndicators: (context, popover) {
       return [
         WingedButton(
-          onTap: () => popover!.togglePopover(),
+          onTap: (_, _) => popover!.togglePopover(),
           child: WingedIcon(
             // iconNames: [],
             // textIcon: "",

@@ -41,7 +41,7 @@ class CommandPaletteFeather extends Feather {
     buildIndicators: (context, popover) {
       return [
         WingedButton(
-          onTap: () => popover!.togglePopover(),
+          onTap: (_, _) => popover!.togglePopover(),
           child: WingedIcon(
             flutterIcon: SymbolsVaried.keyboard_command_key,
           ),

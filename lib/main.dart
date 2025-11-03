@@ -2,6 +2,7 @@ import "dart:async";
 import "dart:io";
 
 import "package:args/args.dart";
+import "package:dartx/dartx_io.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
@@ -79,7 +80,7 @@ Future<void> startApp() async {
     }
   };
 
-  Hive.init(mainDataHomeDir.path);
+  Hive.init(mainDataHomeDir.directory("hivedb").absolute.path);
 
   runApp(App());
 }

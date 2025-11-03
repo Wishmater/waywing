@@ -4,7 +4,7 @@ import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/notification/notification_widget.dart";
-import "package:waywing/modules/notification/spec/notifications.dart";
+import "package:waywing/modules/notification/notification_models.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 
@@ -27,7 +27,7 @@ class NotificationManagerPopover extends StatelessWidget {
         child: ListenableBuilder(
           listenable: service.storedNotificationChange,
           builder: (context, _) {
-            final notifications = service.server.storedNotifications.entries.toList();
+            final notifications = service.server.storedNotifications.values.toList();
             if (notifications.isEmpty) {
               return Padding(
                 padding: EdgeInsets.all(16),
@@ -47,7 +47,7 @@ class NotificationManagerPopover extends StatelessWidget {
                   shrinkWrap: true,
                   itemCount: notifications.length,
                   itemBuilder: (context, index) {
-                    return _NotificationWidget(notifications[index].value);
+                    return _NotificationWidget(notifications[index]);
                   },
                 ),
               ),

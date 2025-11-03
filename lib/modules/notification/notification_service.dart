@@ -3,9 +3,11 @@ import "package:dbus/dbus.dart";
 import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:flutter/material.dart" hide Notification;
 import "package:flutter/foundation.dart";
+import "package:hive_ce/hive.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
+import "package:waywing/modules/notification/notification_models.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:tronco/tronco.dart" as tronco;
 import "package:waywing/util/search_sound.dart";
@@ -13,7 +15,7 @@ import "package:waywing/util/search_sound.dart";
 class NotificationsService extends Service {
   NotificationsService._();
 
-  late final OrgFreedesktopNotifications server;
+  late final FreedesktopNotificationsServer server;
   late final DBusClient client;
   late final ActiveNotificationsList activeNotifications;
 
@@ -31,8 +33,11 @@ class NotificationsService extends Service {
 
   @override
   Future<void> init() async {
+    Hive.registerAdapter(NotificationsHiveAdapter());
+    await Hive.openBox<Notification>("NotificationServer");
+
     client = DBusClient.session();
-    server = OrgFreedesktopNotifications(
+    server = FreedesktopNotificationsServer(
       logger: logger.clone(properties: [...logger.defaultProperties, tronco.StringProperty("Server")]),
       path: DBusObjectPath("/org/freedesktop/Notifications"),
     );
@@ -90,7 +95,7 @@ class NotificationsService extends Service {
 class ActiveNotificationsList {
   final ValueListenable<List<ValueNotifier<Notification>>> notifications;
 
-  ActiveNotificationsList(OrgFreedesktopNotifications server)
+  ActiveNotificationsList(FreedesktopNotificationsServer server)
     : notifications = ManualValueNotifier(
         server.activeNotifications.values.map((e) => NotificationValueNotifier(e)).toList(),
       ) {

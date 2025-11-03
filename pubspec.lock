@@ -493,6 +493,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  hive_ce:
+    dependency: "direct main"
+    description:
+      name: hive_ce
+      sha256: "81d39a03c4c0ba5938260a8c3547d2e71af59defecea21793d57fc3551f0d230"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.15.1"
   html:
     dependency: "direct main"
     description:
@@ -565,6 +573,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  isolate_channel:
+    dependency: transitive
+    description:
+      name: isolate_channel
+      sha256: f3d36f783b301e6b312c3450eeb2656b0e7d1db81331af2a151d9083a3f6b18d
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.2+1"
   jovial_misc:
     dependency: transitive
     description:

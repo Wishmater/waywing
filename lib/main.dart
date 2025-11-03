@@ -5,6 +5,7 @@ import "package:args/args.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:hive_ce/hive.dart";
 import "package:path/path.dart" as path;
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -77,6 +78,8 @@ Future<void> startApp() async {
       FlutterError.presentError(details);
     }
   };
+
+  Hive.init(mainDataHomeDir.path);
 
   runApp(App());
 }

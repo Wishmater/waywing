@@ -8,7 +8,6 @@ import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/notification/notification_config.dart";
 import "package:waywing/modules/notification/notification_service.dart";
-import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/simple_gesture_detector.dart";

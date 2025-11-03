@@ -936,7 +936,7 @@ class NotificationHints {
       urgency: urgency,
       actionIcons: actionIcons,
       resident: resident,
-      category: optionals["category"],
+      category: optionals["category"] != null ? NotificationCategories.fromString(optionals["category"]) : null,
       desktopEntry: optionals["desktopEntry"],
       imageData: optionals["imageData"],
       imagePath: optionals["imagePath"],

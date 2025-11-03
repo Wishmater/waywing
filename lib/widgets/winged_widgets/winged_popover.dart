@@ -49,6 +49,8 @@ abstract class WingedPopoverController {
   Future<void> hideTooltip({Duration? hideDelay});
   Future<void> toggleTooltip({Duration? showDelay, Duration? hideDelay, Offset? localPosition});
   StatePositioningNotifierMixin get hostState;
+  WingedPopoverClientState? get parent;
+  WingedPopoverState get root;
 }
 
 @immutable
@@ -252,7 +254,10 @@ class WingedPopoverState extends State<WingedPopover>
 
   late final clientKey = GlobalKey<WingedPopoverClientState>();
 
+  @override
   late WingedPopoverClientState? parent;
+  @override
+  WingedPopoverState get root => parent?.widget.host.root ?? this;
 
   @override
   bool isPopoverShown = false;

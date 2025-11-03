@@ -148,7 +148,11 @@ class NetworkManagerIndicator extends StatelessWidget {
                 return [
                   WingedContextMenuItem(
                     child: Text("Hide device"),
-                    onTap: (_, _) => null,
+                    // TODO:
+                    onTap: (popover, _, _) {
+                      popover?.hidePopover();
+                      return null;
+                    },
                   ),
                 ];
               },

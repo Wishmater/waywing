@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:flutter/material.dart";
 import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/config.dart";
@@ -196,10 +198,17 @@ typedef ContextMenuItemContentBuilder =
       WingedPopoverController? popover,
     });
 
+typedef WingedContextMenuCallback<T> =
+    FutureOr<T>? Function(
+      WingedPopoverController? controller,
+      TapDownDetails tapDownDetails,
+      TapUpDetails tapUpDetails,
+    );
+
 class WingedContextMenuItem<T> extends StatelessWidget {
   final Widget? child;
   final Widget? icon;
-  final WingedActionCallback<T>? onTap;
+  final WingedContextMenuCallback<T>? onTap;
   final WingedSubmenu? submenu;
 
   /// overrides default WingedButton, use if more customization is needed
@@ -295,7 +304,10 @@ class WingedContextMenuItem<T> extends StatelessWidget {
       child: WingedButton(
         // ignore: prefer_if_null_operators
         onTap: onTap != null
-            ? onTap
+            ? (tapDown, tapUp) {
+                final parentPopopver = context.findAncestorStateOfType<WingedPopoverClientState>();
+                return onTap!(parentPopopver?.widget.host, tapDown, tapUp);
+              }
             : submenu != null && popover != null
             ? (_, _) {
                 popover.showTooltip(showDelay: Duration.zero);

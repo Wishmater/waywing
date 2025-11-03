@@ -89,6 +89,7 @@ class ModalWing extends Wing<ModalConfig> {
       child: ValueListenableBuilder(
         valueListenable: show,
         builder: (contex, show, _) {
+          // TODO: 2 make animation respect config for _animationFitting
           final result = Hideable(
             show: show,
             builder: (context, _) {

@@ -3,6 +3,7 @@
 import "dart:async";
 import "dart:collection";
 
+import "package:dartx/dartx_io.dart";
 import "package:dbus/dbus.dart";
 import "package:hive_ce/hive.dart";
 import "package:tronco/tronco.dart";
@@ -29,13 +30,37 @@ enum NotificationChange { add, remove, change }
 class FreedesktopNotificationsServer extends DBusObject {
   final Logger logger;
 
+  /// Notifications stored in the file system
   final Box<Notification> storedNotifications;
+
+  List<NotificationGroup> get storedNotificationsGroup {
+    final groups = <NotificationGroup>[];
+
+    for (final notification in storedNotifications.values) {
+      final group = groups.firstOrNullWhere((v) => v.name == notification.appName);
+      if (group != null) {
+        group.add(notification);
+      } else {
+        final group = NotificationGroup(notification.appName);
+        group.add(notification);
+        groups.add(group);
+      }
+    }
+
+    return groups;
+  }
+
+  /// Notifications shown in the popup
   final LinkedHashMap<int, Notification> activeNotifications;
+
+  /// Used for the synchrounous capability where the app can replace an active notification
   final Map<String, int> synchronousIds;
+
+  /// Used to timeout active notifications
   final Map<int, NotificationTimer> _timers;
 
   final StreamController<({int id, NotificationChange type})> _activeNotificationsSignal;
-  late Stream<Notification> notificationCreated;
+  late final Stream<Notification> notificationCreated;
   late final Stream<int> notificationChanged;
   late final Stream<int> notificationRemoved;
 
@@ -221,8 +246,6 @@ class FreedesktopNotificationsServer extends DBusObject {
 
         /// The server supports sounds on notifications. If returned, the server
         /// must support the "sound-file" and "suppress-sound" hints.
-        ///
-        /// TODO: MISSING
         "sound",
 
         /// The server supports text input.

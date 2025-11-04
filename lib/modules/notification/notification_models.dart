@@ -1162,3 +1162,12 @@ class NotificationTimer implements Listenable {
     }
   }
 }
+
+class NotificationGroup {
+  final List<Notification> notifications;
+  final String name;
+
+  NotificationGroup(this.name) : notifications = [];
+
+  void add(Notification notification) => notifications.add(notification);
+}

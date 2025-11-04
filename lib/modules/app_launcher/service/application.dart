@@ -1,6 +1,7 @@
 import "dart:io";
 
 import "package:dbus/dbus.dart";
+import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:path/path.dart" as path;
 import "package:json_annotation/json_annotation.dart";
 import "package:tronco/tronco.dart";
@@ -177,6 +178,7 @@ class Application implements Comparable<Application> {
       final client = DBusClient.session();
       final pathObject = DBusObjectPath("/${dbusname.replaceAll('.', '/').replaceAll('-', '_')}");
       final remoteObject = DBusRemoteObject(client, name: dbusname, path: pathObject);
+      final token = await FlLinuxWindowManager.instance.getXdgToken();
       final params = [
         DBusDict(
           DBusSignature.string,
@@ -184,8 +186,7 @@ class Application implements Comparable<Application> {
           {
             const DBusString("activation-token"): DBusVariant(
               DBusString(
-                // TODO 1: get activation token from user action
-                Platform.environment["XDG_ACTIVATION_TOKEN"] ?? "",
+                token ?? "",
               ),
             ),
           },

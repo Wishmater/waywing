@@ -19,6 +19,7 @@ part "notification_service.config.dart";
 class NotificationsService extends Service<NotificationsServiceConfig> {
   NotificationsService._();
 
+  late final ValueNotifier<NotificationsStatus> status = ValueNotifier(NotificationsStatus.active);
   late final FreedesktopNotificationsServer server;
   late final DBusClient client;
   late final ActiveNotificationsList activeNotifications;
@@ -99,6 +100,9 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
 
   late final Map<String, DateTime> _lastAppSound = {};
   Future<void> playSound(Notification notification) async {
+    if (status.value != NotificationsStatus.active) {
+      return;
+    }
     Source? source;
     if (notification.hints.soundFile case final file?) {
       source = DeviceFileSource(file);
@@ -212,6 +216,12 @@ class NotificationValueNotifier extends ValueNotifier<Notification> {
     if (other is NotificationValueNotifier) return value.id == other.value.id;
     return super == other;
   }
+}
+
+enum NotificationsStatus {
+  active,
+  silenced,
+  dnd, // do not disturb
 }
 
 @Config()

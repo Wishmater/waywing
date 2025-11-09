@@ -7,8 +7,11 @@ import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/notification/notification_manager_popover.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/widgets/icons/composed_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_context_menu.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class NotificationsManagerFeather extends Feather {
   late final NotificationsService service;
@@ -37,12 +40,9 @@ class NotificationsManagerFeather extends Feather {
     FeatherComponent(
       buildIndicators: (context, popoverCtr) {
         return [
-          WingedButton(
-            child: WingedIcon(
-              flutterIcon: SymbolsVaried.notifications,
-              iconNames: ["notifications"],
-            ),
-            onTap: (_, _) => popoverCtr?.togglePopover(),
+          NotificationManagerIndicator(
+            service: service,
+            popover: popoverCtr,
           ),
         ];
       },
@@ -51,4 +51,116 @@ class NotificationsManagerFeather extends Feather {
       },
     ),
   ]);
+}
+
+class NotificationManagerIndicator extends StatelessWidget {
+  final NotificationsService service;
+  final WingedPopoverController? popover;
+
+  const NotificationManagerIndicator({
+    required this.service,
+    required this.popover,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return WingedContextMenu(
+      itemsBuilder: (context) => [
+        WingedContextMenuItem(
+          icon: WingedIcon(
+            flutterIcon: SymbolsVaried.notifications,
+            iconNames: ["notifications"],
+          ),
+          child: Text("Active"),
+          onTap: (menu, _, _) {
+            service.status.value = NotificationsStatus.active;
+            menu!.hidePopover();
+          },
+        ),
+        WingedContextMenuItem(
+          icon: ComposedIcon(
+            subiconSize: 0.65,
+            subiconAlignment: Alignment.topRight,
+            subicon: WingedIcon(
+              flutterIcon: SymbolsVaried.do_not_disturb_on,
+              iconNames: ["audio-volume-muted"],
+            ),
+            child: WingedIcon(
+              flutterIcon: SymbolsVaried.notifications,
+              iconNames: ["notifications"],
+            ),
+          ),
+          child: Text("Silenced"),
+          onTap: (menu, _, _) {
+            service.status.value = NotificationsStatus.silenced;
+            menu!.hidePopover();
+          },
+        ),
+        WingedContextMenuItem(
+          icon: ComposedIcon(
+            subiconSize: 0.65,
+            subiconAlignment: Alignment.topRight,
+            subicon: WingedIcon(
+              flutterIcon: SymbolsVaried.do_not_disturb_alt,
+              iconNames: ["media-playback-stop"],
+            ),
+            child: WingedIcon(
+              flutterIcon: SymbolsVaried.notifications,
+              iconNames: ["notifications"],
+            ),
+          ),
+          child: Text("Do not disturb"),
+          onTap: (menu, _, _) {
+            service.status.value = NotificationsStatus.dnd;
+            menu!.hidePopover();
+          },
+        ),
+      ],
+      builder: (context, menu, child) {
+        return WingedButton(
+          onTap: (_, _) => popover?.togglePopover(),
+          onSecondaryTap: (downDetails, upDetails) => menu.togglePopover(localPosition: upDetails.localPosition),
+          child: ValueListenableBuilder(
+            valueListenable: service.status,
+            builder: (context, status, _) {
+              // TODO: 3 add linux/text icon varieties
+              // TODO: 2 ANIMATIONS: add animation to icon change
+              // TODO: 2 show a different icon when there are unread notifications?
+              return switch (status) {
+                NotificationsStatus.active => WingedIcon(
+                  flutterIcon: SymbolsVaried.notifications,
+                  iconNames: ["notifications"],
+                ),
+                NotificationsStatus.silenced => ComposedIcon(
+                  subiconSize: 0.65,
+                  subiconAlignment: Alignment.topRight,
+                  subicon: WingedIcon(
+                    flutterIcon: SymbolsVaried.do_not_disturb_on,
+                    iconNames: ["audio-volume-muted"],
+                  ),
+                  child: WingedIcon(
+                    flutterIcon: SymbolsVaried.notifications,
+                    iconNames: ["notifications"],
+                  ),
+                ),
+                NotificationsStatus.dnd => ComposedIcon(
+                  subiconSize: 0.65,
+                  subiconAlignment: Alignment.topRight,
+                  subicon: WingedIcon(
+                    flutterIcon: SymbolsVaried.do_not_disturb_alt,
+                    iconNames: ["media-playback-stop"],
+                  ),
+                  child: WingedIcon(
+                    flutterIcon: SymbolsVaried.notifications,
+                    iconNames: ["notifications"],
+                  ),
+                ),
+              };
+            },
+          ),
+        );
+      },
+    );
+  }
 }

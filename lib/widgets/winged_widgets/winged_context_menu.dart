@@ -319,6 +319,7 @@ class WingedContextMenuItem<T> extends StatelessWidget {
         child: Row(
           children: [
             if (icon != null) icon!,
+            if (icon != null) SizedBox(width: 8),
             Expanded(child: child == null ? SizedBox.shrink() : child!),
             // TODO: 3 allow customizing this?
             if (submenu != null && submenu!.enabled)

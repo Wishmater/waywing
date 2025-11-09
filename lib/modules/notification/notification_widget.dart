@@ -40,57 +40,64 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
     return NotificationServiceInheritedWidget(
       service: widget.service,
       child: ValueListenableBuilder(
-        valueListenable: widget.service.activeNotifications.notifications,
-        builder: (context, notifications, _) {
-          final scrollController = ScrollController();
-          return FocusScope(
-            // TODO: 2 STYLE flutter scrollbars are very ugly. Come up with a custom solution everywhere
-            // TODO: 2 this has a bug where if the mouse falls in between notifications, the focus removed from
-            // waywing, because InputRegions are declared in each notification widget. This causes scrolling to
-            // be weird. Ideally we enable a big Input region only when scrolling? This probably requires making
-            // a better scrollbar.
-            child: Scrollbar(
-              controller: scrollController,
-              child: ScrollOpacityGradient(
-                scrollController: scrollController,
-                maxSize: 64,
-                child: SingleChildScrollView(
+        valueListenable: widget.service.status,
+        builder: (context, status, child) {
+          return ValueListenableBuilder(
+            valueListenable: widget.service.activeNotifications.notifications,
+            builder: (context, notifications, _) {
+              final scrollController = ScrollController();
+              return FocusScope(
+                // TODO: 2 STYLE flutter scrollbars are very ugly. Come up with a custom solution everywhere
+                // TODO: 2 this has a bug where if the mouse falls in between notifications, the focus removed from
+                // waywing, because InputRegions are declared in each notification widget. This causes scrolling to
+                // be weird. Ideally we enable a big Input region only when scrolling? This probably requires making
+                // a better scrollbar.
+                child: Scrollbar(
                   controller: scrollController,
-                  // TODO: 1 this is doing a weird thing where if 3 notifications with the same duration are
-                  // added at the same time, the last one will be removed before the 2nd. The bug is on our side,
-                  // because it is removed correctly in the service.
-                  child: MotionColumn(
-                    motion: mainConfig.motions.expressive.spatial.slow,
-                    mainAxisSize: MainAxisSize.min,
-                    data: List<ValueNotifier<Notification>>.from(notifications),
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    itemBuilder: (context, noti) {
-                      Widget result = _NotificationWidget(
-                        noti,
-                        widget.config,
-                      );
-                      // TODO: 2 should we enable variable notif width, at least as an option ?
-                      // result = Align(
-                      //   alignment: widget.config.alignment,
-                      //   child: IntrinsicWidth(
-                      //     child: ConstrainedBox(
-                      //       constraints: BoxConstraints(
-                      //         minWidth: 256,
-                      //         // maxWidth: 256 * 1.5, // redundant because it's already specified above
-                      //       ),
-                      //       child: _NotificationWidget(noti),
-                      //     ),
-                      //   ),
-                      // );
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: NotificationsWidget.spacing / 2),
-                        child: result,
-                      );
-                    },
+                  child: ScrollOpacityGradient(
+                    scrollController: scrollController,
+                    maxSize: 64,
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      // TODO: 1 this is doing a weird thing where if 3 notifications with the same duration are
+                      // added at the same time, the last one will be removed before the 2nd. The bug is on our side,
+                      // because it is removed correctly in the service.
+                      child: MotionColumn(
+                        motion: mainConfig.motions.expressive.spatial.slow,
+                        mainAxisSize: MainAxisSize.min,
+                        data: status == NotificationsStatus.dnd
+                            ? []
+                            : List<ValueNotifier<Notification>>.from(notifications),
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        itemBuilder: (context, noti) {
+                          Widget result = _NotificationWidget(
+                            noti,
+                            widget.config,
+                          );
+                          // TODO: 2 should we enable variable notif width, at least as an option ?
+                          // result = Align(
+                          //   alignment: widget.config.alignment,
+                          //   child: IntrinsicWidth(
+                          //     child: ConstrainedBox(
+                          //       constraints: BoxConstraints(
+                          //         minWidth: 256,
+                          //         // maxWidth: 256 * 1.5, // redundant because it's already specified above
+                          //       ),
+                          //       child: _NotificationWidget(noti),
+                          //     ),
+                          //   ),
+                          // );
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: NotificationsWidget.spacing / 2),
+                            child: result,
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),

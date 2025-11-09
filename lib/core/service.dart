@@ -4,6 +4,7 @@ import "package:flutter/foundation.dart";
 import "package:tronco/tronco.dart";
 import "package:path/path.dart" as path;
 import "package:waywing/core/config.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 
 /// A Service provides utility / protocol / API functions needed by Feathers.
@@ -25,6 +26,8 @@ abstract class Service<Conf> implements ServiceConsumer {
     }
     return _dataDir!;
   }
+
+  Map<String, WaywingAction>? get actions => null;
 
   bool isInitialized = false;
   bool hasInitializationError = false;

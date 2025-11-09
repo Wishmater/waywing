@@ -1,8 +1,10 @@
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
 import "package:flutter/foundation.dart";
+import "package:path/path.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/modules/aria2/aria2_service.dart";
@@ -123,6 +125,15 @@ class ServiceRegistry {
       throw ServiceInitializationError(service);
       // rethrow; // better th throw a different error instead of rethrowing, so the same stacktrace isn't logged twice
     }
+    if (service.actions case final actions?) {
+      // TODO: 1 router declarations don't react to config reload (modal)
+      for (final entry in actions.entries) {
+        WaywingServer.instance.router.register(
+          join("$serviceType", entry.key),
+          entry.value,
+        );
+      }
+    }
     service.isInitialized = true;
     return service;
   }
@@ -158,6 +169,11 @@ class ServiceRegistry {
       "Trying to dereference a Service that hasn't been initialized: $serviceType",
     );
     final service = await _initializedServices.remove(serviceType)!;
+    if (service.actions case final actions?) {
+      for (final entry in actions.entries) {
+        WaywingServer.instance.router.unregister(join("$serviceType", entry.key));
+      }
+    }
     await service.dispose();
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     await service.logger.destroy();

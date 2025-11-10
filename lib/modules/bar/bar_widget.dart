@@ -205,6 +205,7 @@ class _BarState extends State<Bar> {
         valueListenable: widget.wing.allFeathersInitialized,
         builder: (context, allFeathersInitialized, _) {
           return ValueListenableBuilder(
+            // TODO: 3 PERFORMANCE this derived notifier should be declared in the feather, so it is not destroyed on rebuild
             valueListenable: DerivedValueNotifier(
               dependencies: allFeathersInitialized.map((e) => e.item.components).toList(),
               derive: () => allFeathersInitialized
@@ -213,7 +214,8 @@ class _BarState extends State<Bar> {
                       return BarPositionedItem(
                         c,
                         e.position,
-                        c.uniqueIdentifier == null ? "${e.item.uniqueId} - $i" : null,
+                        extraId: c.uniqueIdentifier == null ? "${e.item.uniqueId} - $i" : null,
+                        parent: e,
                       );
                     });
                   })
@@ -258,6 +260,7 @@ class _BarState extends State<Bar> {
                               }
                             : null,
                         builder: (context, popover) {
+                          component.root.popoverController = popover;
                           final indicators = component.item.buildIndicators!(context, popover);
                           return Flex(
                             direction: widget.config.isVertical ? Axis.vertical : Axis.horizontal,

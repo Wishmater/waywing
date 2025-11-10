@@ -2,10 +2,12 @@ import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/modules/bar/bar_config.dart";
 import "package:waywing/modules/bar/bar_widget.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
 class BarWing extends Wing<BarConfig> {
   BarWing._();
@@ -23,6 +25,61 @@ class BarWing extends Wing<BarConfig> {
 
   @override
   String get name => "Bar";
+
+  @override
+  late final Map<String, WaywingAction>? actions = {
+    "showPopover": WaywingAction(
+      'Show popover for a feather. Requires query param "feather".',
+      (request) => _executePopoverAction(request, (controller) => controller.showPopover()),
+    ),
+    "hidePopover": WaywingAction(
+      'Hide popover for a feather. Requires query param "feather".',
+      (request) => _executePopoverAction(request, (controller) => controller.hidePopover()),
+    ),
+    "togglePopover": WaywingAction(
+      'Toggle popover visibility for a feather. Requires query param "feather".',
+      (request) => _executePopoverAction(request, (controller) => controller.togglePopover()),
+    ),
+    "showTooltip": WaywingAction(
+      'Show tooltip for a feather. Requires query param "feather".',
+      (request) => _executePopoverAction(request, (controller) => controller.showTooltip(showDelay: Duration.zero)),
+    ),
+    "hideTooltip": WaywingAction(
+      'Hide tooltip for a feather. Requires query param "feather".',
+      (request) => _executePopoverAction(request, (controller) => controller.hideTooltip(hideDelay: Duration.zero)),
+    ),
+    "toggleTooltip": WaywingAction(
+      'Toggle tooltip visibility for a feather. Requires query param "feather".',
+      (request) => _executePopoverAction(request, (controller) => controller.toggleTooltip(showDelay: Duration.zero)),
+    ),
+  };
+  WaywingResponse _executePopoverAction(
+    WaywingRequest request,
+    void Function(WingedPopoverController controller) action,
+  ) {
+    final requestedFeather = request.path.queryParameters["feather"];
+    if (requestedFeather == null) {
+      return WaywingResponse(400, 'Missing required query param: "feather"');
+    }
+    final prefix = "$prettyUniqueId.";
+    for (final e in allFeathersInitialized.value) {
+      var featherUniqueId = e.item.prettyUniqueId.replaceFirst(prefix, "");
+      featherUniqueId = featherUniqueId.replaceAll(".", "/");
+      if (featherUniqueId == requestedFeather) {
+        // TODO: 3 if the feather has multiple indicators, this will silently default to the last, i think ?
+        if (e.popoverController == null) {
+          return WaywingResponse(
+            400,
+            "The requested feather doesn't have a registered popover controller. "
+            "It may not declare a popover, or it maybe it isn't done initializing yet.",
+          );
+        }
+        action(e.popoverController!);
+        return WaywingResponse.ok();
+      }
+    }
+    return WaywingResponse(404, 'Requested feather "$requestedFeather" not found inside bar');
+  }
 
   late List<Feather> startFeathers = config.start?.getFeatherInstances("$uniqueId.Start") ?? [];
   late List<Feather> centerFeathers = config.center?.getFeatherInstances("$uniqueId.Center") ?? [];
@@ -144,7 +201,18 @@ class BarPositionedItem<T> {
   final T item;
   final BarPosition position;
   final String? extraId;
-  BarPositionedItem(this.item, this.position, [this.extraId]);
+  final BarPositionedItem? parent;
+
+  BarPositionedItem(
+    this.item,
+    this.position, {
+    this.extraId,
+    this.parent,
+    this.popoverController,
+  });
+
+  WingedPopoverController? popoverController;
+  BarPositionedItem get root => parent == null ? this : parent!.root;
 
   @override
   String toString() {

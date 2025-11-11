@@ -54,8 +54,8 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
   @override
   void initState() {
     super.initState();
-    listenable.addListener(addVolumeListener);
-    addVolumeListener();
+    listenable.addListener(onDeviceChanged);
+    onDeviceChanged();
     _previousDevice = listenable.value;
   }
 
@@ -63,29 +63,34 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
   void didUpdateWidget(covariant VolumeIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.type != widget.type) {
-      getListenable(oldWidget.type).removeListener(addVolumeListener);
-      listenable.addListener(addVolumeListener);
+      getListenable(oldWidget.type).removeListener(onDeviceChanged);
+      listenable.addListener(onDeviceChanged);
     }
   }
 
   @override
   void dispose() {
-    listenable.removeListener(addVolumeListener);
+    listenable.removeListener(onDeviceChanged);
     super.dispose();
   }
 
   VolumeInterface? _previousDevice;
-  void addVolumeListener() {
+  void onDeviceChanged() {
     _previousDevice?.volume.removeListener(onVolumeChanged);
     _previousDevice?.isMuted.removeListener(onVolumeChanged);
     listenable.value?.volume.addListener(onVolumeChanged);
     listenable.value?.isMuted.addListener(onVolumeChanged);
+    showTooltip();
   }
 
   void onVolumeChanged() async {
-    if (widget.config.showTooltipOnVolumeChange) {
+    return showTooltip();
+  }
+
+  void showTooltip() async {
+    if (widget.config.tooltipOnVolumeChangeDuration != Duration.zero) {
       await widget.popover.showTooltip(showDelay: Duration.zero);
-      await widget.popover.hideTooltip(hideDelay: Duration(seconds: 1));
+      await widget.popover.hideTooltip(hideDelay: widget.config.tooltipOnVolumeChangeDuration);
     }
   }
 
@@ -140,6 +145,7 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
                   return VolumeScrollWhellListener(
                     model: defaultOutput,
                     config: widget.config,
+                    service: widget.service,
                     child: ValueListenableBuilder(
                       valueListenable: defaultOutput.volume,
                       builder: (context, volume, child) {
@@ -303,11 +309,13 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
 }
 
 class VolumeScrollWhellListener extends StatelessWidget {
+  final VolumeService service;
   final VolumeInterface model;
   final VolumeConfig config;
   final Widget child;
 
   const VolumeScrollWhellListener({
+    required this.service,
     required this.model,
     required this.config,
     required this.child,
@@ -320,10 +328,11 @@ class VolumeScrollWhellListener extends StatelessWidget {
       child: child,
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
+          final step = config.volumeStep ?? service.config.volumeStep;
           if (pointerSignal.scrollDelta.dy > 0) {
-            model.decreaseVolume(config.volumeStep / 100);
+            model.decreaseVolume(step / 100);
           } else {
-            model.increaseVolume(config.volumeStep / 100, max: config.maxVolume / 100);
+            model.increaseVolume(step / 100, max: (config.maxVolume ?? service.config.maxVolume) / 100);
           }
         }
       },

@@ -38,6 +38,7 @@ class VolumeTooltip extends StatelessWidget {
               }
               return VolumeSlider(
                 config: config,
+                service: service,
                 model: defaultOutput,
               );
             },
@@ -50,12 +51,14 @@ class VolumeTooltip extends StatelessWidget {
 
 class VolumeSlider extends StatelessWidget {
   final VolumeConfig config;
+  final VolumeService service;
   final VolumeInterface model;
   final EdgeInsets padding;
 
   const VolumeSlider({
     required this.config,
     required this.model,
+    required this.service,
     this.padding = const EdgeInsets.only(top: 8, left: 18, right: 18, bottom: 8),
     super.key,
   });
@@ -161,10 +164,13 @@ class VolumeSlider extends StatelessWidget {
                 VolumeScrollWhellListener(
                   config: config,
                   model: model,
+                  service: service,
                   child: ValueListenableBuilder(
                     valueListenable: model.volume,
                     builder: (context, volume, child) {
                       final label = "${(volume * 100).round()}";
+                      final maxVolume = config.maxVolume ?? service.config.maxVolume;
+                      final volumeStep = config.volumeStep ?? service.config.volumeStep;
                       return Theme(
                         data: Theme.of(context).copyWith(
                           sliderTheme: Theme.of(context).sliderTheme.copyWith(
@@ -191,10 +197,10 @@ class VolumeSlider extends StatelessWidget {
                         child: Slider(
                           padding: EdgeInsets.zero,
                           // label: label,
-                          value: (volume * 100).clamp(0, config.maxVolume).toDouble(),
+                          value: (volume * 100).clamp(0, maxVolume).toDouble(),
                           min: 0,
-                          max: config.maxVolume.toDouble(),
-                          divisions: (config.maxVolume / config.volumeStep).round(),
+                          max: maxVolume.toDouble(),
+                          divisions: (maxVolume / volumeStep).round(),
                           onChanged: (value) {
                             model.setVolume(value / 100);
                           },

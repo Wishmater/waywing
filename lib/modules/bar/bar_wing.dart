@@ -69,7 +69,7 @@ class BarWing extends Wing<BarConfig> {
         // TODO: 3 if the feather has multiple indicators, this will silently default to the last, i think ?
         if (e.popoverController == null) {
           return WaywingResponse(
-            400,
+            422,
             "The requested feather doesn't have a registered popover controller. "
             "It may not declare a popover, or it maybe it isn't done initializing yet.",
           );

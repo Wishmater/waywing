@@ -268,6 +268,7 @@ sealed class NotificationCategories {
     };
   }
 
+  @override
   String toString() {
     return switch (this) {
       CallGeneric() => "call",

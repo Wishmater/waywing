@@ -3,13 +3,15 @@ import "dart:convert";
 
 import "package:flutter/foundation.dart";
 import "package:pulseaudio/pulseaudio.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/session/session_service.dart";
+import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:dartx/dartx.dart";
 
-class VolumeService extends Service {
+class VolumeService extends Service<VolumeServiceConfig> {
   late final SessionService _sessionService;
 
   ValueListenable<VolumeOutputInterface?> get defaultOutput => _defaultOutput;
@@ -43,9 +45,229 @@ class VolumeService extends Service {
     registerService<VolumeService, dynamic>(
       ServiceRegistration(
         constructor: VolumeService._,
+        schemaBuilder: () => VolumeServiceConfig.schema,
+        configBuilder: VolumeServiceConfig.fromBlock,
       ),
     );
   }
+
+  @override
+  late final Map<String, WaywingAction>? actions = {
+    "increaseOutputVolume": WaywingAction(
+      'Increase volume for default output. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
+      (request) {
+        final amountParam = request.path.queryParameters["amount"];
+        int amount;
+        if (amountParam == null) {
+          amount = config.volumeStep;
+        } else {
+          try {
+            amount = int.parse(amountParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Optional query param "amount" must be an integer.');
+          }
+        }
+        final output = defaultOutput.value;
+        if (output == null) {
+          return WaywingResponse(422, "No default output registered");
+        }
+        output.increaseVolume(amount / 100, max: config.maxVolume / 100, coerceToScale: config.volumeStep / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "decreaseOutputVolume": WaywingAction(
+      'Decrease volume for default output. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
+      (request) {
+        final amountParam = request.path.queryParameters["amount"];
+        int amount;
+        if (amountParam == null) {
+          amount = config.volumeStep;
+        } else {
+          try {
+            amount = int.parse(amountParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Optional query param "amount" must be an integer.');
+          }
+        }
+        final output = defaultOutput.value;
+        if (output == null) {
+          return WaywingResponse(422, "No default output registered");
+        }
+        output.decreaseVolume(amount / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "setOutputVolume": WaywingAction(
+      'Set volume for default output. Required query param "value".',
+      (request) {
+        final valueParam = request.path.queryParameters["value"];
+        int amount;
+        if (valueParam == null) {
+          return WaywingResponse(400, 'Query param "value" is required.');
+        } else {
+          try {
+            amount = int.parse(valueParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Query param "value" must be an integer.');
+          }
+        }
+        final output = defaultOutput.value;
+        if (output == null) {
+          return WaywingResponse(422, "No default output registered");
+        }
+        output.setVolume(amount / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "muteOutput": WaywingAction(
+      "Mute default output.",
+      (request) {
+        final output = defaultOutput.value;
+        if (output == null) {
+          return WaywingResponse(422, "No default output registered");
+        }
+        output.setMuted(!output.isMuted.value);
+        return WaywingResponse.ok();
+      },
+    ),
+    "cycleOutput": WaywingAction(
+      'Cycle default output. Optional query param "reverse".',
+      (request) {
+        if (outputs.value.isEmpty) {
+          return WaywingResponse(422, "No outputs registered");
+        }
+        if (outputs.value.length == 1) {
+          return WaywingResponse(422, "Only one output registered");
+        }
+        int currentIndex;
+        final output = defaultOutput.value;
+        if (output == null) {
+          currentIndex = -1;
+        } else {
+          currentIndex = outputs.value.indexWhere((e) => e == output);
+        }
+        if (request.path.queryParameters["reverse"] != null) {
+          currentIndex--;
+        } else {
+          currentIndex++;
+        }
+        if (currentIndex < 0) {
+          currentIndex = outputs.value.lastIndex;
+        } else if (currentIndex > outputs.value.lastIndex) {
+          currentIndex = 0;
+        }
+        setDefaultOutput(outputs.value[currentIndex]);
+        return WaywingResponse.ok();
+      },
+    ),
+    "increaseInputVolume": WaywingAction(
+      'Increase volume for default input. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
+      (request) {
+        final amountParam = request.path.queryParameters["amount"];
+        int amount;
+        if (amountParam == null) {
+          amount = config.volumeStep;
+        } else {
+          try {
+            amount = int.parse(amountParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Optional query param "amount" must be an integer.');
+          }
+        }
+        final input = defaultInput.value;
+        if (input == null) {
+          return WaywingResponse(422, "No default input registered");
+        }
+        input.increaseVolume(amount / 100, max: config.maxVolume / 100, coerceToScale: config.volumeStep / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "decreaseInputVolume": WaywingAction(
+      'Decrease volume for default input. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
+      (request) {
+        final amountParam = request.path.queryParameters["amount"];
+        int amount;
+        if (amountParam == null) {
+          amount = config.volumeStep;
+        } else {
+          try {
+            amount = int.parse(amountParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Optional query param "amount" must be an integer.');
+          }
+        }
+        final input = defaultInput.value;
+        if (input == null) {
+          return WaywingResponse(422, "No default input registered");
+        }
+        input.decreaseVolume(amount / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "setInputVolume": WaywingAction(
+      'Set volume for default input. Required query param "value".',
+      (request) {
+        final valueParam = request.path.queryParameters["value"];
+        int amount;
+        if (valueParam == null) {
+          return WaywingResponse(400, 'Query param "value" is required.');
+        } else {
+          try {
+            amount = int.parse(valueParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Query param "value" must be an integer.');
+          }
+        }
+        final input = defaultInput.value;
+        if (input == null) {
+          return WaywingResponse(422, "No default input registered");
+        }
+        input.setVolume(amount / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "muteInput": WaywingAction(
+      "Mute default input.",
+      (request) {
+        final input = defaultInput.value;
+        if (input == null) {
+          return WaywingResponse(422, "No default input registered");
+        }
+        input.setMuted(!input.isMuted.value);
+        return WaywingResponse.ok();
+      },
+    ),
+    "cycleInput": WaywingAction(
+      'Cycle default input. Optional query param "reverse".',
+      (request) {
+        if (inputs.value.isEmpty) {
+          return WaywingResponse(422, "No inputs registered");
+        }
+        if (inputs.value.length == 1) {
+          return WaywingResponse(422, "Only one inputs registered");
+        }
+        int currentIndex;
+        final input = defaultInput.value;
+        if (input == null) {
+          currentIndex = -1;
+        } else {
+          currentIndex = inputs.value.indexWhere((e) => e == input);
+        }
+        if (request.path.queryParameters["reverse"] != null) {
+          currentIndex--;
+        } else {
+          currentIndex++;
+        }
+        if (currentIndex < 0) {
+          currentIndex = inputs.value.lastIndex;
+        } else if (currentIndex > inputs.value.lastIndex) {
+          currentIndex = 0;
+        }
+        setDefaultInput(inputs.value[currentIndex]);
+        return WaywingResponse.ok();
+      },
+    ),
+  };
 
   late final StreamSubscription<SleepState> _preparingForSleepSubs;
   @override
@@ -322,9 +544,10 @@ abstract class VolumeInterface {
     double step, {
     double? max,
     bool coerceToStepScale = true,
+    double? coerceToScale,
   }) {
     var newValue = volume.value + step;
-    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, step);
+    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, (coerceToScale ?? step));
     if (max != null && newValue > max) newValue = max;
     return setVolume(newValue);
   }

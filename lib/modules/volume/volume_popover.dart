@@ -51,6 +51,7 @@ class VolumePopover extends StatelessWidget {
                     builder: (context, apps, _) {
                       return VolumeInterfaceList(
                         models: apps,
+                        service: service,
                         config: config,
                         label: "APPS",
                       );
@@ -69,6 +70,7 @@ class VolumePopover extends StatelessWidget {
                           return VolumeInterfaceList(
                             config: config,
                             models: outputs,
+                            service: service,
                             label: "OUTPUTS",
                             defaultModel: defaultOutput,
                             onDefaultSelected: (model) {
@@ -91,6 +93,7 @@ class VolumePopover extends StatelessWidget {
                         builder: (context, inputs, _) {
                           return VolumeInterfaceList(
                             config: config,
+                            service: service,
                             models: inputs,
                             label: "INPUTS",
                             defaultModel: defaultInput,
@@ -114,6 +117,7 @@ class VolumePopover extends StatelessWidget {
 
 class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
   final VolumeConfig config;
+  final VolumeService service;
   final List<T> models;
   final T? defaultModel;
   final void Function(T defaultModel)? onDefaultSelected;
@@ -121,6 +125,7 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
 
   const VolumeInterfaceList({
     required this.config,
+    required this.service,
     required this.models,
     required this.label,
     this.defaultModel,
@@ -222,6 +227,7 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
         Expanded(
           child: VolumeSlider(
             model: model,
+            service: service,
             config: config,
             padding: const EdgeInsets.only(top: 8, left: 2, right: 18, bottom: 8),
           ),

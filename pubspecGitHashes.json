@@ -1,10 +1,11 @@
 {
   "bitwarden_vault_api": "sha256-NWqi01ahZbL7isNtpFIcWH8S+bWk9Rvno4v80AA39RE=",
-  "config": "sha256-MBMPwsyyc8jKiMR7XgqjgEOsQG05Gudr2vP0oMP2Zuk=",
-  "config_gen": "sha256-qWVJVNuEI386yWJOghI8+Nu7YJUlzrDvrJjbSSuPxoY=",
+  "config": "sha256-hmsKRgBxFEYANEKlYKKiLSL9Uu/X2LrIm5wUjRFJ59Y=",
+  "config_gen": "sha256-DyAq+q4RSuTGgbk12gBYaXCumMdtmJ1h93adJpDdsMo=",
   "fl_linux_window_manager": "sha256-lDRCKdaR6XmAU660uX0R+PHEgxlHdzrqC0cbSJ5B8ks=",
   "freedesktop_secrets": "sha256-glTELePbO3e4LGTmCpfjGLcM0P2ETba3Z1oQdEc3cZk=",
   "material_symbols_icons": "sha256-itKzX5DJlz3+XbbddRAk9/YG2YwifkiFiw8zA/EYe9U=",
+  "miga": "sha256-2Ja5A409r/YcsGf6UC+1dnlE08SErW0/BYJPqj5bQ8E=",
   "pulseaudio": "sha256-nzYZHP3SFZ6CGyy9jfs42bYFlnbgOVhWIvjH66aISpU=",
   "tronco": "sha256-PNN4mhrLF8p7Y6q+ch2GYlLyHXjbm110+BP0C1s4gaY=",
   "upower": "sha256-khGSwAY5vPgcLsVdPQYlyahcCP5rXHUgbHU+ivisS4Y="

@@ -236,4 +236,9 @@ class _RangeValidationError<T extends Comparable> extends ValidationError {
   String error() {
     return toString();
   }
+
+  @override
+  String help() {
+    return "Make sure the value is between $start and $end";
+  }
 }

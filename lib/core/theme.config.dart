@@ -224,7 +224,9 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
        inactiveBorderAngle = inactiveBorderAngle ?? 45;
 
   factory ThemeConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return ThemeConfig(
       mode: fields['mode'],
       fontFamily: fields['fontFamily'],

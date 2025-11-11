@@ -26,7 +26,9 @@ class ClockConfig extends ConfigBaseI with ClockConfigI, ClockConfigBase {
   ClockConfig({bool? militar}) : militar = militar ?? false;
 
   factory ClockConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return ClockConfig(militar: fields['militar']);
   }
 

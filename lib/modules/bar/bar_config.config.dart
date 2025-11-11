@@ -153,13 +153,15 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
        _indicatorPadding = indicatorPadding;
 
   factory BarConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = BarConfigBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }
@@ -279,13 +281,15 @@ class BarFeathersContainer extends ConfigBaseI
   BarFeathersContainer({required this.dynamicSchemas});
 
   factory BarFeathersContainer.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = BarFeathersContainerBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }

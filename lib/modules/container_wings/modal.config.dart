@@ -69,13 +69,15 @@ class ModalConfig extends ConfigBaseI with ModalConfigI, ModalConfigBase {
        barrierDismissable = barrierDismissable ?? true;
 
   factory ModalConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = ModalConfigBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }

@@ -96,4 +96,6 @@ class MyValError extends ValidationError {
   String error() => msg;
   @override
   String toString() => "ValidationError($msg)";
+  @override
+  String help() => "";
 }

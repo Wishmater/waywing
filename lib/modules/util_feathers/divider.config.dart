@@ -43,7 +43,9 @@ class DividerConfig extends ConfigBaseI with DividerConfigI, DividerConfigBase {
       indent = indent ?? 6;
 
   factory DividerConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return DividerConfig(
       size: fields['size'],
       thickness: fields['thickness'],

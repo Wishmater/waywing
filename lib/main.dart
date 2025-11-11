@@ -56,7 +56,7 @@ void main(List<String> args) async {
 
 Future<void> startApp() async {
   await initializeLogger();
-  await reloadConfig(await getConfigurationString());
+  await reloadConfig(await getConfigurationString(), path.normalize(path.absolute(getConfigurationFilePath())));
 
   WaywingServer.create(
     mainConfig.socket ?? path.join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "waywing.sock"),

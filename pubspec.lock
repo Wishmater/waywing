@@ -254,20 +254,20 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "8dc585ceb1918b7c1149b069f790d550b5c1e664"
+      resolved-ref: "37523673dc1a4bced064076e2ee79de242e18db7"
+      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/config.dart"
     source: git
-    version: "0.0.11"
+    version: "0.0.12"
   config_gen:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: ca513e08b690a1961247a3d72d402cfa6566bbb6
+      resolved-ref: "2d71a6ab2da2b060c8af9774e8920cdd38efc7bd"
+      tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/config_gen"
     source: git
-    version: "0.0.16"
+    version: "0.0.17"
   convert:
     dependency: transitive
     description:
@@ -703,13 +703,22 @@ packages:
     source: git
     version: "4.2873.2"
   meta:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: meta
       sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
       url: "https://pub.dev"
     source: hosted
     version: "1.16.0"
+  miga:
+    dependency: "direct main"
+    description:
+      path: "."
+      resolved-ref: "85f16f2dc277ae05e637cf0e08764d9292b75ae3"
+      tag-pattern: "{{version}}"
+      url: "https://github.com/ross96D/miga"
+    source: git
+    version: "1.1.0"
   mime:
     dependency: transitive
     description:
@@ -1020,6 +1029,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.6"
+  textwrap:
+    dependency: transitive
+    description:
+      name: textwrap
+      sha256: "1b483f9e25ec8f7603f70e954deb1199f1b1b87bad26e376470bc450a41c7117"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   time:
     dependency: transitive
     description:

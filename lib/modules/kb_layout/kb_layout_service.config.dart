@@ -29,7 +29,9 @@ class KbLayoutServiceConfig extends ConfigBaseI
     : pullInterval = pullInterval ?? 500;
 
   factory KbLayoutServiceConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return KbLayoutServiceConfig(pullInterval: fields['pullInterval']);
   }
 

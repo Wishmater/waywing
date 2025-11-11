@@ -44,7 +44,9 @@ class LoggingConfig extends ConfigBaseI with LoggingConfigI, LoggingConfigBase {
        typeLevelFilters = typeLevelFilters ?? <String, Level>{};
 
   factory LoggingConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return LoggingConfig(
       levelFilter: fields['levelFilter'],
       typeLevelFilters: fields['typeLevelFilters'],

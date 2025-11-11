@@ -71,7 +71,9 @@ class Aria2Config extends ConfigBaseI with Aria2ConfigI, Aria2ConfigBase {
        showIndicatorsOnlyWhenNotZero = showIndicatorsOnlyWhenNotZero ?? false;
 
   factory Aria2Config.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return Aria2Config(
       showDownloadSpeed: fields['showDownloadSpeed'],
       showUploadSpeed: fields['showUploadSpeed'],

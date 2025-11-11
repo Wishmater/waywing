@@ -27,7 +27,9 @@ class CapsLockConfig extends ConfigBaseI
   CapsLockConfig({bool? reserveSpace}) : reserveSpace = reserveSpace ?? false;
 
   factory CapsLockConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return CapsLockConfig(reserveSpace: fields['reserveSpace']);
   }
 

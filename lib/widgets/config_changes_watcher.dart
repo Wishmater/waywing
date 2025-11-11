@@ -91,7 +91,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     } else {
       _logger.warning("Configuration file not found");
     }
-    await reloadConfig(content);
+    await reloadConfig(content, file.existsSync() ? file.absolute.path : null);
     if (!context.mounted) return; // something weird happened, probably the app was just closed
     final newConfig = mainConfig;
 

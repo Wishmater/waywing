@@ -56,7 +56,9 @@ class SessionServiceConfig extends ConfigBaseI
   });
 
   factory SessionServiceConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return SessionServiceConfig(
       lockCommand: fields['lockCommand'],
       sleepCommand: fields['sleepCommand'],

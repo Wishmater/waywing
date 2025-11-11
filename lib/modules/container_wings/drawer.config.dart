@@ -45,13 +45,15 @@ class DrawerConfig extends ConfigBaseI with DrawerConfigI, DrawerConfigBase {
     : side = side ?? ScreenEdge.bottom;
 
   factory DrawerConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = DrawerConfigBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }

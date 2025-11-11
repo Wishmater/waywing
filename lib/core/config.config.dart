@@ -142,13 +142,15 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
        internalDebugIcons = internalDebugIcons ?? false;
 
   factory MainConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = MainConfigBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }
@@ -260,13 +262,15 @@ class FeathersContainer extends ConfigBaseI
   FeathersContainer({required this.dynamicSchemas});
 
   factory FeathersContainer.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = FeathersContainerBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }

@@ -13,16 +13,21 @@ dependencies:
 
   # Configuration parser
   config:
-    version: ^0.0.11
+    version: ^0.0.12
     git:
       url: https://github.com/ross96D/config.dart
       tag_pattern: "{{version}}"
   config_gen:
-    version: ^0.0.16
+    version: ^0.0.17
     git:
       url: https://github.com/Wishmater/config_gen
       tag_pattern: "{{version}}"
 
+  miga:
+    version: ^1.1.0
+    git:
+      url: https://github.com/ross96D/miga
+      tag_pattern: "{{version}}"
   # Logger
   tronco:
     # path: ../tronco
@@ -134,6 +139,7 @@ flutter:
 
 dependency_overrides:
   intl: ^0.20.2
+  meta: ^1.16.0
   # fl_linux_window_manager:
   #   path: ../fl-linux-window-manager
   # config:

@@ -116,7 +116,9 @@ class VolumeConfig extends ConfigBaseI with VolumeConfigI, VolumeConfigBase {
            tooltipOnVolumeChangeDuration ?? Duration(milliseconds: 1500);
 
   factory VolumeConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return VolumeConfig(
       maxVolume: fields['maxVolume'],
       volumeStep: fields['volumeStep'],

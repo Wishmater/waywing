@@ -79,7 +79,9 @@ class NotificationsConfig extends ConfigBaseI
        showProgressBar = showProgressBar ?? false;
 
   factory NotificationsConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return NotificationsConfig(
       alignment: fields['alignment'],
       marginLeft: fields['marginLeft'],

@@ -33,7 +33,9 @@ class Aria2ServiceConfig extends ConfigBaseI
   Aria2ServiceConfig({required this.rpcUri, this.rpcSecret});
 
   factory Aria2ServiceConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return Aria2ServiceConfig(
       rpcUri: fields['rpcUri'],
       rpcSecret: fields['rpcSecret'],

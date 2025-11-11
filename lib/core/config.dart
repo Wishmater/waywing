@@ -18,6 +18,7 @@ import "package:waywing/util/animation_utils.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/logger.dart";
 import "package:waywing/util/xdg_dirs.dart";
+import "package:miga/miga.dart";
 
 part "config.config.dart";
 
@@ -158,19 +159,25 @@ List<T> getFeatherInstancesStatic<T extends Feather>(
   return result;
 }
 
-Future<MainConfig> reloadConfig(String content) async {
+Future<MainConfig> reloadConfig(String content, [String? filepath]) async {
   final result = ConfigurationParser().parseFromString(
     content,
     schema: MainConfig.schema,
   );
+  SourceCode sourceCode = SourceCodeString(content);
+  if (filepath != null) {
+    sourceCode = NamedSourceCode(filepath, sourceCode);
+  }
   // TODO: 2 implement proper config error handling
   switch (result) {
     case EvaluationParseError():
-      _logger.log(Level.fatal, "Read config EvaluationParseError\n${result.errors.join("\n")}");
+      // print(ParseErrorsDiagnostic(result.errors, sourceCode).toString(defaultReportHandler));
+      _logger.log(Level.fatal, "Read config ${ParseErrorsDiagnostic(result.errors, sourceCode).toString(defaultReportHandler)}");
       // TODO: 2 on config parse error, we should probably load default config and notify error
       throw UnimplementedError();
     case EvaluationValidationError():
-      _logger.log(Level.fatal, "Read config EvaluationValidationError\n${result.errors.join("\n")}");
+      // print();
+      _logger.log(Level.fatal, "Read config\n${EvaluationErrorsDiagnostic(result.errors, sourceCode)}");
       _logger.log(Level.debug, _toPrettyJson(result.values));
       // TODO: 2 on config evaluation error: ideally, we have sane defaults on everything
       // so that result.values is still usable AND we notify errors
@@ -239,4 +246,165 @@ class EmptyConfig {
   }
 
   static Schema get schema => Schema();
+}
+
+class ParseErrorsDiagnostic extends Diagnostic {
+  late final ParseErrorDiagnostic mainError;
+
+  @override
+  late final List<ParseErrorDiagnostic> related;
+
+  ParseErrorsDiagnostic(List<ParseError> errors, SourceCode source) {
+    if (errors.isEmpty) {
+      throw ArgumentError("empty errors", "errors");
+    }
+    mainError = ParseErrorDiagnostic(errors.first, source);
+    related = errors.sublist(1).map((e) => ParseErrorDiagnostic(e, source)).toList();
+  }
+
+  @override
+  Object? get code => mainError.code;
+
+  @override
+  Diagnostic? get diagnosticSource => mainError.diagnosticSource;
+
+  @override
+  String display() {
+    return mainError.display();
+  }
+
+  @override
+  String? get help => mainError.help;
+
+  @override
+  Iterable<LabeledSourceSpan>? get labels => mainError.labels;
+
+  @override
+  SourceCode? get sourceCode => mainError.sourceCode;
+
+  @override
+  String? get url => mainError.url;
+}
+
+class ParseErrorDiagnostic extends Diagnostic {
+  final ParseError error;
+
+  @override
+  final SourceCode sourceCode;
+
+  ParseErrorDiagnostic(this.error, this.sourceCode);
+
+  @override
+  Object? get code => null;
+
+  @override
+  Diagnostic? get diagnosticSource => null;
+
+  @override
+  String display() => error.toString();
+
+  @override
+  String? get help =>
+      "The file has a syntax error and was unable to be parsed. Refer to the documentation for more info";
+
+  @override
+  Iterable<LabeledSourceSpan>? get labels sync* {
+    yield LabeledSourceSpan(
+      "here",
+      error.token.pos?.startOffset ?? 0,
+      error.token.pos?.length ?? 0,
+      true,
+    );
+  }
+
+  @override
+  Iterable<Diagnostic>? get related => null;
+
+  @override
+  String? get url => null;
+}
+
+class EvaluationErrorsDiagnostic extends Diagnostic {
+  late final EvaluationErrorDiagnostic mainError;
+
+  @override
+  late final List<EvaluationErrorDiagnostic> related;
+
+  EvaluationErrorsDiagnostic(List<EvaluationError> errors, SourceCode source) {
+    if (errors.isEmpty) {
+      throw ArgumentError("empty errors", "errors");
+    }
+    mainError = EvaluationErrorDiagnostic(errors.first, source);
+    related = errors.sublist(1).map((e) => EvaluationErrorDiagnostic(e, source)).toList();
+  }
+
+  @override
+  Object? get code => mainError.code;
+
+  @override
+  Diagnostic? get diagnosticSource => mainError.diagnosticSource;
+
+  @override
+  String display() {
+    return mainError.display();
+  }
+
+  @override
+  String? get help => mainError.help;
+
+  @override
+  Iterable<LabeledSourceSpan>? get labels => mainError.labels;
+
+  @override
+  SourceCode? get sourceCode => mainError.sourceCode;
+
+  @override
+  String? get url => mainError.url;
+}
+
+class EvaluationErrorDiagnostic extends Diagnostic {
+  EvaluationError error;
+
+  @override
+  SourceCode sourceCode;
+
+  EvaluationErrorDiagnostic(this.error, this.sourceCode);
+
+  @override
+  Object? get code => null;
+
+  @override
+  Diagnostic? get diagnosticSource => null;
+
+  @override
+  String display() => error.error();
+
+  @override
+  String? get help => error.help();
+
+  @override
+  Iterable<LabeledSourceSpan>? get labels sync* {
+    switch (error) {
+      case DuplicatedKeyError error:
+        yield LabeledSourceSpan("first key", error.first.startOffset, error.first.length);
+        yield LabeledSourceSpan("second key", error.second.startOffset, error.second.length);
+      case KeyNotInSchemaError error:
+        yield LabeledSourceSpan(null, error.position.startOffset, error.position.length);
+      case InfixOperationError error:
+        yield LabeledSourceSpan(null, error.position.startOffset, error.position.length);
+      case ConflictTypeError error:
+        yield LabeledSourceSpan(null, error.position.startOffset, error.position.length);
+      case ValidationError error:
+        yield LabeledSourceSpan(null, error.original.position.startOffset, error.original.position.length);
+      case RequiredKeyIsMissing():
+      case CustomEvaluationError():
+        return;
+    }
+  }
+
+  @override
+  Iterable<Diagnostic>? get related => null;
+
+  @override
+  String? get url => null;
 }

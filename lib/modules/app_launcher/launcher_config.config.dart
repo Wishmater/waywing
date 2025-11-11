@@ -35,7 +35,9 @@ class LauncherConfig extends ConfigBaseI
     : showScrollBar = showScrollBar ?? true;
 
   factory LauncherConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return LauncherConfig(
       iconSize: fields['iconSize'],
       showScrollBar: fields['showScrollBar'],

@@ -25,11 +25,16 @@ class _RangeValidationError<T extends Comparable> extends ValidationError {
 
   @override
   String toString() {
-    return "Range validation error. Expected to be between $start and $end but got $actual";
+    return error();
   }
 
   @override
   String error() {
-    return toString();
+    return "Range validation error. Expected to be between $start and $end but got $actual";
+  }
+
+  @override
+  String help() {
+    return "Make sure the value is between $start and $end";
   }
 }

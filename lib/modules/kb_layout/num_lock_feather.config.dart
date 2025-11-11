@@ -26,7 +26,9 @@ class NumLockConfig extends ConfigBaseI with NumLockConfigI, NumLockConfigBase {
   NumLockConfig({bool? reserveSpace}) : reserveSpace = reserveSpace ?? false;
 
   factory NumLockConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return NumLockConfig(reserveSpace: fields['reserveSpace']);
   }
 

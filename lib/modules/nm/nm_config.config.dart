@@ -65,7 +65,9 @@ class NetworkManagerConfig extends ConfigBaseI
        deviceTypeFilter = deviceTypeFilter ?? <String>[];
 
   factory NetworkManagerConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return NetworkManagerConfig(
       showConnectionNameIndicator: fields['showConnectionNameIndicator'],
       showUploadIndicator: fields['showUploadIndicator'],

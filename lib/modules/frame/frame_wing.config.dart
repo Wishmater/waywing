@@ -65,7 +65,9 @@ class FrameConfig extends ConfigBaseI with FrameConfigI, FrameConfigBase {
        _rounding = rounding;
 
   factory FrameConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return FrameConfig(
       size: fields['size'],
       sizeLeft: fields['sizeLeft'],

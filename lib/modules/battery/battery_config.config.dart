@@ -124,7 +124,9 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
        lightningColor = lightningColor ?? MyColor(0xFFFFC107);
 
   factory BatteryConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return BatteryConfig(
       enableProfile: fields['enableProfile'],
       automaticProfileChanging: fields['automaticProfileChanging'],

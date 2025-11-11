@@ -55,7 +55,7 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
   void initState() {
     super.initState();
     listenable.addListener(onDeviceChanged);
-    onDeviceChanged();
+    onDeviceChanged(isInit: true);
     _previousDevice = listenable.value;
   }
 
@@ -75,12 +75,18 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
   }
 
   VolumeInterface? _previousDevice;
-  void onDeviceChanged() {
-    _previousDevice?.volume.removeListener(onVolumeChanged);
-    _previousDevice?.isMuted.removeListener(onVolumeChanged);
+  void onDeviceChanged({
+    isInit = false,
+  }) {
+    if (!isInit) {
+      _previousDevice?.volume.removeListener(onVolumeChanged);
+      _previousDevice?.isMuted.removeListener(onVolumeChanged);
+    }
     listenable.value?.volume.addListener(onVolumeChanged);
     listenable.value?.isMuted.addListener(onVolumeChanged);
-    showTooltip();
+    if (!isInit) {
+      showTooltip();
+    }
   }
 
   void onVolumeChanged() async {

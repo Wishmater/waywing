@@ -65,6 +65,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                 anchorAlignment: Alignment.centerLeft,
                 popupAlignment: Alignment.centerRight,
                 zIndex: 999999,
+                ignorePointer: true,
                 builder: (context, controller, _, _) {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),

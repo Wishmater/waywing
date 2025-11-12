@@ -172,7 +172,10 @@ Future<MainConfig> reloadConfig(String content, [String? filepath]) async {
   switch (result) {
     case EvaluationParseError():
       // print(ParseErrorsDiagnostic(result.errors, sourceCode).toString(defaultReportHandler));
-      _logger.log(Level.fatal, "Read config ${ParseErrorsDiagnostic(result.errors, sourceCode).toString(defaultReportHandler)}");
+      _logger.log(
+        Level.fatal,
+        "Read config\n${ParseErrorsDiagnostic(result.errors, sourceCode).toString(defaultReportHandler)}",
+      );
       // TODO: 2 on config parse error, we should probably load default config and notify error
       throw UnimplementedError();
     case EvaluationValidationError():
@@ -184,7 +187,7 @@ Future<MainConfig> reloadConfig(String content, [String? filepath]) async {
       throw UnimplementedError();
     case EvaluationSuccess():
       _logger.log(Level.info, "Read config EvaluationSuccess");
-      _logger.log(Level.debug, _toPrettyJson(result.values));
+      _logger.log(Level.info, _toPrettyJson(result.values));
       _config = MainConfig.fromBlock(result.values);
       updateLoggerConfig(_config.logging);
       return _config;
@@ -224,7 +227,7 @@ const String defaultConfig = """
 """;
 
 dynamic _toPrettyJson(dynamic values) {
-  const encoder = JsonEncoder.withIndent("  ");
+  const encoder = JsonEncoder.withIndent("    ");
   values = _sanitizeForJson(values);
   return encoder.convert(values);
 }
@@ -234,6 +237,12 @@ dynamic _sanitizeForJson(dynamic e) {
   if (e is num) return e;
   if (e is List) return e.map(_sanitizeForJson).toList();
   if (e is Map) return e.mapValues((entry) => _sanitizeForJson(entry.value));
+  if (e is BlockData) {
+    final fields = e.fields.map((k, v) => MapEntry(k.value, _sanitizeForJson(v)));
+    final blocks = {for (final block in e.blocks) block.$1.value: _sanitizeForJson(block.$2)};
+    fields.addAll(blocks);
+    return fields;
+  }
   return e.toString();
 }
 

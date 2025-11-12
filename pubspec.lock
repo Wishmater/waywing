@@ -254,11 +254,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "37523673dc1a4bced064076e2ee79de242e18db7"
+      resolved-ref: ba981d4ced2f5ee1471fa6842572a401a4d3b9ce
+      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/config.dart"
     source: git
-    version: "0.0.12"
+    version: "0.0.13"
   config_gen:
     dependency: "direct main"
     description:
@@ -714,8 +714,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: c7316d99ebd5474c1b6732258895f60d1a7cc7e1
-      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/miga"
     source: git
     version: "1.1.1"

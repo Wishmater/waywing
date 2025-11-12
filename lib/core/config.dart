@@ -171,16 +171,13 @@ Future<MainConfig> reloadConfig(String content, [String? filepath]) async {
   // TODO: 2 implement proper config error handling
   switch (result) {
     case EvaluationParseError():
-      // print(ParseErrorsDiagnostic(result.errors, sourceCode).toString(defaultReportHandler));
-      _logger.log(
-        Level.fatal,
-        "Read config\n${ParseErrorsDiagnostic(result.errors, sourceCode).toString(defaultReportHandler)}",
-      );
+      final diagnostic = ParseErrorsDiagnostic(result.errors, sourceCode);
+      _logger.log(Level.fatal, "Read config\n$diagnostic");
       // TODO: 2 on config parse error, we should probably load default config and notify error
       throw UnimplementedError();
     case EvaluationValidationError():
-      // print();
-      _logger.log(Level.fatal, "Read config\n${EvaluationErrorsDiagnostic(result.errors, sourceCode)}");
+      final diagnostic = EvaluationErrorsDiagnostic(result.errors, sourceCode);
+      _logger.log(Level.fatal, "Read config\n$diagnostic");
       _logger.log(Level.debug, _toPrettyJson(result.values));
       // TODO: 2 on config evaluation error: ideally, we have sane defaults on everything
       // so that result.values is still usable AND we notify errors

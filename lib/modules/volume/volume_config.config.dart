@@ -37,7 +37,9 @@ class VolumeServiceConfig extends ConfigBaseI
       volumeStep = volumeStep ?? 5;
 
   factory VolumeServiceConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return VolumeServiceConfig(
       maxVolume: fields['maxVolume'],
       volumeStep: fields['volumeStep'],

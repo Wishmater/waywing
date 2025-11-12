@@ -254,8 +254,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: "37523673dc1a4bced064076e2ee79de242e18db7"
-      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/config.dart"
     source: git
     version: "0.0.12"
@@ -263,8 +263,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: "2d71a6ab2da2b060c8af9774e8920cdd38efc7bd"
-      tag-pattern: "{{version}}"
       url: "https://github.com/Wishmater/config_gen"
     source: git
     version: "0.0.17"
@@ -714,8 +714,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: "85f16f2dc277ae05e637cf0e08764d9292b75ae3"
-      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/miga"
     source: git
     version: "1.1.0"

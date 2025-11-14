@@ -6,9 +6,8 @@ import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
-import "package:waywing/modules/hyprland/hyprland_service.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
-import "package:waywing/modules/kb_layout/kb_layout_service.dart";
+import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/icons/symbol_icon.dart";
 import "package:waywing/widgets/icons/text_icon.dart";
@@ -16,7 +15,7 @@ import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class KeyboardLayoutFeather extends Feather {
-  late final KeyboardLayoutService service;
+  late final CompositorService service;
 
   KeyboardLayoutFeather._();
 
@@ -34,8 +33,8 @@ class KeyboardLayoutFeather extends Feather {
 
   @override
   Future<void> init(BuildContext context) async {
-    await serviceRegistry.requestService<HyprlandService>(this);
-    service = await serviceRegistry.requestService<KeyboardLayoutService>(this);
+    service = await serviceRegistry.requestService<CompositorService>(this);
+    if (!service.supportKeyboardLayouts) throw Exception("Keyboard layouts not supported by ${service.runtimeType}");
   }
 
   @override
@@ -52,7 +51,7 @@ class KeyboardLayoutFeather extends Feather {
 }
 
 class KeyboardLayoutIndicator extends StatelessWidget {
-  final KeyboardLayoutService service;
+  final CompositorService service;
 
   const KeyboardLayoutIndicator({
     required this.service,
@@ -62,76 +61,73 @@ class KeyboardLayoutIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: service.availableLayouts,
-      builder: (context, availableLayouts, child) {
-        return ValueListenableBuilder(
-          valueListenable: service.layout,
-          builder: (context, layout, _) {
-            final theme = Theme.of(context);
-            return SplashPulse(
-              // TODO: 2 make this configurable
-              pulsing: availableLayouts.indexOf(layout) > 0,
-              color: theme.colorScheme.error.withValues(alpha: 0.5),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  // final isVertical = constraints.maxHeight > constraints.maxWidth;
-                  final icon = WingedIcon(
-                    flutterIcon: SymbolsVaried.keyboard,
-                    iconNames: ["input-keyboard-cirtual-off", "input-keyboard"],
-                    textIcon: "󰌓", // nf-md-keyboard_variant
-                    size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
-                    color: theme.textTheme.bodyMedium!.color,
-                    textIconBuilder: (context) => TextIcon(
-                      text: "󰌓", // nf-md-keyboard_variant
-                      alignment: Alignment(-0.66, 0),
-                      size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
-                      color: theme.textTheme.bodyMedium!.color,
+      valueListenable: service.keyboardLayouts,
+      builder: (context, keyboardLayouts, child) {
+        final theme = Theme.of(context);
+        if (keyboardLayouts == null) return SizedBox.shrink();
+
+        return SplashPulse(
+          // TODO: 2 make this configurable
+          pulsing: keyboardLayouts.index > 0,
+          color: theme.colorScheme.error.withValues(alpha: 0.5),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // final isVertical = constraints.maxHeight > constraints.maxWidth;
+              final icon = WingedIcon(
+                flutterIcon: SymbolsVaried.keyboard,
+                iconNames: ["input-keyboard-cirtual-off", "input-keyboard"],
+                textIcon: "󰌓", // nf-md-keyboard_variant
+                size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
+                color: theme.textTheme.bodyMedium!.color,
+                textIconBuilder: (context) => TextIcon(
+                  text: "󰌓", // nf-md-keyboard_variant
+                  alignment: Alignment(-0.66, 0),
+                  size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
+                  color: theme.textTheme.bodyMedium!.color,
+                ),
+                flutterBuilder: (context) => SymbolIcon(
+                  SymbolsVaried.keyboard,
+                  fill: 0,
+                  opticalSize: 48,
+                  grade: -25,
+                  color: theme.textTheme.bodyMedium!.color,
+                ),
+              );
+              final Widget content;
+              if (constraints.maxHeight >= 40) {
+                content = Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 2,
                     ),
-                    flutterBuilder: (context) => SymbolIcon(
-                      SymbolsVaried.keyboard,
-                      fill: 0,
-                      opticalSize: 48,
-                      grade: -25,
-                      color: theme.textTheme.bodyMedium!.color,
+                    Text(
+                      keyboardLayouts.current,
+                      style: theme.textTheme.bodyMedium!.copyWith(height: 0.1),
                     ),
-                  );
-                  final Widget content;
-                  if (constraints.maxHeight >= 40) {
-                    content = Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: 2,
-                        ),
-                        Text(
-                          layout,
-                          style: theme.textTheme.bodyMedium!.copyWith(height: 0.1),
-                        ),
-                        Transform.translate(
-                          offset: Offset(0, 4),
-                          child: icon,
-                        ),
-                      ],
-                    );
-                  } else {
-                    content = Row(
-                      children: [
-                        Transform.translate(
-                          offset: Offset(0, 1),
-                          child: icon,
-                        ),
-                        SizedBox(width: 2),
-                        Text(layout, style: theme.textTheme.bodyMedium),
-                      ],
-                    );
-                  }
-                  return WingedButton(
-                    child: content,
-                  );
-                },
-              ),
-            );
-          },
+                    Transform.translate(
+                      offset: Offset(0, 4),
+                      child: icon,
+                    ),
+                  ],
+                );
+              } else {
+                content = Row(
+                  children: [
+                    Transform.translate(
+                      offset: Offset(0, 1),
+                      child: icon,
+                    ),
+                    SizedBox(width: 2),
+                    Text(keyboardLayouts.current, style: theme.textTheme.bodyMedium),
+                  ],
+                );
+              }
+              return WingedButton(
+                child: content,
+              );
+            },
+          ),
         );
       },
     );

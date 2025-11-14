@@ -35,6 +35,13 @@ dependencies:
       url: https://github.com/ross96D/tronco
       ref: 5ecd6268393c80358abf64c0a2270ba1ef4a1676
 
+  niri:
+    # path: ../../my/niri.dart
+    version: ^1.0.0
+    git:
+      url: https://github.com/ross96D/niri.dart
+      tag_pattern: "{{version}}"
+
   # Language utilities
   intl: ^0.20.2
   dartx: ^1.2.0

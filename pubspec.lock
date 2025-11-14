@@ -751,6 +751,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  niri:
+    dependency: "direct main"
+    description:
+      path: "."
+      resolved-ref: "602f2e7c5622baede16438f51c3a99509ef310fb"
+      tag-pattern: "{{version}}"
+      url: "https://github.com/ross96D/niri.dart"
+    source: git
+    version: "1.0.0"
   nm:
     dependency: "direct main"
     description:

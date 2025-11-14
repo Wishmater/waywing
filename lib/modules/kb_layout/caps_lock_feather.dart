@@ -9,8 +9,7 @@ import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/feather.dart";
-import "package:waywing/modules/hyprland/hyprland_service.dart";
-import "package:waywing/modules/kb_layout/kb_layout_service.dart";
+import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -18,7 +17,7 @@ import "package:waywing/widgets/winged_widgets/winged_button.dart";
 part "caps_lock_feather.config.dart";
 
 class CapsLockFeather extends Feather<CapsLockConfig> {
-  late KeyboardLayoutService service;
+  late CompositorService service;
 
   CapsLockFeather._();
 
@@ -38,14 +37,13 @@ class CapsLockFeather extends Feather<CapsLockConfig> {
 
   @override
   Future<void> init(BuildContext context) async {
-    await serviceRegistry.requestService<HyprlandService>(this);
-    service = await serviceRegistry.requestService<KeyboardLayoutService>(this);
-    service.requestNumCapsPull();
+    service = await serviceRegistry.requestService<CompositorService>(this);
+    if (service.supportCapslock) throw Exception("Capslock not supported by ${service.runtimeType}");
   }
 
   late final isIndicatorEnabled = DerivedValueNotifier(
-    dependencies: [service.capsLockActive],
-    derive: () => config.reserveSpace ? true : service.capsLockActive.value,
+    dependencies: [service.isCapslockActive],
+    derive: () => config.reserveSpace ? true : service.isCapslockActive.value,
   );
   @override
   late final ValueListenable<List<FeatherComponent>> components = DummyValueNotifier([
@@ -54,7 +52,7 @@ class CapsLockFeather extends Feather<CapsLockConfig> {
       buildIndicators: (context, popover) {
         return [
           ValueListenableBuilder(
-            valueListenable: service.capsLockActive,
+            valueListenable: service.isCapslockActive,
             builder: (context, capsLockActive, child) {
               return ErrorStateIndicator(
                 name: "caps lock",

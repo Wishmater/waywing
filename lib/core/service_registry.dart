@@ -1,6 +1,7 @@
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
 import "package:flutter/foundation.dart";
+import "package:miga/miga.dart";
 import "package:path/path.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
@@ -12,8 +13,7 @@ import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/bitwarden/bitwarden_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/modules/command_palette/user_command_service.dart";
-import "package:waywing/modules/hyprland/hyprland_service.dart";
-import "package:waywing/modules/kb_layout/kb_layout_service.dart";
+import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/session/os_info_service.dart";
@@ -111,10 +111,14 @@ class ServiceRegistry {
     try {
       await service.init();
     } catch (e, st) {
+      var error = e;
+      if (e is FormatException) {
+        error = MigaDiagnostic.formatExcpetion("Format exception", e);
+      }
       // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
       service.logger.error(
         "Error thrown while initializing service $serviceType",
-        error: e,
+        error: error,
         stackTrace: st,
       );
       service.hasInitializationError = true;
@@ -228,9 +232,8 @@ class ServiceRegistry {
     SessionService.registerService(registerService);
     OsInfoService.registerService(registerService);
     NotificationsService.registerService(registerService);
-    KeyboardLayoutService.registerService(registerService);
     ApplicationService.registerService(registerService);
-    HyprlandService.registerService(registerService);
+    CompositorService.registerService(registerService);
     UserCommandService.registerService(registerService);
     Aria2Service.registerService(registerService);
     NetworkIconService.registerService(registerService);

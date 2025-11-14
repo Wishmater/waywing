@@ -7,15 +7,14 @@ import "package:flutter/material.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/feather.dart";
-import "package:waywing/modules/hyprland/hyprland_service.dart";
+import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
-import "package:waywing/modules/kb_layout/kb_layout_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
 part "num_lock_feather.config.dart";
 
 class NumLockFeather extends Feather<NumLockConfig> {
-  late KeyboardLayoutService service;
+  late CompositorService service;
 
   NumLockFeather._();
 
@@ -35,14 +34,13 @@ class NumLockFeather extends Feather<NumLockConfig> {
 
   @override
   Future<void> init(BuildContext context) async {
-    await serviceRegistry.requestService<HyprlandService>(this);
-    service = await serviceRegistry.requestService<KeyboardLayoutService>(this);
-    service.requestNumCapsPull();
+    service = await serviceRegistry.requestService<CompositorService>(this);
+    if (service.supportNumlock) throw Exception("Numlock not supported by ${service.runtimeType}");
   }
 
   late final isIndicatorEnabled = DerivedValueNotifier(
-    dependencies: [service.numsLockActive],
-    derive: () => config.reserveSpace ? true : !service.numsLockActive.value,
+    dependencies: [service.isNumlockActive],
+    derive: () => config.reserveSpace ? true : !service.isNumlockActive.value,
   );
 
   @override
@@ -52,7 +50,7 @@ class NumLockFeather extends Feather<NumLockConfig> {
       buildIndicators: (context, popover) {
         return [
           ValueListenableBuilder(
-            valueListenable: service.numsLockActive,
+            valueListenable: service.isNumlockActive,
             builder: (context, numsLockActive, child) {
               return ErrorStateIndicator(
                 name: "num lock",

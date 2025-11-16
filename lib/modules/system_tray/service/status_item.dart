@@ -204,13 +204,20 @@ class OrgKdeStatusNotifierItemValues {
   OrgKdeStatusNotifierItemValues(this.statusNotifierItem, this._logger, this.originalPath) {
     _logger.debug("create OrgKdeStatusNotifierItemValues");
 
-    title = DBusValueSignalNotifier("", statusNotifierItem.getTitle, statusNotifierItem.newTitle, _logger);
+    title = DBusValueSignalNotifier(
+      "",
+      statusNotifierItem.getTitle,
+      statusNotifierItem.newTitle,
+      _logger,
+      "Title",
+    );
 
     iconName = DBusValueSignalNotifier(
       "",
       statusNotifierItem.getIconName,
       statusNotifierItem.newIcon,
       _logger,
+      "IconName",
     );
     iconPixmap = DBusValueSignalNotifier(
       const PixmapIcons.empty(),
@@ -220,6 +227,7 @@ class OrgKdeStatusNotifierItemValues {
       },
       statusNotifierItem.newIcon,
       _logger,
+      "IconPixmap",
     );
 
     attentionIconName = DBusValueSignalNotifier(
@@ -227,6 +235,7 @@ class OrgKdeStatusNotifierItemValues {
       statusNotifierItem.getAttentionIconName,
       statusNotifierItem.newAttentionIcon,
       _logger,
+      "AttentionIconName",
     );
     attentionIconPixmap = DBusValueSignalNotifier(
       PixmapIcons.empty(),
@@ -236,12 +245,14 @@ class OrgKdeStatusNotifierItemValues {
       },
       statusNotifierItem.newAttentionIcon,
       _logger,
+      "AttentionIconPixmap",
     );
     attentionMovieName = DBusValueSignalNotifier(
       "",
       statusNotifierItem.getAttentionMovieName,
       statusNotifierItem.newAttentionIcon,
       _logger,
+      "AttentionMovieName",
     );
 
     overlayIconName = DBusValueSignalNotifier(
@@ -249,6 +260,7 @@ class OrgKdeStatusNotifierItemValues {
       statusNotifierItem.getOverlayIconName,
       statusNotifierItem.newOverlayIcon,
       _logger,
+      "OverlayIconName",
     );
     overlayIconPixmap = DBusValueSignalNotifier(
       PixmapIcons.empty(),
@@ -258,6 +270,7 @@ class OrgKdeStatusNotifierItemValues {
       },
       statusNotifierItem.newOverlayIcon,
       _logger,
+      "OverlayIconPixmap",
     );
 
     tooltip = DBusValueSignalNotifier(
@@ -268,14 +281,10 @@ class OrgKdeStatusNotifierItemValues {
       },
       statusNotifierItem.newToolTip,
       _logger,
+      "Tooltip",
     );
 
-    status = DBusValueSignalNotifier(
-      "",
-      statusNotifierItem.getStatus,
-      statusNotifierItem.newToolTip,
-      _logger,
-    );
+    status = DBusValueSignalNotifier("", statusNotifierItem.getStatus, statusNotifierItem.newStatus, _logger, "Status");
     initFields();
   }
 
@@ -295,14 +304,17 @@ class OrgKdeStatusNotifierItemValues {
         dbusmenu = DBusMenuValues(obj, _logger);
       }),
     ];
-    _initialized = futures.wait.timeout(Duration(milliseconds: 200)).then((v) {
-      _initializationFailed = false;
-      return v;
-    }).onError((e, st) {
-      _logger.error("initialization failed", error: e, stackTrace: st);
-      _initializationFailed = true;
-      return [];
-    });
+    _initialized = futures.wait
+        .timeout(Duration(milliseconds: 200))
+        .then((v) {
+          _initializationFailed = false;
+          return v;
+        })
+        .onError((e, st) {
+          _logger.error("initialization failed", error: e, stackTrace: st);
+          _initializationFailed = true;
+          return [];
+        });
   }
 
   void dispose() {
@@ -348,6 +360,7 @@ class DBusValueSignalNotifier<T> extends ChangeNotifier implements ValueListenab
       try {
         final newValue = await callback();
         _value = newValue;
+        logger.trace("[$debugLabel] recieve new value $_value");
         notifyListeners();
       } on DBusUnknownPropertyException catch (e) {
         logger.debug("[$debugLabel] Error calling method: ", error: e);
@@ -367,6 +380,7 @@ class DBusValueSignalNotifier<T> extends ChangeNotifier implements ValueListenab
         .then((newValue) {
           if (_value != newValue) {
             _value = newValue;
+            logger.trace("[$debugLabel] recieve new value $_value");
             notifyListeners();
           }
         })

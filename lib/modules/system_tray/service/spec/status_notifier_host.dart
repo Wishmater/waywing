@@ -1,7 +1,6 @@
 import "dart:async";
 
 import "package:dbus/dbus.dart";
-import "package:flutter/foundation.dart" hide StringProperty;
 import "package:tronco/tronco.dart";
 import "package:waywing/modules/system_tray/service/spec/istatus_notifier_item.dart";
 import "package:waywing/modules/system_tray/service/spec/istatus_notifier_watcher.dart";
@@ -14,13 +13,13 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
   late final _DBusUnRegistrationWatcher _dBusWatcher;
 
   // final Map<String, OrgKdeStatusNotifierItemValues> _items;
-  ValueListenable<List<OrgKdeStatusNotifierItemValues>> items;
+  ManualValueNotifier<List<OrgKdeStatusNotifierItemValues>> items;
   final Logger logger;
 
   final List<StreamSubscription> _subscriptions;
 
   OrgKdeStatusNotifierHostImpl(this.logger, super.path)
-    : items = _ManualValueNotifier([]),
+    : items = ManualValueNotifier([]),
       _subscriptions = [];
 
   /// Init all resources needed to work normally
@@ -102,7 +101,7 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
         _removeItem(itemValues.originalPath);
       }
     });
-    (items as _ManualValueNotifier)._manualNotifyListeners();
+    items.manualNotifyListeners();
   }
 
   void _removeItem(String itemPath) {
@@ -111,7 +110,7 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
       return;
     }
     items.value.removeAt(index).dispose();
-    (items as _ManualValueNotifier)._manualNotifyListeners();
+    items.manualNotifyListeners();
   }
 
   Future<void> _fillStatusNotifierItems() async {
@@ -133,14 +132,6 @@ class OrgKdeStatusNotifierHostImpl extends DBusObject {
         _removeItem(v.arg_0);
       }),
     );
-  }
-}
-
-class _ManualValueNotifier<T> extends DummyValueNotifier<T> {
-  _ManualValueNotifier(super.value);
-
-  void _manualNotifyListeners() {
-    notifyListeners();
   }
 }
 

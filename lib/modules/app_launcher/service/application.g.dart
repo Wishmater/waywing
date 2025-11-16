@@ -7,6 +7,7 @@ part of 'application.dart';
 // **************************************************************************
 
 Application _$ApplicationFromJson(Map<String, dynamic> json) => Application(
+  desktopFilePath: json['desktopFilePath'] as String,
   name: json['name'] as String,
   exec: json['exec'] as String?,
   tryExec: json['tryExec'] as String?,
@@ -33,6 +34,7 @@ Application _$ApplicationFromJson(Map<String, dynamic> json) => Application(
 
 Map<String, dynamic> _$ApplicationToJson(Application instance) =>
     <String, dynamic>{
+      'desktopFilePath': instance.desktopFilePath,
       'name': instance.name,
       'comment': instance.comment,
       'icon': instance.icon,

@@ -755,8 +755,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
+      ref: HEAD
       resolved-ref: "602f2e7c5622baede16438f51c3a99509ef310fb"
-      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/niri.dart"
     source: git
     version: "1.0.0"

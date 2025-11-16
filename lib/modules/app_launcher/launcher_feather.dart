@@ -73,6 +73,9 @@ class AppLauncherFeather extends Feather<LauncherConfig> {
                 },
               );
             } else {
+              if (snapshot.hasError) {
+                return ErrorWidget.withDetails(message:"${snapshot.error!}\n${snapshot.stackTrace}");
+              }
               return const Center(
                 child: SizedBox(
                   height: 35,

@@ -16,6 +16,12 @@ class Application implements Comparable<Application> {
   Map<String, dynamic> toJson() => _$ApplicationToJson(this);
   factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
 
+  /// File path of the desktop file from where this [Application] was extracted
+  final String desktopFilePath;
+
+  /// Name of the desktop file from where this [Application] was extracted
+  String get desktopFileName => path.basename(path.withoutExtension(desktopFilePath));
+
   /// Application name
   final String name;
 
@@ -82,6 +88,7 @@ class Application implements Comparable<Application> {
   int timesExec;
 
   Application({
+    required this.desktopFilePath,
     required this.name,
     this.exec,
     this.tryExec,
@@ -124,6 +131,7 @@ class Application implements Comparable<Application> {
     final categories = Categories.fromList(entries[Key.categories.string]?.split(";"));
     final keywords = entries[Key.categories.string]?.split(";");
     return Application(
+      desktopFilePath: file.absolute.path,
       name: name,
       exec: entries[Key.exec.string],
       tryExec: entries[Key.tryExec.string],
@@ -209,7 +217,12 @@ class Application implements Comparable<Application> {
       if (terminal) {
         logger?.trace("run alacritty -e $cmd ${args.join(' ')}");
         // TODO increase the list of terminals to launch and also make it configurable
-        await Process.start("alacritty", ["-e", cmd, ...args], mode: ProcessStartMode.detached, includeParentEnvironment: true);
+        await Process.start(
+          "alacritty",
+          ["-e", cmd, ...args],
+          mode: ProcessStartMode.detached,
+          includeParentEnvironment: true,
+        );
       } else {
         logger?.trace("run $cmd ${args.join(' ')}");
         await Process.start(cmd, args, mode: ProcessStartMode.detached, includeParentEnvironment: true);
@@ -387,7 +400,8 @@ bool isPrintableAndNotSpace(String char) {
   if ((codePoint >= 0x2028 && codePoint <= 0x2029) || // Line/Paragraph separators
       (codePoint >= 0x200B && codePoint <= 0x200F) || // Zero-width spaces
       (codePoint >= 0x2060 && codePoint <= 0x2064) || // Invisible formatting
-      (codePoint >= 0x2066 && codePoint <= 0x2069)) { // Bidirectional controls
+      (codePoint >= 0x2066 && codePoint <= 0x2069)) {
+    // Bidirectional controls
     return false;
   }
 

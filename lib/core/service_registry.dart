@@ -24,6 +24,7 @@ import "package:waywing/services/network_icon/network_icon_service.dart";
 import "package:waywing/util/logger.dart";
 
 final serviceRegistry = ServiceRegistry._();
+final _logger = mainLogger.clone(properties: [LogType("ServiceRegistry")]);
 
 typedef ServiceConstructor<T extends Service> = T Function();
 
@@ -71,7 +72,7 @@ class ServiceRegistry {
   /// feather init() awaits services requests, it will then be safe to use the
   /// returned instances in the build methods.
   Future<T> requestService<T extends Service>(ServiceConsumer consumer) {
-    mainLogger.debug("Initializing service: $T");
+    _logger.debug("Initializing service: $T");
     final serviceType = T;
     final existingService = _initializedServices[serviceType];
     if (existingService != null) {

@@ -4,7 +4,6 @@ import "package:tronco/tronco.dart";
 import "package:sembast/sembast_io.dart";
 import "package:waywing/modules/app_launcher/service/application.dart";
 import "package:path/path.dart" as path;
-import "package:waywing/util/logger.dart";
 import "package:waywing/util/xdg_dirs.dart";
 
 class LauncherDatabase {
@@ -22,8 +21,13 @@ class LauncherDatabase {
     return LauncherDatabase._(db, stringMapStoreFactory.store());
   }
 
-  Future<List<Application>> getAll() async {
+  Future<Iterable<Application>> getAll() async {
     final query = await store.find(db, finder: Finder());
+    return query.map((e) => Application.fromJson(e.value));
+  }
+
+  Future<List<Application>> find(Finder finder) async {
+    final query = await store.find(db, finder: finder);
     return query.map((e) => Application.fromJson(e.value)).toList();
   }
 
@@ -116,31 +120,6 @@ List<Application> loadApplicationsFromDisk(Map<String, Application> old, Logger 
     }
   }
   return response.toList();
-}
-
-Future<List<Application>> loadApplications(LauncherDatabase db, Logger logger) async {
-  final List<Application> list = await db.getAll();
-
-  final aggreateLogger = logger.create(Level.trace, "Applications loaded from database");
-  if (aggreateLogger != null) {
-    for (final app in list) {
-      aggreateLogger.add(app.toString());
-    }
-    aggreateLogger.end();
-  }
-
-  final map = Map.fromEntries(list.map((e) => MapEntry(e.filepath, e)));
-  final apps = loadApplicationsFromDisk(map, logger);
-  for (final app in apps) {
-    final old = map[app.filepath];
-    if (old != null && old.lastModified == app.lastModified) {
-      continue;
-    }
-    logger.log(Level.trace, "new application found $app");
-    db.upsert(app);
-  }
-  apps.sort();
-  return apps;
 }
 
 bool tryExec(String tryExec) {

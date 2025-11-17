@@ -116,7 +116,7 @@ class Notification {
     required this.hints,
     int? timeout,
   }) : id = 0,
-       timestampMs = 0,
+       timestampMs = DateTime.now().millisecondsSinceEpoch,
        timeout = timeout ?? -1,
        isFirst = false;
 
@@ -657,7 +657,7 @@ class NotificationHints {
   /// removed by the user or by the sender.
   ///
   /// This hint is likely only useful when the server has the "persistence" capability.
-  final bool resident;
+  final bool? resident;
 
   /// The type of notification this is.
   final NotificationCategories? category;
@@ -733,6 +733,22 @@ class NotificationHints {
     this.applicationDBusName = applicationDBusName;
   }
 
+  NotificationHints.clientNew({
+    required this.urgency,
+    this.actionIcons = false,
+    this.category,
+    this.soundFile,
+    this.soundName,
+    this.inlineReplyPlaceholderText,
+  }) : desktopEntry = null,
+       imageData = null,
+       imagePath = null,
+       applicationDBusName = null,
+       resident = null,
+       suppressSound = null,
+       synchronous = null,
+       transient = null;
+
   factory NotificationHints(Map<String, DBusValue> hints) {
     return NotificationHints._(
       actionIcons: _parseValue<bool>(hints["action-icons"]) ?? false,
@@ -803,6 +819,7 @@ class NotificationHints {
       if (category != null) "category": DBusString(category!.toString()),
       if (soundFile != null) "sound-file": DBusString(soundFile!),
       if (soundName != null) "sound-name": DBusString(soundName!),
+      if (inlineReplyPlaceholderText != null) "x-kde-reply-placeholder-text": DBusString(inlineReplyPlaceholderText!),
     };
   }
 
@@ -869,7 +886,7 @@ class NotificationHints {
 
   void hiveWrite(BinaryWriter writer) {
     writer.writeBool(actionIcons);
-    writer.writeBool(resident);
+    writer.writeBool(resident ?? true);
     urgency.hiveWrite(writer);
 
     if (category != null) {

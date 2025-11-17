@@ -316,13 +316,13 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "HEAD",
-        "resolved-ref": "ba981d4ced2f5ee1471fa6842572a401a4d3b9ce",
+        "resolved-ref": "95968b98c05332e72bd71c5be0d88db1714bf956",
+        "tag-pattern": "{{version}}",
         "url": "https://github.com/ross96D/config.dart",
-        "sha256": "sha256-bjGGqcw9Hqxrb/V2mUleG9hpwlzB84o3ASx8bxdqJL8="
+        "sha256": "sha256-4ylrdv/9LGQeTN4thWcNKbUMVs2Yw2lVnCQvZF2UqXM="
       },
       "source": "git",
-      "version": "0.0.13"
+      "version": "0.0.14"
     },
     "config_gen": {
       "dependency": "direct main",

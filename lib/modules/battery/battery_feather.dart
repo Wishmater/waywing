@@ -7,6 +7,7 @@ import "package:waywing/modules/battery/battery_config.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/battery/battery_indicator.dart";
 import "package:waywing/modules/battery/battery_tooltip.dart";
+import "package:waywing/modules/battery/interfaces/battery_service_interfaces.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";

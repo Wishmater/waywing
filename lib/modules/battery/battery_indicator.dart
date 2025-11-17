@@ -3,7 +3,7 @@ import "dart:math";
 import "package:flutter/material.dart";
 import "package:upower/upower.dart";
 import "package:waywing/modules/battery/battery_config.dart";
-import "package:waywing/modules/battery/battery_service.dart";
+import "package:waywing/modules/battery/interfaces/battery_service_interfaces.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
 class BatteryIndicator extends StatelessWidget {
@@ -30,16 +30,10 @@ class BatteryIndicator extends StatelessWidget {
             return _BatteryIndicator(
               size: Size(width, height),
               batteryLevel: energy,
+              lightningColor: config.lightningColor,
               isCharging:
                   battery.state.value == UPowerDeviceState.charging ||
                   battery.state.value == UPowerDeviceState.fullyCharged,
-              chargingColor: config.chargingColor,
-              dischargingColor: config.dischargingColor,
-              warningColor: config.warningColor,
-              criticalColor: config.criticalColor,
-              lightningColor: config.lightningColor,
-              outlineColor: config.outlineColor,
-              textColor: config.textColor,
             );
           },
         );
@@ -51,47 +45,37 @@ class BatteryIndicator extends StatelessWidget {
 class _BatteryIndicator extends StatelessWidget {
   final double batteryLevel; // Value from 0 to 100
   final bool isCharging;
-  final Color outlineColor;
-  final Color chargingColor;
-  final Color dischargingColor;
-  final Color warningColor;
-  final Color criticalColor;
   final Color lightningColor;
-  final Color textColor;
   final Size size;
 
   const _BatteryIndicator({
-    required this.outlineColor,
     required this.batteryLevel,
     required this.isCharging,
-    required this.chargingColor,
-    required this.dischargingColor,
-    required this.warningColor,
-    required this.criticalColor,
     required this.lightningColor,
-    required this.textColor,
     required this.size,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     Color fillColor;
     if (isCharging) {
-      fillColor = chargingColor;
+      fillColor = theme.dividerTheme.color ?? theme.dividerColor;
     } else if (batteryLevel > 50) {
-      fillColor = dischargingColor;
+      fillColor = theme.dividerTheme.color ?? theme.dividerColor;
     } else if (batteryLevel > 20) {
-      fillColor = warningColor;
+      fillColor = theme.colorScheme.error.withAlpha((theme.colorScheme.error.a * 255).round());
     } else {
-      fillColor = criticalColor;
+      fillColor = theme.colorScheme.error;
     }
-    final theme = Theme.of(context);
+    final textColor =
+        theme.textTheme.bodyMedium!.color ?? (theme.brightness == Brightness.dark ? Colors.white : Colors.black);
     return CustomPaint(
       size: size,
       painter: _BatteryPainter(
         batteryLevel: batteryLevel,
         fillColor: fillColor,
-        outlineColor: outlineColor,
+        outlineColor: textColor,
         lightningColor: lightningColor,
         textStyle: theme.textTheme.bodyMedium!.copyWith(color: textColor),
         isCharging: isCharging,

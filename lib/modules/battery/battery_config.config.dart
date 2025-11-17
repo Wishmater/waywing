@@ -124,3 +124,45 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
     lightningColor,
   ]);
 }
+
+mixin BatteryServiceConfigI {
+  @ConfigDocDefault<bool>(false)
+  /// Use a mock implementation for development only
+  bool get useMock;
+}
+
+class BatteryServiceConfig extends ConfigBaseI
+    with BatteryServiceConfigI, BatteryServiceConfigBase {
+  static const BlockSchema staticSchema = BlockSchema(
+    fields: {'useMock': BatteryServiceConfigBase._useMock},
+  );
+
+  static BlockSchema get schema => staticSchema;
+
+  @override
+  final bool useMock;
+
+  BatteryServiceConfig({bool? useMock}) : useMock = useMock ?? false;
+
+  factory BatteryServiceConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
+    return BatteryServiceConfig(useMock: fields['useMock']);
+  }
+
+  @override
+  String toString() {
+    return '''BatteryServiceConfig(
+	useMock = $useMock
+)''';
+  }
+
+  @override
+  bool operator ==(covariant BatteryServiceConfig other) {
+    return useMock == other.useMock;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([useMock]);
+}

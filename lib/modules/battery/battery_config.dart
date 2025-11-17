@@ -33,3 +33,9 @@ mixin BatteryConfigBase {
   /// Color of the lightning that indicates that the battery is charging
   static const _lightningColor = ColorField(defaultTo: MyColor(0xFFFFC107));
 }
+
+@Config()
+mixin BatteryServiceConfigBase {
+  /// Use a mock implementation for development only
+  static const _useMock = BooleanField(defaultTo: false);
+}

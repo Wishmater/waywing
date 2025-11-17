@@ -96,13 +96,13 @@ class BatteryValuesMock extends BatteryValues {
   @override
   late final DerivedValueNotifier<int> timeToEmpty = DerivedValueNotifier(
     dependencies: [energy, energyEmpty, energyRate],
-    derive: () => ((energy.value - energyEmpty.value) / energyRate.value.abs()).floor(),
+    derive: () => ((energy.value - energyEmpty.value) / (energyRate.value.abs() * 20)).floor(),
   );
 
   @override
   late final DerivedValueNotifier<int> timeToFull = DerivedValueNotifier(
     dependencies: [energy, energyFull, energyRate],
-    derive: () => ((energy.value - energyEmpty.value) / energyRate.value.abs()).floor(),
+    derive: () => ((energyFull.value - energy.value) / (energyRate.value.abs() * 20)).floor(),
   );
 }
 

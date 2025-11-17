@@ -7,6 +7,8 @@ import "package:waywing/modules/notification/notification_widget.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
+import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class NotificationManagerPopover extends StatelessWidget {
   const NotificationManagerPopover({super.key, required this.service});
@@ -37,20 +39,54 @@ class NotificationManagerPopover extends StatelessWidget {
                 ),
               );
             }
-            return Scrollbar(
-              controller: scrollController,
-              child: ScrollOpacityGradient(
-                scrollController: scrollController,
-                maxSize: 32,
-                child: ListView.builder(
-                  controller: scrollController,
-                  shrinkWrap: true,
-                  itemCount: notifications.length,
-                  itemBuilder: (context, index) {
-                    return _NotificationWidget(notifications[index]);
-                  },
+            return Column(
+              children: [
+                // Delete All button
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: WingedButton(
+                    containedInkWell: true,
+                    onTapDown: (_) {
+                      // Show confirmation dialog before deleting
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return _ConfirmationDialog(service);
+                        },
+                      );
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 2,
+                      children: [
+                        WingedIcon(
+                          flutterIcon: Icons.delete_outline,
+                          iconNames: ["delete"]
+                        ),
+                        Text("Clear notifications")
+                      ]
+                    ),
+                  ),
                 ),
-              ),
+                Divider(height: 1),
+                Expanded(
+                  child: Scrollbar(
+                    controller: scrollController,
+                    child: ScrollOpacityGradient(
+                      scrollController: scrollController,
+                      maxSize: 32,
+                      child: ListView.builder(
+                        controller: scrollController,
+                        shrinkWrap: true,
+                        itemCount: notifications.length,
+                        itemBuilder: (context, index) {
+                          return _NotificationWidget(notifications[index]);
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -94,4 +130,35 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
       isHovered: isHovered,
     );
   }
+}
+
+class _ConfirmationDialog extends StatelessWidget {
+  final NotificationsService service;
+
+  const _ConfirmationDialog(this.service);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text("Delete All Notifications"),
+      content: Text("Are you sure you want to delete all notifications?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text("Cancel"),
+        ),
+        FilledButton(
+          onPressed: () {
+            service.clearAllNotifications();
+            Navigator.of(context).pop();
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+          child: Text("Delete All"),
+        ),
+      ],
+    );
+  }
+
 }

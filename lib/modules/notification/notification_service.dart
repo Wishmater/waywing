@@ -183,6 +183,13 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
     await player.onPlayerComplete.first;
     await player.dispose();
   }
+
+  Future<void> clearAllNotifications() async {
+    for (final notification in server.storedNotifications.values) {
+      server.removeStoredNotification(notification.id);
+    }
+    storedNotificationChange.manualNotifyListeners();
+  }
 }
 
 class ActiveNotificationsList {

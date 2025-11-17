@@ -49,6 +49,9 @@ mixin BatteryConfigI {
   MyColor get criticalColor;
 
   @ConfigDocDefault<MyColor>(MyColor(0xFFEEEEEE))
+  MyColor get outlineColor;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFFEEEEEE))
   /// Text color of the battery percentage inside the battery
   MyColor get textColor;
 
@@ -69,6 +72,7 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
       'dischargingColor': BatteryConfigBase._dischargingColor,
       'warningColor': BatteryConfigBase._warningColor,
       'criticalColor': BatteryConfigBase._criticalColor,
+      'outlineColor': BatteryConfigBase._outlineColor,
       'textColor': BatteryConfigBase._textColor,
       'lightningColor': BatteryConfigBase._lightningColor,
     },
@@ -95,6 +99,8 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
   @override
   final MyColor criticalColor;
   @override
+  final MyColor outlineColor;
+  @override
   final MyColor textColor;
   @override
   final MyColor lightningColor;
@@ -109,6 +115,7 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
     MyColor? dischargingColor,
     MyColor? warningColor,
     MyColor? criticalColor,
+    MyColor? outlineColor,
     MyColor? textColor,
     MyColor? lightningColor,
   }) : enableProfile = enableProfile ?? true,
@@ -120,6 +127,7 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
        dischargingColor = dischargingColor ?? MyColor(0xFF424242),
        warningColor = warningColor ?? MyColor(0xFFFF6E40),
        criticalColor = criticalColor ?? MyColor(0xFFF44336),
+       outlineColor = outlineColor ?? MyColor(0xFFEEEEEE),
        textColor = textColor ?? MyColor(0xFFEEEEEE),
        lightningColor = lightningColor ?? MyColor(0xFFFFC107);
 
@@ -137,6 +145,7 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
       dischargingColor: fields['dischargingColor'],
       warningColor: fields['warningColor'],
       criticalColor: fields['criticalColor'],
+      outlineColor: fields['outlineColor'],
       textColor: fields['textColor'],
       lightningColor: fields['lightningColor'],
     );
@@ -154,6 +163,7 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
 	dischargingColor = $dischargingColor,
 	warningColor = $warningColor,
 	criticalColor = $criticalColor,
+	outlineColor = $outlineColor,
 	textColor = $textColor,
 	lightningColor = $lightningColor
 )''';
@@ -170,6 +180,7 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
         dischargingColor == other.dischargingColor &&
         warningColor == other.warningColor &&
         criticalColor == other.criticalColor &&
+        outlineColor == other.outlineColor &&
         textColor == other.textColor &&
         lightningColor == other.lightningColor;
   }
@@ -185,6 +196,7 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
     dischargingColor,
     warningColor,
     criticalColor,
+    outlineColor,
     textColor,
     lightningColor,
   ]);

@@ -33,12 +33,13 @@ class BatteryIndicator extends StatelessWidget {
               isCharging:
                   battery.state.value == UPowerDeviceState.charging ||
                   battery.state.value == UPowerDeviceState.fullyCharged,
-              outlineColor: config.textColor,
               chargingColor: config.chargingColor,
               dischargingColor: config.dischargingColor,
               warningColor: config.warningColor,
               criticalColor: config.criticalColor,
               lightningColor: config.lightningColor,
+              outlineColor: config.outlineColor,
+              textColor: config.textColor,
             );
           },
         );
@@ -56,6 +57,7 @@ class _BatteryIndicator extends StatelessWidget {
   final Color warningColor;
   final Color criticalColor;
   final Color lightningColor;
+  final Color textColor;
   final Size size;
 
   const _BatteryIndicator({
@@ -67,6 +69,7 @@ class _BatteryIndicator extends StatelessWidget {
     required this.warningColor,
     required this.criticalColor,
     required this.lightningColor,
+    required this.textColor,
     required this.size,
   });
 
@@ -90,7 +93,7 @@ class _BatteryIndicator extends StatelessWidget {
         fillColor: fillColor,
         outlineColor: outlineColor,
         lightningColor: lightningColor,
-        textStyle: theme.textTheme.bodyMedium!.copyWith(color: Colors.white),
+        textStyle: theme.textTheme.bodyMedium!.copyWith(color: textColor),
         isCharging: isCharging,
       ),
     );

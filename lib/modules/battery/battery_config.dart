@@ -42,6 +42,8 @@ mixin BatteryConfigBase {
   /// Battery color when the battery level is very low and is discharging
   static const _criticalColor = ColorField(defaultTo: MyColor(0xFFF44336));
 
+  static const _outlineColor = ColorField(defaultTo: MyColor(0xFFEEEEEE));
+
   /// Text color of the battery percentage inside the battery
   static const _textColor = ColorField(defaultTo: MyColor(0xFFEEEEEE));
 

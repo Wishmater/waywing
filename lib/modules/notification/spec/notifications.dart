@@ -20,6 +20,16 @@ enum NotificationsCloseReason {
 
   final int value;
   const NotificationsCloseReason(this.value);
+
+  factory NotificationsCloseReason.fromInt(int value) {
+    return switch (value) {
+      1 => expired,
+      2 => user,
+      3 => dbus,
+      4 => undefined,
+      _ => throw ArgumentError("expected 1, 2, 3 or 4 got $value", "value"),
+    };
+  }
 }
 
 enum NotificationChange { add, remove, change }
@@ -290,6 +300,7 @@ class FreedesktopNotificationsServer extends DBusObject {
     Map<String, DBusValue> hints,
     int expire_timeout,
   ) async {
+    // TODO 2: handle transient hint. Delete notification on timeout instead of saving it.
     final sublogger = logger.create(
       Level.trace,
       "notify replace_id: $replaces_id app_name: $app_name app_icon: $app_icon",

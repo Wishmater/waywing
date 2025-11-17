@@ -28,6 +28,7 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
   final ManualNotifier storedNotificationChange = ManualNotifier();
 
   static const String dbusName = "org.freedesktop.Notifications";
+  static final DBusObjectPath dbusPath = DBusObjectPath("/org/freedesktop/Notifications");
 
   static registerService(RegisterServiceCallback registerService) {
     registerService<NotificationsService, NotificationsServiceConfig>(
@@ -94,7 +95,7 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
     client = DBusClient.session();
     server = FreedesktopNotificationsServer(
       logger: logger.clone(properties: [...logger.defaultProperties, tronco.StringProperty("Server")]),
-      path: DBusObjectPath("/org/freedesktop/Notifications"),
+      path: dbusPath,
     );
     await client.registerObject(server);
     final resp = await client.requestName(

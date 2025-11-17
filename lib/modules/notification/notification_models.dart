@@ -107,6 +107,19 @@ class Notification {
     return null;
   }
 
+  Notification.clientNew({
+    required this.appName,
+    required this.appIcon,
+    required this.summary,
+    required this.body,
+    required this.actions,
+    required this.hints,
+    int? timeout,
+  }) : id = 0,
+       timestampMs = 0,
+       timeout = timeout ?? -1,
+       isFirst = false;
+
   Notification._({
     required this.id,
     required this.timestampMs,
@@ -133,6 +146,7 @@ class Notification {
        isFirst = false;
 
   Notification copyWith({
+    int? id,
     String? appName,
     String? appIcon,
     String? summary,
@@ -144,7 +158,7 @@ class Notification {
     bool? isFirst,
   }) {
     return Notification._(
-      id: id,
+      id: id ?? this.id,
       appName: appName ?? this.appName,
       appIcon: appIcon ?? this.appIcon,
       summary: summary ?? this.summary,
@@ -782,6 +796,16 @@ class NotificationHints {
     };
   }
 
+  Map<String, DBusValue> serialize() {
+    return {
+      "urgency": DBusByte(urgency.value),
+      if (actionIcons) "action-icons": DBusBoolean(actionIcons),
+      if (category != null) "category": DBusString(category!.toString()),
+      if (soundFile != null) "sound-file": DBusString(soundFile!),
+      if (soundName != null) "sound-name": DBusString(soundName!),
+    };
+  }
+
   static String? _parseDesktopEntry(String? desktopEntry) {
     if (desktopEntry == null) {
       return null;
@@ -1016,6 +1040,16 @@ class Actions {
     return "defaultAction: $defaultAction inlineReply: $inlineReply actions: [${actions.join(", ")}]";
   }
 
+  List<String> serialize() {
+    final result = <String>[];
+    defaultAction?.serialize(result);
+    inlineReply?.serialize(result);
+    for (final action in actions) {
+      action.serialize(result);
+    }
+    return result;
+  }
+
   void hiveWrite(BinaryWriter writer) {
     writer.writeBool(defaultAction != null);
     defaultAction?.hiveWrite(writer);
@@ -1059,6 +1093,9 @@ class Action {
 
   const Action({required this.key, required this.value});
 
+  const Action.inlineReply([this.value = ""]) : key = "inline-reply";
+  const Action.defaults(this.value) : key = "default";
+
   @override
   bool operator ==(covariant Action other) {
     return key == other.key && value == other.value;
@@ -1070,6 +1107,10 @@ class Action {
   @override
   String toString() {
     return "Action(key: $key, value: $value)";
+  }
+
+  void serialize(List<String> list) {
+    list.addAll([key, value]);
   }
 
   void hiveWrite(BinaryWriter writer) {

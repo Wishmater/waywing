@@ -59,12 +59,9 @@ class NotificationManagerPopover extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       spacing: 2,
                       children: [
-                        WingedIcon(
-                          flutterIcon: Icons.delete_outline,
-                          iconNames: ["delete"]
-                        ),
-                        Text("Clear notifications")
-                      ]
+                        WingedIcon(flutterIcon: Icons.delete, iconNames: ["delete"]),
+                        Text("Clear notifications"),
+                      ],
                     ),
                   ),
                 ),
@@ -122,12 +119,27 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
 
   @override
   Widget build(BuildContext context) {
-    return NotificationTile(
-      notification: widget.notification,
-      onToggleExpand: () {},
-      isExpanded: isExpanded,
-      animation: _animationController,
-      isHovered: isHovered,
+    final service = NotificationServiceInheritedWidget.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: NotificationTile(
+            notification: widget.notification,
+            onToggleExpand: () {},
+            isExpanded: isExpanded,
+            animation: _animationController,
+            isHovered: isHovered,
+            showActions: false,
+          ),
+        ),
+        WingedButton(
+          onTapUp: (_) => service.closeNotification(widget.notification),
+          child: WingedIcon(
+            flutterIcon: Icons.delete,
+            iconNames: ["delete"],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -140,25 +152,32 @@ class _ConfirmationDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text("Delete All Notifications"),
+      title: Text("Clear notifications"),
       content: Text("Are you sure you want to delete all notifications?"),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text("Cancel"),
-        ),
-        FilledButton(
-          onPressed: () {
-            service.clearAllNotifications();
-            Navigator.of(context).pop();
-          },
-          style: FilledButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-          child: Text("Delete All"),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          spacing: 2,
+          children: [
+            WingedButton(
+              containedInkWell: true,
+              constraints: BoxConstraints(maxWidth: 90),
+              onTapUp: (_) => Navigator.of(context).pop(),
+              child: Text("Cancel"),
+            ),
+            WingedButton(
+              containedInkWell: true,
+              constraints: BoxConstraints(maxWidth: 90),
+              onTapUp: (_) {
+                service.closeAllNotifications();
+                Navigator.of(context).pop();
+              },
+              color: Theme.of(context).colorScheme.error.withAlpha(80),
+              child: Text("Clear"),
+            ),
+          ],
         ),
       ],
     );
   }
-
 }

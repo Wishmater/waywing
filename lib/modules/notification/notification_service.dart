@@ -123,8 +123,10 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
     await client.close();
   }
 
+  // TODO remove from the public api as this action should be implicit
   Future<void> emitActivationToken(Notification notification) async {
     final token = await FlLinuxWindowManager.instance.getXdgToken();
+    print("XDG ACTIVATION TOKEN UWU $token");
     if (token == null) {
       logger.error(
         "on emitActivationToken xdg token should never be null",
@@ -135,8 +137,15 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
     await server.emitActivationToken(notification, token);
   }
 
-  Future<void> closeNotification(Notification notification) async {
-    await server.doCloseNotification(notification.id);
+  void closeNotification(Notification notification) {
+    server.removeNotification(notification.id, NotificationsCloseReason.user);
+  }
+
+  Future<void> closeAllNotifications() async {
+    for (final notification in server.storedNotifications.values) {
+      server.removeStoredNotification(notification.id);
+    }
+    storedNotificationChange.manualNotifyListeners();
   }
 
   Future<void> emitNotificationReplied(Notification notification, String text) async {
@@ -182,13 +191,6 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
     await player.play(source);
     await player.onPlayerComplete.first;
     await player.dispose();
-  }
-
-  Future<void> clearAllNotifications() async {
-    for (final notification in server.storedNotifications.values) {
-      server.removeStoredNotification(notification.id);
-    }
-    storedNotificationChange.manualNotifyListeners();
   }
 }
 

@@ -235,7 +235,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                           onTap: () async {
                             if (isExpanded) {
                               await service.emitActivationToken(notification);
-                              await service.closeNotification(notification);
+                              service.closeNotification(notification);
                             } else {
                               _toggleExpansion();
                             }
@@ -248,6 +248,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                         isHovered: isHovered,
                         onToggleExpand: _toggleExpansion,
                         animation: _animationController,
+                        showActions: true,
                       ),
                       if (timer != null && widget.config.showProgressBar)
                         Positioned(
@@ -282,20 +283,23 @@ class NotificationTile extends StatelessWidget {
     super.key,
     required this.notification,
     required this.isHovered,
-    required this.isExpanded,
     required this.onToggleExpand,
     required this.animation,
+    required this.isExpanded,
+    required this.showActions,
   });
 
   final Notification notification;
 
   final ValueListenable<bool> isHovered;
 
-  final bool isExpanded;
-
   final VoidCallback onToggleExpand;
 
   final Animation<double> animation;
+
+  final bool isExpanded;
+
+  final bool showActions;
 
   @override
   Widget build(BuildContext context) {
@@ -314,6 +318,7 @@ class NotificationTile extends StatelessWidget {
           fadeAnimation: animation,
           notification: notification,
           isExpanded: isExpanded,
+          showActions: showActions,
         ),
       ],
     );
@@ -325,12 +330,14 @@ class _AnimatedNotificationContent extends StatelessWidget {
   final Animation<double> fadeAnimation;
   final Notification notification;
   final bool isExpanded;
+  final bool showActions;
 
   const _AnimatedNotificationContent({
     required this.animation,
     required this.fadeAnimation,
     required this.notification,
     required this.isExpanded,
+    required this.showActions,
   });
 
   @override
@@ -351,7 +358,7 @@ class _AnimatedNotificationContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _NotificationBody(notification),
-                _NotificationActions(notification.actions, notification),
+                if (showActions) _NotificationActions(notification.actions, notification),
               ],
             ),
           ),
@@ -684,7 +691,10 @@ class _NotificationAction extends StatelessWidget {
     if (identifierAreIcons) {
       // TODO: 2 STYLE this should use WingedButton
       return TextButton(
-        onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
+        onPressed: () {
+          service.emitActivationToken(notification);
+          service.server.emitActionInvoked(notification.id, action.key);
+        },
         child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: 2,
@@ -697,7 +707,10 @@ class _NotificationAction extends StatelessWidget {
     } else {
       // TODO: 2 STYLE this should use WingedButton
       return TextButton(
-        onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
+        onPressed: () async {
+          await service.emitActivationToken(notification);
+          service.server.emitActionInvoked(notification.id, action.key);
+        },
         child: Text(action.value),
       );
     }

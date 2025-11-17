@@ -31,7 +31,7 @@ class BatteryService extends Service<BatteryServiceConfig> {
   Future<void> init() async {
     if (config.useMock) {
       battery = BatteryValuesMock();
-      profile = null;
+      profile = ProfileValuesMock();
     } else {
       _client = UPowerClient(bus: _bus);
       await _client.connect();

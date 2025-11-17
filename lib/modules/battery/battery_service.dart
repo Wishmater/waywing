@@ -11,7 +11,7 @@ class BatteryService extends Service<BatteryServiceConfig> {
   BatteryService._() : _bus = DBusClient.system();
 
   final DBusClient _bus;
-  late final UPowerClient _client;
+  UPowerClient? _client;
   UPowerProfile? _profile;
 
   late final BatteryValues battery;
@@ -34,25 +34,23 @@ class BatteryService extends Service<BatteryServiceConfig> {
       profile = ProfileValuesMock();
     } else {
       _client = UPowerClient(bus: _bus);
-      await _client.connect();
+      await _client!.connect();
       _profile = UPowerProfile(bus: _bus);
       try {
         await _profile!.connect();
       } catch (_) {
         _profile = null;
       }
-      await _client.connect();
+      await _client!.connect();
 
-      battery = BatteryValuesImpl(_client.displayDevice);
+      battery = BatteryValuesImpl(_client!.displayDevice);
       profile = _profile != null ? ProfileValuesImpl(_profile!) : null;
     }
   }
 
   @override
   Future<void> dispose() async {
-    await Future.wait([_client.close(), ?_profile?.close()]);
+    await Future.wait([?_client?.close(), ?_profile?.close()]);
     await _bus.close();
   }
-
-  UPowerDevice get displayDevice => _client.displayDevice;
 }

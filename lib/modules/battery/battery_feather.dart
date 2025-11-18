@@ -33,15 +33,30 @@ class BatteryFeather extends Feather<BatteryConfig> {
   @override
   String get name => "Battery";
 
+  final ValueNotifier<bool> pulse = ValueNotifier(false);
+  void _updatePulse() {
+    if (!config.enablePulse) {
+      return;
+    }
+    pulse.value = service.pulse.value;
+  }
+
   @override
   Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<BatteryService>(this);
+    service.pulse.addListener(_updatePulse);
   }
 
   @override
   void onConfigUpdated(covariant BatteryConfig oldConfig) {
     if (oldConfig.enableProfile != config.enableProfile) {
       enableProfileChange.manualNotifyListeners();
+    }
+
+    if (config.enablePulse) {
+      _updatePulse();
+    } else {
+      pulse.value = false;
     }
   }
 
@@ -57,10 +72,10 @@ class BatteryFeather extends Feather<BatteryConfig> {
             if (service.profile != null && config.enableProfile) {
               return WingedButton(
                 onTap: (_, _) => popover!.togglePopover(),
-                child: BatteryIndicator(battery: service.battery, config: config),
+                child: BatteryIndicator(battery: service.battery, config: config, pulse: pulse),
               );
             } else {
-              return BatteryIndicator(battery: service.battery, config: config);
+              return BatteryIndicator(battery: service.battery, config: config, pulse: pulse);
             }
           },
         ),

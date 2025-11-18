@@ -6,11 +6,11 @@ import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
-import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/icons/symbol_icon.dart";
 import "package:waywing/widgets/icons/text_icon.dart";
+import "package:waywing/widgets/splash_pulse.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 

@@ -5,12 +5,14 @@ import "package:upower/upower.dart";
 import "package:waywing/modules/battery/battery_config.dart";
 import "package:waywing/modules/battery/interfaces/battery_service_interfaces.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/widgets/splash_pulse.dart";
 
 class BatteryIndicator extends StatelessWidget {
   final BatteryValues battery;
   final BatteryConfig config;
+  final ValueNotifier<bool> pulse;
 
-  const BatteryIndicator({super.key, required this.battery, required this.config});
+  const BatteryIndicator({super.key, required this.battery, required this.config, required this.pulse});
 
   @override
   Widget build(BuildContext context) {
@@ -23,17 +25,22 @@ class BatteryIndicator extends StatelessWidget {
         final height = (15.0 * width / 35).clamp(constrains.minHeight, constrains.maxHeight);
         return ValueListenableBuilder(
           valueListenable: DerivedValueNotifier(
-            dependencies: [battery.energy, battery.energyFull, battery.state],
+            dependencies: [battery.energy, battery.energyFull, battery.state, pulse],
             derive: () => (battery.energy.value / battery.energyFull.value) * 100,
           ),
           builder: (context, energy, _) {
-            return _BatteryIndicator(
-              size: Size(width, height),
-              batteryLevel: energy,
-              lightningColor: config.lightningColor,
-              isCharging:
-                  battery.state.value == UPowerDeviceState.charging ||
-                  battery.state.value == UPowerDeviceState.fullyCharged,
+            final theme = Theme.of(context);
+            return SplashPulse(
+              color: theme.colorScheme.error.withValues(alpha: 0.5),
+              pulsing: pulse.value,
+              child: _BatteryIndicator(
+                size: Size(width, height),
+                batteryLevel: energy,
+                lightningColor: config.lightningColor,
+                isCharging:
+                    battery.state.value == UPowerDeviceState.charging ||
+                    battery.state.value == UPowerDeviceState.fullyCharged,
+              ),
             );
           },
         );

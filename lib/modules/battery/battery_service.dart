@@ -1,6 +1,7 @@
 import "dart:async";
 
 import "package:dbus/dbus.dart";
+import "package:flutter/foundation.dart";
 import "package:mutex/mutex.dart";
 import "package:waywing/core/service.dart";
 import "package:upower/upower.dart";
@@ -54,6 +55,8 @@ class BatteryService extends Service<BatteryServiceConfig> {
     battery.energy.addListener(_notifyOnLowBattery);
   }
 
+  final ValueNotifier<bool> pulse = ValueNotifier(false);
+
   Notification? notification;
   final Mutex _mutex = Mutex();
   void _notifyOnLowBattery() {
@@ -66,9 +69,13 @@ class BatteryService extends Service<BatteryServiceConfig> {
       if (notification != null && isChargingOrEnoughBattery) {
         unawaited(NotificationsClient.instance.close(notification!));
       }
+      if (isChargingOrEnoughBattery) {
+        pulse.value = false;
+      }
       return;
     }
     _mutex.protect(() async {
+      pulse.value = true;
       notification = await NotificationsClient.instance.notify(
         Notification.clientNew(
           appName: "waywing",

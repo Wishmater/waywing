@@ -63,10 +63,13 @@ class NotificationsClient {
 
     return notificationNew;
   }
-  
+
   Future<void> close(Notification notification) async {
-    _activeNotifications.remove(notification.id);
-   await _dbusObject.callCloseNotification(notification.id);
+    await _dbusObject.callCloseNotification(notification.id);
+    _activeNotifications
+        .remove(notification.id)
+        ?.callback
+        ?.call(ClientNotificationEventClose(NotificationsCloseReason.dbus));
   }
 }
 

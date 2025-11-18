@@ -35,7 +35,7 @@ class NumLockFeather extends Feather<NumLockConfig> {
   @override
   Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<CompositorService>(this);
-    if (service.supportNumlock) throw Exception("Numlock not supported by ${service.runtimeType}");
+    if (!service.supportNumlock) throw Exception("Numlock not supported by ${service.runtimeType}");
   }
 
   late final isIndicatorEnabled = DerivedValueNotifier(

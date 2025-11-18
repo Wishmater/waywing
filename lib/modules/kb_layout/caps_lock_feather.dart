@@ -39,7 +39,7 @@ class CapsLockFeather extends Feather<CapsLockConfig> {
   @override
   Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<CompositorService>(this);
-    if (service.supportCapslock) throw Exception("Capslock not supported by ${service.runtimeType}");
+    if (!service.supportCapslock) throw Exception("Capslock not supported by ${service.runtimeType}");
   }
 
   late final isIndicatorEnabled = DerivedValueNotifier(

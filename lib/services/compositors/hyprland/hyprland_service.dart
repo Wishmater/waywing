@@ -6,8 +6,9 @@ import "package:flutter/foundation.dart";
 import "package:path/path.dart" as path;
 
 import "package:waywing/services/compositors/compositor.dart";
-import "package:waywing/services/hyprland/hyrpland_models.dart";
+import "package:waywing/services/compositors/layout_utils.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "hyrpland_models.dart";
 
 class HyprlandService extends CompositorService {
   HyprlandService();
@@ -157,16 +158,28 @@ class HyprlandService extends CompositorService {
       if (keyboard != null) {
         isNumlockActive.value = keyboard.numLock;
         isCapslockActive.value = keyboard.capsLock;
-        final idx = keyboard.layouts.indexOf(keyboard.activeKeymap);
+        final idx = keyboard.layouts.indexOf(LayoutUtils.findLayout(keyboard.activeKeymap) ?? "__not_found__");
         if (idx == -1) {
           keyboardLayouts.value = null;
         } else {
           keyboardLayouts.value = CompositorKeyboardLayouts(keyboard.layouts, idx, null);
         }
       }
+      _pollNumlockCapslockData();
     }
 
     _socket.listen((data) => addEvents(String.fromCharCodes(data)));
+  }
+
+  Future<void> _pollNumlockCapslockData() async {
+    while(!_disposed) {
+      await Future.delayed(Duration(milliseconds: 100));
+      final keyboard = await callActiveKeyboard();
+      if (keyboard != null) {
+        isNumlockActive.value = keyboard.numLock;
+        isCapslockActive.value = keyboard.capsLock;
+      }
+    }
   }
 
   void addEvents(String data) {
@@ -314,7 +327,6 @@ class HyprlandService extends CompositorService {
   }
 
   void _createWorkspaceAddEvent(String event) {
-    print("AY MARICA WTF ${workspaces.value.workspaces}");
     final splitted = event.split(",");
     if (splitted.length != 2) {
       return;
@@ -413,8 +425,10 @@ class HyprlandService extends CompositorService {
     "closewindow": _closeWindow,
   };
 
+  bool _disposed = false;
   @override
   Future<void> dispose() async {
+    _disposed = true;
     await Future.wait([
       _socket.close(),
     ]).onError((_, _) => []);

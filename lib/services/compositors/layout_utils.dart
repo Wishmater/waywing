@@ -10,6 +10,7 @@ final class LayoutUtils {
     return _layouts!;
   }
 
+  /// Find layout from human readable to short
   static String? findLayout(String layout) {
     return layouts[layout];
   }

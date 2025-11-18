@@ -4,7 +4,7 @@ import "package:flutter/foundation.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/services/compositors/niri/niri_service.dart";
-import "package:waywing/services/hyprland/hyprland_service.dart";
+import "package:waywing/services/compositors/hyprland/hyprland_service.dart";
 
 abstract class CompositorService extends Service {
   CompositorService();

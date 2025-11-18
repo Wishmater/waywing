@@ -1,4 +1,5 @@
 import "dart:async";
+import "dart:convert";
 
 import "package:aria2c/aria2cWebSocketRPC.dart";
 import "package:config/config.dart";
@@ -59,7 +60,12 @@ class Aria2Service extends Service<Aria2ServiceConfig> {
     await _rpc.connect();
 
     // get initial values
-    final globalStat = (await _rpc.getGlobalStat())["result"];
+    final globalStatResponse = await _rpc.getGlobalStat();
+    if (globalStatResponse["result"] == null) {
+      final formattedResponse = JsonEncoder.withIndent("    ").convert(globalStatResponse);
+      throw Exception("Received error response from aria2 rpc:\n$formattedResponse");
+    }
+    final globalStat = globalStatResponse["result"] as Map;
     _downloadSpeed = ValueNotifier(int.parse(globalStat["downloadSpeed"]));
     _uploadSpeed = ValueNotifier(int.parse(globalStat["uploadSpeed"]));
     _numActive = ValueNotifier(int.parse(globalStat["numActive"]));
@@ -77,7 +83,12 @@ class Aria2Service extends Service<Aria2ServiceConfig> {
     // initialize timer to update values
     // TODO: 2 add an option to set update timer delay
     _timer = Timer.periodic(Duration(seconds: 1), (_) async {
-      final globalStat = (await _rpc.getGlobalStat())["result"];
+      final globalStatResponse = await _rpc.getGlobalStat();
+      if (globalStatResponse["result"] == null) {
+        final formattedResponse = JsonEncoder.withIndent("    ").convert(globalStatResponse);
+        throw Exception("Received error response from aria2 rpc:\n$formattedResponse");
+      }
+      final globalStat = globalStatResponse["result"] as Map;
       logger.trace("GlobalStat: $globalStat");
       _downloadSpeed.value = int.parse(globalStat["downloadSpeed"]);
       _uploadSpeed.value = int.parse(globalStat["uploadSpeed"]);

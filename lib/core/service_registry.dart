@@ -251,5 +251,5 @@ class ServiceInitializationError<T> extends Error {
   ServiceInitializationError(this.service);
 
   @override
-  String toString() => "Error while initializing service $service";
+  String toString() => "Error while initializing service ${service.runtimeType}";
 }

@@ -184,7 +184,7 @@ Future<MainConfig> reloadConfig(String content, [String? filepath]) async {
       throw UnimplementedError();
     case EvaluationSuccess():
       _logger.log(Level.info, "Read config EvaluationSuccess");
-      _logger.log(Level.info, _toPrettyJson(result.values));
+      _logger.log(Level.trace, _toPrettyJson(result.values));
       _config = MainConfig.fromBlock(result.values);
       updateLoggerConfig(_config.logging);
       return _config;

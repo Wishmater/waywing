@@ -1,12 +1,17 @@
 import "dart:convert";
+import "dart:io";
 
+import "package:flutter/widgets.dart";
+import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:bitwarden_vault_api/bitwarden_api.dart" as bw;
 import "package:freedesktop_secrets/freedesktop_secrets.dart";
 import "package:waywing/core/service_registry.dart";
 
-class BitwardenService extends Service {
-  BitwardenService._();
+class BitwardenService extends Service with WidgetsBindingObserver {
+  BitwardenService._() {
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   static void registerService(RegisterServiceCallback registration) {
     registration<BitwardenService, dynamic>(
@@ -19,10 +24,16 @@ class BitwardenService extends Service {
   late final bw.ApiClient apiClient;
   late final FreedesktopSecretsClient? secretsClient;
   late final FreedesktopSecretsCollection? defaultCollection;
+  late final _bwRunner = BwRunner(logger);
 
   @override
   Future<void> init() async {
     apiClient = bw.ApiClient(basePath: "http://localhost:8087");
+
+    _bwRunner.start();
+    // Hack to wait for bw start
+    logger.warning("bw serve terminated with exit code $exitCode", error: stderr);
+    await Future.delayed(Duration(seconds: 2));
 
     try {
       final secretsClient = FreedesktopSecretsClient();
@@ -99,8 +110,11 @@ class BitwardenService extends Service {
 
   @override
   Future<void> dispose() async {
+    logger.error("Running dispose method AAA ----------------------");
+    WidgetsBinding.instance.removeObserver(this);
     await lock();
     await secretsClient?.close();
+    await _bwRunner.stop();
     apiClient.client.close();
   }
 }
@@ -117,4 +131,58 @@ final class DefaultCollectionLockedException implements Exception {
 
   @override
   String toString() => "BitwardenService needs the default collection $collectionName to be unlocked";
+}
+
+class BwRunner {
+  Logger logger;
+
+  static BwRunner? instance;
+
+  BwRunner._(this.logger);
+
+  factory BwRunner(Logger logger) {
+    instance ??= BwRunner._(logger);
+    return instance!;
+  }
+
+  bool _running = false;
+  Process? _process;
+
+  void start() async {
+    if (_running) {
+      logger.trace("try running bw serve but process is already running");
+      return;
+    }
+    _running = true;
+    /// TODO 2: check `bw` exists and does not need login
+    /// TODO 2: pass `bw serve` configurations
+    /// TODO 2: how can i notify that bw serve already started?
+    while (_running) {
+      _process = await Process.start("bw", ["serve"]);
+      final exitCode = await _process!.exitCode;
+      final stderr = (await _process?.stderr.transform(utf8.decoder).toList())?.join();
+      if ((stderr?? "").contains("EADDRINUSE: address already in use")) {
+        await stop();
+        logger.warning("bw serve terminated with $exitCode", error: stderr);
+      } else {
+        logger.warning("bw serve terminated with $exitCode. Will try again", error: stderr);
+      }
+    }
+  }
+
+  Future<void> stop() async {
+    if (this == instance) {
+      logger.trace("stop bw serve ");
+      instance = null;
+    } else {
+      logger.warning("stop bw serve. Not the global instance");
+    }
+    _running = false;
+    if (_process?.kill(ProcessSignal.sigterm) == true) {
+      final exitCode = await _process?.exitCode.timeout(Duration(milliseconds: 200), onTimeout: () => -100);
+      if (exitCode == -100) {
+        _process?.kill(ProcessSignal.sigkill);
+      }
+    }
+  }
 }

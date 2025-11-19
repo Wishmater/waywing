@@ -128,14 +128,12 @@ class BitwardenPopoverState extends State<BitwardenPopover> {
 
   void _onSelected(bw.Item item) async {
     switch (item.type) {
-      case null:
-        throw UnimplementedError();
       case bw.ItemTypeEnum.login:
-        Clipboard.setData(ClipboardData(text: item.login!.password ?? ""));
+        await Clipboard.setData(ClipboardData(text: item.login!.password ?? ""));
+        widget.close();
+      case null:
       case bw.ItemTypeEnum.secureNote:
-        throw UnimplementedError();
       case bw.ItemTypeEnum.card:
-        throw UnimplementedError();
       case bw.ItemTypeEnum.identity:
         throw UnimplementedError();
     }

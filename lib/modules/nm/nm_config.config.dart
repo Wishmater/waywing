@@ -106,3 +106,49 @@ class NetworkManagerConfig extends ConfigBaseI
     deviceTypeFilter,
   ]);
 }
+
+mixin NetworkManagerServiceConfigI {
+  @ConfigDocDefault<List<String>>(<String>[])
+  List<String> get deviceTypeFilter;
+}
+
+class NetworkManagerServiceConfig extends ConfigBaseI
+    with NetworkManagerServiceConfigI, NetworkManagerServiceConfigBase {
+  static const BlockSchema staticSchema = BlockSchema(
+    fields: {
+      'deviceTypeFilter': NetworkManagerServiceConfigBase._deviceTypeFilter,
+    },
+  );
+
+  static BlockSchema get schema => staticSchema;
+
+  @override
+  final List<String> deviceTypeFilter;
+
+  NetworkManagerServiceConfig({List<String>? deviceTypeFilter})
+    : deviceTypeFilter = deviceTypeFilter ?? <String>[];
+
+  factory NetworkManagerServiceConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
+    return NetworkManagerServiceConfig(
+      deviceTypeFilter: fields['deviceTypeFilter'],
+    );
+  }
+
+  @override
+  String toString() {
+    return '''NetworkManagerServiceConfig(
+	deviceTypeFilter = $deviceTypeFilter
+)''';
+  }
+
+  @override
+  bool operator ==(covariant NetworkManagerServiceConfig other) {
+    return deviceTypeFilter == other.deviceTypeFilter;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([deviceTypeFilter]);
+}

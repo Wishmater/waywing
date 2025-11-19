@@ -11,3 +11,8 @@ mixin NetworkManagerConfigBase on NetworkManagerConfigI {
   static const _showThroughputIndicator = BooleanField(defaultTo: true);
   static const _deviceTypeFilter = ListField(StringField(), defaultTo: <String>[]);
 }
+
+@Config()
+mixin NetworkManagerServiceConfigBase on NetworkManagerServiceConfigI {
+  static const _deviceTypeFilter = ListField(StringField(), defaultTo: <String>[]);
+}

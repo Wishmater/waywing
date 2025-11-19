@@ -73,7 +73,12 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
                 : device.isConnected,
             buildIndicators: (context, popover) {
               return [
-                NetworkManagerIndicator(config: config, device: device, popover: popover),
+                NetworkManagerIndicator(
+                  service: service,
+                  config: config,
+                  device: device,
+                  popover: popover,
+                ),
               ];
             },
             isTooltipEnabled: device.isConnected,

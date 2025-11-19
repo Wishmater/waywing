@@ -16,11 +16,13 @@ import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class NetworkManagerIndicator extends StatelessWidget {
+  final NetworkManagerService service;
   final NetworkManagerConfig config;
   final NMServiceDevice device;
   final WingedPopoverController? popover;
 
   const NetworkManagerIndicator({
+    required this.service,
     required this.config,
     required this.device,
     required this.popover,
@@ -148,9 +150,8 @@ class NetworkManagerIndicator extends StatelessWidget {
                 return [
                   WingedContextMenuItem(
                     child: Text("Hide device"),
-                    // TODO:
                     onTap: (popover, _, _) {
-                      popover?.hidePopover();
+                      service.devices.hideDevice(device);
                       return null;
                     },
                   ),

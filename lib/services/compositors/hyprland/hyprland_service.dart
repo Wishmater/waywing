@@ -321,7 +321,7 @@ class HyprlandService extends CompositorService {
     isCapslockActive.value = keyboard.capsLock;
     isNumlockActive.value = keyboard.numLock;
 
-    final idx = keyboard.layouts.indexOf(layout);
+    final idx = keyboard.layouts.indexOf(LayoutUtils.findLayout(layout) ?? "__not_found__");
     if (idx == -1) {
       keyboardLayouts.value = null;
       return;

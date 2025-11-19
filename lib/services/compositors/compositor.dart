@@ -190,7 +190,3 @@ class CompositorMonitor {
 
   CompositorMonitor(this.id, this.name, this.inner);
 }
-
-class CompositorError {}
-
-class InvalidCompositor extends CompositorError {}

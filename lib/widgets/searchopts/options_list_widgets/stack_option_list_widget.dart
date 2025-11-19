@@ -88,29 +88,29 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
       });
     final stackChildren = <Widget>[];
     int visibleAndNotRemovedItemCount = 0;
-    for (final e in sortedItems) {
-      final isVisible = e.timeRemoved == null && isItemAtLeastPartiallyVisible(e.index);
-      if (isVisible && e.timeRemoved == null) {
+    for (final item in sortedItems) {
+      final isVisible = item.timeRemoved == null && isItemAtLeastPartiallyVisible(item.index);
+      if (isVisible && item.timeRemoved == null) {
         visibleAndNotRemovedItemCount++;
       }
       stackChildren.add(
         ValueListenableBuilder(
-          key: e.globalKey,
+          key: item.globalKey,
           valueListenable: widget.highlighted,
           builder: (context, value, child) {
             return MotionPositioned(
               motion: widget.motion,
               left: 0,
               right: 0,
-              top: widget.itemHeight * (e.index - startingIndex),
+              top: widget.itemHeight * (item.index - startingIndex),
               child: _ItemAnimation(
                 isItemVisible: isVisible,
-                isItemRemoved: e.timeRemoved != null,
+                isItemRemoved: item.timeRemoved != null,
                 motion: widget.motion,
                 child: widget.renderOption(
                   context,
-                  e.option.object,
-                  SearchOptionsRenderConfig(isHighlighted: value == e.index),
+                  item.option.object,
+                  SearchOptionsRenderConfig(isHighlighted: value == item.index),
                 ),
               ),
             );

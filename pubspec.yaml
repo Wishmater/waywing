@@ -132,6 +132,8 @@ dependencies:
   http: ^1.5.0
   html: ^0.15.6
   hive_ce: ^2.15.1
+  http_cache_client: ^1.0.4
+  http_cache_hive_store: ^5.0.1
 
 dev_dependencies:
   flutter_test:

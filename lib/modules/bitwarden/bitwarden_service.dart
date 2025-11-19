@@ -32,7 +32,6 @@ class BitwardenService extends Service with WidgetsBindingObserver {
 
     _bwRunner.start();
     // Hack to wait for bw start
-    logger.warning("bw serve terminated with exit code $exitCode", error: stderr);
     await Future.delayed(Duration(seconds: 2));
 
     try {
@@ -93,6 +92,7 @@ class BitwardenService extends Service with WidgetsBindingObserver {
   }
 
   Future<List<bw.Item>> items() {
+    // TODO 1: catch locked vault error and unlock it
     return bw.VaultItemsApi(apiClient).listObjectItemsGet();
   }
 
@@ -136,6 +136,7 @@ final class DefaultCollectionLockedException implements Exception {
 class BwRunner {
   Logger logger;
 
+  // use singleton pattern because there can only be one `bw serve` instance running
   static BwRunner? instance;
 
   BwRunner._(this.logger);

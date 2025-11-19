@@ -354,6 +354,8 @@ class AbsolutePathFileImageData extends ImageData {
 }
 
 class RawImageData extends ImageData {
+  // TODO 3: raw image needs some kind of information
+  // for the widget to know how to render it
   final Uint8List data;
   RawImageData(List<int> data) : data = data is Uint8List ? data : Uint8List.fromList(data);
 
@@ -409,8 +411,20 @@ class _WingedRawIcon extends StatelessWidget {
     return switch (directImageData.first) {
       AbsolutePathFileImageData data => buildAbsolutePathFileImageData(context, data),
       PixmapIconsImageData data => buildPixmapIconsImageData(context, data),
-      RawImageData data => throw UnimplementedError(),
+      RawImageData data => buildRawImageData(context, data),
     };
+  }
+
+  Widget buildRawImageData(BuildContext context, RawImageData data) {
+    final size = this.size ?? TextIcon.getIconEffectiveSize(context);
+    return Image.memory(
+      data.data,
+      width: size,
+      height: size,
+      errorBuilder: (context, e, st) {
+        return buildFallback(context, e.toString());
+      },
+    );
   }
 
   Widget buildAbsolutePathFileImageData(BuildContext context, AbsolutePathFileImageData data) {

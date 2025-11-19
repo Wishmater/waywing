@@ -124,6 +124,7 @@ class KeyboardLayoutIndicator extends StatelessWidget {
                 );
               }
               return WingedButton(
+                onTapDown: (_) => service.switchLayoutNext(),
                 child: content,
               );
             },

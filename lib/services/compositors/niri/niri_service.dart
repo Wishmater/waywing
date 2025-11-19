@@ -105,6 +105,18 @@ class NiriService extends CompositorService {
   }
 
   @override
+  Future<void> switchLayoutNext() async {
+    final request = Request.action(Action.switchLayout(LayoutSwitchTarget.next()));
+    await commandSocket.send(request);
+  }
+
+  @override
+  Future<void> switchLayoutPrevious() async {
+    final request = Request.action(Action.switchLayout(LayoutSwitchTarget.prev()));
+    await commandSocket.send(request);
+  }
+
+  @override
   bool get supportWindows => true;
 
   @override

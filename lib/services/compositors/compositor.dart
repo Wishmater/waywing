@@ -40,6 +40,10 @@ abstract class CompositorService extends Service {
   /// Change the keyboard layout to the index. The index is the index in the layouts list
   Future<void> switchLayout(int index);
 
+  Future<void> switchLayoutNext();
+
+  Future<void> switchLayoutPrevious();
+
   /// Weather this compositor supports capslock notification or not
   bool get supportCapslock;
 

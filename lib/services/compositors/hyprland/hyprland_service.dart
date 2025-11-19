@@ -162,7 +162,7 @@ class HyprlandService extends CompositorService {
         if (idx == -1) {
           keyboardLayouts.value = null;
         } else {
-          keyboardLayouts.value = CompositorKeyboardLayouts(keyboard.layouts, idx, null);
+          keyboardLayouts.value = CompositorKeyboardLayouts(keyboard.layouts, idx, keyboard);
         }
       }
       _pollNumlockCapslockData();
@@ -172,7 +172,7 @@ class HyprlandService extends CompositorService {
   }
 
   Future<void> _pollNumlockCapslockData() async {
-    while(!_disposed) {
+    while (!_disposed) {
       await Future.delayed(Duration(milliseconds: 100));
       final keyboard = await callActiveKeyboard();
       if (keyboard != null) {
@@ -205,8 +205,20 @@ class HyprlandService extends CompositorService {
 
   @override
   Future<void> switchLayout(int index) async {
-    final currentKeyboardDevice = await callActiveKeyboard();
-    await sendCommand("switchxkblayout", args: [currentKeyboardDevice!.name, "$index"]);
+    final device = keyboardLayouts.value?.inner as HyprlandKeyboardDevice;
+    await sendCommand("switchxkblayout", args: [device.name, "$index"]);
+  }
+
+  @override
+  Future<void> switchLayoutNext() async {
+    final device = keyboardLayouts.value?.inner as HyprlandKeyboardDevice;
+    await sendCommand("switchxkblayout", args: [device.name, "next"]);
+  }
+
+  @override
+  Future<void> switchLayoutPrevious() async {
+    final device = keyboardLayouts.value?.inner as HyprlandKeyboardDevice;
+    await sendCommand("switchxkblayout", args: [device.name, "prev"]);
   }
 
   @override
@@ -314,7 +326,7 @@ class HyprlandService extends CompositorService {
       keyboardLayouts.value = null;
       return;
     }
-    keyboardLayouts.value = CompositorKeyboardLayouts(keyboard.layouts, idx, null);
+    keyboardLayouts.value = CompositorKeyboardLayouts(keyboard.layouts, idx, keyboard);
   }
 
   void _activeWindowAddEvent(String event) {

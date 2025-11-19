@@ -120,7 +120,7 @@ class HyprlandService extends CompositorService {
               inner: w,
             ),
           )
-          .toList(growable: false);
+          .toList();
     }
     {
       final workspacesHypr = await callWorkspaces();

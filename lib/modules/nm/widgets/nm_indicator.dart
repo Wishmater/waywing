@@ -482,6 +482,7 @@ class ConnectionNameWidget extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: device.activeConnectionName,
       builder: (context, activeConnectionName, _) {
+        // maybe we could use device._device.interface for a device identification (as opposed to connection)
         if (activeConnectionName == null) return SizedBox.shrink();
         // TODO: 2 use activeConnection.status (or cues from statistics) to implement more detailed status (like connected with on internet)
         return Padding(

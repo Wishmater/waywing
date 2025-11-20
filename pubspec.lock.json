@@ -659,7 +659,7 @@
       "version": "1.0.4"
     },
     "http_cache_core": {
-      "dependency": "transitive",
+      "dependency": "direct main",
       "description": {
         "name": "http_cache_core",
         "sha256": "ff0b6e6c3766d774d59b806f928b39e6a48f7b2c47ae1fe27410bfd792bee511",

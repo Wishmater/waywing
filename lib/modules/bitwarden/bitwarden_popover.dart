@@ -1,5 +1,4 @@
 import "dart:async";
-import "dart:io";
 
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";

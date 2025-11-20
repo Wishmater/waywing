@@ -45,7 +45,7 @@ class LauncherWidget extends StatelessWidget {
 
   void _run(Application app) async {
     try {
-      await service.run(app);
+      await service.run(app, config.terminal);
     } finally {
       close();
     }

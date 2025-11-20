@@ -177,7 +177,7 @@ class Application implements Comparable<Application> {
     return "Application name: $name filepath: $filepath";
   }
 
-  Future<void> run({bool forceExec = false, required Logger logger}) async {
+  Future<void> run({bool forceExec = false, required Logger logger, required String terminal}) async {
     if (!forceExec && dBusActivatable) {
       String dbusname = path.basename(filepath);
       if (dbusname.endsWith(".desktop")) {
@@ -205,7 +205,7 @@ class Application implements Comparable<Application> {
         await remoteObject.callMethod("org.freedesktop.Application", "Activate", params, noReplyExpected: true);
       } on DBusMethodResponseException catch (e) {
         if (e is DBusServiceUnknownException) {
-          return run(forceExec: true, logger: logger);
+          return run(forceExec: true, logger: logger, terminal: terminal);
         }
         throw Exception("dbus activation error: $e");
       }
@@ -214,12 +214,11 @@ class Application implements Comparable<Application> {
         throw Exception("invalid desktop: no exec found when dBusActivable is false");
       }
       final (cmd, args) = parseExec(exec!);
-      if (terminal) {
-        logger.debug("run alacritty -e $cmd ${args.join(' ')}");
-        // TODO 1: increase the list of terminals to launch and also make it configurable
+      if (this.terminal) {
+        logger.debug("run $terminal -e $cmd ${args.join(' ')}");
         await Process.start(
           "setpgid",
-          ["alacritty", "-e", cmd, ...args],
+          [terminal, "-e", cmd, ...args],
           mode: ProcessStartMode.detached,
           includeParentEnvironment: true,
         );

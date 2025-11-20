@@ -402,7 +402,10 @@ class EvaluationErrorDiagnostic extends Diagnostic {
         yield LabeledSourceSpan(null, error.position.startOffset, error.position.length);
       case ValidationError error:
         yield LabeledSourceSpan(null, error.original.position.startOffset, error.original.position.length);
-      case RequiredKeyIsMissing():
+      case RequiredKeyIsMissing error:
+        if (error.blockPosition != null) {
+          yield LabeledSourceSpan(null, error.blockPosition!.startOffset, error.blockPosition!.length);
+        }
       case CustomEvaluationError():
         return;
     }

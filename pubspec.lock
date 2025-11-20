@@ -254,11 +254,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "95968b98c05332e72bd71c5be0d88db1714bf956"
+      resolved-ref: "1a4cde27fe9ecbec4ae6577a9304adb9747f4b4d"
+      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/config.dart"
     source: git
-    version: "0.0.14"
+    version: "0.0.15"
   config_gen:
     dependency: "direct main"
     description:

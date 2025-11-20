@@ -29,7 +29,6 @@ class LauncherWidget extends StatelessWidget {
           options: Option.from(applications, ApplicationOption.from),
           renderOption: _renderOption,
           onSelected: _run,
-          showScrollBar: config.showScrollBar,
           height: constraints.maxHeight.toDouble(),
         );
       },
@@ -40,7 +39,6 @@ class LauncherWidget extends StatelessWidget {
     return ListTileOptionWidget(
       app: app,
       config: searchoptConfig,
-      iconSize: config.iconSize,
       onTap: () => _run(app),
     );
   }
@@ -78,13 +76,11 @@ class ApplicationOption extends Option<Application> {
 class ListTileOptionWidget extends StatelessWidget {
   final Application app;
   final SearchOptionsRenderConfig config;
-  final int? iconSize;
   final VoidCallback onTap;
 
   const ListTileOptionWidget({
     required this.app,
     required this.config,
-    required this.iconSize,
     required this.onTap,
     super.key,
   });
@@ -93,7 +89,7 @@ class ListTileOptionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ListTile(
-      leading: app.icon != null ? _RenderIcon(icon: app.icon!, iconSize: iconSize) : SizedBox(width: 35),
+      leading: app.icon != null ? _RenderIcon(icon: app.icon!) : SizedBox(width: 35),
       title: Text(
         app.name,
         style: theme.textTheme.bodyLarge,
@@ -117,13 +113,12 @@ class ListTileOptionWidget extends StatelessWidget {
 
 class _RenderIcon extends StatelessWidget {
   final String icon;
-  final int? iconSize;
-  const _RenderIcon({required this.icon, required this.iconSize});
+  const _RenderIcon({required this.icon});
 
   @override
   Widget build(BuildContext context) {
     // TODO: 1 migrate to WingedIcon
-    final size = iconSize ?? XdgIconTheme.of(context).size;
+    final size = XdgIconTheme.of(context).size;
     if (icon.startsWith("/")) {
       return Image.file(File(icon), height: size?.toDouble(), width: size?.toDouble());
     }

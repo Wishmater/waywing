@@ -218,14 +218,14 @@ class Application implements Comparable<Application> {
         logger.debug("run alacritty -e $cmd ${args.join(' ')}");
         // TODO 1: increase the list of terminals to launch and also make it configurable
         await Process.start(
-          "alacritty",
-          ["-e", cmd, ...args],
+          "setpgid",
+          ["alacritty", "-e", cmd, ...args],
           mode: ProcessStartMode.detached,
           includeParentEnvironment: true,
         );
       } else {
         logger.debug("run $cmd ${args.join(' ')}");
-        await Process.start(cmd, args, mode: ProcessStartMode.detached, includeParentEnvironment: true);
+        await Process.start("setpgid", [cmd, ...args], mode: ProcessStartMode.detached, includeParentEnvironment: true);
       }
     }
   }

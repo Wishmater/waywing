@@ -153,7 +153,6 @@ class BitwardenPopoverState extends State<BitwardenPopover> {
 
   // final Map<bw.Item, _BitwardenTile> _subwidgets = {};
   Future<Uint8List?> _fileFromWebsite(String? url) async {
-    print("_________________________ file from website _________________________");
     if (url == null) {
       return null;
     }

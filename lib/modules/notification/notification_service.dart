@@ -127,7 +127,6 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
   // TODO remove from the public api as this action should be implicit
   Future<void> emitActivationToken(Notification notification) async {
     final token = await FlLinuxWindowManager.instance.getXdgToken();
-    print("XDG ACTIVATION TOKEN UWU $token");
     if (token == null) {
       logger.error(
         "on emitActivationToken xdg token should never be null",

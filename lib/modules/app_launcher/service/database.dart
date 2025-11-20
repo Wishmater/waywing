@@ -81,7 +81,7 @@ List<Application> loadApplicationsFromDisk(Map<String, Application> old, Logger 
           // in case of two apps having the same name, the freedesktop spec says the first one
           // is the valid one
           if (response.contains(oldApp)) {
-            logger.warning("cache hit but found repetead application entry for ${response.lookup(oldApp)} : $oldApp");
+            logger.warning("cache hit but found repeatead application entry for ${response.lookup(oldApp)} : $oldApp");
             continue;
           }
           // check try exec
@@ -98,7 +98,7 @@ List<Application> loadApplicationsFromDisk(Map<String, Application> old, Logger 
         // in case of two apps having the same name, the freedesktop spec says the first one
         // is the valid one
         if (response.contains(app)) {
-          logger.warning("found repetead application entry for ${response.lookup(app)} : $app");
+          logger.warning("found repeatead application entry for ${response.lookup(app)} : $app");
           continue;
         }
         // check try exec

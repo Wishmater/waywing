@@ -5,6 +5,7 @@ import "package:path/path.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/app_launcher/service/application.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
 import "package:waywing/modules/app_launcher/launcher_config.dart";
 import "package:waywing/modules/app_launcher/launcher_widget.dart";
@@ -60,33 +61,58 @@ class AppLauncherFeather extends Feather<LauncherConfig> {
           maxHeight: 500,
           maxWidth: 256 + 128,
         ),
-        child: FutureBuilder(
-          future: service.applications(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              return LauncherWidget(
-                service: service,
-                applications: snapshot.data!,
-                config: config,
-                close: () {
-                  CloseRequestNotification().dispatch(context);
-                },
-              );
-            } else {
-              if (snapshot.hasError) {
-                return ErrorWidget.withDetails(message:"${snapshot.error!}\n${snapshot.stackTrace}");
-              }
-              return const Center(
-                child: SizedBox(
-                  height: 35,
-                  width: 35,
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-          },
-        ),
+        child: _Apps(service, config),
       );
     },
   );
+}
+
+class _Apps extends StatefulWidget {
+  final ApplicationService service;
+  final LauncherConfig config;
+
+  const _Apps(this.service, this.config);
+
+  @override
+  State<_Apps> createState() => _AppsState();
+}
+
+class _AppsState extends State<_Apps> {
+  late Future<List<Application>> applications;
+
+  @override
+  void initState() {
+    super.initState();
+    applications = widget.service.applications();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: applications,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return LauncherWidget(
+            service: widget.service,
+            applications: snapshot.data!,
+            config: widget.config,
+            close: () {
+              CloseRequestNotification().dispatch(context);
+            },
+          );
+        } else {
+          if (snapshot.hasError) {
+            return ErrorWidget.withDetails(message:"${snapshot.error!}\n${snapshot.stackTrace}");
+          }
+          return const Center(
+            child: SizedBox(
+              height: 35,
+              width: 35,
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+      },
+    );
+  }
 }

@@ -1,11 +1,10 @@
 import "dart:io";
 import "dart:typed_data";
 
-import "package:dartx/dartx_io.dart";
 import "package:hive_ce/hive.dart";
 import "package:http/http.dart" as http;
 import "package:http_cache_client/http_cache_client.dart" ;
-import 'package:http_cache_core/http_cache_core.dart';
+import "package:http_cache_core/http_cache_core.dart";
 
 import "package:html/parser.dart" as parser;
 import "package:http_cache_hive_store/http_cache_hive_store.dart";

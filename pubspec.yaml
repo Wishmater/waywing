@@ -134,6 +134,7 @@ dependencies:
   hive_ce: ^2.15.1
   http_cache_client: ^1.0.4
   http_cache_hive_store: ^5.0.1
+  http_cache_core: ^1.1.3
 
 dev_dependencies:
   flutter_test:

@@ -74,13 +74,13 @@ class Filter extends LogFilter {
     for (final property in event.properties) {
       if (types.containsKey(property)) {
         found = true;
-        if (event.level < types[property]!) {
-          return false;
+        if (event.level >= types[property]!) {
+          return true;
         }
       }
     }
     if (found) {
-      return true;
+      return false;
     }
     return event.level >= defaultLevel;
   }

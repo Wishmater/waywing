@@ -177,7 +177,7 @@ class Application implements Comparable<Application> {
     return "Application name: $name filepath: $filepath";
   }
 
-  Future<void> run({bool forceExec = false, Logger? logger}) async {
+  Future<void> run({bool forceExec = false, required Logger logger}) async {
     if (!forceExec && dBusActivatable) {
       String dbusname = path.basename(filepath);
       if (dbusname.endsWith(".desktop")) {
@@ -201,7 +201,7 @@ class Application implements Comparable<Application> {
         ),
       ];
       try {
-        logger?.trace("call org.freedesktop.Application.Activate $params");
+        logger.debug("call org.freedesktop.Application.Activate $params");
         await remoteObject.callMethod("org.freedesktop.Application", "Activate", params, noReplyExpected: true);
       } on DBusMethodResponseException catch (e) {
         if (e is DBusServiceUnknownException) {
@@ -215,8 +215,8 @@ class Application implements Comparable<Application> {
       }
       final (cmd, args) = parseExec(exec!);
       if (terminal) {
-        logger?.trace("run alacritty -e $cmd ${args.join(' ')}");
-        // TODO increase the list of terminals to launch and also make it configurable
+        logger.debug("run alacritty -e $cmd ${args.join(' ')}");
+        // TODO 1: increase the list of terminals to launch and also make it configurable
         await Process.start(
           "alacritty",
           ["-e", cmd, ...args],
@@ -224,7 +224,7 @@ class Application implements Comparable<Application> {
           includeParentEnvironment: true,
         );
       } else {
-        logger?.trace("run $cmd ${args.join(' ')}");
+        logger.debug("run $cmd ${args.join(' ')}");
         await Process.start(cmd, args, mode: ProcessStartMode.detached, includeParentEnvironment: true);
       }
     }

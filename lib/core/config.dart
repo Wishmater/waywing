@@ -401,7 +401,9 @@ class EvaluationErrorDiagnostic extends Diagnostic {
       case ConflictTypeError error:
         yield LabeledSourceSpan(null, error.position.startOffset, error.position.length);
       case ValidationError error:
-        yield LabeledSourceSpan(null, error.original.position.startOffset, error.original.position.length);
+        for (final position in error.positions) {
+          yield LabeledSourceSpan(null, position.startOffset, position.length);
+        }
       case RequiredKeyIsMissing error:
         if (error.blockPosition != null) {
           yield LabeledSourceSpan(null, error.blockPosition!.startOffset, error.blockPosition!.length);

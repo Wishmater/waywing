@@ -62,16 +62,16 @@ mixin ThemeConfigBase on ThemeConfigI {
     ],
     validator: _iconPriorityValidator,
   );
-  static ValidatorResult<List<IconType>> _iconPriorityValidator(List<IconType> value) {
+  static ValidatorResult<List<IconType>> _iconPriorityValidator(List<IconType> value, Position position) {
     if (value.isEmpty) {
       return ValidatorError(
-        MyValError("At least one icon type must be specified in iconPriority list, but received an empty list"),
+        MyValError("At least one icon type must be specified in iconPriority list, but received an empty list", position),
       );
     }
     for (final e in value) {
       if (value.count((f) => e == f) > 1) {
         return ValidatorError(
-          MyValError("The same icon type can't be repeated more than once in iconPriority list, but $e was repeated"),
+          MyValError("The same icon type can't be repeated more than once in iconPriority list, but $e was repeated", position),
         );
       }
     }
@@ -86,9 +86,9 @@ mixin ThemeConfigBase on ThemeConfigI {
     defaultTo: 0,
     validator: _iconFlutterFillValidator,
   );
-  static ValidatorResult<double> _iconFlutterFillValidator(double value) {
+  static ValidatorResult<double> _iconFlutterFillValidator(double value, Position position) {
     if (value < 0 || value > 1) {
-      return ValidatorError(MyValError("Icon fill value should be between 0 and 1, but was $value"));
+      return ValidatorError(MyValError("Icon fill value should be between 0 and 1, but was $value", position));
     }
     return ValidatorSuccess();
   }
@@ -97,9 +97,9 @@ mixin ThemeConfigBase on ThemeConfigI {
     defaultTo: 400,
     validator: _iconFlutterWeightValidator,
   );
-  static ValidatorResult<double> _iconFlutterWeightValidator(double value) {
+  static ValidatorResult<double> _iconFlutterWeightValidator(double value, Position position) {
     if (value < 100 || value > 700) {
-      return ValidatorError(MyValError("Icon weight value should be between 100 and 700, but was $value"));
+      return ValidatorError(MyValError("Icon weight value should be between 100 and 700, but was $value", position));
     }
     return ValidatorSuccess();
   }
@@ -112,18 +112,18 @@ mixin ThemeConfigBase on ThemeConfigI {
   static const _secondaryColor = ColorField(nullable: true);
   static const _tertiaryColor = ColorField(nullable: true);
   static const _errorColor = ColorField(nullable: true);
-  static const _backgroundColor = ColorField(nullable: true);
+  static const _backgroundColor = AdaptativeColorField(nullable: true);
   static const _foregroundColor = ColorField(nullable: true);
 
   static const _backgroundOpacity = DoubleNumberField(
     defaultTo: 1.0,
     validator: _backgroundOpacityValidator,
   );
-  static ValidatorResult<double> _backgroundOpacityValidator(double value) {
+  static ValidatorResult<double> _backgroundOpacityValidator(double value, Position position) {
     if (value >= 0 && value <= 1) {
       return ValidatorSuccess();
     } else {
-      return ValidatorError(MyValError("Background transparency should be between 0 and 1, but was $value"));
+      return ValidatorError(MyValError("Background transparency should be between 0 and 1, but was $value", position));
     }
   }
 
@@ -131,11 +131,11 @@ mixin ThemeConfigBase on ThemeConfigI {
     defaultTo: 1.0,
     validator: _shadowsValidator,
   );
-  static ValidatorResult<double> _shadowsValidator(double value) {
+  static ValidatorResult<double> _shadowsValidator(double value, Position position) {
     if (value >= 0) {
       return ValidatorSuccess();
     } else {
-      return ValidatorError(MyValError("Shadows value should be greater than or equal to 0, but was $value"));
+      return ValidatorError(MyValError("Shadows value should be greater than or equal to 0, but was $value", position));
     }
   }
 
@@ -227,7 +227,7 @@ class WaywingTheme {
         surfaceTint,
         inverseSurface;
     if (config.backgroundColor != null) {
-      final surfaceHct = Hct.fromInt(config.backgroundColor!.toARGB32());
+      final surfaceHct = Hct.fromInt(config.backgroundColor!.color(brightness).toARGB32());
       final surfaceToneMultiplier = surfaceHct.tone / tones.surfaceTone;
       final surfaceToneDiff = surfaceHct.tone - tones.surfaceTone;
       // // we use multiplier only for lowest, which is closer than surface to zero in dark mode (or max for light mode),
@@ -273,7 +273,7 @@ class WaywingTheme {
       secondaryKey: config.secondaryColor ?? Color(secondaryKeyHct.toInt()),
       tertiaryKey: config.tertiaryColor ?? Color(tertiaryKeyHct.toInt()),
       errorKey: config.errorColor,
-      surface: config.backgroundColor,
+      surface: config.backgroundColor?.color(brightness),
       onSurface: config.foregroundColor,
       onSurfaceVariant: config.foregroundColor,
 

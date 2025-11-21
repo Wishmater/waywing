@@ -26,11 +26,11 @@ mixin BatteryConfigBase {
 
   /// Battery level threshold.
   static const _batteryThreshold = DoubleNumberField(defaultTo: 30, validator: _batteryThresholdValidator);
-  static ValidatorResult<double> _batteryThresholdValidator(double v) {
+  static ValidatorResult<double> _batteryThresholdValidator(double v, Position position) {
     if (v > 0 && v <= 100) {
       return ValidatorSuccess();
     }
-    return ValidatorError(MyValError("Battery threshold must be between 0 and 100, but was $v"));
+    return ValidatorError(MyValError("Battery threshold must be between 0 and 100, but was $v", position));
   }
 
   /// Color of the lightning that indicates that the battery is charging

@@ -50,7 +50,7 @@ mixin ThemeConfigI {
 
   MyColor? get errorColor;
 
-  MyColor? get backgroundColor;
+  AdaptativeColor? get backgroundColor;
 
   MyColor? get foregroundColor;
 
@@ -144,7 +144,7 @@ class ThemeConfig extends ConfigBaseI with ThemeConfigI, ThemeConfigBase {
   @override
   final MyColor? errorColor;
   @override
-  final MyColor? backgroundColor;
+  final AdaptativeColor? backgroundColor;
   @override
   final MyColor? foregroundColor;
   @override

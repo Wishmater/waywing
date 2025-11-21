@@ -212,9 +212,11 @@ mixin ModalConfigBase on ModalConfigI {
   }
 }
 
-ValidatorResult<double> _heightWidth(double value) {
+ValidatorResult<double> _heightWidth(double value, Position position) {
   if (value < 200) {
-    return ValidatorError(_RangeValidationError<double>(start: 200, end: double.infinity, actual: value));
+    return ValidatorError(
+      _RangeValidationError<double>(start: 200, end: double.infinity, actual: value, position: position),
+    );
   }
   return ValidatorSuccess();
 }
@@ -224,8 +226,11 @@ class _RangeValidationError<T extends Comparable> extends ValidationError {
   final T start;
   final T end;
   final T actual;
+  final Position position;
+  @override
+  List<Position> get positions => [position];
 
-  _RangeValidationError({required this.start, required this.end, required this.actual});
+  _RangeValidationError({required this.start, required this.end, required this.actual, required this.position});
 
   @override
   String toString() {

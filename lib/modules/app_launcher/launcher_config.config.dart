@@ -9,7 +9,7 @@ part of 'launcher_config.dart';
 // **************************************************************************
 
 mixin LauncherConfigI {
-  String get terminal;
+  String? get terminal;
 }
 
 class LauncherConfig extends ConfigBaseI
@@ -21,9 +21,9 @@ class LauncherConfig extends ConfigBaseI
   static BlockSchema get schema => staticSchema;
 
   @override
-  final String terminal;
+  final String? terminal;
 
-  LauncherConfig({required this.terminal});
+  LauncherConfig({this.terminal});
 
   factory LauncherConfig.fromBlock(BlockData data) {
     Map<String, dynamic> fields = data.fields.map(

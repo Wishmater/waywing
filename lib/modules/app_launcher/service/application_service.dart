@@ -43,9 +43,10 @@ class ApplicationService extends Service {
     }
   }
 
-  Future<void> run(Application app, String terminal) async {
+  Future<void> run(Application app, String? terminal) async {
     logger.debug("running app ${app.name}");
     _db!.increaseExecCounter(app);
+    terminal ??= await _findTerminal();
     await app.run(logger: logger, terminal: terminal);
   }
 
@@ -65,6 +66,28 @@ class ApplicationService extends Service {
   @override
   Future<void> dispose() async {
     await _db?.close();
+  }
+
+  static const _terminals = <String>[
+    "ghostty",
+    "wezterm",
+    "alacritty",
+    "kitty",
+    "gnome-terminal",
+    "konsole",
+  ];
+  Future<String> _findTerminal() async {
+    String? terminal = Platform.environment["TERMINAL"];
+    if (terminal != null && terminal.isNotEmpty) return terminal;
+
+    for (final terminal in _terminals) {
+      final p = await Process.run("sh", ["-c", "command -v $terminal"]);
+      if (p.exitCode == 0) {
+        return terminal;
+      }
+    }
+
+    throw "Terminal application not found";
   }
 }
 

@@ -5,5 +5,5 @@ part "launcher_config.config.dart";
 
 @Config()
 mixin LauncherConfigBase {
-  static const _terminal = StringField();
+  static const _terminal = StringField(nullable: true);
 }

@@ -213,7 +213,7 @@ class VolumeInterfaceList<T extends VolumeInterface> extends StatelessWidget {
             padding: EdgeInsets.only(right: 6),
             child: ValueListenableBuilder(
               valueListenable: ((model as VolumeAppInterface).iconName),
-              builder: (context, iconName, child) {
+              builder: (context, iconName, _) {
                 if (iconName == null) {
                   return SizedBox.square(dimension: TextIcon.getIconEffectiveSize(context));
                 }

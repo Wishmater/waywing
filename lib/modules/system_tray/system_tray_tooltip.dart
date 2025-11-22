@@ -1,8 +1,11 @@
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "package:waywing/modules/system_tray/system_tray_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_indicator.dart";
+import "package:waywing/widgets/keyboard_focus.dart";
+import "package:waywing/widgets/text_tooltip_on_overflow.dart";
 
 class SystemTrayTooltip extends StatelessWidget {
   final SystemTrayService service;
@@ -52,6 +55,15 @@ class SystemTrayTooltip extends StatelessWidget {
                                 Text(
                                   tooltip.description,
                                   style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              if (kDebugMode && item.iconName.value.isNotEmpty)
+                                KeyboardFocus(
+                                  mode: KeyboardFocusMode.onDemand,
+                                  child: SelectableText(
+                                    item.iconName.value,
+                                    maxLines: 1,
+                                    style: TextStyle(overflow: TextOverflow.fade),
+                                  ),
                                 ),
                             ],
                           ),

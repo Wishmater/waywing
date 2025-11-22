@@ -90,7 +90,6 @@ dependencies:
   # render icons from string as defined in xdg icons spec
   xdg_icons:
     path: vendor/xdg_icon
-  flutter_svg: ^2.2.1
   # battery and other power options
   upower: # battery and other power options
     version: ^0.7.1

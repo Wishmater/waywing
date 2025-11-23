@@ -588,10 +588,12 @@ class VolumeAppInterface extends VolumeInterface {
   ValueListenable<String?> get iconName => _iconName;
   late final ValueNotifier<String?> _iconName;
 
+  ValueListenable<int?> get processId => _processId;
+  late final ValueNotifier<int?> _processId;
+
   PulseAudioSinkInput _sinkInput;
 
-  late final ValueNotifier<int?> _processId;
-  late final ValueNotifier<String?> _processUser;
+  // late final ValueNotifier<String?> _processUser;
 
   VolumeAppInterface(super._client, this._sinkInput);
 
@@ -599,18 +601,17 @@ class VolumeAppInterface extends VolumeInterface {
     final buff = StringBuffer();
     if (_sinkInput.props.applicationName != null) {
       buff.write(_sinkInput.name);
-      buff.write(" ");
     }
-    if (_processId.value != null || _processUser.value != null) {
-      buff.write("(");
-      if (_processId.value != null) {
-        buff.write("${_processId.value}");
-      }
-      if (_processUser.value != null) {
-        buff.write(":${_processUser.value}");
-      }
-      buff.write(")");
-    }
+    // if (_processId.value != null || _processUser.value != null) {
+    //   buff.write(" (");
+    //   if (_processId.value != null) {
+    //     buff.write("${_processId.value}");
+    //   }
+    //   if (_processUser.value != null) {
+    //     buff.write(":${_processUser.value}");
+    //   }
+    //   buff.write(")");
+    // }
     if (buff.isEmpty) {
       _subtitle.value = null;
     } else {
@@ -620,10 +621,17 @@ class VolumeAppInterface extends VolumeInterface {
 
   @override
   Future<void> init() async {
-    _processId = ValueNotifier(_sinkInput.props.processId());
-    _processUser = ValueNotifier(_sinkInput.props.processUser());
+    // print(
+    //   JsonEncoder.withIndent("  ").convert(
+    //     Map.fromEntries(_sinkInput.props.entries).mapValues((e) {
+    //       return _valueToString(e.value);
+    //     }),
+    //   ),
+    // );
 
-    _subtitle = ValueNotifier(null);
+    _processId = ValueNotifier(_sinkInput.props.processId());
+    // _processUser = ValueNotifier(_sinkInput.props.processUser());
+
     if (_sinkInput.props.applicationName != null) {
       _name = ValueNotifier(_sinkInput.props.applicationName!);
     } else {
@@ -632,12 +640,19 @@ class VolumeAppInterface extends VolumeInterface {
     _volume = ValueNotifier(_sinkInput.volume);
     _isMuted = ValueNotifier(_sinkInput.mute);
 
-    _iconName = ValueNotifier(_sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName);
+    _iconName = ValueNotifier(
+      _sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName ?? _sinkInput.props.processBinary(),
+    );
+    print(_iconName.value);
+    _subtitle = ValueNotifier(null);
     _updateSubtitle();
   }
 
   @override
   void _update() {
+    _processId.value = _sinkInput.props.processId();
+    // _processUser.value = _sinkInput.props.processUser();
+
     if (_sinkInput.props.applicationName != null) {
       _name.value = _sinkInput.props.applicationName!;
     } else {
@@ -646,8 +661,8 @@ class VolumeAppInterface extends VolumeInterface {
     _volume.value = _sinkInput.volume;
     _isMuted.value = _sinkInput.mute;
 
-    _processId.value = _sinkInput.props.processId();
-    _processUser.value = _sinkInput.props.processUser();
+    _iconName.value =
+        _sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName ?? _sinkInput.props.processBinary();
     _updateSubtitle();
   }
 
@@ -683,6 +698,8 @@ extension on PropList {
   }
 
   String? processUser() => _valueToString(this["application.process.user"]);
+
+  String? processBinary() => _valueToString(this["application.process.binary"]);
 }
 
 String? _valueToString(Uint8List? data) {

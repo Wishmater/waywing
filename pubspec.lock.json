@@ -936,11 +936,11 @@
       "dependency": "direct main",
       "description": {
         "name": "motor",
-        "sha256": "cdad651858f1305f98e986841128abd23bb964289c1f9244ffc5b575963d6d8a",
+        "sha256": "d6fd00496a2b934f8f54e660acc0d039d0e4bf8e667b6977b0480be97385779e",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.0.0-dev.9"
+      "version": "1.0.1"
     },
     "multi_value_listenable_builder_typed": {
       "dependency": "direct main",

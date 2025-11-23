@@ -2,6 +2,7 @@ import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:fl_linux_window_manager/models/keyboard_mode.dart";
 import "package:flutter/material.dart";
 import "package:mutex/mutex.dart" as mut;
+import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
 
@@ -11,11 +12,13 @@ class KeyboardFocus extends StatefulWidget {
   final Widget child;
   final KeyboardFocusMode mode;
   final String? debugLabel;
+  final bool request;
 
   const KeyboardFocus({
     required this.child,
     required this.mode,
     this.debugLabel,
+    this.request = true,
     super.key,
   });
 
@@ -25,21 +28,42 @@ class KeyboardFocus extends StatefulWidget {
 
 class _KeyboardFocusState extends State<KeyboardFocus> {
   late final _KeyboardFocusProviderState provider;
+  late final Logger logger;
   Future<int>? requestId;
 
   @override
   void initState() {
-    _logger.debug("Initialization of _KeyboardFocusState ${widget.debugLabel ?? ''}");
+    if (widget.debugLabel != null) {
+      logger = _logger.clone(properties: [..._logger.defaultProperties, StringProperty(widget.debugLabel!)]);
+    } else {
+      logger = _logger;
+    }
+    logger.debug("Initialization of _KeyboardFocusState");
     super.initState();
     // assumes the provider won't change during the lifetime of this widget, which should be true
     provider = context.findAncestorStateOfType<_KeyboardFocusProviderState>()!;
   }
 
   @override
+  void didUpdateWidget(KeyboardFocus oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.request != widget.request) {
+      logger.debug("didUpdateWidget with new request value ${widget.request}");
+      if (widget.request) {
+        assert(requestId == null);
+        requestId ??= provider.requestFocus(widget.mode);
+      } else {
+        requestId?.then((id) => provider.removeFocus(id));
+        requestId = null;
+      }
+    }
+  }
+
+  @override
   void dispose() {
-    _logger.debug("Deinitialization of _KeyboardFocusState ${widget.debugLabel ?? ''}");
-    super.dispose();
+    logger.debug("Deinitialization of _KeyboardFocusState");
     requestId?.then((id) => provider.removeFocus(id));
+    super.dispose();
   }
 
   @override

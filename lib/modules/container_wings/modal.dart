@@ -150,19 +150,17 @@ class ModalWing extends Wing<ModalConfig> {
                       borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
                     ),
                     unfocusContainerOnMouseExit: false,
-                    child: FocusScope(
-                      canRequestFocus: show,
-                      child: KeyboardFocus(
-                        debugLabel: "Modal",
-                        mode: KeyboardFocusMode.exclusive,
-                        child: CallbackShortcuts(
-                          bindings: {
-                            const SingleActivator(LogicalKeyboardKey.escape): () {
-                              this.show.value = false;
-                            },
+                    child: KeyboardFocus(
+                      debugLabel: "Modal",
+                      mode: KeyboardFocusMode.exclusive,
+                      request: show,
+                      child: CallbackShortcuts(
+                        bindings: {
+                          const SingleActivator(LogicalKeyboardKey.escape): () {
+                            this.show.value = false;
                           },
-                          child: result,
-                        ),
+                        },
+                        child: result,
                       ),
                     ),
                   );

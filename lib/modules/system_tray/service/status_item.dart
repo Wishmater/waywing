@@ -18,6 +18,11 @@ class Pixmap {
   factory Pixmap.fromDBusData(List<DBusValue> values) {
     return Pixmap(values[0].asInt32(), values[1].asInt32(), values[2].asByteArray());
   }
+
+  @override
+  String toString() {
+    return "Pixmap(width: $width height: $height)";
+  }
 }
 
 class PixmapIcons {
@@ -41,6 +46,11 @@ class PixmapIcons {
 
   @override
   int get hashCode => icons.hashCode;
+
+  @override
+  String toString() {
+    return "PixmapIcons($icons)";
+  }
 }
 
 class OrgKdeStatusNotifierItemToolTip {

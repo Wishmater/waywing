@@ -153,11 +153,11 @@ class RawSystemTrayIcon extends StatelessWidget {
     return WingedIcon(
       size: size,
       directImageData: [
-        if (isAbsolutePath) AbsolutePathFileImageData(path),
+        if (path.isNotEmpty && isAbsolutePath) AbsolutePathFileImageData(path),
         PixmapIconsImageData(data),
       ],
       iconNames: [
-        if (!isAbsolutePath) path,
+        if (path.isNotEmpty && !isAbsolutePath) path,
       ],
       notFoundBuilder: (context) {
         return IconSpacer(size: size);

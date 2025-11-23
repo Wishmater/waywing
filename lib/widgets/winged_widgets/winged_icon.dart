@@ -1,4 +1,5 @@
 import "dart:io";
+import "dart:math";
 
 import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
@@ -371,7 +372,7 @@ class PixmapIconsImageData extends ImageData {
 
   @override
   String toString() {
-    return "PixmapIconsImageData: iconCount = ${pixmapIcons.icons.length}";
+    return "PixmapIconsImageData: $pixmapIcons";
   }
 }
 
@@ -453,7 +454,7 @@ class _WingedRawIcon extends StatelessWidget {
       }
     }
     return SizedBox.square(
-      dimension: size,
+      dimension: min(size, (icon.width + icon.height) / 2),
       child: ARGB32ImageRenderer(
         argb32Data: Uint8List.fromList(icon.data.toList()),
         height: icon.height,

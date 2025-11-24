@@ -26,7 +26,12 @@ class SystemTrayIndicator extends StatelessWidget {
   void tooglePopover() {
     popover.togglePopover();
     if (item.dbusmenu != null && popover.isPopoverShown) {
-      item.dbusmenu!.aboutToShow(item.dbusmenu!.layout);
+      item.dbusmenu!.aboutToShow(item.dbusmenu!.layout).catchError((error, stack) {
+        // TODO 3: calling functions should be done through the service class instead of the putting
+        // them in the data classs
+        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+        service.logger.error("Error calling aboutToShow in menu of ${item.title.value}");
+      });
     }
   }
 

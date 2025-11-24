@@ -143,15 +143,20 @@ class _MotionLayoutState<T> extends State<MotionLayout<T>> with TickerProviderSt
   }
 
   void addMovingItem(_UpdateBatch<T> batch, T e, int newIndex, int originalIndex) {
+    final positioning = getPositioningForItem(e);
+    if (positioning == null) {
+      addIncomingItem(batch, e);
+      return;
+    }
     // TODO: 1 what happens if the item is already moving?
     final movingAnim = _removeMovingItem(e);
     final anim = MovingAnimationValues();
     if (movingAnim == null) {
       initAnimationValues(anim, true);
-      anim.originalPositioning = getPositioningForItem(e)!;
+      anim.originalPositioning = positioning;
     } else {
       initAnimationValues(anim, true);
-      anim.originalPositioning = getPositioningForItem(e)!;
+      anim.originalPositioning = positioning;
     }
     anim.targetIndex = newIndex;
     anim.originIndex = originalIndex;

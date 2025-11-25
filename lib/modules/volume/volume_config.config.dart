@@ -14,6 +14,9 @@ mixin VolumeServiceConfigI {
 
   @ConfigDocDefault<int>(5)
   int get volumeStep;
+
+  @ConfigDocDefault<bool>(true)
+  bool get groupByApp;
 }
 
 class VolumeServiceConfig extends ConfigBaseI
@@ -22,6 +25,7 @@ class VolumeServiceConfig extends ConfigBaseI
     fields: {
       'maxVolume': VolumeServiceConfigBase._maxVolume,
       'volumeStep': VolumeServiceConfigBase._volumeStep,
+      'groupByApp': VolumeServiceConfigBase._groupByApp,
     },
   );
 
@@ -31,10 +35,13 @@ class VolumeServiceConfig extends ConfigBaseI
   final int maxVolume;
   @override
   final int volumeStep;
+  @override
+  final bool groupByApp;
 
-  VolumeServiceConfig({int? maxVolume, int? volumeStep})
+  VolumeServiceConfig({int? maxVolume, int? volumeStep, bool? groupByApp})
     : maxVolume = maxVolume ?? 100,
-      volumeStep = volumeStep ?? 5;
+      volumeStep = volumeStep ?? 5,
+      groupByApp = groupByApp ?? true;
 
   factory VolumeServiceConfig.fromBlock(BlockData data) {
     Map<String, dynamic> fields = data.fields.map(
@@ -43,6 +50,7 @@ class VolumeServiceConfig extends ConfigBaseI
     return VolumeServiceConfig(
       maxVolume: fields['maxVolume'],
       volumeStep: fields['volumeStep'],
+      groupByApp: fields['groupByApp'],
     );
   }
 
@@ -50,17 +58,20 @@ class VolumeServiceConfig extends ConfigBaseI
   String toString() {
     return '''VolumeServiceConfig(
 	maxVolume = $maxVolume,
-	volumeStep = $volumeStep
+	volumeStep = $volumeStep,
+	groupByApp = $groupByApp
 )''';
   }
 
   @override
   bool operator ==(covariant VolumeServiceConfig other) {
-    return maxVolume == other.maxVolume && volumeStep == other.volumeStep;
+    return maxVolume == other.maxVolume &&
+        volumeStep == other.volumeStep &&
+        groupByApp == other.groupByApp;
   }
 
   @override
-  int get hashCode => Object.hashAll([maxVolume, volumeStep]);
+  int get hashCode => Object.hashAll([maxVolume, volumeStep, groupByApp]);
 }
 
 mixin VolumeConfigI {

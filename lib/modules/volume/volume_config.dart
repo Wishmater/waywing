@@ -8,6 +8,8 @@ mixin VolumeServiceConfigBase on VolumeServiceConfigI {
   static const _maxVolume = IntegerNumberField(defaultTo: 100);
 
   static const _volumeStep = IntegerNumberField(defaultTo: 5);
+
+  static const _groupByApp = BooleanField(defaultTo: true);
 }
 
 @Config()

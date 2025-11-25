@@ -22,6 +22,8 @@ class VolumeService extends Service<VolumeServiceConfig> {
 
   ValueListenable<List<VolumeAppInterface>> get apps => _apps;
   late final ManualValueNotifier<List<VolumeAppInterface>> _apps;
+  ValueListenable<List<VolumeProcessInterface>> get groupedApps => _groupedApps;
+  late final DerivedValueNotifier<List<VolumeProcessInterface>> _groupedApps;
 
   ValueListenable<List<VolumeOutputInterface>> get outputs => _outputs;
   late final ManualValueNotifier<List<VolumeOutputInterface>> _outputs;
@@ -287,6 +289,23 @@ class VolumeService extends Service<VolumeServiceConfig> {
     final apps = sinkInputs.map((e) => VolumeAppInterface(_client, e)).toList();
     await Future.wait(apps.map((e) => e.init()));
     _apps = ManualValueNotifier(apps);
+    _groupedApps = DerivedValueNotifier(
+      dependencies: [_apps],
+      derive: () {
+        // TODO: 3 PERFORMANCE should we try to reuse the models already built, does it matter?
+        final result = <int, List<VolumeAppInterface>>{};
+        for (final e in _apps.value) {
+          final id = e.processId.value ?? (-1 * e.name.value.hashCode);
+          result[id] ??= [];
+          result[id]!.add(e);
+        }
+        return result.values.map((e) {
+          final model = VolumeProcessInterface(e.first._client, e);
+          model.init(); // this should be sync
+          return model;
+        }).toList();
+      },
+    );
 
     _sinkInputChangedSubscription = _client.onSinkInputChanged.listen((sinkInput) async {
       final index = _apps.value.indexWhere((e) => e._sinkInput.index == sinkInput.index);
@@ -506,10 +525,6 @@ class VolumeService extends Service<VolumeServiceConfig> {
   VolumeInputInterface? _getDefaultInput(PulseAudioServerInfo serverInfo) {
     return inputs.value.firstOrNullWhere((e) => e._source.name == serverInfo.defaultSourceName);
   }
-
-  // bool _isSourceRelevant(PulseAudioSource) {
-  //   return _sour
-  // }
 }
 
 abstract class VolumeInterface {
@@ -517,6 +532,8 @@ abstract class VolumeInterface {
   late final ValueNotifier<String> _name;
 
   ValueListenable<String?>? get subtitle => null;
+
+  ValueListenable<String?>? get iconName => null;
 
   ValueListenable<double> get volume => _volume;
   late final ValueNotifier<double> _volume;
@@ -555,15 +572,12 @@ abstract class VolumeInterface {
   Future<void> decreaseVolume(
     double step, {
     bool coerceToStepScale = true,
+    double? coerceToScale,
   }) {
     var newValue = volume.value - step;
-    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, step);
+    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, (coerceToScale ?? step));
     if (newValue < 0) newValue = 0;
     return setVolume(newValue);
-  }
-
-  double _roundToNearestMultiple(double value, double scale) {
-    return (value / scale).round() * scale;
   }
 
   Future<void> setVolume(double value);
@@ -575,9 +589,15 @@ abstract class VolumeInterface {
 
   @override
   bool operator ==(Object other) {
-    if (other is VolumeInterface) return name.value == other.name.value;
-    return super == other;
+    if (other is VolumeInterface) {
+      return name.value == other.name.value;
+    }
+    return identical(this, other);
   }
+}
+
+double _roundToNearestMultiple(double value, double scale) {
+  return (value / scale).round() * scale;
 }
 
 class VolumeAppInterface extends VolumeInterface {
@@ -585,6 +605,7 @@ class VolumeAppInterface extends VolumeInterface {
   ValueListenable<String?>? get subtitle => _subtitle;
   late final ValueNotifier<String?> _subtitle;
 
+  @override
   ValueListenable<String?> get iconName => _iconName;
   late final ValueNotifier<String?> _iconName;
 
@@ -597,27 +618,7 @@ class VolumeAppInterface extends VolumeInterface {
 
   VolumeAppInterface(super._client, this._sinkInput);
 
-  void _updateSubtitle() {
-    final buff = StringBuffer();
-    if (_sinkInput.props.applicationName != null) {
-      buff.write(_sinkInput.name);
-    }
-    // if (_processId.value != null || _processUser.value != null) {
-    //   buff.write(" (");
-    //   if (_processId.value != null) {
-    //     buff.write("${_processId.value}");
-    //   }
-    //   if (_processUser.value != null) {
-    //     buff.write(":${_processUser.value}");
-    //   }
-    //   buff.write(")");
-    // }
-    if (buff.isEmpty) {
-      _subtitle.value = null;
-    } else {
-      _subtitle.value = buff.toString();
-    }
-  }
+  String? get processBinary => _sinkInput.props.processBinary();
 
   @override
   Future<void> init() async {
@@ -643,7 +644,6 @@ class VolumeAppInterface extends VolumeInterface {
     _iconName = ValueNotifier(
       _sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName ?? _sinkInput.props.processBinary(),
     );
-    print(_iconName.value);
     _subtitle = ValueNotifier(null);
     _updateSubtitle();
   }
@@ -684,7 +684,98 @@ class VolumeAppInterface extends VolumeInterface {
     if (other is VolumeAppInterface) {
       return name.value == other.name.value && _sinkInput.index == other._sinkInput.index;
     }
-    return super == other;
+    return identical(this, other);
+  }
+
+  void _updateSubtitle() {
+    final buff = StringBuffer();
+    if (_sinkInput.props.applicationName != null) {
+      buff.write(_sinkInput.name);
+    }
+    // if (_processId.value != null || _processUser.value != null) {
+    //   buff.write(" (");
+    //   if (_processId.value != null) {
+    //     buff.write("${_processId.value}");
+    //   }
+    //   if (_processUser.value != null) {
+    //     buff.write(":${_processUser.value}");
+    //   }
+    //   buff.write(")");
+    // }
+    if (buff.isEmpty) {
+      _subtitle.value = null;
+    } else {
+      _subtitle.value = buff.toString();
+    }
+  }
+}
+
+class VolumeProcessInterface extends VolumeInterface {
+  final List<VolumeAppInterface> apps;
+
+  @override
+  ValueListenable<String> get name => apps.first.name;
+
+  @override
+  ValueListenable<String?>? get subtitle => apps.first.subtitle;
+
+  ValueListenable<int?> get processId => apps.first.processId;
+
+  @override
+  ValueListenable<String?> get iconName => _iconName;
+  late final ValueNotifier<String?> _iconName;
+
+  VolumeProcessInterface(super._client, List<VolumeAppInterface> apps)
+    : assert(apps.isNotEmpty),
+      apps = List.unmodifiable(apps);
+
+  @override
+  Future<void> init() async {
+    _volume = DerivedValueNotifier(
+      dependencies: apps.map((e) => e.volume).toList(),
+      derive: () => apps.maxBy((e) => e.volume.value)!.volume.value,
+    );
+    _isMuted = DerivedValueNotifier(
+      dependencies: apps.map((e) => e.isMuted).toList(),
+      derive: () => apps.all((e) => e.isMuted.value),
+    );
+    _iconName = apps.first.processBinary != null ? ValueNotifier(apps.first.processBinary) : apps.first._iconName;
+  }
+
+  @override
+  // ignore: unused_element
+  void _update() {}
+
+  @override
+  Future<void> setVolume(double value) {
+    final oldVolume = volume.value;
+    final ratio = volume.value == 0 ? 1 : value / oldVolume;
+    return Future.wait(
+      apps.map((e) {
+        final deviceVolume = e.volume.value * ratio;
+        return e.setVolume(oldVolume == 0 ? value : deviceVolume);
+      }),
+    );
+  }
+
+  @override
+  Future<void> setMuted(bool value) {
+    return Future.wait(
+      apps.map((e) {
+        return e.setMuted(value);
+      }),
+    );
+  }
+
+  @override
+  int get hashCode => processId.value?.hashCode ?? (-1 * name.value.hashCode);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is VolumeProcessInterface) {
+      return hashCode == other.hashCode;
+    }
+    return identical(this, other);
   }
 }
 
@@ -697,7 +788,7 @@ extension on PropList {
     return int.tryParse(strid);
   }
 
-  String? processUser() => _valueToString(this["application.process.user"]);
+  // String? processUser() => _valueToString(this["application.process.user"]);
 
   String? processBinary() => _valueToString(this["application.process.binary"]);
 }
@@ -750,7 +841,7 @@ class VolumeOutputInterface extends VolumeInterface {
     if (other is VolumeOutputInterface) {
       return name.value == other.name.value && _sink.index == other._sink.index;
     }
-    return super == other;
+    return identical(this, other);
   }
 }
 
@@ -791,6 +882,6 @@ class VolumeInputInterface extends VolumeInterface {
     if (other is VolumeInputInterface) {
       return name.value == other.name.value && _source.index == other._source.index;
     }
-    return super == other;
+    return identical(this, other);
   }
 }

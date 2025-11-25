@@ -1,22 +1,25 @@
 import "dart:convert";
 import "dart:io";
 
-import "package:flutter/widgets.dart";
+import "package:config/config.dart";
+import "package:config_gen/config_gen.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:bitwarden_vault_api/bitwarden_api.dart" as bw;
 import "package:freedesktop_secrets/freedesktop_secrets.dart";
 import "package:waywing/core/service_registry.dart";
 
-class BitwardenService extends Service with WidgetsBindingObserver {
-  BitwardenService._() {
-    WidgetsBinding.instance.addObserver(this);
-  }
+part "bitwarden_service.config.dart";
+
+class BitwardenService extends Service<BitwardenServiceConfig> {
+  BitwardenService._();
 
   static void registerService(RegisterServiceCallback registration) {
     registration<BitwardenService, dynamic>(
       ServiceRegistration(
         constructor: BitwardenService._,
+        configBuilder: BitwardenServiceConfig.fromBlock,
+        schemaBuilder: () => BitwardenServiceConfig.schema,
       ),
     );
   }
@@ -30,7 +33,7 @@ class BitwardenService extends Service with WidgetsBindingObserver {
   Future<void> init() async {
     apiClient = bw.ApiClient(basePath: "http://localhost:8087");
 
-    _bwRunner.start();
+    _bwRunner.start(config.bwPath);
     // Hack to wait for bw start
     await Future.delayed(Duration(seconds: 2));
 
@@ -110,8 +113,6 @@ class BitwardenService extends Service with WidgetsBindingObserver {
 
   @override
   Future<void> dispose() async {
-    logger.error("Running dispose method AAA ----------------------");
-    WidgetsBinding.instance.removeObserver(this);
     await lock();
     await secretsClient?.close();
     await _bwRunner.stop();
@@ -149,7 +150,7 @@ class BwRunner {
   bool _running = false;
   Process? _process;
 
-  void start() async {
+  void start(String bwPath) async {
     if (_running) {
       logger.trace("try running bw serve but process is already running");
       return;
@@ -159,7 +160,7 @@ class BwRunner {
     /// TODO 2: pass `bw serve` configurations
     /// TODO 2: how can i notify that bw serve already started?
     while (_running) {
-      _process = await Process.start("bw", ["serve"]);
+      _process = await Process.start(bwPath, ["serve"]);
       final exitCode = await _process!.exitCode;
       final stderr = (await _process?.stderr.transform(utf8.decoder).toList())?.join();
       if ((stderr?? "").contains("EADDRINUSE: address already in use")) {
@@ -186,4 +187,10 @@ class BwRunner {
       }
     }
   }
+}
+
+@Config()
+mixin BitwardenServiceConfigBase on BitwardenServiceConfigI {
+  /// Path to the bw cli
+  static const _bwPath = StringField(defaultTo: "bw");
 }

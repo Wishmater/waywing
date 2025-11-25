@@ -55,15 +55,6 @@ class SystemTrayTooltip extends StatelessWidget {
                                   tooltip.description,
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
-                              if (kDebugMode && item.iconName.value.isNotEmpty)
-                                KeyboardFocus(
-                                  mode: KeyboardFocusMode.onDemand,
-                                  child: SelectableText(
-                                    item.iconName.value,
-                                    maxLines: 1,
-                                    style: TextStyle(overflow: TextOverflow.fade),
-                                  ),
-                                ),
                             ],
                           ),
                         ),

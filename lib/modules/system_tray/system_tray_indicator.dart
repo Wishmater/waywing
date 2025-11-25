@@ -26,6 +26,7 @@ class SystemTrayIndicator extends StatelessWidget {
   void tooglePopover() async {
     popover.togglePopover();
     if (item.dbusmenu != null && popover.isPopoverShown) {
+      // TODO: 3 this should be done in the service
       try {
         await item.dbusmenu!.aboutToShow(item.dbusmenu!.layout);
       } catch (e, st) {

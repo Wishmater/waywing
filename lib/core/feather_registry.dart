@@ -286,10 +286,10 @@ class FeatherRegistry {
     AppLauncherFeather.registerFeather(registerFeather);
     Aria2Feather.registerFeather(registerFeather);
     NotificationsManagerFeather.registerFeather(registerFeather);
+    BitwardenLauncherFeather.registerFeather(registerFeather);
 
     if (!kReleaseMode) MenuWing.registerFeather(registerFeather);
     if (!kReleaseMode) CommandPaletteFeather.registerFeather(registerFeather);
-    if (!kReleaseMode) BitwardenLauncherFeather.registerFeather(registerFeather);
   }
 }
 

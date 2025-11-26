@@ -56,7 +56,7 @@ class CapsLockFeather extends Feather<CapsLockConfig> {
             valueListenable: service.isCapslockActive,
             builder: (context, capsLockActive, child) {
               return ErrorStateIndicator(
-                name: "caps lock",
+                name: "caps\nlock",
                 value: "ON",
                 visible: !config.reserveSpace ? true : capsLockActive,
               );
@@ -108,8 +108,12 @@ class _ErrorStateIndicatorState extends State<ErrorStateIndicator> {
     final textColor = theme.colorScheme.onErrorContainer;
     final shadowColor = theme.colorScheme.onError;
     Widget result = WingedButton(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Wrap(
+        direction: Axis.vertical,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        runAlignment: WrapAlignment.center,
+        alignment: WrapAlignment.center,
+        spacing: 2,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -126,7 +130,6 @@ class _ErrorStateIndicatorState extends State<ErrorStateIndicator> {
               textAlign: TextAlign.center,
             ),
           ),
-          SizedBox(height: 2),
           Text(
             widget.value,
             style: theme.textTheme.titleMedium!.copyWith(

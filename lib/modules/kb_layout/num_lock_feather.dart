@@ -53,7 +53,7 @@ class NumLockFeather extends Feather<NumLockConfig> {
             valueListenable: service.isNumlockActive,
             builder: (context, numsLockActive, child) {
               return ErrorStateIndicator(
-                name: "num lock",
+                name: "num\nlock",
                 value: "OFF",
                 visible: !config.reserveSpace ? true : !numsLockActive,
               );

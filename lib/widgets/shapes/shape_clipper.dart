@@ -183,8 +183,8 @@ class ShapeBorderAndShadowPainter extends CustomPainter {
           ..style = PaintingStyle.stroke
           ..strokeWidth = border.width * 2
           ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..blendMode = BlendMode.src; // make it so that it "overrides" the shadow
+          ..strokeJoin = StrokeJoin.round;
+        // ..blendMode = BlendMode.src; // make it so that it "overrides" the shadow
         if (border.colors.length == 1) {
           paint.color = border.colors.first;
         } else {

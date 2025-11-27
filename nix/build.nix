@@ -3,7 +3,7 @@
 unstable-pkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
-  version = "0.0.15";
+  version = "0.0.16";
 
   src = ./..;
 

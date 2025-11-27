@@ -339,6 +339,7 @@ class _BarState extends State<Bar> {
                             isDockedEnd: false,
                           );
                         }
+                        centerWidget = RepaintBoundary(child: centerWidget);
                       } else {
                         centerWidget = SizedBox.shrink();
                       }

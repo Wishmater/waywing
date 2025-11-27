@@ -11,6 +11,7 @@ import "package:waywing/modules/nm/widgets/nm_popover.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/modules/nm/widgets/nm_tooltip.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/util/state_positioning.dart";
 
 class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
   late NetworkManagerService service;
@@ -73,11 +74,22 @@ class NetworkManagerFeather extends Feather<NetworkManagerConfig> {
                 : device.isConnected,
             buildIndicators: (context, popover) {
               return [
-                NetworkManagerIndicator(
-                  service: service,
-                  config: config,
-                  device: device,
-                  popover: popover,
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isVertical = constraints.maxHeight > constraints.maxWidth;
+                    return RepaintBoundary(
+                      child: RememberMaxSize(
+                        constraints: constraints,
+                        alignment: isVertical ? Alignment.topCenter : Alignment.centerLeft,
+                        child: NetworkManagerIndicator(
+                          service: service,
+                          config: config,
+                          device: device,
+                          popover: popover,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ];
             },

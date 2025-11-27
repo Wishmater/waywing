@@ -7,3 +7,6 @@ tasks:
   gen:
     cmds:
       - flutter pub run build_runner build
+  build:
+    cmds:
+      - flutter build linux --release --extra-gen-snapshot-options=--no-strip

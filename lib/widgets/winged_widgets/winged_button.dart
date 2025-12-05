@@ -131,7 +131,7 @@ class WingedButton<T> extends StatefulWidget {
   /// If set then a background color will be used
   final Color? color;
 
-  final Clip clipBehavior;
+  final Clip? clipBehavior;
 
   const WingedButton({
     required this.child,
@@ -155,7 +155,7 @@ class WingedButton<T> extends StatefulWidget {
     this.containedInkWell = false,
     this.radius,
     this.borderRadius,
-    this.clipBehavior = Clip.hardEdge,
+    this.clipBehavior,
     this.color,
     super.key,
   });
@@ -194,14 +194,14 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
     return FutureBuilder(
       future: taskFuture,
       builder: (context, snapshot) {
-        final Widget child;
+        Widget child;
         if (widget.builder == null) {
           child = widget.child;
         } else {
           child = widget.builder!(context, snapshot, widget.child);
         }
 
-        return InkResponse(
+        child = InkResponse(
           focusNode: focusNode,
           highlightShape: BoxShape.rectangle,
           // TODO: 2 remove default inkwell hover effect and implement our own (with blackjack and hookers)
@@ -224,11 +224,6 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
             padding: widget.padding ?? buttonTheme.padding,
             constraints: widget.constraints ?? wingedButtonTheme.boxConstraints,
             alignment: widget.alignment,
-            clipBehavior: widget.clipBehavior,
-            decoration: BoxDecoration(
-              borderRadius: borderRadius,
-              color: widget.color,
-            ),
             child: child,
           ),
           // properties just passed to InkResponse as-is
@@ -289,6 +284,24 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
                   widget.onSecondaryTapCancel!(lastSecondaryTapDown!);
                 },
         );
+
+        if (widget.containedInkWell && widget.color != null && widget.color!.a > 0) {
+          return Material(
+            clipBehavior: widget.clipBehavior ?? Clip.none,
+            color: widget.color,
+            borderRadius: borderRadius,
+            child: child,
+          );
+        } else {
+          return Container(
+            clipBehavior: widget.clipBehavior ?? (widget.containedInkWell ? Clip.hardEdge : Clip.none),
+            decoration: BoxDecoration(
+              borderRadius: borderRadius,
+              color: widget.color,
+            ),
+            child: child,
+          );
+        }
       },
     );
   }

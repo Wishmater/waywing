@@ -131,7 +131,6 @@ class WingedContainerState extends State<WingedContainer> {
     if ((widget.focusContainerOnMouseOver ?? mainConfig.focusContainerOnMouseOver) ||
         (widget.unfocusContainerOnMouseExit ?? mainConfig.focusContainerOnMouseOver)) {
       result = MouseRegion(
-        opaque: false,
         onEnter: (_) {
           if (widget.focusContainerOnMouseOver ?? mainConfig.focusContainerOnMouseOver) {
             focusNode.requestFocus();

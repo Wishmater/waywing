@@ -10,10 +10,14 @@ part of 'battery_config.dart';
 
 mixin BatteryConfigI {
   @ConfigDocDefault<bool>(true)
+  /// Play a pulse animation in the battery to call the the user attention.
+  bool get enablePulse;
+
+  @ConfigDocDefault<bool>(true)
   /// Enable powerprofile functionality
   ///
   /// this option only matters if powerprofiles is installed in the system
-  /// otherwise profile service will be disable nonetheless
+  /// otherwise profile service will be disable nonetheless.
   bool get enableProfile;
 
   @ConfigDocDefault<bool>(true)
@@ -21,31 +25,39 @@ mixin BatteryConfigI {
   bool get automaticProfileChanging;
 
   @ConfigDocDefault<String>("power-saver")
-  /// Profile to be set when the battery level is below the threshold
+  /// Profile to be set when the battery level is below the threshold.
   String get saverProfile;
 
   @ConfigDocDefault<String>("balanced")
-  /// Profile to be set when the battery level is above the threshold
+  /// Profile to be set when the battery level is above the threshold.
   String get normalProfile;
 
   @ConfigDocDefault<double>(30)
-  /// Battery level threshold
+  /// Battery level threshold.
   double get batteryThreshold;
+
+  @ConfigDocDefault<MyColor>(MyColor(0xFFFFC107))
+  /// Color of the lightning that indicates that the battery is charging
+  MyColor get lightningColor;
 }
 
 class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
   static const BlockSchema staticSchema = BlockSchema(
     fields: {
+      'enablePulse': BatteryConfigBase._enablePulse,
       'enableProfile': BatteryConfigBase._enableProfile,
       'automaticProfileChanging': BatteryConfigBase._automaticProfileChanging,
       'saverProfile': BatteryConfigBase._saverProfile,
       'normalProfile': BatteryConfigBase._normalProfile,
       'batteryThreshold': BatteryConfigBase._batteryThreshold,
+      'lightningColor': BatteryConfigBase._lightningColor,
     },
   );
 
   static BlockSchema get schema => staticSchema;
 
+  @override
+  final bool enablePulse;
   @override
   final bool enableProfile;
   @override
@@ -56,56 +68,114 @@ class BatteryConfig extends ConfigBaseI with BatteryConfigI, BatteryConfigBase {
   final String normalProfile;
   @override
   final double batteryThreshold;
+  @override
+  final MyColor lightningColor;
 
   BatteryConfig({
+    bool? enablePulse,
     bool? enableProfile,
     bool? automaticProfileChanging,
     String? saverProfile,
     String? normalProfile,
     double? batteryThreshold,
-  }) : enableProfile = enableProfile ?? true,
+    MyColor? lightningColor,
+  }) : enablePulse = enablePulse ?? true,
+       enableProfile = enableProfile ?? true,
        automaticProfileChanging = automaticProfileChanging ?? true,
        saverProfile = saverProfile ?? "power-saver",
        normalProfile = normalProfile ?? "balanced",
-       batteryThreshold = batteryThreshold ?? 30;
+       batteryThreshold = batteryThreshold ?? 30,
+       lightningColor = lightningColor ?? MyColor(0xFFFFC107);
 
   factory BatteryConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return BatteryConfig(
+      enablePulse: fields['enablePulse'],
       enableProfile: fields['enableProfile'],
       automaticProfileChanging: fields['automaticProfileChanging'],
       saverProfile: fields['saverProfile'],
       normalProfile: fields['normalProfile'],
       batteryThreshold: fields['batteryThreshold'],
+      lightningColor: fields['lightningColor'],
     );
   }
 
   @override
   String toString() {
     return '''BatteryConfig(
+	enablePulse = $enablePulse,
 	enableProfile = $enableProfile,
 	automaticProfileChanging = $automaticProfileChanging,
 	saverProfile = $saverProfile,
 	normalProfile = $normalProfile,
-	batteryThreshold = $batteryThreshold
+	batteryThreshold = $batteryThreshold,
+	lightningColor = $lightningColor
 )''';
   }
 
   @override
   bool operator ==(covariant BatteryConfig other) {
-    return enableProfile == other.enableProfile &&
+    return enablePulse == other.enablePulse &&
+        enableProfile == other.enableProfile &&
         automaticProfileChanging == other.automaticProfileChanging &&
         saverProfile == other.saverProfile &&
         normalProfile == other.normalProfile &&
-        batteryThreshold == other.batteryThreshold;
+        batteryThreshold == other.batteryThreshold &&
+        lightningColor == other.lightningColor;
   }
 
   @override
   int get hashCode => Object.hashAll([
+    enablePulse,
     enableProfile,
     automaticProfileChanging,
     saverProfile,
     normalProfile,
     batteryThreshold,
+    lightningColor,
   ]);
+}
+
+mixin BatteryServiceConfigI {
+  @ConfigDocDefault<bool>(false)
+  /// Use a mock implementation for development only
+  bool get useMock;
+}
+
+class BatteryServiceConfig extends ConfigBaseI
+    with BatteryServiceConfigI, BatteryServiceConfigBase {
+  static const BlockSchema staticSchema = BlockSchema(
+    fields: {'useMock': BatteryServiceConfigBase._useMock},
+  );
+
+  static BlockSchema get schema => staticSchema;
+
+  @override
+  final bool useMock;
+
+  BatteryServiceConfig({bool? useMock}) : useMock = useMock ?? false;
+
+  factory BatteryServiceConfig.fromBlock(BlockData data) {
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
+    return BatteryServiceConfig(useMock: fields['useMock']);
+  }
+
+  @override
+  String toString() {
+    return '''BatteryServiceConfig(
+	useMock = $useMock
+)''';
+  }
+
+  @override
+  bool operator ==(covariant BatteryServiceConfig other) {
+    return useMock == other.useMock;
+  }
+
+  @override
+  int get hashCode => Object.hashAll([useMock]);
 }

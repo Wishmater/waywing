@@ -3,10 +3,12 @@
 import "dart:async";
 import "dart:collection";
 
+import "package:dartx/dartx_io.dart";
 import "package:dbus/dbus.dart";
+import "package:hive_ce/hive.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/modules/notification/notification_models.dart";
-import "dart:ui" as ui;
+import "package:waywing/modules/notification/spec/application.dart";
 
 import "package:waywing/util/logger.dart";
 
@@ -18,237 +20,153 @@ enum NotificationsCloseReason {
 
   final int value;
   const NotificationsCloseReason(this.value);
-}
 
-sealed class NotificationImage {
-  const NotificationImage();
-}
-
-class NotificationImageData extends NotificationImage {
-  final NotificationHintImage data;
-
-  Future<ui.Image> get image => data.image;
-
-  const NotificationImageData(this.data);
-}
-
-class NotificationImagePath extends NotificationImage {
-  final String path;
-
-  const NotificationImagePath(this.path);
-}
-
-int _idGenerator = 0;
-
-class Notification {
-  /// Unique identifier for the notification.
-  /// Clients use this ID to update, close, or reference a specific notification.
-  final int id;
-
-  /// This is the optional name of the application sending the notification.
-  /// This should be the application's formal name, rather than some sort of ID.
-  /// An example would be "FredApp E-Mail Client," rather than "fredapp-email-client." .
-  final String appName;
-
-  /// Icon to render
-  String appIcon;
-
-  /// Image to display
-  NotificationImage? image;
-
-  /// This is a single line overview of the notification.
-  ///
-  /// For instance, "You have mail" or "A friend has come online".
-  /// It should generally not be longer than 40 characters, though this is not a requirement,
-  /// and server implementations should word wrap if necessary.
-  ///
-  /// The summary must be encoded using UTF-8.
-  final String summary;
-
-  /// This is a multi-line body of text. Each line is a paragraph, server implementations
-  /// are free to word wrap them as they see fit.
-  ///
-  /// The body may contain simple markup as specified in Markup. It must be encoded using UTF-8.
-  ///
-  /// If the body is omitted, just the summary is displayed.
-  final String body;
-
-  /// The actions send a request message back to the notification client when invoked.
-  /// This functionality may not be implemented by the notification server, conforming clients
-  /// should check if it is available before using it (see the GetCapabilities message in Protocol).
-  /// An implementation is free to ignore any requested by the client.
-  /// As an example one possible rendering of actions would be as buttons in the notification popup.
-  ///
-  /// Actions are sent over as a list of pairs. Each even element in the list (starting at index 0)
-  /// represents the identifier for the action. Each odd element in the list is the localized
-  /// string that will be displayed to the user.
-  ///
-  /// The default action (usually invoked by clicking the notification) should have a key named
-  /// "default". The name can be anything, though implementations are free not to display it.
-  final Actions actions;
-
-  /// Hints are a way to provide extra data to a notification server that the server may
-  /// be able to make use of.
-  final NotificationHints hints;
-
-  /// The timestamp (in milliseconds since epoch) when the notification was created.
-  final int timestampMs;
-
-  /// The timeout time in milliseconds since the display of the notification at which the notification
-  /// should automatically close.
-  ///
-  /// If -1, the notification's expiration time is dependent on the notification server's settings,
-  /// and may vary for the type of notification.
-  ///
-  /// If 0, the notification never expires.
-  final int timeout;
-
-  /// For low and normal urgencies, server implementations may display the notifications how they choose.
-  /// They should, however, have a sane expiration timeout dependent on the urgency level.
-  ///
-  /// Critical notifications should not automatically expire, as they are things that the
-  /// user will most likely want to know about.
-  NotificationUrgency get urgency => hints.urgency;
-
-  /// True if notification is at the top of the list
-  final bool isFirst;
-
-  Notification._({
-    required this.id,
-    required this.timestampMs,
-    required this.appName,
-    required this.appIcon,
-    required this.image,
-    required this.summary,
-    required this.body,
-    required this.actions,
-    required this.hints,
-    required this.timeout,
-    required this.isFirst,
-  });
-
-  Notification({
-    required this.appName,
-    required this.appIcon,
-    required this.image,
-    required this.summary,
-    required this.body,
-    required this.actions,
-    required this.hints,
-    required this.timeout,
-  }) : timestampMs = DateTime.now().millisecondsSinceEpoch,
-       id = _idGenerator++,
-       isFirst = false;
-
-  Notification copyWith({
-    String? appName,
-    String? appIcon,
-    NotificationImage? image,
-    String? summary,
-    String? body,
-    Actions? actions,
-    NotificationHints? hints,
-    int? timeout,
-    int? timestampMs,
-    bool? isFirst,
-  }) {
-    return Notification._(
-      id: id,
-      appName: appName ?? this.appName,
-      appIcon: appIcon ?? this.appIcon,
-      summary: summary ?? this.summary,
-      body: body ?? this.body,
-      image: image ?? this.image,
-      actions: actions ?? this.actions,
-      hints: hints ?? this.hints,
-      timeout: timeout ?? this.timeout,
-      timestampMs: timestampMs ?? this.timestampMs,
-      isFirst: isFirst ?? this.isFirst,
-    );
-  }
-
-  @override
-  bool operator ==(covariant Notification other) {
-    if (identical(this, other)) return true;
-
-    return appName == other.appName &&
-        appIcon == other.appIcon &&
-        summary == other.summary &&
-        body == other.body &&
-        image == other.image &&
-        actions == other.actions &&
-        hints == other.hints &&
-        timeout == other.timeout &&
-        timestampMs == other.timestampMs &&
-        isFirst == other.isFirst;
-  }
-
-  @override
-  int get hashCode => Object.hashAll([
-    appName,
-    appIcon,
-    summary,
-    body,
-    image,
-    actions,
-    hints,
-    timeout,
-    timestampMs,
-  ]);
-
-  @override
-  String toString() {
-    return "Notification(id: $id, appName: $appName, appIcon: $appIcon, summary: $summary, body: $body)";
+  factory NotificationsCloseReason.fromInt(int value) {
+    return switch (value) {
+      1 => expired,
+      2 => user,
+      3 => dbus,
+      4 => undefined,
+      _ => throw ArgumentError("expected 1, 2, 3 or 4 got $value", "value"),
+    };
   }
 }
+
+enum NotificationChange { add, remove, change }
 
 /// Main Notification object that expose an org.freedesktop.Notifications dbus interface
 ///
 /// Also this object manage all notifications
-class OrgFreedesktopNotifications extends DBusObject {
+class FreedesktopNotificationsServer extends DBusObject {
   final Logger logger;
 
+  /// Notifications stored in the file system
+  final Box<Notification> storedNotifications;
+
+  List<NotificationGroup> get storedNotificationsGroup {
+    final groups = <NotificationGroup>[];
+
+    for (final notification in storedNotifications.values) {
+      final group = groups.firstOrNullWhere((v) => v.name == notification.appName);
+      if (group != null) {
+        group.add(notification);
+      } else {
+        final group = NotificationGroup(notification.appName);
+        group.add(notification);
+        groups.add(group);
+      }
+    }
+
+    return groups;
+  }
+
+  /// Notifications shown in the popup
   final LinkedHashMap<int, Notification> activeNotifications;
+
+  /// Used for the synchrounous capability where the app can replace an active notification
   final Map<String, int> synchronousIds;
+
+  /// Used to timeout active notifications
   final Map<int, NotificationTimer> _timers;
 
-  final StreamController<Notification> _notificationCreated;
-  late Stream<Notification> notificationCreated;
-  final StreamController<int> _notificationChanged;
+  final StreamController<({int id, NotificationChange type})> _activeNotificationsSignal;
+  late final Stream<Notification> notificationCreated;
   late final Stream<int> notificationChanged;
-  final StreamController<int> _notificationRemoved;
   late final Stream<int> notificationRemoved;
 
+  final StreamController<({int id, NotificationChange type})> _storedNotificationsSignal;
+  late Stream<({int id, NotificationChange type})> storedNotifiactionChange;
+
   /// Creates a new object to expose on [path].
-  OrgFreedesktopNotifications({
+  FreedesktopNotificationsServer({
     required this.logger,
     DBusObjectPath path = const DBusObjectPath.unchecked("/"),
   }) : activeNotifications = LinkedHashMap(),
        synchronousIds = {},
        _timers = {},
-       _notificationCreated = StreamController(),
-       _notificationChanged = StreamController(),
-       _notificationRemoved = StreamController(),
+       _storedNotificationsSignal = StreamController.broadcast(),
+       _activeNotificationsSignal = StreamController.broadcast(),
+       storedNotifications = Hive.box<Notification>("NotificationServer"),
        super(path) {
-    notificationCreated = _notificationCreated.stream.asBroadcastStream();
-    notificationChanged = _notificationChanged.stream.asBroadcastStream();
-    notificationRemoved = _notificationRemoved.stream.asBroadcastStream();
+    notificationCreated = _activeNotificationsSignal.stream
+        .where((v) => v.type == NotificationChange.add)
+        .map((v) => activeNotifications[v.id])
+        .where((v) => v != null)
+        .cast();
+    notificationChanged = _activeNotificationsSignal.stream
+        .where((v) => v.type == NotificationChange.change)
+        .map((v) => v.id);
+    notificationRemoved = _activeNotificationsSignal.stream
+        .where((v) => v.type == NotificationChange.remove)
+        .map((v) => v.id);
+
+    storedNotifiactionChange = _storedNotificationsSignal.stream;
   }
 
   void dispose() {
-    _notificationCreated.close();
-    _notificationRemoved.close();
-    _notificationChanged.close();
+    _activeNotificationsSignal.close();
+    _storedNotificationsSignal.close();
     _timers.forEach((k, v) => v.dispose());
     _timers.clear();
   }
 
+  void _addNotification(Notification notification) {
+    final key = notification.id;
+
+    final storedContains = storedNotifications.containsKey(key);
+    final activeContains = activeNotifications.containsKey(key);
+
+    activeNotifications[key] = notification;
+    storedNotifications.put(key, notification); // TODO 3: does this needs to be awaited
+
+    if (storedContains) {
+      _storedNotificationsSignal.add((id: key, type: NotificationChange.change));
+    } else {
+      _storedNotificationsSignal.add((id: key, type: NotificationChange.add));
+    }
+
+    if (activeContains) {
+      _activeNotificationsSignal.add((id: notification.id, type: NotificationChange.change));
+    } else {
+      _activeNotificationsSignal.add((id: notification.id, type: NotificationChange.add));
+    }
+  }
+
+  Notification? _removeNotification(int key, NotificationsCloseReason reason, bool storedRemoval) {
+    if (storedRemoval) {
+      storedNotifications.delete(key); // TODO 3: does this needs to be awaited? And if it fails is important?
+      _storedNotificationsSignal.add((id: key, type: NotificationChange.remove));
+    } else {
+      switch (reason) {
+        case NotificationsCloseReason.user || NotificationsCloseReason.dbus:
+          // TODO 3: maybe the removal of the stored notification on user or app action
+          // should be exposed as a configuration value
+          storedNotifications.delete(key);
+          _storedNotificationsSignal.add((id: key, type: NotificationChange.remove));
+        case NotificationsCloseReason.expired || NotificationsCloseReason.undefined:
+      }
+    }
+
+    final activeRemoved = activeNotifications.remove(key);
+
+    if (activeRemoved != null) {
+      if (activeRemoved.hints.synchronous?.isNotEmpty == true) {
+        synchronousIds.remove(activeRemoved.hints.synchronous!);
+      }
+      _activeNotificationsSignal.add((id: key, type: NotificationChange.remove));
+
+      emitNotificationClosed(key, reason.value);
+    }
+    _timers.remove(key)?.dispose();
+
+    return activeRemoved;
+  }
+
   void addOrReplaceNotification(Notification notification) {
-    bool contains = activeNotifications.containsKey(notification.id);
     if (activeNotifications.isEmpty || activeNotifications.values.first.id == notification.id) {
       notification = notification.copyWith(isFirst: true);
     }
-    activeNotifications[notification.id] = notification;
+    _addNotification(notification);
 
     bool isSynchronous = notification.hints.synchronous?.isNotEmpty == true;
     if (isSynchronous) {
@@ -263,12 +181,6 @@ class OrgFreedesktopNotifications extends DBusObject {
         Duration(milliseconds: notification.timeout),
       );
     }
-
-    if (contains) {
-      _notificationChanged.add(notification.id);
-    } else {
-      _notificationCreated.add(notification);
-    }
   }
 
   // return type has to be nullable because the UI can call this with
@@ -277,22 +189,22 @@ class OrgFreedesktopNotifications extends DBusObject {
     return _timers[notification.id];
   }
 
-  void removeNotification(int id, NotificationsCloseReason reason) {
+  /// Simplified call to removeNotification when the action meant to remove an stored notification
+  void removeStoredNotification(int id) {
+    return removeNotification(id, NotificationsCloseReason.user, true);
+  }
+
+  /// Remove the notification from the active and stored notifications.
+  ///
+  /// If this is called with the intention of the stored one removal then it should be called with
+  /// reason user and storedRemoval true.
+  void removeNotification(int id, NotificationsCloseReason reason, [bool storedRemoval = false]) {
     final isFirst = activeNotifications.values.firstOrNull?.id == id;
-    final removed = activeNotifications.remove(id);
+    _removeNotification(id, reason, storedRemoval);
     if (isFirst && activeNotifications.isNotEmpty) {
       final notification = activeNotifications.values.first;
-      activeNotifications[notification.id] = notification.copyWith(isFirst: true);
-      _notificationChanged.add(notification.id);
+      _addNotification(notification.copyWith(isFirst: true));
     }
-    if (removed != null) {
-      if (removed.hints.synchronous?.isNotEmpty == true) {
-        synchronousIds.remove(removed.hints.synchronous!);
-      }
-      _notificationRemoved.add(id);
-      emitNotificationClosed(id, reason.value);
-    }
-    _timers.remove(id)?.dispose();
   }
 
   /// Implementation of org.freedesktop.Notifications.GetCapabilities()
@@ -344,8 +256,6 @@ class OrgFreedesktopNotifications extends DBusObject {
 
         /// The server supports sounds on notifications. If returned, the server
         /// must support the "sound-file" and "suppress-sound" hints.
-        ///
-        /// TODO: MISSING
         "sound",
 
         /// The server supports text input.
@@ -390,11 +300,12 @@ class OrgFreedesktopNotifications extends DBusObject {
     Map<String, DBusValue> hints,
     int expire_timeout,
   ) async {
+    // TODO 2: handle transient hint. Delete notification on timeout instead of saving it.
     final sublogger = logger.create(
       Level.trace,
       "notify replace_id: $replaces_id app_name: $app_name app_icon: $app_icon",
     );
-    final parsedHints = NotificationHints(client!, hints);
+    final parsedHints = NotificationHints(hints);
     final parsedActions = Actions(actions);
     sublogger?.add("hints: $parsedHints");
     sublogger?.add("actions: $parsedActions");
@@ -403,13 +314,6 @@ class OrgFreedesktopNotifications extends DBusObject {
     );
     sublogger?.add("unparsed actions $actions");
     sublogger?.end();
-
-    NotificationImage? image;
-    if (parsedHints.imageData != null) {
-      image = NotificationImageData(parsedHints.imageData!);
-    } else if (parsedHints.imagePath != null) {
-      image = NotificationImagePath(parsedHints.imagePath!);
-    }
 
     if (expire_timeout <= 0) {
       expire_timeout = switch (parsedHints.urgency) {
@@ -426,7 +330,6 @@ class OrgFreedesktopNotifications extends DBusObject {
         actions: parsedActions,
         appName: app_name,
         appIcon: app_icon,
-        image: image,
         summary: summary,
         body: body,
         hints: parsedHints,
@@ -444,7 +347,6 @@ class OrgFreedesktopNotifications extends DBusObject {
           actions: parsedActions,
           appName: app_name,
           appIcon: app_icon,
-          image: image,
           summary: summary,
           body: body,
           hints: parsedHints,
@@ -455,7 +357,6 @@ class OrgFreedesktopNotifications extends DBusObject {
           actions: parsedActions,
           appName: app_name,
           appIcon: app_icon,
-          image: image,
           summary: summary,
           body: body,
           hints: parsedHints,
@@ -467,7 +368,6 @@ class OrgFreedesktopNotifications extends DBusObject {
       actions: parsedActions,
       appName: app_name,
       appIcon: app_icon,
-      image: image,
       summary: summary,
       body: body,
       hints: parsedHints,
@@ -554,9 +454,14 @@ class OrgFreedesktopNotifications extends DBusObject {
   /// - activation_token: An activation token. This can be either an X11-style startup ID
   ///   (see Startup notification protocol) or a Wayland xdg-activation token.
   Future<void> emitActivationToken(Notification notification, String activation_token) async {
-    notification.hints.application
-        ?.callActivate({"activation-token": DBusString(activation_token)})
-        .catchError((e, st) {});
+    if (notification.hints.applicationDBusName != null) {
+      final appname = notification.hints.applicationDBusName!;
+      OrgFreedesktopApplication(
+        client!,
+        appname,
+        DBusObjectPath(appname.replaceAll(".", "/")),
+      ).callActivate({"activation-token": DBusString(activation_token)}).catchError((e, st) {});
+    }
 
     await emitSignal("org.freedesktop.Notifications", "ActivationToken", [
       DBusUint32(notification.id),

@@ -2,6 +2,7 @@ import "dart:math";
 
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:path/path.dart";
 import "package:waywing/core/config.dart";
@@ -10,16 +11,21 @@ import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/modules/app_launcher/launcher_feather.dart";
+import "package:waywing/modules/aria2/aria2_feather.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
 import "package:waywing/modules/battery/battery_feather.dart";
+import "package:waywing/modules/bitwarden/bitwarden_feather.dart";
 import "package:waywing/modules/clock/clock_feather.dart";
-import "package:waywing/modules/command_palette/command_palette_wing.dart";
+import "package:waywing/modules/command_palette/command_palette_feather.dart";
+import "package:waywing/modules/container_wings/drawer.dart";
 import "package:waywing/modules/container_wings/modal.dart";
+import "package:waywing/modules/frame/frame_wing.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_feather.dart";
 import "package:waywing/modules/kb_layout/num_lock_feather.dart";
 import "package:waywing/modules/menu/menu_wing.dart";
 import "package:waywing/modules/nm/nm_feather.dart";
+import "package:waywing/modules/notification/notification_manager_feather.dart";
 import "package:waywing/modules/notification/notification_wing.dart";
 import "package:waywing/modules/session/session_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_feather.dart";
@@ -201,7 +207,7 @@ class FeatherRegistry {
     feather.logger = mainLogger.clone(properties: [LogType(feather.uniqueId)]);
     // add feather routes actions
     if (feather.actions case final actions?) {
-      // TODO: 1 router declarations don't react to config reload
+      // TODO: 1 router declarations don't react to config reload (modal)
       for (final entry in actions.entries) {
         WaywingServer.instance.router.register(
           join(feather.actionsPath, entry.key),
@@ -211,7 +217,20 @@ class FeatherRegistry {
     }
     final initFuture = feather.init(context);
     _initializedFeathers[feather] = initFuture;
-    await initFuture;
+    try {
+      await initFuture;
+    } catch (e, st) {
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      feather.logger.error(
+        "Error thrown while initializing ${feather is Wing ? 'wing' : 'feather'} ${feather.name} (${feather.uniqueId})",
+        error: e,
+        stackTrace: e is ServiceInitializationError ? null : st,
+      );
+      feather.hasInitializationError = true;
+
+      // TODO: 1 show error notification, and remove it when the feather is disposed
+    }
+    feather.isInitialized = true;
     _logger.trace("finished initializing feather $feather");
   }
 
@@ -224,7 +243,7 @@ class FeatherRegistry {
     // remove feather routes
     if (feather.actions case final actions?) {
       for (final entry in actions.entries) {
-        WaywingServer.instance.router.unregister(join(feather.name, entry.key));
+        WaywingServer.instance.router.unregister(join(feather.actionsPath, entry.key));
       }
     }
     // de-reference the instance, so that a clean instance is built if the same Feather is re-added
@@ -247,10 +266,10 @@ class FeatherRegistry {
   void _registerDefaultFeathers() {
     // Wings
     ModalWing.registerFeather(registerFeather);
+    DrawerWing.registerFeather(registerFeather);
     BarWing.registerFeather(registerFeather);
     NotificationsWing.registerFeather(registerFeather);
-    CommandPaletteWing.registerFeather(registerFeather);
-    MenuWing.registerFeather(registerFeather);
+    FrameWing.registerFeather(registerFeather);
     // Feathers
     SpacerFeather.registerFeather(registerFeather);
     DividerFeather.registerFeather(registerFeather);
@@ -265,6 +284,12 @@ class FeatherRegistry {
     NumLockFeather.registerFeather(registerFeather);
     WorkspaceSwitcherFeather.registerFeather(registerFeather);
     AppLauncherFeather.registerFeather(registerFeather);
+    Aria2Feather.registerFeather(registerFeather);
+    NotificationsManagerFeather.registerFeather(registerFeather);
+    BitwardenLauncherFeather.registerFeather(registerFeather);
+
+    if (!kReleaseMode) MenuWing.registerFeather(registerFeather);
+    if (!kReleaseMode) CommandPaletteFeather.registerFeather(registerFeather);
   }
 }
 

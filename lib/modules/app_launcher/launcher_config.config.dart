@@ -9,52 +9,41 @@ part of 'launcher_config.dart';
 // **************************************************************************
 
 mixin LauncherConfigI {
-  int? get iconSize;
-
-  @ConfigDocDefault<bool>(true)
-  bool get showScrollBar;
+  String? get terminal;
 }
 
 class LauncherConfig extends ConfigBaseI
     with LauncherConfigI, LauncherConfigBase {
   static const BlockSchema staticSchema = BlockSchema(
-    fields: {
-      'iconSize': LauncherConfigBase._iconSize,
-      'showScrollBar': LauncherConfigBase._showScrollBar,
-    },
+    fields: {'terminal': LauncherConfigBase._terminal},
   );
 
   static BlockSchema get schema => staticSchema;
 
   @override
-  final int? iconSize;
-  @override
-  final bool showScrollBar;
+  final String? terminal;
 
-  LauncherConfig({this.iconSize, bool? showScrollBar})
-    : showScrollBar = showScrollBar ?? true;
+  LauncherConfig({this.terminal});
 
   factory LauncherConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
-    return LauncherConfig(
-      iconSize: fields['iconSize'],
-      showScrollBar: fields['showScrollBar'],
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
     );
+    return LauncherConfig(terminal: fields['terminal']);
   }
 
   @override
   String toString() {
     return '''LauncherConfig(
-	iconSize = $iconSize,
-	showScrollBar = $showScrollBar
+	terminal = $terminal
 )''';
   }
 
   @override
   bool operator ==(covariant LauncherConfig other) {
-    return iconSize == other.iconSize && showScrollBar == other.showScrollBar;
+    return terminal == other.terminal;
   }
 
   @override
-  int get hashCode => Object.hashAll([iconSize, showScrollBar]);
+  int get hashCode => Object.hashAll([terminal]);
 }

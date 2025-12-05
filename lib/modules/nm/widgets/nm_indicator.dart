@@ -9,16 +9,20 @@ import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/util/human_readable_bytes.dart";
 import "package:waywing/widgets/icons/composed_icon.dart";
 import "package:waywing/widgets/icons/symbol_icon.dart";
+import "package:waywing/widgets/winged_widgets/icon_indicator.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/winged_widgets/winged_context_menu.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 class NetworkManagerIndicator extends StatelessWidget {
+  final NetworkManagerService service;
   final NetworkManagerConfig config;
   final NMServiceDevice device;
   final WingedPopoverController? popover;
 
   const NetworkManagerIndicator({
+    required this.service,
     required this.config,
     required this.device,
     required this.popover,
@@ -45,6 +49,9 @@ class NetworkManagerIndicator extends StatelessWidget {
 
             if (isConnected) {
               if (isVertical) {
+                final padding = EdgeInsets.only(
+                  top: config.showDownloadIndicator || config.showUploadIndicator ? 6 : 4,
+                );
                 result = Column(
                   children: [
                     result,
@@ -52,13 +59,22 @@ class NetworkManagerIndicator extends StatelessWidget {
                     if (config.showThroughputIndicator)
                       ThroughputRateWidget(
                         device: device,
-                        isVertical: true,
-                        showIcon: false,
-                        padding: EdgeInsets.only(top: 4),
+                        showIcon: config.showDownloadIndicator || config.showUploadIndicator,
+                        padding: padding,
+                        layout: IconAndTextLayout.fromConstraints(constraints),
                       ),
-                    // // individual upload and download not supported in vertical mode
-                    // if (config.showDownloadIndicator) RxRateWidget(device: device),
-                    // if (config.showUploadIndicator) TxRateWidget(device: device),
+                    if (config.showDownloadIndicator)
+                      RxRateWidget(
+                        device: device,
+                        padding: padding,
+                        layout: IconAndTextLayout.fromConstraints(constraints),
+                      ),
+                    if (config.showUploadIndicator)
+                      TxRateWidget(
+                        device: device,
+                        padding: padding,
+                        layout: IconAndTextLayout.fromConstraints(constraints),
+                      ),
                   ],
                 );
               } else {
@@ -73,11 +89,20 @@ class NetworkManagerIndicator extends StatelessWidget {
                           if (config.showConnectionNameIndicator) ConnectionNameWidget(device: device),
                           Row(
                             children: [
-                              if (config.showDownloadIndicator) RxRateWidget(device: device),
-                              if (config.showUploadIndicator) TxRateWidget(device: device),
+                              if (config.showDownloadIndicator)
+                                RxRateWidget(
+                                  device: device,
+                                  layout: IconAndTextLayout.fromConstraints(constraints),
+                                ),
+                              if (config.showUploadIndicator)
+                                TxRateWidget(
+                                  device: device,
+                                  layout: IconAndTextLayout.fromConstraints(constraints),
+                                ),
                               if (config.showThroughputIndicator)
                                 ThroughputRateWidget(
                                   device: device,
+                                  layout: IconAndTextLayout.fromConstraints(constraints),
                                   showIcon:
                                       !allowIconTxRxIndicators ||
                                       config.showDownloadIndicator ||
@@ -93,12 +118,24 @@ class NetworkManagerIndicator extends StatelessWidget {
                   result = Row(
                     children: [
                       result,
-                      if (config.showConnectionNameIndicator) ConnectionNameWidget(device: device),
-                      if (config.showDownloadIndicator) RxRateWidget(device: device),
-                      if (config.showUploadIndicator) TxRateWidget(device: device),
+                      if (config.showConnectionNameIndicator)
+                        ConnectionNameWidget(
+                          device: device,
+                        ),
+                      if (config.showDownloadIndicator)
+                        RxRateWidget(
+                          device: device,
+                          layout: IconAndTextLayout.fromConstraints(constraints),
+                        ),
+                      if (config.showUploadIndicator)
+                        TxRateWidget(
+                          device: device,
+                          layout: IconAndTextLayout.fromConstraints(constraints),
+                        ),
                       if (config.showThroughputIndicator)
                         ThroughputRateWidget(
                           device: device,
+                          layout: IconAndTextLayout.fromConstraints(constraints),
                           showIcon:
                               !allowIconTxRxIndicators || config.showDownloadIndicator || config.showUploadIndicator,
                         ),
@@ -108,8 +145,29 @@ class NetworkManagerIndicator extends StatelessWidget {
               }
             }
 
-            return WingedButton(
-              onTap: popover?.isPopoverEnabled ?? false ? () => popover!.togglePopover() : null,
+            return WingedContextMenu(
+              itemsBuilder: (context) {
+                return [
+                  WingedContextMenuItem(
+                    child: Text("Hide device"),
+                    onTap: (popover, _, _) {
+                      service.devices.hideDevice(device);
+                      return null;
+                    },
+                  ),
+                ];
+              },
+              builder: (context, contextMenu, child) {
+                return WingedButton(
+                  onTap: popover?.isPopoverEnabled ?? false ? (_, _) => popover!.togglePopover() : null,
+                  onSecondaryTap: (tapDownDetails, tapUpDetails) {
+                    popover?.hidePopover();
+                    popover?.hideTooltip();
+                    contextMenu.togglePopover(localPosition: tapUpDetails.localPosition);
+                  },
+                  child: child!,
+                );
+              },
               child: result,
             );
           },
@@ -424,6 +482,7 @@ class ConnectionNameWidget extends StatelessWidget {
     return ValueListenableBuilder(
       valueListenable: device.activeConnectionName,
       builder: (context, activeConnectionName, _) {
+        // maybe we could use device._device.interface for a device identification (as opposed to connection)
         if (activeConnectionName == null) return SizedBox.shrink();
         // TODO: 2 use activeConnection.status (or cues from statistics) to implement more detailed status (like connected with on internet)
         return Padding(
@@ -439,13 +498,13 @@ class ThroughputRateWidget extends StatelessWidget {
   final NMServiceDevice device;
   final EdgeInsets padding;
   final bool showIcon;
-  final bool isVertical;
+  final IconAndTextLayout? layout;
 
   const ThroughputRateWidget({
     required this.device,
     this.showIcon = true,
     this.padding = const EdgeInsets.only(left: 8),
-    this.isVertical = false,
+    this.layout,
     super.key,
   });
 
@@ -453,15 +512,12 @@ class ThroughputRateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget? icon;
     if (showIcon) {
-      icon = Padding(
-        padding: const EdgeInsets.only(right: 1),
-        child: WingedIcon(
-          flutterIcon: SymbolsVaried.swap_vert,
-          // TODO: 3 ICONS set a linux icon for this
-          textIcon: "󰯎", // nf-md-swap_vertical_bold
-          size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 4,
-          color: Theme.of(context).textTheme.bodyMedium!.color,
-        ),
+      icon = WingedIcon(
+        flutterIcon: SymbolsVaried.swap_vert,
+        // TODO: 3 ICONS set a linux icon for this
+        textIcon: "󰯎", // nf-md-swap_vertical_bold
+        size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
+        color: Theme.of(context).textTheme.bodyMedium!.color,
       );
     }
     return ValueListenableBuilder(
@@ -480,29 +536,11 @@ class ThroughputRateWidget extends StatelessWidget {
                 numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
               ),
             );
-            Widget result;
-            if (isVertical) {
-              result = Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null) icon,
-                  SizedBox(height: 2),
-                  Text("$readableBytes/s", maxLines: 2, textAlign: TextAlign.center, style: TextStyle(height: 1)),
-                ],
-              );
-            } else {
-              result = IntrinsicWidth(
-                child: Row(
-                  children: [
-                    if (icon != null) icon,
-                    Expanded(child: Text("$readableBytes/s", maxLines: 1, softWrap: false)),
-                  ],
-                ),
-              );
-            }
-            return Padding(
+            return IconAndTextIndicator(
+              icon: icon,
+              text: "$readableBytes/s",
               padding: padding,
-              child: result,
+              layout: layout,
             );
           },
         );
@@ -514,10 +552,12 @@ class ThroughputRateWidget extends StatelessWidget {
 class TxRateWidget extends StatelessWidget {
   final NMServiceDevice device;
   final EdgeInsets padding;
+  final IconAndTextLayout? layout;
 
   const TxRateWidget({
     required this.device,
     this.padding = const EdgeInsets.only(left: 6),
+    this.layout,
     super.key,
   });
 
@@ -536,20 +576,16 @@ class TxRateWidget extends StatelessWidget {
             numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
           ),
         );
-        return Padding(
+        return IconAndTextIndicator(
           padding: padding,
-          child: Row(
-            children: [
-              WingedIcon(
-                flutterIcon: SymbolsVaried.arrow_upward,
-                // TODO: 3 ICONS set a linux icon for this
-                textIcon: "󰁝", // nf-md-arrow_up
-                size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
-                color: Theme.of(context).textTheme.bodyMedium!.color,
-              ),
-              SizedBox(width: 2),
-              Text("$readableBytes/s"),
-            ],
+          layout: layout,
+          text: "$readableBytes/s",
+          icon: WingedIcon(
+            flutterIcon: SymbolsVaried.arrow_upward,
+            // TODO: 3 ICONS set a linux icon for this
+            textIcon: "󰁝", // nf-md-arrow_up
+            size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
+            color: Theme.of(context).textTheme.bodyMedium!.color,
           ),
         );
       },
@@ -560,10 +596,12 @@ class TxRateWidget extends StatelessWidget {
 class RxRateWidget extends StatelessWidget {
   final NMServiceDevice device;
   final EdgeInsets padding;
+  final IconAndTextLayout? layout;
 
   const RxRateWidget({
     required this.device,
     this.padding = const EdgeInsets.only(left: 6),
+    this.layout,
     super.key,
   });
 
@@ -582,20 +620,16 @@ class RxRateWidget extends StatelessWidget {
             numberFormat: NumberFormat.decimalPatternDigits(decimalDigits: 2),
           ),
         );
-        return Padding(
+        return IconAndTextIndicator(
           padding: padding,
-          child: Row(
-            children: [
-              WingedIcon(
-                flutterIcon: SymbolsVaried.arrow_downward,
-                // TODO: 3 ICONS set a linux icon for this
-                textIcon: "󰁅", // nf-md-arrow_down
-                size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
-                color: Theme.of(context).textTheme.bodyMedium!.color,
-              ),
-              SizedBox(width: 2),
-              Text("$readableBytes/s"),
-            ],
+          layout: layout,
+          text: "$readableBytes/s",
+          icon: WingedIcon(
+            flutterIcon: SymbolsVaried.arrow_downward,
+            // TODO: 3 ICONS set a linux icon for this
+            textIcon: "󰁅", // nf-md-arrow_down
+            size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
+            color: Theme.of(context).textTheme.bodyMedium!.color,
           ),
         );
       },

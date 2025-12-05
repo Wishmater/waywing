@@ -10,17 +10,104 @@ class MyColor extends Color {
   const MyColor.fromRGBO(super.r, super.g, super.b, super.opacity) : super.fromRGBO();
 }
 
+class AdaptativeColor {
+  final Color light;
+  final Color dark;
+
+  const AdaptativeColor(this.light, this.dark);
+
+  Color color(Brightness brightness) {
+    return switch(brightness) {
+      Brightness.dark => dark,
+      Brightness.light => light,
+    };
+  }
+}
+
+class AdaptativeColorField extends UntypedField<AdaptativeColor> {
+  const AdaptativeColorField({
+    super.defaultTo,
+    super.nullable,
+  }) : super(validator: transform);
+
+  static ValidatorResult<AdaptativeColor> transform(Value value) {
+    switch (value) {
+      case StringValue():
+        final color = ColorField.parseColor(value.value);
+        return ValidatorTransform(AdaptativeColor(color, color));
+      case ListValue():
+        if (value.value.length != 2) {
+          return ValidatorError(
+            MyValError(
+              "AdaptiveColor exepect list to be two elements large but was of ${value.value.length}",
+              value.position,
+            ),
+          );
+        }
+        for (final v in value.value) {
+          if (v is! StringValue) {
+            return ValidatorError(
+              MyValError(
+                "AdaptiveColor list values to be of type strings",
+                v.position,
+              ),
+            );
+          }
+        }
+        final colorL = ColorField.parseColor(value.value[0].toValue() as String);
+        final colorD = ColorField.parseColor(value.value[1].toValue() as String);
+        return ValidatorTransform(AdaptativeColor(colorL, colorD));
+      case MapValue():
+        final result = <String, MyColor?>{"light": null, "dark": null};
+
+        for (final entry in value.value.entries) {
+          if (entry.key is! StringValue) {
+            return ValidatorError(
+              MyValError("AdaptiveColor expect map to have keys of type string", entry.key.position),
+            );
+          }
+          if (entry.value is! StringValue) {
+            return ValidatorError(
+              MyValError("AdaptiveColor expect map to have values of type string", entry.value.position),
+            );
+          }
+          final key = entry.key.value as String;
+          if (result.containsKey(key)) {
+            try {
+              result[key] = ColorField.parseColor(entry.value.value as String);
+            } catch (_) {
+              return ValidatorError(MyValError("Failed to parse color value", entry.value.position));
+            }
+          }
+        }
+        if (result["light"] == null) {
+          return ValidatorError(MyValError("Missing key light", value.position));
+        }
+        if (result["dark"] == null) {
+          return ValidatorError(MyValError("Missing key dark", value.position));
+        }
+        return ValidatorTransform(AdaptativeColor(result["light"]!, result["dark"]!));
+      case DurationValue():
+      case BooleanValue():
+      case BlockValue():
+      case NumberDoubleValue():
+      case NumberIntegerValue():
+        return ValidatorError(MyValError("Expected to be of type String | List | Map", value.position));
+    }
+  }
+}
+
 class ColorField extends StringFieldBase<MyColor> {
   const ColorField({
     super.defaultTo,
     super.nullable,
   }) : super(validator: transform);
 
-  static ValidatorResult<MyColor> transform(String value) {
+  static ValidatorResult<MyColor> transform(String value, Position position) {
     try {
       return ValidatorTransform(parseColor(value));
     } catch (_) {
-      return ValidatorError(MyValError("Failed to parse color value"));
+      return ValidatorError(MyValError("Failed to parse color value", position));
     }
   }
 
@@ -73,7 +160,7 @@ class AlignmentField extends StringFieldBase<Alignment> {
     super.nullable,
   }) : super(validator: transform);
 
-  static ValidatorResult<Alignment> transform(String value) {
+  static ValidatorResult<Alignment> transform(String value, Position position) {
     return switch (value) {
       "topLeft" => ValidatorTransform(Alignment.topLeft),
       "topCenter" => ValidatorTransform(Alignment.topCenter),
@@ -84,16 +171,26 @@ class AlignmentField extends StringFieldBase<Alignment> {
       "bottomLeft" => ValidatorTransform(Alignment.bottomLeft),
       "bottomCenter" => ValidatorTransform(Alignment.bottomCenter),
       "bottomRight" => ValidatorTransform(Alignment.bottomRight),
-      _ => ValidatorError(MyValError("Unknown alignment: $value")),
+      _ => ValidatorError(MyValError("Unknown alignment: $value", position)),
     };
   }
 }
 
 class MyValError extends ValidationError {
   String msg;
-  MyValError(this.msg);
+  Position position;
+
+  @override
+  List<Position> get positions => [position];
+
+  MyValError(this.msg, this.position);
+
   @override
   String error() => msg;
+
   @override
   String toString() => "ValidationError($msg)";
+
+  @override
+  String help() => "";
 }

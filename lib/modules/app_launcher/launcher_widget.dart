@@ -7,7 +7,7 @@ import "package:waywing/modules/app_launcher/launcher_config.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
-class LauncherWidget extends StatefulWidget {
+class LauncherWidget extends StatelessWidget {
   final List<Application> applications;
   final ApplicationService service;
   final LauncherConfig config;
@@ -22,57 +22,32 @@ class LauncherWidget extends StatefulWidget {
   });
 
   @override
-  State<LauncherWidget> createState() => _LauncherWidgetState();
-}
-
-class _LauncherWidgetState extends State<LauncherWidget> {
-  late final FocusNode focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-
-    focusNode = FocusNode(debugLabel: "launcher");
-    // TODO FIX THIS (Maybe with the hyprpland focus grab protocol this is not needed
-    focusNode.requestFocus();
-    focusNode.addListener(() {
-      if (!focusNode.hasFocus) {
-        focusNode.requestFocus();
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SearchOptions(
-          options: Option.from(widget.applications, ApplicationOption.from),
+          options: Option.from(applications, ApplicationOption.from),
           renderOption: _renderOption,
           onSelected: _run,
-          showScrollBar: widget.config.showScrollBar,
           height: constraints.maxHeight.toDouble(),
-          width: constraints.maxWidth.toDouble(),
-          focusNode: focusNode,
         );
       },
     );
   }
 
-  Widget _renderOption(BuildContext context, Application app, SearchOptionsRenderConfig config) {
+  Widget _renderOption(BuildContext context, Application app, SearchOptionsRenderConfig searchoptConfig) {
     return ListTileOptionWidget(
       app: app,
-      config: config,
-      iconSize: widget.config.iconSize,
+      config: searchoptConfig,
       onTap: () => _run(app),
     );
   }
 
   void _run(Application app) async {
     try {
-      await widget.service.run(app);
+      await service.run(app, config.terminal);
     } finally {
-      widget.close();
+      close();
     }
   }
 }
@@ -101,13 +76,11 @@ class ApplicationOption extends Option<Application> {
 class ListTileOptionWidget extends StatelessWidget {
   final Application app;
   final SearchOptionsRenderConfig config;
-  final int? iconSize;
   final VoidCallback onTap;
 
   const ListTileOptionWidget({
     required this.app,
     required this.config,
-    required this.iconSize,
     required this.onTap,
     super.key,
   });
@@ -116,7 +89,7 @@ class ListTileOptionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return ListTile(
-      leading: app.icon != null ? _RenderIcon(icon: app.icon!, iconSize: iconSize) : SizedBox(width: 35),
+      leading: app.icon != null ? _RenderIcon(icon: app.icon!) : SizedBox(width: 35),
       title: Text(
         app.name,
         style: theme.textTheme.bodyLarge,
@@ -140,13 +113,12 @@ class ListTileOptionWidget extends StatelessWidget {
 
 class _RenderIcon extends StatelessWidget {
   final String icon;
-  final int? iconSize;
-  const _RenderIcon({required this.icon, required this.iconSize});
+  const _RenderIcon({required this.icon});
 
   @override
   Widget build(BuildContext context) {
     // TODO: 1 migrate to WingedIcon
-    final size = iconSize ?? XdgIconTheme.of(context).size;
+    final size = XdgIconTheme.of(context).size;
     if (icon.startsWith("/")) {
       return Image.file(File(icon), height: size?.toDouble(), width: size?.toDouble());
     }

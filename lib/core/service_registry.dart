@@ -1,23 +1,30 @@
 import "package:config/config.dart";
-import "package:dartx/dartx_io.dart";
+import "package:dartx/dartx.dart";
+import "package:flutter/foundation.dart";
+import "package:miga/miga.dart";
+import "package:path/path.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/modules/app_launcher/service/application_service.dart";
+import "package:waywing/modules/aria2/aria2_service.dart";
 import "package:waywing/modules/battery/battery_service.dart";
+import "package:waywing/modules/bitwarden/bitwarden_service.dart";
 import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/modules/command_palette/user_command_service.dart";
-import "package:waywing/modules/hyprland/hyprland_service.dart";
-import "package:waywing/modules/kb_layout/kb_layout_service.dart";
+import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/modules/session/os_info_service.dart";
 import "package:waywing/modules/session/session_service.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
 import "package:waywing/modules/volume/volume_service.dart";
+import "package:waywing/services/network_icon/network_icon_service.dart";
 import "package:waywing/util/logger.dart";
 
 final serviceRegistry = ServiceRegistry._();
+final _logger = mainLogger.clone(properties: [LogType("ServiceRegistry")]);
 
 typedef ServiceConstructor<T extends Service> = T Function();
 
@@ -65,7 +72,7 @@ class ServiceRegistry {
   /// feather init() awaits services requests, it will then be safe to use the
   /// returned instances in the build methods.
   Future<T> requestService<T extends Service>(ServiceConsumer consumer) {
-    mainLogger.debug("Initializing service: $T");
+    _logger.debug("Initializing service: $T");
     final serviceType = T;
     final existingService = _initializedServices[serviceType];
     if (existingService != null) {
@@ -102,7 +109,37 @@ class ServiceRegistry {
     }
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     service.logger = mainLogger.clone(properties: [LogType("$serviceType")]);
-    await service.init();
+    try {
+      await service.init();
+    } catch (e, st) {
+      var error = e;
+      if (e is FormatException) {
+        error = MigaDiagnostic.formatExcpetion("Format exception", e);
+      }
+      // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+      service.logger.error(
+        "Error thrown while initializing service $serviceType",
+        error: error,
+        stackTrace: st,
+      );
+      service.hasInitializationError = true;
+
+      // TODO: 1 show error notification, and remove it when the service is disposed
+
+      // we want this error to bubble up, so that feather initializations that depend on this service also fail
+      throw ServiceInitializationError(service);
+      // rethrow; // better th throw a different error instead of rethrowing, so the same stacktrace isn't logged twice
+    }
+    if (service.actions case final actions?) {
+      // TODO: 1 router declarations don't react to config reload (modal)
+      for (final entry in actions.entries) {
+        WaywingServer.instance.router.register(
+          join("$serviceType", entry.key),
+          entry.value,
+        );
+      }
+    }
+    service.isInitialized = true;
     return service;
   }
 
@@ -137,6 +174,11 @@ class ServiceRegistry {
       "Trying to dereference a Service that hasn't been initialized: $serviceType",
     );
     final service = await _initializedServices.remove(serviceType)!;
+    if (service.actions case final actions?) {
+      for (final entry in actions.entries) {
+        WaywingServer.instance.router.unregister(join("$serviceType", entry.key));
+      }
+    }
     await service.dispose();
     // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
     await service.logger.destroy();
@@ -191,12 +233,23 @@ class ServiceRegistry {
     SessionService.registerService(registerService);
     OsInfoService.registerService(registerService);
     NotificationsService.registerService(registerService);
-    KeyboardLayoutService.registerService(registerService);
     ApplicationService.registerService(registerService);
-    HyprlandService.registerService(registerService);
+    CompositorService.registerService(registerService);
     UserCommandService.registerService(registerService);
+    Aria2Service.registerService(registerService);
+    NetworkIconService.registerService(registerService);
+    if (!kReleaseMode) BitwardenService.registerService(registerService);
   }
 }
 
 typedef RegisterServiceCallback =
     void Function<T extends Service<Conf>, Conf>(ServiceRegistration<T, Conf> constructor);
+
+class ServiceInitializationError<T> extends Error {
+  final Service<T> service;
+
+  ServiceInitializationError(this.service);
+
+  @override
+  String toString() => "Error while initializing service ${service.runtimeType}";
+}

@@ -8,6 +8,7 @@ import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/widgets/icons/composed_icon.dart";
 import "package:waywing/widgets/icons/symbol_icon.dart";
+import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/motion_widgets/motion_fractionally_sized_box.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -53,8 +54,8 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
   @override
   void initState() {
     super.initState();
-    listenable.addListener(addVolumeListener);
-    addVolumeListener();
+    listenable.addListener(onDeviceChanged);
+    onDeviceChanged(isInit: true);
     _previousDevice = listenable.value;
   }
 
@@ -62,29 +63,40 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
   void didUpdateWidget(covariant VolumeIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.type != widget.type) {
-      getListenable(oldWidget.type).removeListener(addVolumeListener);
-      listenable.addListener(addVolumeListener);
+      getListenable(oldWidget.type).removeListener(onDeviceChanged);
+      listenable.addListener(onDeviceChanged);
     }
   }
 
   @override
   void dispose() {
-    listenable.removeListener(addVolumeListener);
+    listenable.removeListener(onDeviceChanged);
     super.dispose();
   }
 
   VolumeInterface? _previousDevice;
-  void addVolumeListener() {
-    _previousDevice?.volume.removeListener(onVolumeChanged);
-    _previousDevice?.isMuted.removeListener(onVolumeChanged);
+  void onDeviceChanged({
+    isInit = false,
+  }) {
+    if (!isInit) {
+      _previousDevice?.volume.removeListener(onVolumeChanged);
+      _previousDevice?.isMuted.removeListener(onVolumeChanged);
+    }
     listenable.value?.volume.addListener(onVolumeChanged);
     listenable.value?.isMuted.addListener(onVolumeChanged);
+    if (!isInit) {
+      showTooltip();
+    }
   }
 
   void onVolumeChanged() async {
-    if (widget.config.showTooltipOnVolumeChange) {
+    return showTooltip();
+  }
+
+  void showTooltip() async {
+    if (widget.config.tooltipOnVolumeChangeDuration != Duration.zero) {
       await widget.popover.showTooltip(showDelay: Duration.zero);
-      await widget.popover.hideTooltip(hideDelay: Duration(seconds: 1));
+      await widget.popover.hideTooltip(hideDelay: widget.config.tooltipOnVolumeChangeDuration);
     }
   }
 
@@ -139,6 +151,7 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
                   return VolumeScrollWhellListener(
                     model: defaultOutput,
                     config: widget.config,
+                    service: widget.service,
                     child: ValueListenableBuilder(
                       valueListenable: defaultOutput.volume,
                       builder: (context, volume, child) {
@@ -188,16 +201,19 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
                           }
                         }
 
-                        final volBarSize = (Theme.of(context).iconTheme.size ?? kDefaultFontSize) * 0.25;
+                        final volBarSize = TextIcon.getIconEffectiveSize(context) * 0.15;
                         Widget result = IntrinsicHeight(
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               FractionallySizedBox(
+                                // this breaks hard when changing icon size in config and i'm too tired to find out why
+                                key: ValueKey(volBarSize),
                                 heightFactor: 0.9,
-                                child: Container(
+                                child: MotionContainer(
                                   clipBehavior: Clip.antiAliasWithSaveLayer,
+                                  motion: mainConfig.motions.expressive.spatial.normal,
                                   width: volBarSize,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.all(Radius.circular(volBarSize / 2)),
@@ -285,8 +301,10 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
               );
             }
             return WingedButton(
-              onTap: () => widget.popover.togglePopover(),
-              onSecondaryTap: defaultOutput == null ? null : () => defaultOutput.setMuted(!defaultOutput.isMuted.value),
+              onTap: (_, _) => widget.popover.togglePopover(),
+              onSecondaryTap: defaultOutput == null
+                  ? null
+                  : (_, _) => defaultOutput.setMuted(!defaultOutput.isMuted.value),
               child: result,
             );
           },
@@ -297,11 +315,13 @@ class _VolumeIndicatorState extends State<VolumeIndicator> {
 }
 
 class VolumeScrollWhellListener extends StatelessWidget {
+  final VolumeService service;
   final VolumeInterface model;
   final VolumeConfig config;
   final Widget child;
 
   const VolumeScrollWhellListener({
+    required this.service,
     required this.model,
     required this.config,
     required this.child,
@@ -314,10 +334,11 @@ class VolumeScrollWhellListener extends StatelessWidget {
       child: child,
       onPointerSignal: (pointerSignal) {
         if (pointerSignal is PointerScrollEvent) {
+          final step = config.volumeStep ?? service.config.volumeStep;
           if (pointerSignal.scrollDelta.dy > 0) {
-            model.decreaseVolume(config.volumeStep / 100);
+            model.decreaseVolume(step / 100);
           } else {
-            model.increaseVolume(config.volumeStep / 100, max: config.maxVolume / 100);
+            model.increaseVolume(step / 100, max: (config.maxVolume ?? service.config.maxVolume) / 100);
           }
         }
       },

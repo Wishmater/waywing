@@ -1,6 +1,7 @@
 import "dart:io";
 
 import "package:dbus/dbus.dart";
+import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:path/path.dart" as path;
 import "package:json_annotation/json_annotation.dart";
 import "package:tronco/tronco.dart";
@@ -14,6 +15,12 @@ typedef Key = DesktopEntryKey;
 class Application implements Comparable<Application> {
   Map<String, dynamic> toJson() => _$ApplicationToJson(this);
   factory Application.fromJson(Map<String, dynamic> json) => _$ApplicationFromJson(json);
+
+  /// File path of the desktop file from where this [Application] was extracted
+  final String desktopFilePath;
+
+  /// Name of the desktop file from where this [Application] was extracted
+  String get desktopFileName => path.basename(path.withoutExtension(desktopFilePath));
 
   /// Application name
   final String name;
@@ -81,6 +88,7 @@ class Application implements Comparable<Application> {
   int timesExec;
 
   Application({
+    required this.desktopFilePath,
     required this.name,
     this.exec,
     this.tryExec,
@@ -123,6 +131,7 @@ class Application implements Comparable<Application> {
     final categories = Categories.fromList(entries[Key.categories.string]?.split(";"));
     final keywords = entries[Key.categories.string]?.split(";");
     return Application(
+      desktopFilePath: file.absolute.path,
       name: name,
       exec: entries[Key.exec.string],
       tryExec: entries[Key.tryExec.string],
@@ -168,7 +177,7 @@ class Application implements Comparable<Application> {
     return "Application name: $name filepath: $filepath";
   }
 
-  Future<void> run({bool forceExec = false, Logger? logger}) async {
+  Future<void> run({bool forceExec = false, required Logger logger, required String terminal}) async {
     if (!forceExec && dBusActivatable) {
       String dbusname = path.basename(filepath);
       if (dbusname.endsWith(".desktop")) {
@@ -177,6 +186,7 @@ class Application implements Comparable<Application> {
       final client = DBusClient.session();
       final pathObject = DBusObjectPath("/${dbusname.replaceAll('.', '/').replaceAll('-', '_')}");
       final remoteObject = DBusRemoteObject(client, name: dbusname, path: pathObject);
+      final token = await FlLinuxWindowManager.instance.getXdgToken();
       final params = [
         DBusDict(
           DBusSignature.string,
@@ -184,19 +194,18 @@ class Application implements Comparable<Application> {
           {
             const DBusString("activation-token"): DBusVariant(
               DBusString(
-                // TODO 1: get activation token from user action
-                Platform.environment["XDG_ACTIVATION_TOKEN"] ?? "",
+                token ?? "",
               ),
             ),
           },
         ),
       ];
       try {
-        logger?.trace("call org.freedesktop.Application.Activate $params");
+        logger.debug("call org.freedesktop.Application.Activate $params");
         await remoteObject.callMethod("org.freedesktop.Application", "Activate", params, noReplyExpected: true);
       } on DBusMethodResponseException catch (e) {
         if (e is DBusServiceUnknownException) {
-          return run(forceExec: true, logger: logger);
+          return run(forceExec: true, logger: logger, terminal: terminal);
         }
         throw Exception("dbus activation error: $e");
       }
@@ -205,13 +214,17 @@ class Application implements Comparable<Application> {
         throw Exception("invalid desktop: no exec found when dBusActivable is false");
       }
       final (cmd, args) = parseExec(exec!);
-      if (terminal) {
-        logger?.trace("run alacritty -e $cmd ${args.join(' ')}");
-        // TODO increase the list of terminals to launch and also make it configurable
-        await Process.start("alacritty", ["-e", cmd, ...args], mode: ProcessStartMode.detached, includeParentEnvironment: true);
+      if (this.terminal) {
+        logger.debug("run $terminal -e $cmd ${args.join(' ')}");
+        await Process.start(
+          "setpgid",
+          [terminal, "-e", cmd, ...args],
+          mode: ProcessStartMode.detached,
+          includeParentEnvironment: true,
+        );
       } else {
-        logger?.trace("run $cmd ${args.join(' ')}");
-        await Process.start(cmd, args, mode: ProcessStartMode.detached, includeParentEnvironment: true);
+        logger.debug("run $cmd ${args.join(' ')}");
+        await Process.start("setpgid", [cmd, ...args], mode: ProcessStartMode.detached, includeParentEnvironment: true);
       }
     }
   }
@@ -386,7 +399,8 @@ bool isPrintableAndNotSpace(String char) {
   if ((codePoint >= 0x2028 && codePoint <= 0x2029) || // Line/Paragraph separators
       (codePoint >= 0x200B && codePoint <= 0x200F) || // Zero-width spaces
       (codePoint >= 0x2060 && codePoint <= 0x2064) || // Invisible formatting
-      (codePoint >= 0x2066 && codePoint <= 0x2069)) { // Bidirectional controls
+      (codePoint >= 0x2066 && codePoint <= 0x2069)) {
+    // Bidirectional controls
     return false;
   }
 

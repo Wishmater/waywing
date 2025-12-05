@@ -39,7 +39,7 @@ mixin MainConfigI {
   bool get requestKeyboardFocus;
 
   @ConfigDocDefault<bool>(false)
-  bool get internalUsePainter;
+  bool get internalDebugIcons;
   LoggingConfig get logging;
   ThemeConfig get theme;
   List<(String, Object)> get dynamicSchemas;
@@ -63,7 +63,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
       'animationFitting': MainConfigBase._animationFitting,
       'animationSwitching': MainConfigBase._animationSwitching,
       'requestKeyboardFocus': MainConfigBase._requestKeyboardFocus,
-      'internalUsePainter': MainConfigBase._internalUsePainter,
+      'internalDebugIcons': MainConfigBase._internalDebugIcons,
     },
   );
 
@@ -107,7 +107,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
   @override
   final bool requestKeyboardFocus;
   @override
-  final bool internalUsePainter;
+  final bool internalDebugIcons;
 
   @override
   final LoggingConfig logging;
@@ -125,7 +125,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     AnimationFitting? animationFitting,
     AnimationSwitching? animationSwitching,
     bool? requestKeyboardFocus,
-    bool? internalUsePainter,
+    bool? internalDebugIcons,
     required this.logging,
     required this.theme,
     required this.dynamicSchemas,
@@ -139,16 +139,18 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
        animationSwitching =
            animationSwitching ?? AnimationSwitching.fadeThrough,
        requestKeyboardFocus = requestKeyboardFocus ?? false,
-       internalUsePainter = internalUsePainter ?? false;
+       internalDebugIcons = internalDebugIcons ?? false;
 
   factory MainConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = MainConfigBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }
@@ -167,7 +169,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
       animationFitting: fields['animationFitting'],
       animationSwitching: fields['animationSwitching'],
       requestKeyboardFocus: fields['requestKeyboardFocus'],
-      internalUsePainter: fields['internalUsePainter'],
+      internalDebugIcons: fields['internalDebugIcons'],
       logging: LoggingConfig.fromBlock(data.firstBlockWith('Logging')!),
       theme: ThemeConfig.fromBlock(data.firstBlockWith('Theme')!),
     );
@@ -186,7 +188,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
 	animationFitting = $animationFitting,
 	animationSwitching = $animationSwitching,
 	requestKeyboardFocus = $requestKeyboardFocus,
-	internalUsePainter = $internalUsePainter,
+	internalDebugIcons = $internalDebugIcons,
 	logging = ${logging.toString().split("\n").join("\n\t")},
 	theme = ${theme.toString().split("\n").join("\n\t")},
 	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
@@ -205,7 +207,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
         animationFitting == other.animationFitting &&
         animationSwitching == other.animationSwitching &&
         requestKeyboardFocus == other.requestKeyboardFocus &&
-        internalUsePainter == other.internalUsePainter &&
+        internalDebugIcons == other.internalDebugIcons &&
         logging == other.logging &&
         theme == other.theme &&
         configListEqual(dynamicSchemas, other.dynamicSchemas);
@@ -223,7 +225,7 @@ class MainConfig extends ConfigBaseI with MainConfigI, MainConfigBase {
     animationFitting,
     animationSwitching,
     requestKeyboardFocus,
-    internalUsePainter,
+    internalDebugIcons,
     logging,
     theme,
     dynamicSchemas,
@@ -260,13 +262,15 @@ class FeathersContainer extends ConfigBaseI
   FeathersContainer({required this.dynamicSchemas});
 
   factory FeathersContainer.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = FeathersContainerBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }

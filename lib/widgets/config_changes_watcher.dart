@@ -82,6 +82,7 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
 
     final context = this.context; // declare local reference to please the linter
     final oldConfig = mainConfig;
+    final oldExclusiveSize = oldConfig.exclusiveSize.value;
     oldConfig.exclusiveSize.removeListener(updateWindows);
     String content = defaultConfig;
     final file = File(getConfigurationFilePath());
@@ -90,14 +91,14 @@ class _ConfigChangeWatcherState extends State<ConfigChangeWatcher> {
     } else {
       _logger.warning("Configuration file not found");
     }
-    await reloadConfig(content);
+    await reloadConfig(content, file.existsSync() ? file.absolute.path : null);
     if (!context.mounted) return; // something weird happened, probably the app was just closed
     final newConfig = mainConfig;
 
     featherRegistry.onConfigUpdated(context);
     serviceRegistry.onConfigUpdated();
 
-    if (newConfig.exclusiveSize.value != oldConfig.exclusiveSize.value || newConfig.monitor != oldConfig.monitor) {
+    if (newConfig.exclusiveSize.value != oldExclusiveSize || newConfig.monitor != oldConfig.monitor) {
       updateWindows();
     }
     newConfig.exclusiveSize.addListener(updateWindows);

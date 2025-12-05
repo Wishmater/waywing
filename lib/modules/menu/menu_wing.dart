@@ -10,12 +10,12 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/util/focus_grab/widget.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
 
 import "./byte_line_splitter.dart";
 
+// TODO: 1 this shouldn't be a Wing, it should instead be used in a modal, like AppLauncher
 class MenuWing extends Wing {
   MenuWing._();
 
@@ -46,7 +46,6 @@ class MenuWing extends Wing {
 
         _arena = Arena(malloc);
         showMenu.value = true;
-        controller.grabFocus();
         response = Completer();
 
         final subs = request.body
@@ -72,7 +71,6 @@ class MenuWing extends Wing {
             );
 
         final resp = await response!.future;
-        controller.ungrabFocus();
         response = null;
         showMenu.value = false;
         items.value.clear();
@@ -84,17 +82,12 @@ class MenuWing extends Wing {
   };
 
   ValueNotifier<bool> showMenu = ValueNotifier(false);
-  late final controller = FocusGrabController(
-    onCleared: () {
-      response?.complete("");
-    },
-  );
 
   ManualValueNotifier<List<(Pointer<Uint8>, int)>> items = ManualValueNotifier([]);
   Completer<String>? response;
 
   @override
-  Widget buildWing(EdgeInsets rerservedSpace) {
+  Widget buildWing(BuildContext context, EdgeInsets rerservedSpace) {
     return ValueListenableBuilder(
       valueListenable: showMenu,
       builder: (context, show, _) {
@@ -104,6 +97,7 @@ class MenuWing extends Wing {
         return Center(
           child: InputRegion(
             child: KeyboardFocus(
+              debugLabel: "Menu",
               mode: KeyboardFocusMode.onDemand,
               child: CallbackShortcuts(
                 bindings: {
@@ -111,17 +105,14 @@ class MenuWing extends Wing {
                     response?.complete("");
                   },
                 },
-                child: FocusGrab(
-                  controller: controller,
-                  child: SizedBox(
-                    width: 400,
-                    height: 400,
-                    child: Menu(
-                      items: items,
-                      onSelected: (selected) {
-                        response?.complete(selected.$1.cast<Utf8>().toDartString(length: selected.$2));
-                      },
-                    ),
+                child: SizedBox(
+                  width: 400,
+                  height: 400,
+                  child: Menu(
+                    items: items,
+                    onSelected: (selected) {
+                      response?.complete(selected.$1.cast<Utf8>().toDartString(length: selected.$2));
+                    },
                   ),
                 ),
               ),
@@ -150,8 +141,7 @@ class Menu extends StatelessWidget {
             options: value.map((e) => NativeStringOption(e.$1, e.$2)).toList(),
             onSelected: onSelected,
             height: 400.0,
-            width: 400.0,
-            renderOption: (context, value, config) {
+              renderOption: (context, value, config) {
               return ListTile(
                 title: Text(
                   value.$1.cast<Utf8>().toDartString(length: value.$2),
@@ -164,6 +154,34 @@ class Menu extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+class NativeStringOption extends Option<(Pointer<Uint8>, int)> {
+  final Pointer<Uint8> pointer;
+  final int length;
+
+  @override
+  (Pointer<Uint8>, int) get object => (pointer, length);
+
+  const NativeStringOption(this.pointer, this.length);
+
+  @override
+  int get identifier => Object.hashAll([pointer.address, length]);
+
+  @override
+  NativeOptionValue get primaryValue => NativeOptionValue(pointer, length);
+
+  @override
+  NativeOptionValue? get secondaryValue => null;
+}
+
+
+extension on Uint8List {
+  Pointer<Uint8> alloc([Allocator allocator = malloc]) {
+    final result = allocator<Uint8>(lengthInBytes);
+    result.asTypedList(lengthInBytes).setRange(0, lengthInBytes, this);
+    return result;
   }
 }
 

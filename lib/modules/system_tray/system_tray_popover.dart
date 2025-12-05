@@ -2,20 +2,17 @@ import "dart:typed_data";
 
 import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/system_tray/service/menu.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
+import "package:waywing/widgets/disposable_builder.dart";
 import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/motion_widgets/motion_divider.dart";
 import "package:waywing/widgets/motion_widgets/motion_intrinsic_size.dart";
-import "package:waywing/widgets/disposable_builder.dart";
-import "package:waywing/widgets/opacity_gradient.dart";
-import "package:waywing/widgets/winged_widgets/winged_button.dart";
+import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
-import "package:waywing/widgets/winged_widgets/winged_icon.dart";
-import "package:waywing/widgets/winged_widgets/winged_popover.dart";
+import "package:waywing/widgets/winged_widgets/winged_context_menu.dart";
 import "package:xdg_icons/xdg_icons.dart";
 
 class SystemTrayPopover extends StatelessWidget {
@@ -34,11 +31,15 @@ class SystemTrayPopover extends StatelessWidget {
     // // unused props that could be useful
     // menu.status; // this seems useless
     // menu.iconThemePaths; // could be needed for some icons
-    Widget result = SystemTrayMenu(
-      service: service,
-      trayItem: trayItem,
-      layout: menu.layout,
-      depth: 0,
+    Widget result = WingedContextMenuContent(
+      children: [
+        SystemTrayMenu(
+          service: service,
+          trayItem: trayItem,
+          layout: menu.layout,
+          depth: 0,
+        ),
+      ],
     );
     // // textDirection throws uninitialized exception, this shouldn't be needed anyways
     // final textDirection = switch (menu.textDirection) {
@@ -81,62 +82,46 @@ class SystemTrayMenu extends StatefulWidget {
 class _SystemTrayMenuState extends State<SystemTrayMenu> {
   @override
   Widget build(BuildContext context) {
-    final scrollController = ScrollController();
-    return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: 256, maxHeight: 512),
-      child: Scrollbar(
-        controller: scrollController,
-        child: ScrollOpacityGradient(
-          scrollController: scrollController,
-          child: SingleChildScrollView(
-            controller: scrollController,
-            child: DisposableAnimatedBuilder(
-              animation: widget.layout,
-              builder: (context, child) {
-                final forceIconSpace = widget.layout.submenu.any((e) {
-                  return e.properties.iconName.isNotEmpty || e.properties.iconData.isNotEmpty;
-                });
-                // TODO: 3 we shouldn't do this in build
-                final wrappedItems = <WrappedDbusMenuItem>[];
-                int subgroup = 0;
-                for (final e in widget.layout.submenu) {
-                  var isSeparator = false;
-                  final int timesRepeated;
-                  if (e.properties.type == "separator") {
-                    subgroup++;
-                    isSeparator = true;
-                    timesRepeated = wrappedItems.count((o) => o.isSeparator && o.subgroup == subgroup);
-                  } else {
-                    timesRepeated = wrappedItems.count(
-                      (o) => !o.isSeparator && o.item.properties.label == e.properties.label,
-                    );
-                  }
-                  wrappedItems.add(WrappedDbusMenuItem(e, subgroup, timesRepeated, isSeparator));
-                }
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: MotionColumn<WrappedDbusMenuItem>(
-                    motion: mainConfig.motions.standard.spatial.normal,
-                    addGlobalKeys: true,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    data: wrappedItems,
-                    itemBuilder: (context, wappedItem) {
-                      return SystemTrayMenuItem(
-                        service: widget.service,
-                        trayItem: widget.trayItem,
-                        uniqueID: "SystemTrayMenu-$hashCode",
-                        item: wappedItem.item,
-                        depth: widget.depth,
-                        forceIconSpace: forceIconSpace,
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
+    return DisposableAnimatedBuilder(
+      animation: widget.layout,
+      builder: (context, child) {
+        final forceIconSpace = widget.layout.submenu.any((e) {
+          return e.properties.iconName.isNotEmpty || e.properties.iconData.isNotEmpty;
+        });
+        // TODO: 3 we shouldn't do this in build
+        final wrappedItems = <WrappedDbusMenuItem>[];
+        int subgroup = 0;
+        for (final e in widget.layout.submenu) {
+          var isSeparator = false;
+          final int timesRepeated;
+          if (e.properties.type == "separator") {
+            subgroup++;
+            isSeparator = true;
+            timesRepeated = wrappedItems.count((o) => o.isSeparator && o.subgroup == subgroup);
+          } else {
+            timesRepeated = wrappedItems.count(
+              (o) => !o.isSeparator && o.item.properties.label == e.properties.label,
+            );
+          }
+          wrappedItems.add(WrappedDbusMenuItem(e, subgroup, timesRepeated, isSeparator));
+        }
+        return MotionColumn<WrappedDbusMenuItem>(
+          motion: mainConfig.motions.standard.spatial.normal,
+          addGlobalKeys: true,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          data: wrappedItems,
+          itemBuilder: (context, wappedItem) {
+            return SystemTrayMenuItem(
+              service: widget.service,
+              trayItem: widget.trayItem,
+              uniqueID: "SystemTrayMenu-$hashCode",
+              item: wappedItem.item,
+              depth: widget.depth,
+              forceIconSpace: forceIconSpace,
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -167,6 +152,8 @@ class SystemTrayMenuItem extends StatefulWidget {
 class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
   @override
   Widget build(BuildContext context) {
+    // TODO: 1 in nm-applet, when seeing available APs, when the available APs are refreshed,
+    // it will close an open AP submenu, presumably because this is re-initialized.
     return DisposableAnimatedBuilder(
       animation: widget.item,
       builder: (context, _) {
@@ -174,7 +161,8 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
           return SizedBox.shrink();
         }
         if (widget.item.properties.type == "separator") {
-          // TODO: 2 remove separators when there are two in a row or first/last on the list
+          // TODO: 2 ContextMenu: implement an easy way to add dividers, that react to iconSpace
+          // TODO: 2 ContextMenu: remove dividers when there are two in a row or first/last on the list
           return MotionDivider.horizontal(
             motion: mainConfig.motions.standard.spatial.normal,
             indent: widget.forceIconSpace ? 38 : 16,
@@ -188,136 +176,94 @@ class _SystemTrayMenuItemState extends State<SystemTrayMenuItem> {
         // item.properties.toggleState // TODO: 2 toggleable items (need something to test on)
         // item.properties.shortcuts // TODO: 2 add shortcuts (sometimes this is empty, yet Strings have "_" to indicate it, like in nm-applet)
         // item.properties.disposition // always "normal" on all examples i've seen
-        return IntrinsicWidth(
-          child: IntrinsicHeight(
-            // TODO: 1 in nm-applet, when seeing available APs, when the available APs are refreshed,
-            // it will close an open AP submenu, presumably because this is re-initialized.
-            child: WingedPopover(
-              // TODO: 1 handle menu overflowing when too close to the right, this requires making
-              // proper ContextMenu / Submenu widgets
-              // TODO: 1 clip this on the side that it should show (right/left), probably also requires ContextMenu widget
-              tooltipParams: TooltipParams(
-                motion: mainConfig.motions.standard.spatial.normal,
-                enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
-                anchorAlignment: Alignment.topRight,
-                popupAlignment: Alignment.bottomRight,
-                overflowAlignment: Alignment.topLeft,
-                // -10 is the zIndex of Bar popups, it's not ideal to have it hardcoded here, but whatever
-                zIndex: -10 - 1 - widget.depth,
-                containerId: widget.uniqueID,
-                extraOffset: Offset(0, -8),
-                stickToHost: true,
-                hideDelay: Duration(milliseconds: 300), // TODO: 3 add tooltip delay to config
-                builder: (context, _, _, _) {
-                  return SystemTrayMenu(
-                    // make sure the state is dispose when switching to another popover
-                    key: ValueKey("SystemTrayMenu-$hashCode"),
-                    service: widget.service,
-                    trayItem: widget.trayItem,
-                    layout: widget.item,
-                    depth: widget.depth + 1,
-                  );
+        return WingedContextMenuItem(
+          onTap: widget.item.submenu.isNotEmpty
+              ? null
+              : (popover, _, _) {
+                  popover?.root.hidePopover();
+                  return widget.trayItem.dbusmenu!.sendEvent(widget.item, DBusMenuEventType.clicked);
                 },
-                containerBuilder: (context, child, _, _, _) {
-                  return WingedContainer(
-                    clipBehavior: Clip.hardEdge,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: child,
+          submenu: WingedSubmenu(
+            enabled: widget.item.submenu.isNotEmpty && !widget.item.isDisposed,
+            // -10 is the zIndex of Bar popups, it's not ideal to have it hardcoded here, but whatever
+            zIndex: widget.depth == 0 ? -11 : null, // null will default to (parent-1)
+            containerId: widget.uniqueID,
+            containerBuilder: (context, child, _, _, _) {
+              final parentContainer = this.context.findAncestorWidgetOfExactType<WingedContainer>();
+              return WingedContainer(
+                clipBehavior: Clip.hardEdge,
+                // this mirrors BarWidget's color for popovers. If that changes we need to get it maybe from context.find<WingedContainer>
+                color: parentContainer?.color,
+                elevation: parentContainer?.elevation ?? 0,
+                shadowOffset: parentContainer?.shadowOffset ?? const Offset(0.66, 1),
+                shape: ExternalRoundedCornersBorder(
+                  borderRadius: BorderRadius.circular(mainConfig.theme.containerRounding),
+                ),
+                child: child,
+              );
+            },
+            itemsBuilder: (context) {
+              return [
+                SystemTrayMenu(
+                  // make sure the state is dispose when switching to another popover
+                  key: ValueKey("SystemTrayMenu-$hashCode"),
+                  service: widget.service,
+                  trayItem: widget.trayItem,
+                  layout: widget.item,
+                  depth: widget.depth + 1,
+                ),
+              ];
+            },
+          ),
+          // TODO: ContextMenu: 1 add a callback on about to show submenu and call this
+          // widget.trayItem.dbusmenu!.aboutToShow(widget.item);
+          icon: AnimatedIntrinsicSize(
+            motion: mainConfig.motions.standard.spatial.normal,
+            child: SystemTrayMenuIcon(
+              item: widget.item,
+              forceIconSpace: widget.forceIconSpace,
+            ),
+          ),
+          child: Text.rich(
+            TextSpan(
+              children: [
+                ...widget.item.properties.label.split("_").mapIndexed((i, e) {
+                  if (i == 0) return TextSpan(text: e);
+                  if (e.isEmpty) return TextSpan();
+                  return TextSpan(
+                    children: [
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Stack(
+                          children: [
+                            Text(e[0]),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              height: 2,
+                              child: ColoredBox(
+                                color: widget.item.properties.enabled
+                                    ? Theme.of(context).textTheme.bodyLarge!.color!
+                                    : Theme.of(context).disabledColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // TextSpan(
+                      //   text: e[0],
+                      //   style: TextStyle(
+                      //     decoration: TextDecoration.underline,
+                      //     decorationStyle: TextDecorationStyle.solid,
+                      //     decorationThickness: 2,
+                      //   ),
+                      // ),
+                      TextSpan(text: e.substring(1)),
+                    ],
                   );
-                },
-              ),
-              builder: (context, popover, _) {
-                return DefaultTextStyle(
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: widget.item.properties.enabled ? null : Theme.of(context).disabledColor,
-                    height: 1.33,
-                  ),
-                  child: WingedButton(
-                    constraints: const BoxConstraints(minWidth: 32, minHeight: 30),
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    alignment: Alignment.centerLeft,
-                    containedInkWell: true,
-                    onTap: !widget.item.properties.enabled || widget.item.isDisposed
-                        ? null
-                        : widget.item.submenu.isNotEmpty
-                        ? () {
-                            popover.showTooltip(showDelay: Duration.zero);
-                            if (popover.isPopoverShown) {
-                              widget.trayItem.dbusmenu!.aboutToShow(widget.item);
-                            }
-                          }
-                        // TODO: 3 do we need to send events for the other event types? (hover, opened, closed, etc.)
-                        : () => widget.trayItem.dbusmenu!.sendEvent(widget.item, DBusMenuEventType.clicked),
-                    child: Row(
-                      children: [
-                        AnimatedIntrinsicSize(
-                          motion: mainConfig.motions.standard.spatial.normal,
-                          child: SystemTrayMenuIcon(
-                            item: widget.item,
-                            forceIconSpace: widget.forceIconSpace,
-                          ),
-                        ),
-                        Expanded(
-                          child: Text.rich(
-                            TextSpan(
-                              children: [
-                                ...widget.item.properties.label.split("_").mapIndexed((i, e) {
-                                  if (i == 0) return TextSpan(text: e);
-                                  if (e.isEmpty) return TextSpan();
-                                  return TextSpan(
-                                    children: [
-                                      WidgetSpan(
-                                        alignment: PlaceholderAlignment.middle,
-                                        child: Stack(
-                                          children: [
-                                            Text(e[0]),
-                                            Positioned(
-                                              left: 0,
-                                              right: 0,
-                                              bottom: 0,
-                                              height: 2,
-                                              child: ColoredBox(
-                                                color: widget.item.properties.enabled
-                                                    ? Theme.of(context).textTheme.bodyLarge!.color!
-                                                    : Theme.of(context).disabledColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      // TextSpan(
-                                      //   text: e[0],
-                                      //   style: TextStyle(
-                                      //     decoration: TextDecoration.underline,
-                                      //     decorationStyle: TextDecorationStyle.solid,
-                                      //     decorationThickness: 2,
-                                      //   ),
-                                      // ),
-                                      TextSpan(text: e.substring(1)),
-                                    ],
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (widget.item.submenu.isNotEmpty)
-                          Transform.translate(
-                            offset: Offset(4, 0),
-                            child: WingedIcon(
-                              flutterIcon: SymbolsVaried.chevron_right,
-                              iconNames: ["arrow-right"],
-                              textIcon: "󰅂", // nf-md-chevron_right
-                              size: Theme.of(context).textTheme.bodyLarge!.fontSize! * 1.33,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                }),
+              ],
             ),
           ),
         );

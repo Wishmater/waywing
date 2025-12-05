@@ -26,7 +26,9 @@ class SpacerConfig extends ConfigBaseI with SpacerConfigI, SpacerConfigBase {
   SpacerConfig({double? size}) : size = size ?? 12;
 
   factory SpacerConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
     return SpacerConfig(size: fields['size']);
   }
 

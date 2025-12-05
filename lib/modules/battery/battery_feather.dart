@@ -7,6 +7,7 @@ import "package:waywing/modules/battery/battery_config.dart";
 import "package:waywing/modules/battery/battery_service.dart";
 import "package:waywing/modules/battery/battery_indicator.dart";
 import "package:waywing/modules/battery/battery_tooltip.dart";
+import "package:waywing/modules/battery/interfaces/battery_service_interfaces.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -32,15 +33,30 @@ class BatteryFeather extends Feather<BatteryConfig> {
   @override
   String get name => "Battery";
 
+  final ValueNotifier<bool> pulse = ValueNotifier(false);
+  void _updatePulse() {
+    if (!config.enablePulse) {
+      return;
+    }
+    pulse.value = service.pulse.value;
+  }
+
   @override
   Future<void> init(BuildContext context) async {
     service = await serviceRegistry.requestService<BatteryService>(this);
+    service.pulse.addListener(_updatePulse);
   }
 
   @override
   void onConfigUpdated(covariant BatteryConfig oldConfig) {
     if (oldConfig.enableProfile != config.enableProfile) {
       enableProfileChange.manualNotifyListeners();
+    }
+
+    if (config.enablePulse) {
+      _updatePulse();
+    } else {
+      pulse.value = false;
     }
   }
 
@@ -55,14 +71,11 @@ class BatteryFeather extends Feather<BatteryConfig> {
           builder: (context, _) {
             if (service.profile != null && config.enableProfile) {
               return WingedButton(
-                onTap: () => popover!.togglePopover(),
-                child: BatteryIndicator(battery: service.battery),
+                onTap: (_, _) => popover!.togglePopover(),
+                child: BatteryIndicator(battery: service.battery, config: config, pulse: pulse),
               );
             } else {
-              return Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 10, left: 5, right: 5),
-                child: BatteryIndicator(battery: service.battery),
-              );
+              return BatteryIndicator(battery: service.battery, config: config, pulse: pulse);
             }
           },
         ),
@@ -120,6 +133,7 @@ class _ProfileSelector extends StatelessWidget {
         final profiles = profile.profiles.value;
         final activeProfile = profile.activeProfile.value;
         return KeyboardFocus(
+          debugLabel: "ProfileSelector",
           mode: KeyboardFocusMode.onDemand,
           child: RadioGroup<String>(
             groupValue: activeProfile,

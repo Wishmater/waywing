@@ -1,3 +1,6 @@
+import "dart:math";
+
+import "package:flutter/rendering.dart";
 import "package:flutter/widgets.dart";
 
 class Positioning {
@@ -183,5 +186,86 @@ mixin StatePositioningNotifierControllerMixin<T extends StatefulWidget> on State
     positioningNotifier = controller.positioningNotifier;
     offsetNotifier = controller.offsetNotifier;
     sizeNotifier = controller.sizeNotifier;
+  }
+}
+
+/// This is useful to wrap widgets that change a lot (like a clock or a network thoughput indicator)
+/// to make it so it has stable sizing and not affect the parent layout, which in turn makes it so
+/// there are less layout and paint passes. Use devtools to debug paints.
+class RememberMaxSize extends StatefulWidget {
+  final Widget child;
+  final Alignment alignment;
+
+  /// pass this in to avoid having to build a LayoutBuilder
+  final BoxConstraints? constraints;
+
+  const RememberMaxSize({
+    required this.alignment,
+    required this.child,
+    this.constraints,
+    super.key,
+  });
+
+  @override
+  State<RememberMaxSize> createState() => _RememberMaxSizeState();
+}
+
+class _RememberMaxSizeState extends State<RememberMaxSize> {
+  final positioningController = PositioningNotifierController();
+  Size? maxSize;
+
+  @override
+  void initState() {
+    super.initState();
+    positioningController.sizeNotifier.addListener(onSizeChange);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    positioningController.sizeNotifier.removeListener(onSizeChange);
+  }
+
+  void onSizeChange() {
+    final newSize = positioningController.sizeNotifier.value;
+    if (newSize == null) return;
+    if (maxSize == null || newSize.width > maxSize!.width || newSize.height > maxSize!.height) {
+      setState(() {
+        maxSize = Size(
+          max(maxSize?.width ?? 0, newSize.width),
+          max(maxSize?.height ?? 0, newSize.height),
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.constraints != null) {
+      return buildWithConstraints(context, widget.constraints!);
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return buildWithConstraints(context, constraints);
+      },
+    );
+  }
+
+  Widget buildWithConstraints(BuildContext context, BoxConstraints constraints) {
+    return SizedBox.fromSize(
+      size: maxSize,
+      child: OverflowBox(
+        fit: maxSize == null ? OverflowBoxFit.deferToChild : OverflowBoxFit.max,
+        maxWidth: constraints.maxWidth,
+        maxHeight: constraints.maxHeight,
+        minWidth: constraints.minWidth,
+        minHeight: constraints.minHeight,
+        alignment: widget.alignment,
+        child: PositioningNotifierMonitor(
+          controller: positioningController,
+          child: widget.child,
+        ),
+      ),
+    );
   }
 }

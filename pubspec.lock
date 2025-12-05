@@ -33,6 +33,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.7.0"
+  aria2c:
+    dependency: "direct main"
+    description:
+      name: aria2c
+      sha256: aa5ee54be72b25ae75eb78da3d88367022a7e38d3a7dfa8fb85555a1c5758174
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.5"
+  asn1lib:
+    dependency: transitive
+    description:
+      name: asn1lib
+      sha256: "9a8f69025044eb466b9b60ef3bc3ac99b4dc6c158ae9c56d25eeccf5bc56d024"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.6.5"
   async:
     dependency: transitive
     description:
@@ -105,6 +121,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  bitwarden_vault_api:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "9a126358ca5839d4851fb4d14085ddf68c01e688"
+      url: "https://github.com/ross96D/bitwarden_vault_api"
+    source: git
+    version: "0.0.2"
   boolean_selector:
     dependency: transitive
     description:
@@ -244,17 +269,21 @@ packages:
   config:
     dependency: "direct main"
     description:
-      path: "../config.dart"
-      relative: true
-    source: path
-    version: "0.0.11"
+      path: "."
+      ref: HEAD
+      resolved-ref: "96b7476edf63b8fe8b18a1f9aaa6830d0e275919"
+      url: "https://github.com/ross96D/config.dart"
+    source: git
+    version: "0.0.16"
   config_gen:
     dependency: "direct main"
     description:
-      path: "../config_gen"
-      relative: true
-    source: path
-    version: "0.0.15"
+      path: "."
+      ref: HEAD
+      resolved-ref: "2d71a6ab2da2b060c8af9774e8920cdd38efc7bd"
+      url: "https://github.com/Wishmater/config_gen"
+    source: git
+    version: "0.0.17"
   convert:
     dependency: transitive
     description:
@@ -319,6 +348,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.4"
+  diffie_hellman:
+    dependency: transitive
+    description:
+      name: diffie_hellman
+      sha256: "8d71ae03cb2fb99e3a281e997967ec658894fc4cf96d6812e932f63663143d08"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.0"
   equatable:
     dependency: transitive
     description:
@@ -364,10 +401,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: b1850e0cefe93da3d11afa0061e7237b90f8153a
+      resolved-ref: "516fe016740332a456a855167e9dd9a9c5efa63b"
       url: "https://github.com/Wishmater/fl-linux-window-manager"
     source: git
-    version: "2.0.6"
+    version: "2.0.9"
   flex_seed_scheme:
     dependency: "direct main"
     description:
@@ -405,14 +442,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.3"
-  flutter_svg:
-    dependency: "direct main"
-    description:
-      name: flutter_svg
-      sha256: b9c2ad5872518a27507ab432d1fb97e8813b05f0fc693f9d40fad06d073e0678
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -423,6 +452,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  freedesktop_secrets:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: d85a622d24121f2600e2edc8ad27c0cbf52ab4cf
+      url: "https://github.com/ross96D/freedesktop_secrets.dart"
+    source: git
+    version: "0.0.1"
   freezed:
     dependency: "direct dev"
     description:
@@ -471,6 +509,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  hive_ce:
+    dependency: "direct main"
+    description:
+      name: hive_ce
+      sha256: "81d39a03c4c0ba5938260a8c3547d2e71af59defecea21793d57fc3551f0d230"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.15.1"
   hooks:
     dependency: transitive
     description:
@@ -480,7 +526,7 @@ packages:
     source: hosted
     version: "0.20.1"
   html:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: html
       sha256: "6d1264f2dffa1b1101c25a91dff0dc2daee4c18e87cd8538729773c073dbf602"
@@ -488,13 +534,37 @@ packages:
     source: hosted
     version: "0.15.6"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: bb2ce4590bc2667c96f318d68cac1b5a7987ec819351d32b1c987239a815e007
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  http_cache_client:
+    dependency: "direct main"
+    description:
+      name: http_cache_client
+      sha256: "37b4c354d2442b20bb41806c14d11f566fa21ad57f44626fd274ae031429ae62"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
+  http_cache_core:
+    dependency: "direct main"
+    description:
+      name: http_cache_core
+      sha256: ff0b6e6c3766d774d59b806f928b39e6a48f7b2c47ae1fe27410bfd792bee511
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.3"
+  http_cache_hive_store:
+    dependency: "direct main"
+    description:
+      name: http_cache_hive_store
+      sha256: "85847efdb18094961a66b74d3b856da093ddcbaf7739adecdc28149e871fb8fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.0.1"
   http_multi_server:
     dependency: transitive
     description:
@@ -551,6 +621,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  isolate_channel:
+    dependency: transitive
+    description:
+      name: isolate_channel
+      sha256: f3d36f783b301e6b312c3450eeb2656b0e7d1db81331af2a151d9083a3f6b18d
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.2+1"
   jovial_misc:
     dependency: transitive
     description:
@@ -681,13 +759,22 @@ packages:
     source: git
     version: "4.2873.2"
   meta:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: meta
       sha256: "23f08335362185a5ea2ad3a4e597f1375e78bce8a040df5c600c8d3552ef2394"
       url: "https://pub.dev"
     source: hosted
     version: "1.17.0"
+  miga:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: c7316d99ebd5474c1b6732258895f60d1a7cc7e1
+      url: "https://github.com/ross96D/miga"
+    source: git
+    version: "1.1.1"
   mime:
     dependency: transitive
     description:
@@ -696,22 +783,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  mocktail:
-    dependency: transitive
-    description:
-      name: mocktail
-      sha256: "890df3f9688106f25755f26b1c60589a92b3ab91a22b8b224947ad041bf172d8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.4"
   motor:
     dependency: "direct main"
     description:
       name: motor
-      sha256: cdad651858f1305f98e986841128abd23bb964289c1f9244ffc5b575963d6d8a
+      sha256: d6fd00496a2b934f8f54e660acc0d039d0e4bf8e667b6977b0480be97385779e
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0-dev.9"
+    version: "1.0.1"
+  multi_value_listenable_builder_typed:
+    dependency: "direct main"
+    description:
+      name: multi_value_listenable_builder_typed
+      sha256: fc10232523852021df2f9e8b8f660a137f8659d79084b694f016df5214e6433e
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   mutex:
     dependency: "direct main"
     description:
@@ -744,6 +831,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.0-dev.3"
+  niri:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "602f2e7c5622baede16438f51c3a99509ef310fb"
+      url: "https://github.com/ross96D/niri.dart"
+    source: git
+    version: "1.0.0"
   nm:
     dependency: "direct main"
     description:
@@ -783,14 +879,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
-  path_parsing:
-    dependency: transitive
-    description:
-      name: path_parsing
-      sha256: "883402936929eac138ee0a45da5b0f2c80f89913e6dc3bf77eb65b84b409c6ca"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   path_provider:
     dependency: transitive
     description:
@@ -863,6 +951,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  pointycastle:
+    dependency: transitive
+    description:
+      name: pointycastle
+      sha256: "92aa3841d083cc4b0f4709b5c74fd6409a3e6ba833ffc7dc6a8fee096366acf5"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.0"
   pool:
     dependency: transitive
     description:
@@ -1093,6 +1189,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.12"
+  textwrap:
+    dependency: transitive
+    description:
+      name: textwrap
+      sha256: "1b483f9e25ec8f7603f70e954deb1199f1b1b87bad26e376470bc450a41c7117"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   time:
     dependency: transitive
     description:
@@ -1151,30 +1255,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.5.1"
-  vector_graphics:
-    dependency: transitive
-    description:
-      name: vector_graphics
-      sha256: a4f059dc26fc8295b5921376600a194c4ec7d55e72f2fe4c7d2831e103d461e6
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.19"
-  vector_graphics_codec:
-    dependency: transitive
-    description:
-      name: vector_graphics_codec
-      sha256: "99fd9fbd34d9f9a32efd7b6a6aae14125d8237b10403b422a6a6dfeac2806146"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.13"
-  vector_graphics_compiler:
-    dependency: transitive
-    description:
-      name: vector_graphics_compiler
-      sha256: d354a7ec6931e6047785f4db12a1f61ec3d43b207fc0790f863818543f8ff0dc
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.19"
   vector_math:
     dependency: transitive
     description:
@@ -1242,10 +1322,9 @@ packages:
   xdg_icons:
     dependency: "direct main"
     description:
-      name: xdg_icons
-      sha256: a7eac97d7dd6c85e1b295d8fe4e6be93976709f785f3cfc81e8b3d2f3d61101f
-      url: "https://pub.dev"
-    source: hosted
+      path: "vendor/xdg_icon"
+      relative: true
+    source: path
     version: "0.1.2"
   xml:
     dependency: transitive
@@ -1265,4 +1344,4 @@ packages:
     version: "3.1.3"
 sdks:
   dart: ">=3.9.0 <4.0.0"
-  flutter: ">=3.32.0"
+  flutter: ">=3.35.2"

@@ -11,6 +11,7 @@ import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "../filtered_list.dart";
 import "../searchopts.dart";
 
+// TODO: 2 migrate this to use Motion, hard because some logic depends on duration
 const animationDuration = Duration(milliseconds: 250);
 
 class StackOptionsListWidget<T extends Object> extends StatefulWidget {
@@ -88,29 +89,29 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
       });
     final stackChildren = <Widget>[];
     int visibleAndNotRemovedItemCount = 0;
-    for (final e in sortedItems) {
-      final isVisible = e.timeRemoved == null && isItemAtLeastPartiallyVisible(e.index);
-      if (isVisible && e.timeRemoved == null) {
+    for (final item in sortedItems) {
+      final isVisible = item.timeRemoved == null && isItemAtLeastPartiallyVisible(item.index);
+      if (isVisible && item.timeRemoved == null) {
         visibleAndNotRemovedItemCount++;
       }
       stackChildren.add(
         ValueListenableBuilder(
-          key: e.globalKey,
+          key: item.globalKey,
           valueListenable: widget.highlighted,
           builder: (context, value, child) {
             return MotionPositioned(
               motion: widget.motion,
               left: 0,
               right: 0,
-              top: widget.itemHeight * (e.index - startingIndex),
+              top: widget.itemHeight * (item.index - startingIndex),
               child: _ItemAnimation(
                 isItemVisible: isVisible,
-                isItemRemoved: e.timeRemoved != null,
+                isItemRemoved: item.timeRemoved != null,
                 motion: widget.motion,
                 child: widget.renderOption(
                   context,
-                  e.option.object,
-                  SearchOptionsRenderConfig(isHighlighted: value == e.index),
+                  item.option.object,
+                  SearchOptionsRenderConfig(isHighlighted: value == item.index),
                 ),
               ),
             );
@@ -183,11 +184,9 @@ class _StackOptionsListWidgetState<T extends Object> extends State<StackOptionsL
         height: min(widget.availableHeight, widget.itemHeight * visibleAndNotRemovedItemCount),
         duration: animationDuration,
         curve: Curves.easeOutCubic,
-        clipBehavior: Clip.hardEdge,
-        decoration: BoxDecoration(), // needs to be set for clipBehavior to work for some reason
         child: Stack(
           fit: StackFit.expand,
-          clipBehavior: Clip.hardEdge,
+          clipBehavior: Clip.none,
           children: children,
         ),
       ),

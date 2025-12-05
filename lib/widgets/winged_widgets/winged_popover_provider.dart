@@ -2,9 +2,11 @@ import "dart:async";
 
 import "package:dartx/dartx.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:motor/motor.dart";
+import "package:multi_value_listenable_builder_typed/multi_value_listenable_builder_typed.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/animation_utils.dart";
@@ -41,7 +43,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   void showHost(WingedPopoverState host) {
     assert(
-      host.widget.popoverParams != null,
+      host.popoverParams != null,
       "Trying to show popover for a host that doesn't specify popoverParams",
     );
     if (activeHosts.contains(host)) {
@@ -51,7 +53,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (tooltipHosts.containsKey(host) || removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    if (host.widget.popoverParams!.containerId case final containerId?) {
+    if (host.popoverParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }
     activeHosts.add(host);
@@ -90,7 +92,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       return; // this shouldn't happen, but whatever...
     }
     tooltipHosts[host]!.host = false;
-    if (host.widget.tooltipParams!.hideDelay > Duration.zero) {
+    if (host.tooltipParams!.hideDelay > Duration.zero) {
       hideTooltip(host);
     } else {
       _scheduleCheckHideTooltip(host);
@@ -109,7 +111,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
       return; // the tooltip client is in animation of being removed
     }
     tooltipHosts[client.widget.host]!.client = false;
-    if (client.widget.host.widget.tooltipParams!.hideDelay > Duration.zero) {
+    if (client.widget.host.tooltipParams!.hideDelay > Duration.zero) {
       hideTooltip(client.widget.host);
     } else {
       _scheduleCheckHideTooltip(client.widget.host);
@@ -135,13 +137,13 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (activeHosts.contains(host)) {
       return; // ignore tooltip calls if it's already manually shown
     }
-    showDelay ??= host.widget.tooltipParams!.showDelay;
+    showDelay ??= host.tooltipParams!.showDelay;
     if (showDelay > Duration.zero) {
-      final containerId = host.widget.tooltipParams!.containerId;
+      final containerId = host.tooltipParams!.containerId;
       final isContainerShown =
           containerId != null &&
-          (tooltipHosts.keys.any((e) => e.widget.tooltipParams!.containerId == containerId) ||
-              removedHosts.entries.any((e) => e.value && e.key.widget.tooltipParams!.containerId == containerId));
+          (tooltipHosts.keys.any((e) => e.tooltipParams!.containerId == containerId) ||
+              removedHosts.entries.any((e) => e.value && e.key.tooltipParams!.containerId == containerId));
       if (!isContainerShown) {
         final completer = Completer<void>();
         Timer(showDelay, () async {
@@ -155,7 +157,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (removedHosts.containsKey(host)) {
       _removeHost(host);
     }
-    if (host.widget.tooltipParams!.containerId case final containerId?) {
+    if (host.tooltipParams!.containerId case final containerId?) {
       _removeAllWithContainerId(containerId);
     }
     final status = initialStatus ?? TooltipStatus();
@@ -166,18 +168,16 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   void _removeAllWithContainerId(String containerId) {
     final toRemove = activeHosts.where((e) {
-      return e.widget.popoverParams!.containerId == containerId;
+      return e.popoverParams!.containerId == containerId;
     }).toList();
     toRemove.addAll(
       tooltipHosts.keys.where((e) {
-        return e.widget.tooltipParams!.containerId == containerId;
+        return e.tooltipParams!.containerId == containerId;
       }),
     );
     toRemove.addAll(
       removedHosts.keys.where((e) {
-        final removedContainerId = removedHosts[e]!
-            ? e.widget.tooltipParams!.containerId
-            : e.widget.popoverParams!.containerId;
+        final removedContainerId = removedHosts[e]! ? e.tooltipParams!.containerId : e.popoverParams!.containerId;
         return removedContainerId == containerId;
       }),
     );
@@ -255,7 +255,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     if (activeHosts.contains(host)) {
       return; // if popover is shown, ignore hideTooltip call
     }
-    hideDelay ??= host.widget.tooltipParams!.hideDelay;
+    hideDelay ??= host.tooltipParams!.hideDelay;
     final status = tooltipHosts[host];
     if (status != null && hideDelay > Duration.zero) {
       status.hideTimer?.cancel();
@@ -296,6 +296,9 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     );
     final widgetsBelow = widgetsBelowMap.keys.sortedBy((e) => widgetsBelowMap[e]!);
     final widgetsAbove = widgetsAboveMap.keys.sortedBy((e) => widgetsAboveMap[e]!);
+    if (mainConfig.focusGrab && activeHosts.isNotEmpty) {
+      widgetsBelow.insert(0, buildBarrier(context));
+    }
     return Stack(
       children: [
         ...widgetsBelow,
@@ -321,7 +324,7 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
         isRemoved: isRemoved,
         isTooltip: isTooltipValue,
       );
-      final popoverParams = isTooltipValue ? host.widget.tooltipParams : host.widget.popoverParams;
+      final popoverParams = isTooltipValue ? host.tooltipParams : host.popoverParams;
       if (popoverParams!.zIndex < 0) {
         widgetsBelowMap[widget] = popoverParams.zIndex;
       } else {
@@ -334,13 +337,28 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
     WingedPopoverState host, {
     required bool isTooltip,
   }) {
-    final popoverParams = isTooltip ? host.widget.tooltipParams : host.widget.popoverParams;
+    final popoverParams = isTooltip ? host.tooltipParams : host.popoverParams;
     if (popoverParams!.containerId != null) {
       containerGlobalKeys[popoverParams.containerId!] ??= GlobalKey();
       return containerGlobalKeys[popoverParams.containerId!]!;
     } else {
       return host.clientKey;
     }
+  }
+
+  Widget buildBarrier(BuildContext context) {
+    return InputRegion(
+      child: GestureDetector(
+        onTap: () {
+          for (final e in List<WingedPopoverState>.from(activeHosts)) {
+            hideHost(e);
+          }
+          for (final e in List<WingedPopoverState>.from(tooltipHosts.keys)) {
+            hideHost(e);
+          }
+        },
+      ),
+    );
   }
 }
 
@@ -376,8 +394,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
   late MotionController<Offset> contentOffsetMotionController;
   final List<_OutgoingChild> _outgoingChildren = [];
 
-  PopoverParams get popoverParams =>
-      (widget.isTooltip ? widget.host.widget.tooltipParams : widget.host.widget.popoverParams)!;
+  PopoverParams get popoverParams => (widget.isTooltip ? widget.host.tooltipParams : widget.host.popoverParams)!;
 
   Motion get motion => popoverParams.motion ?? mainConfig.motions.expressive.spatial.slow;
 
@@ -566,6 +583,10 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
     }
     final popoverParams = this.popoverParams;
     widget.host.clientState = this;
+    // TODO: 1 limit to active scren (excluding exclussiveSize).
+    // Maybe add an option to only do it sometimes, since this could break things if done always.
+    // The implementation is also kinda hard because positioning util function would need to take a Rect instead of Size.
+    // This breaks context menues on bar when docked to the bottom of the screen
     final screenSize = MediaQuery.sizeOf(context);
 
     _lastContent = popoverParams.builder(
@@ -589,6 +610,7 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
         },
         child: FocusScope(
           node: focusNode,
+          canRequestFocus: !widget.isRemoved,
           child: PositioningNotifierMonitor(
             controller: childPositioningController,
             child: _lastContent,
@@ -625,12 +647,9 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
               ),
             ),
           ),
-        IgnorePointer(
-          ignoring: widget.isRemoved,
-          child: ExcludeFocus(
-            excluding: widget.isRemoved,
-            child: currentContent,
-          ),
+        ExcludeFocus(
+          excluding: widget.isRemoved,
+          child: currentContent,
         ),
       ],
     );
@@ -707,6 +726,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                   screenSize: screenSize,
                   padding: popoverParams.screenPadding,
                   extraOffset: popoverParams.extraOffset,
+                  fallbackToOppositeAlignmentOnOverflowX: popoverParams.fallbackToOppositeAlignmentOnOverflowX,
+                  fallbackToOppositeAlignmentOnOverflowY: popoverParams.fallbackToOppositeAlignmentOnOverflowY,
                 );
                 passedMeaningfulPaint = true;
               }
@@ -785,49 +806,25 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
                       }
                     }
                   },
-                  child: result,
+                  child: IgnorePointer(
+                    ignoring: widget.isRemoved || popoverParams.ignorePointer,
+                    child: result,
+                  ),
                 ),
               );
 
               // add extra client clippers
-              if (widget.host.widget.extraClientClippers.isNotEmpty) {
-                result = Stack(
-                  fit: StackFit.expand,
-                  clipBehavior: Clip.none,
-                  children: [result],
+              if (widget.host.widget.extraClientClipperBuilder != null) {
+                result = Positioned.fill(
+                  child: widget.host.widget.extraClientClipperBuilder!(
+                    context,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      clipBehavior: Clip.none,
+                      children: [result],
+                    ),
+                  ),
                 );
-                // TODO: 3 maybe refactor this to instead just be a clientClippersBuilder,
-                // pass in everything needed and let the caller build the clipper with more freedom.
-                // Maybe provide a default implementation so the caller doesn't need to do same 20
-                // lines of code every time.
-                for (final e in widget.host.widget.extraClientClippers) {
-                  result = ValueListenableBuilder(
-                    valueListenable: e.$2,
-                    child: result,
-                    builder: (context, positioning, child) {
-                      Rect? rect;
-                      if (positioning != null) {
-                        final offset = positioning.offset;
-                        final size = positioning.size;
-                        final shapePadding = e.$1.dimensions.resolve(TextDirection.ltr);
-                        rect = Rect.fromLTWH(
-                          offset.dx - shapePadding.left,
-                          offset.dy - shapePadding.top,
-                          size.width + shapePadding.horizontal,
-                          size.height + shapePadding.vertical,
-                        );
-                      }
-                      // TODO: 2 PERFOMANCE if background opacity is 1 then there is no need to use clip,
-                      // probably handle this in the host (Bar, ContextMenu, etc.) and just dont pass any
-                      // extraClientClippers if ressolved backgroundOpacity==1
-                      return ClipPath(
-                        clipper: ShapeClipper(shape: e.$1, rectOverride: rect),
-                        child: child,
-                      );
-                    },
-                  );
-                }
-                result = Positioned.fill(child: result);
               }
 
               return result;
@@ -837,6 +834,47 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       ),
     );
   }
+}
+
+Widget buildDefaultContainerClipper(
+  BuildContext context, {
+  required Widget child,
+  required List<(ShapeBorder, ValueListenable<Positioning?>)> containers,
+}) {
+  if (containers.isEmpty) {
+    return child;
+  }
+  return MultiValueListenableBuilder(
+    valueListenables: containers.map((e) => e.$2).toList(),
+    child: child,
+    builder: (context, positionings, child) {
+      final List<(ShapeBorder, Rect?)> shapes = [];
+      for (int i = 0; i < positionings.length; i++) {
+        final positioning = positionings[i];
+        final shape = containers[i].$1;
+        Rect? rect;
+        if (positioning != null) {
+          final offset = positioning.offset;
+          final size = positioning.size;
+          final shapePadding = shape.dimensions.resolve(TextDirection.ltr);
+          rect = Rect.fromLTWH(
+            offset.dx - shapePadding.left,
+            offset.dy - shapePadding.top,
+            size.width + shapePadding.horizontal,
+            size.height + shapePadding.vertical,
+          );
+        }
+        shapes.add((shape, rect));
+      }
+      // TODO: 2 PERFOMANCE if background opacity is 1 then there is no need to use clip,
+      // probably handle this in the host (Bar, ContextMenu, etc.) and just dont pass any
+      // extraClientClippers if ressolved backgroundOpacity==1
+      return ClipPath(
+        clipper: MultiShapeClipper(shapes: shapes),
+        child: child,
+      );
+    },
+  );
 }
 
 class TooltipStatus {

@@ -6,51 +6,46 @@ import "package:tronco/tronco.dart";
 import "package:watcher/watcher.dart";
 
 /// Proof of concept of simple txt database ( this is not performant implementation :) )
-class NmDatabase {
+class NmDatabase extends ChangeNotifier {
   final String path;
-  final ChangeNotifier notifer;
+  late final file = File(path);
 
-  NmDatabase(this.path, Logger logger) : notifer = ChangeNotifier() {
+  NmDatabase(this.path, Logger logger) {
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
     _watch(logger);
   }
 
-  void dispose() {
-    notifer.dispose();
-  }
-
   Future<void> _watch(Logger logger) async {
-    final dir = File(path).parent;
-    await dir.create(recursive: true);
+    final dir = file.parent;
     final w = DirectoryWatcher(dir.absolute.path);
     w.events.listen(
       (event) {
         if (event.path == path) {
-          // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-          notifer.notifyListeners();
+          notifyListeners();
         }
       },
       onError: (e) {
-        logger.error("watching directory error $e");
+        logger.error("Database watching directory error $e");
       },
       cancelOnError: true,
     );
   }
 
   Set<String> getAll() {
-    try {
-      final content = File(path).readAsStringSync();
-      return content.split("\n").toSet();
-    } catch (_) {
-      return {};
-    }
+    final content = file.readAsStringSync();
+    final result = content.split("\n");
+    result.removeLast();
+    return result.toSet();
   }
 
   Future<void> insert(String item) async {
-    await File(path).appendString(item);
+    return file.appendString("$item\n");
   }
 
   Future<void> remove(String item) async {
-    final file = File(path).openSync(mode: FileMode.write);
+    final file = this.file.openSync(mode: FileMode.write);
     file.lockSync();
 
     _remove(file, item);

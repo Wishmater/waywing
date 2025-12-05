@@ -1,20 +1,9 @@
-{ pkgs ? import <nixpkgs> }:
+{ pkgs ? import <nixpkgs>, unstable-pkgs ? import <nixpkgs> { } }:
 
-let
-  unstablenixpkgs = fetchTarball {
-    url =
-      "https://github.com/NixOS/nixpkgs/archive/34a26e5164c13b960cff8ea54ab3e4b5fec796a9.tar.gz";
-    sha256 = "0iap44a9f92hrbgqf80q2sr69ixc4p06qsvw755wi11m2m2p4hqf";
-  };
-  unstablepkgs = import unstablenixpkgs {
-    config = { };
-    overlays = [ ];
-  };
-
-in unstablepkgs.flutter.buildFlutterApplication rec {
+unstable-pkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
-  version = "0.0.9";
+  version = "0.0.16";
 
   src = ./..;
 
@@ -27,9 +16,6 @@ in unstablepkgs.flutter.buildFlutterApplication rec {
     # required by gtk-layer-shell
     gtk-layer-shell
 
-    # # required by pulseaudio
-    # pulseaudio 
-
     # required by audioplayers
     gst_all_1.gstreamer
     gst_all_1.gst-plugins-base
@@ -40,7 +26,7 @@ in unstablepkgs.flutter.buildFlutterApplication rec {
     orc
 
     # required by waywingcli
-    unstablepkgs.zig_0_15
+    unstable-pkgs.zig_0_15
 
   ];
 
@@ -60,23 +46,3 @@ in unstablepkgs.flutter.buildFlutterApplication rec {
   # # env variables accessible to the built app at runtime, this doesn't seem to work...
   # runtimeEnvironment = { LD_LIBRARY_PATH = "${pkgs.pulseaudio.out}/lib"; };
 }
-
-# # USAGE
-#
-# { pkgs, ... }:
-#
-# let
-#   waywingSrc = pkgs.fetchFromGitHub {
-#     owner = "Wishmater";
-#     repo = "waywing";
-#     rev = <version>;
-#     sha256 = "";
-#   };
-#   waywingBuild = import "${waywingSrc}/nix/build.nix";
-#   waywing = pkgs.callPackage waywingBuild { };
-#
-# in {
-#
-#   environment.systemPackages = [ waywing ];
-#
-# }

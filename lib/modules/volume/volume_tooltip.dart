@@ -38,6 +38,7 @@ class VolumeTooltip extends StatelessWidget {
               }
               return VolumeSlider(
                 config: config,
+                service: service,
                 model: defaultOutput,
               );
             },
@@ -50,12 +51,20 @@ class VolumeTooltip extends StatelessWidget {
 
 class VolumeSlider extends StatelessWidget {
   final VolumeConfig config;
+  final VolumeService service;
   final VolumeInterface model;
   final EdgeInsets padding;
+  final bool showTitle;
+  final bool showSubtitle;
+  final bool dense;
 
   const VolumeSlider({
     required this.config,
     required this.model,
+    required this.service,
+    this.showTitle = true,
+    this.showSubtitle = true,
+    this.dense = false,
     this.padding = const EdgeInsets.only(top: 8, left: 18, right: 18, bottom: 8),
     super.key,
   });
@@ -79,17 +88,18 @@ class VolumeSlider extends StatelessWidget {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              TextTooltipOnOverflow(
-                                textSpan: TextSpan(text: name),
-                                child: Text(
-                                  name,
-                                  maxLines: 1,
-                                  softWrap: false,
-                                  overflow: TextOverflow.fade,
+                              if (showTitle)
+                                TextTooltipOnOverflow(
+                                  textSpan: TextSpan(text: name),
+                                  child: Text(
+                                    name,
+                                    maxLines: 1,
+                                    softWrap: false,
+                                    overflow: TextOverflow.fade,
+                                  ),
                                 ),
-                              ),
 
-                              if (model.subtitle != null)
+                              if (showSubtitle && model.subtitle != null)
                                 ValueListenableBuilder(
                                   valueListenable: model.subtitle!,
                                   builder: (context, subtitle, child) {
@@ -139,18 +149,22 @@ class VolumeSlider extends StatelessWidget {
                           padding: EdgeInsets.zero,
                           constraints: BoxConstraints(),
                           clipBehavior: Clip.antiAlias,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular((dense ? 0.75 : 1) * mainConfig.theme.buttonRounding),
+                          ),
                           child: MotionContainer(
                             motion: mainConfig.motions.expressive.effects.normal,
                             color: isMuted ? Theme.of(context).colorScheme.errorContainer : Colors.transparent,
-                            padding: const EdgeInsets.all(4),
+                            padding: dense ? EdgeInsets.zero : const EdgeInsets.all(4),
                             child: WingedIcon(
+                              size: (dense ? 0.95 : 1) * IconTheme.of(context).size!,
                               flutterIcon: SymbolsVaried.no_sound,
                               iconNames: ["audio-volume-muted"],
                               textIcon: "󰝟", // nf-md-volume_mute
                               color: Theme.of(context).textTheme.bodyLarge!.color,
                             ),
                           ),
-                          onTap: () {
+                          onTap: (_, _) {
                             model.setMuted(!isMuted);
                           },
                         );
@@ -161,10 +175,13 @@ class VolumeSlider extends StatelessWidget {
                 VolumeScrollWhellListener(
                   config: config,
                   model: model,
+                  service: service,
                   child: ValueListenableBuilder(
                     valueListenable: model.volume,
                     builder: (context, volume, child) {
                       final label = "${(volume * 100).round()}";
+                      final maxVolume = config.maxVolume ?? service.config.maxVolume;
+                      final volumeStep = config.volumeStep ?? service.config.volumeStep;
                       return Theme(
                         data: Theme.of(context).copyWith(
                           sliderTheme: Theme.of(context).sliderTheme.copyWith(
@@ -172,12 +189,16 @@ class VolumeSlider extends StatelessWidget {
                             trackShape: OverflowingRoundedRectSliderTrackShape(
                               overflowColor: Theme.of(context).colorScheme.error,
                             ),
+                            trackHeight: dense ? 5 : 6,
                             thumbShape: LabeledRoundSliderThumbShape(
                               text: label,
+                              enabledThumbRadius: dense ? 9 : 10,
                               textStyle: Theme.of(context).textTheme.labelLarge!.copyWith(
+                                height: 1,
                                 color: Colors.white,
                                 letterSpacing: -0.5,
                                 fontWeight: FontWeight.w500,
+                                fontSize: (dense ? 0.9 : 1) * Theme.of(context).textTheme.labelLarge!.fontSize!,
                                 shadows: [
                                   Shadow(offset: Offset(1, 1), blurRadius: 2),
                                   Shadow(offset: Offset(-1, -1), blurRadius: 2),
@@ -190,10 +211,10 @@ class VolumeSlider extends StatelessWidget {
                         child: Slider(
                           padding: EdgeInsets.zero,
                           // label: label,
-                          value: (volume * 100).clamp(0, config.maxVolume).toDouble(),
+                          value: (volume * 100).clamp(0, maxVolume).toDouble(),
                           min: 0,
-                          max: config.maxVolume.toDouble(),
-                          divisions: (config.maxVolume / config.volumeStep).round(),
+                          max: maxVolume.toDouble(),
+                          divisions: (maxVolume / volumeStep).round(),
                           onChanged: (value) {
                             model.setVolume(value / 100);
                           },
@@ -229,6 +250,10 @@ class LabeledRoundSliderThumbShape extends RoundSliderThumbShape {
   LabeledRoundSliderThumbShape({
     required this.text,
     required this.textStyle,
+    super.enabledThumbRadius = 10.0,
+    super.disabledThumbRadius,
+    super.elevation = 1.0,
+    super.pressedElevation = 6.0,
   });
 
   @override

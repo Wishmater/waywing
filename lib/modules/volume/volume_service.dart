@@ -3,12 +3,17 @@ import "dart:convert";
 
 import "package:flutter/foundation.dart";
 import "package:pulseaudio/pulseaudio.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/modules/session/session_service.dart";
+import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:dartx/dartx.dart";
 
-class VolumeService extends Service {
+class VolumeService extends Service<VolumeServiceConfig> {
+  late final SessionService _sessionService;
+
   ValueListenable<VolumeOutputInterface?> get defaultOutput => _defaultOutput;
   late final ValueNotifier<VolumeOutputInterface?> _defaultOutput;
 
@@ -17,6 +22,8 @@ class VolumeService extends Service {
 
   ValueListenable<List<VolumeAppInterface>> get apps => _apps;
   late final ManualValueNotifier<List<VolumeAppInterface>> _apps;
+  ValueListenable<List<VolumeProcessInterface>> get groupedApps => _groupedApps;
+  late final DerivedValueNotifier<List<VolumeProcessInterface>> _groupedApps;
 
   ValueListenable<List<VolumeOutputInterface>> get outputs => _outputs;
   late final ManualValueNotifier<List<VolumeOutputInterface>> _outputs;
@@ -40,12 +47,241 @@ class VolumeService extends Service {
     registerService<VolumeService, dynamic>(
       ServiceRegistration(
         constructor: VolumeService._,
+        schemaBuilder: () => VolumeServiceConfig.schema,
+        configBuilder: VolumeServiceConfig.fromBlock,
       ),
     );
   }
 
   @override
+  late final Map<String, WaywingAction>? actions = {
+    "increaseOutputVolume": WaywingAction(
+      'Increase volume for default output. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
+      (request) {
+        final amountParam = request.path.queryParameters["amount"];
+        int amount;
+        if (amountParam == null) {
+          amount = config.volumeStep;
+        } else {
+          try {
+            amount = int.parse(amountParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Optional query param "amount" must be an integer.');
+          }
+        }
+        final output = defaultOutput.value;
+        if (output == null) {
+          return WaywingResponse(422, "No default output registered");
+        }
+        output.increaseVolume(amount / 100, max: config.maxVolume / 100, coerceToScale: config.volumeStep / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "decreaseOutputVolume": WaywingAction(
+      'Decrease volume for default output. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
+      (request) {
+        final amountParam = request.path.queryParameters["amount"];
+        int amount;
+        if (amountParam == null) {
+          amount = config.volumeStep;
+        } else {
+          try {
+            amount = int.parse(amountParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Optional query param "amount" must be an integer.');
+          }
+        }
+        final output = defaultOutput.value;
+        if (output == null) {
+          return WaywingResponse(422, "No default output registered");
+        }
+        output.decreaseVolume(amount / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "setOutputVolume": WaywingAction(
+      'Set volume for default output. Required query param "value".',
+      (request) {
+        final valueParam = request.path.queryParameters["value"];
+        int amount;
+        if (valueParam == null) {
+          return WaywingResponse(400, 'Query param "value" is required.');
+        } else {
+          try {
+            amount = int.parse(valueParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Query param "value" must be an integer.');
+          }
+        }
+        final output = defaultOutput.value;
+        if (output == null) {
+          return WaywingResponse(422, "No default output registered");
+        }
+        output.setVolume(amount / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "muteOutput": WaywingAction(
+      "Mute default output.",
+      (request) {
+        final output = defaultOutput.value;
+        if (output == null) {
+          return WaywingResponse(422, "No default output registered");
+        }
+        output.setMuted(!output.isMuted.value);
+        return WaywingResponse.ok();
+      },
+    ),
+    "cycleOutput": WaywingAction(
+      'Cycle default output. Optional query param "reverse".',
+      (request) {
+        if (outputs.value.isEmpty) {
+          return WaywingResponse(422, "No outputs registered");
+        }
+        if (outputs.value.length == 1) {
+          return WaywingResponse(422, "Only one output registered");
+        }
+        int currentIndex;
+        final output = defaultOutput.value;
+        if (output == null) {
+          currentIndex = -1;
+        } else {
+          currentIndex = outputs.value.indexWhere((e) => e == output);
+        }
+        if (request.path.queryParameters["reverse"] != null) {
+          currentIndex--;
+        } else {
+          currentIndex++;
+        }
+        if (currentIndex < 0) {
+          currentIndex = outputs.value.lastIndex;
+        } else if (currentIndex > outputs.value.lastIndex) {
+          currentIndex = 0;
+        }
+        setDefaultOutput(outputs.value[currentIndex]);
+        return WaywingResponse.ok();
+      },
+    ),
+    "increaseInputVolume": WaywingAction(
+      'Increase volume for default input. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
+      (request) {
+        final amountParam = request.path.queryParameters["amount"];
+        int amount;
+        if (amountParam == null) {
+          amount = config.volumeStep;
+        } else {
+          try {
+            amount = int.parse(amountParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Optional query param "amount" must be an integer.');
+          }
+        }
+        final input = defaultInput.value;
+        if (input == null) {
+          return WaywingResponse(422, "No default input registered");
+        }
+        input.increaseVolume(amount / 100, max: config.maxVolume / 100, coerceToScale: config.volumeStep / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "decreaseInputVolume": WaywingAction(
+      'Decrease volume for default input. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
+      (request) {
+        final amountParam = request.path.queryParameters["amount"];
+        int amount;
+        if (amountParam == null) {
+          amount = config.volumeStep;
+        } else {
+          try {
+            amount = int.parse(amountParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Optional query param "amount" must be an integer.');
+          }
+        }
+        final input = defaultInput.value;
+        if (input == null) {
+          return WaywingResponse(422, "No default input registered");
+        }
+        input.decreaseVolume(amount / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "setInputVolume": WaywingAction(
+      'Set volume for default input. Required query param "value".',
+      (request) {
+        final valueParam = request.path.queryParameters["value"];
+        int amount;
+        if (valueParam == null) {
+          return WaywingResponse(400, 'Query param "value" is required.');
+        } else {
+          try {
+            amount = int.parse(valueParam);
+          } catch (_) {
+            return WaywingResponse(400, 'Query param "value" must be an integer.');
+          }
+        }
+        final input = defaultInput.value;
+        if (input == null) {
+          return WaywingResponse(422, "No default input registered");
+        }
+        input.setVolume(amount / 100);
+        return WaywingResponse.ok();
+      },
+    ),
+    "muteInput": WaywingAction(
+      "Mute default input.",
+      (request) {
+        final input = defaultInput.value;
+        if (input == null) {
+          return WaywingResponse(422, "No default input registered");
+        }
+        input.setMuted(!input.isMuted.value);
+        return WaywingResponse.ok();
+      },
+    ),
+    "cycleInput": WaywingAction(
+      'Cycle default input. Optional query param "reverse".',
+      (request) {
+        if (inputs.value.isEmpty) {
+          return WaywingResponse(422, "No inputs registered");
+        }
+        if (inputs.value.length == 1) {
+          return WaywingResponse(422, "Only one inputs registered");
+        }
+        int currentIndex;
+        final input = defaultInput.value;
+        if (input == null) {
+          currentIndex = -1;
+        } else {
+          currentIndex = inputs.value.indexWhere((e) => e == input);
+        }
+        if (request.path.queryParameters["reverse"] != null) {
+          currentIndex--;
+        } else {
+          currentIndex++;
+        }
+        if (currentIndex < 0) {
+          currentIndex = inputs.value.lastIndex;
+        } else if (currentIndex > inputs.value.lastIndex) {
+          currentIndex = 0;
+        }
+        setDefaultInput(inputs.value[currentIndex]);
+        return WaywingResponse.ok();
+      },
+    ),
+  };
+
+  late final StreamSubscription<SleepState> _preparingForSleepSubs;
+  @override
   Future<void> init() async {
+    _sessionService = await serviceRegistry.requestService<SessionService>(this);
+    _preparingForSleepSubs = _sessionService.preparingForSleep.listen((v) {
+      if (v == SleepState.awaking) {
+        // TODO 1: I could resolve this service issues when awaking from sleep
+        // if i reload all values from scratch when awaking
+      }
+    });
+
     _client = PulseAudio();
     await _client.initialize("waywing");
 
@@ -53,6 +289,23 @@ class VolumeService extends Service {
     final apps = sinkInputs.map((e) => VolumeAppInterface(_client, e)).toList();
     await Future.wait(apps.map((e) => e.init()));
     _apps = ManualValueNotifier(apps);
+    _groupedApps = DerivedValueNotifier(
+      dependencies: [_apps],
+      derive: () {
+        // TODO: 3 PERFORMANCE should we try to reuse the models already built, does it matter?
+        final result = <int, List<VolumeAppInterface>>{};
+        for (final e in _apps.value) {
+          final id = e.processId.value ?? (-1 * e.name.value.hashCode);
+          result[id] ??= [];
+          result[id]!.add(e);
+        }
+        return result.values.map((e) {
+          final model = VolumeProcessInterface(e.first._client, e);
+          model.init(); // this should be sync
+          return model;
+        }).toList();
+      },
+    );
 
     _sinkInputChangedSubscription = _client.onSinkInputChanged.listen((sinkInput) async {
       final index = _apps.value.indexWhere((e) => e._sinkInput.index == sinkInput.index);
@@ -73,7 +326,7 @@ class VolumeService extends Service {
       if (i != -1) {
         final app = _apps.value.removeAt(i);
         _apps.manualNotifyListeners();
-        app.dispose();
+        await app.dispose();
       }
     });
 
@@ -183,6 +436,7 @@ class VolumeService extends Service {
       _sinkRemovedSubscription.cancel(),
       _sinkInputChangedSubscription.cancel(),
       _sinkInputRemovedSubscription.cancel(),
+      _preparingForSleepSubs.cancel(),
       ...apps.value.map((e) => e.dispose()),
       ...outputs.value.map((e) => e.dispose()),
       ...inputs.value.map((e) => e.dispose()),
@@ -271,10 +525,6 @@ class VolumeService extends Service {
   VolumeInputInterface? _getDefaultInput(PulseAudioServerInfo serverInfo) {
     return inputs.value.firstOrNullWhere((e) => e._source.name == serverInfo.defaultSourceName);
   }
-
-  // bool _isSourceRelevant(PulseAudioSource) {
-  //   return _sour
-  // }
 }
 
 abstract class VolumeInterface {
@@ -282,6 +532,8 @@ abstract class VolumeInterface {
   late final ValueNotifier<String> _name;
 
   ValueListenable<String?>? get subtitle => null;
+
+  ValueListenable<String?>? get iconName => null;
 
   ValueListenable<double> get volume => _volume;
   late final ValueNotifier<double> _volume;
@@ -309,9 +561,10 @@ abstract class VolumeInterface {
     double step, {
     double? max,
     bool coerceToStepScale = true,
+    double? coerceToScale,
   }) {
     var newValue = volume.value + step;
-    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, step);
+    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, (coerceToScale ?? step));
     if (max != null && newValue > max) newValue = max;
     return setVolume(newValue);
   }
@@ -319,15 +572,12 @@ abstract class VolumeInterface {
   Future<void> decreaseVolume(
     double step, {
     bool coerceToStepScale = true,
+    double? coerceToScale,
   }) {
     var newValue = volume.value - step;
-    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, step);
+    if (coerceToStepScale) newValue = _roundToNearestMultiple(newValue, (coerceToScale ?? step));
     if (newValue < 0) newValue = 0;
     return setVolume(newValue);
-  }
-
-  double _roundToNearestMultiple(double value, double scale) {
-    return (value / scale).round() * scale;
   }
 
   Future<void> setVolume(double value);
@@ -339,9 +589,15 @@ abstract class VolumeInterface {
 
   @override
   bool operator ==(Object other) {
-    if (other is VolumeInterface) return name.value == other.name.value;
-    return super == other;
+    if (other is VolumeInterface) {
+      return name.value == other.name.value;
+    }
+    return identical(this, other);
   }
+}
+
+double _roundToNearestMultiple(double value, double scale) {
+  return (value / scale).round() * scale;
 }
 
 class VolumeAppInterface extends VolumeInterface {
@@ -349,45 +605,34 @@ class VolumeAppInterface extends VolumeInterface {
   ValueListenable<String?>? get subtitle => _subtitle;
   late final ValueNotifier<String?> _subtitle;
 
+  @override
   ValueListenable<String?> get iconName => _iconName;
   late final ValueNotifier<String?> _iconName;
 
+  ValueListenable<int?> get processId => _processId;
+  late final ValueNotifier<int?> _processId;
+
   PulseAudioSinkInput _sinkInput;
 
-  late final ValueNotifier<int?> _processId;
-  late final ValueNotifier<String?> _processUser;
+  // late final ValueNotifier<String?> _processUser;
 
   VolumeAppInterface(super._client, this._sinkInput);
 
-  void _updateSubtitle() {
-    final buff = StringBuffer();
-    if (_sinkInput.props.applicationName != null) {
-      buff.write(_sinkInput.name);
-      buff.write(" ");
-    }
-    if (_processId.value != null || _processUser.value != null) {
-      buff.write("(");
-      if (_processId.value != null) {
-        buff.write("${_processId.value}");
-      }
-      if (_processUser.value != null) {
-        buff.write(":${_processUser.value}");
-      }
-      buff.write(")");
-    }
-    if (buff.isEmpty) {
-      _subtitle.value = null;
-    } else {
-      _subtitle.value = buff.toString();
-    }
-  }
+  String? get processBinary => _sinkInput.props.processBinary();
 
   @override
   Future<void> init() async {
-    _processId = ValueNotifier(_sinkInput.props.processId());
-    _processUser = ValueNotifier(_sinkInput.props.processUser());
+    // print(
+    //   JsonEncoder.withIndent("  ").convert(
+    //     Map.fromEntries(_sinkInput.props.entries).mapValues((e) {
+    //       return _valueToString(e.value);
+    //     }),
+    //   ),
+    // );
 
-    _subtitle = ValueNotifier(null);
+    _processId = ValueNotifier(_sinkInput.props.processId());
+    // _processUser = ValueNotifier(_sinkInput.props.processUser());
+
     if (_sinkInput.props.applicationName != null) {
       _name = ValueNotifier(_sinkInput.props.applicationName!);
     } else {
@@ -396,12 +641,18 @@ class VolumeAppInterface extends VolumeInterface {
     _volume = ValueNotifier(_sinkInput.volume);
     _isMuted = ValueNotifier(_sinkInput.mute);
 
-    _iconName = ValueNotifier(_sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName);
+    _iconName = ValueNotifier(
+      _sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName ?? _sinkInput.props.processBinary(),
+    );
+    _subtitle = ValueNotifier(null);
     _updateSubtitle();
   }
 
   @override
   void _update() {
+    _processId.value = _sinkInput.props.processId();
+    // _processUser.value = _sinkInput.props.processUser();
+
     if (_sinkInput.props.applicationName != null) {
       _name.value = _sinkInput.props.applicationName!;
     } else {
@@ -410,8 +661,8 @@ class VolumeAppInterface extends VolumeInterface {
     _volume.value = _sinkInput.volume;
     _isMuted.value = _sinkInput.mute;
 
-    _processId.value = _sinkInput.props.processId();
-    _processUser.value = _sinkInput.props.processUser();
+    _iconName.value =
+        _sinkInput.props.applicationIconName ?? _sinkInput.props.mediaIconName ?? _sinkInput.props.processBinary();
     _updateSubtitle();
   }
 
@@ -433,7 +684,98 @@ class VolumeAppInterface extends VolumeInterface {
     if (other is VolumeAppInterface) {
       return name.value == other.name.value && _sinkInput.index == other._sinkInput.index;
     }
-    return super == other;
+    return identical(this, other);
+  }
+
+  void _updateSubtitle() {
+    final buff = StringBuffer();
+    if (_sinkInput.props.applicationName != null) {
+      buff.write(_sinkInput.name);
+    }
+    // if (_processId.value != null || _processUser.value != null) {
+    //   buff.write(" (");
+    //   if (_processId.value != null) {
+    //     buff.write("${_processId.value}");
+    //   }
+    //   if (_processUser.value != null) {
+    //     buff.write(":${_processUser.value}");
+    //   }
+    //   buff.write(")");
+    // }
+    if (buff.isEmpty) {
+      _subtitle.value = null;
+    } else {
+      _subtitle.value = buff.toString();
+    }
+  }
+}
+
+class VolumeProcessInterface extends VolumeInterface {
+  final List<VolumeAppInterface> apps;
+
+  @override
+  ValueListenable<String> get name => apps.first.name;
+
+  @override
+  ValueListenable<String?>? get subtitle => apps.first.subtitle;
+
+  ValueListenable<int?> get processId => apps.first.processId;
+
+  @override
+  ValueListenable<String?> get iconName => _iconName;
+  late final ValueNotifier<String?> _iconName;
+
+  VolumeProcessInterface(super._client, List<VolumeAppInterface> apps)
+    : assert(apps.isNotEmpty),
+      apps = List.unmodifiable(apps);
+
+  @override
+  Future<void> init() async {
+    _volume = DerivedValueNotifier(
+      dependencies: apps.map((e) => e.volume).toList(),
+      derive: () => apps.maxBy((e) => e.volume.value)!.volume.value,
+    );
+    _isMuted = DerivedValueNotifier(
+      dependencies: apps.map((e) => e.isMuted).toList(),
+      derive: () => apps.all((e) => e.isMuted.value),
+    );
+    _iconName = apps.first.processBinary != null ? ValueNotifier(apps.first.processBinary) : apps.first._iconName;
+  }
+
+  @override
+  // ignore: unused_element
+  void _update() {}
+
+  @override
+  Future<void> setVolume(double value) {
+    final oldVolume = volume.value;
+    final ratio = volume.value == 0 ? 1 : value / oldVolume;
+    return Future.wait(
+      apps.map((e) {
+        final deviceVolume = e.volume.value * ratio;
+        return e.setVolume(oldVolume == 0 ? value : deviceVolume);
+      }),
+    );
+  }
+
+  @override
+  Future<void> setMuted(bool value) {
+    return Future.wait(
+      apps.map((e) {
+        return e.setMuted(value);
+      }),
+    );
+  }
+
+  @override
+  int get hashCode => processId.value?.hashCode ?? (-1 * name.value.hashCode);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is VolumeProcessInterface) {
+      return hashCode == other.hashCode;
+    }
+    return identical(this, other);
   }
 }
 
@@ -446,7 +788,9 @@ extension on PropList {
     return int.tryParse(strid);
   }
 
-  String? processUser() => _valueToString(this["application.process.user"]);
+  // String? processUser() => _valueToString(this["application.process.user"]);
+
+  String? processBinary() => _valueToString(this["application.process.binary"]);
 }
 
 String? _valueToString(Uint8List? data) {
@@ -497,7 +841,7 @@ class VolumeOutputInterface extends VolumeInterface {
     if (other is VolumeOutputInterface) {
       return name.value == other.name.value && _sink.index == other._sink.index;
     }
-    return super == other;
+    return identical(this, other);
   }
 }
 
@@ -538,6 +882,6 @@ class VolumeInputInterface extends VolumeInterface {
     if (other is VolumeInputInterface) {
       return name.value == other.name.value && _source.index == other._source.index;
     }
-    return super == other;
+    return identical(this, other);
   }
 }

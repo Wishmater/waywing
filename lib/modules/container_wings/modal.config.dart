@@ -1,5 +1,6 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=info, type=warning
 
 part of 'modal.dart';
 
@@ -14,12 +15,6 @@ mixin ModalConfigI {
   @ConfigDocDefault<bool>(true)
   bool get barrierDismissable;
 
-  @ConfigDocDefault<double>(400)
-  double get width;
-
-  @ConfigDocDefault<double>(400)
-  double get height;
-
   double? get maxWidth;
 
   double? get maxHeight;
@@ -31,8 +26,6 @@ class ModalConfig extends ConfigBaseI with ModalConfigI, ModalConfigBase {
     fields: {
       'barrierColor': ModalConfigBase._barrierColor,
       'barrierDismissable': ModalConfigBase._barrierDismissable,
-      'width': ModalConfigBase._width,
-      'height': ModalConfigBase._height,
       'maxWidth': ModalConfigBase._maxWidth,
       'maxHeight': ModalConfigBase._maxHeight,
     },
@@ -62,10 +55,6 @@ class ModalConfig extends ConfigBaseI with ModalConfigI, ModalConfigBase {
   @override
   final bool barrierDismissable;
   @override
-  final double width;
-  @override
-  final double height;
-  @override
   final double? maxWidth;
   @override
   final double? maxHeight;
@@ -73,24 +62,22 @@ class ModalConfig extends ConfigBaseI with ModalConfigI, ModalConfigBase {
   ModalConfig({
     MyColor? barrierColor,
     bool? barrierDismissable,
-    double? width,
-    double? height,
     this.maxWidth,
     this.maxHeight,
     required this.dynamicSchemas,
   }) : barrierColor = barrierColor ?? MyColor(0x8A000000),
-       barrierDismissable = barrierDismissable ?? true,
-       width = width ?? 400,
-       height = height ?? 400;
+       barrierDismissable = barrierDismissable ?? true;
 
   factory ModalConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = ModalConfigBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }
@@ -101,8 +88,6 @@ class ModalConfig extends ConfigBaseI with ModalConfigI, ModalConfigBase {
       dynamicSchemas: dynamicSchemas,
       barrierColor: fields['barrierColor'],
       barrierDismissable: fields['barrierDismissable'],
-      width: fields['width'],
-      height: fields['height'],
       maxWidth: fields['maxWidth'],
       maxHeight: fields['maxHeight'],
     );
@@ -113,8 +98,6 @@ class ModalConfig extends ConfigBaseI with ModalConfigI, ModalConfigBase {
     return '''ModalConfig(
 	barrierColor = $barrierColor,
 	barrierDismissable = $barrierDismissable,
-	width = $width,
-	height = $height,
 	maxWidth = $maxWidth,
 	maxHeight = $maxHeight,
 	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
@@ -125,8 +108,6 @@ class ModalConfig extends ConfigBaseI with ModalConfigI, ModalConfigBase {
   bool operator ==(covariant ModalConfig other) {
     return barrierColor == other.barrierColor &&
         barrierDismissable == other.barrierDismissable &&
-        width == other.width &&
-        height == other.height &&
         maxWidth == other.maxWidth &&
         maxHeight == other.maxHeight &&
         configListEqual(dynamicSchemas, other.dynamicSchemas);
@@ -136,8 +117,6 @@ class ModalConfig extends ConfigBaseI with ModalConfigI, ModalConfigBase {
   int get hashCode => Object.hashAll([
     barrierColor,
     barrierDismissable,
-    width,
-    height,
     maxWidth,
     maxHeight,
     dynamicSchemas,

@@ -1,5 +1,6 @@
 import "dart:io";
 
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart" hide Notification, Action, Actions;
 import "package:intl/intl.dart";
 import "package:material_symbols_icons/symbols.varied.dart";
@@ -7,7 +8,6 @@ import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/notification/notification_config.dart";
 import "package:waywing/modules/notification/notification_service.dart";
-import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/simple_gesture_detector.dart";
@@ -40,57 +40,64 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
     return NotificationServiceInheritedWidget(
       service: widget.service,
       child: ValueListenableBuilder(
-        valueListenable: widget.service.notifications.notifications,
-        builder: (context, notifications, _) {
-          final scrollController = ScrollController();
-          return FocusScope(
-            // TODO: 2 STYLE flutter scrollbars are very ugly. Come up with a custom solution everywhere
-            // TODO: 2 this has a bug where if the mouse falls in between notifications, the focus removed from
-            // waywing, because InputRegions are declared in each notification widget. This causes scrolling to
-            // be weird. Ideally we enable a big Input region only when scrolling? This probably requires making
-            // a better scrollbar.
-            child: Scrollbar(
-              controller: scrollController,
-              child: ScrollOpacityGradient(
-                scrollController: scrollController,
-                maxSize: 64,
-                child: SingleChildScrollView(
+        valueListenable: widget.service.status,
+        builder: (context, status, child) {
+          return ValueListenableBuilder(
+            valueListenable: widget.service.activeNotifications.notifications,
+            builder: (context, notifications, _) {
+              final scrollController = ScrollController();
+              return FocusScope(
+                // TODO: 2 STYLE flutter scrollbars are very ugly. Come up with a custom solution everywhere
+                // TODO: 2 this has a bug where if the mouse falls in between notifications, the focus removed from
+                // waywing, because InputRegions are declared in each notification widget. This causes scrolling to
+                // be weird. Ideally we enable a big Input region only when scrolling? This probably requires making
+                // a better scrollbar.
+                child: Scrollbar(
                   controller: scrollController,
-                  // TODO: 1 this is doing a weird thing where if 3 notifications with the same duration are
-                  // added at the same time, the last one will be removed before the 2nd. The bug is on our side,
-                  // because it is removed correctly in the service.
-                  child: MotionColumn(
-                    motion: mainConfig.motions.expressive.spatial.slow,
-                    mainAxisSize: MainAxisSize.min,
-                    data: List<ValueNotifier<Notification>>.from(notifications),
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    itemBuilder: (context, noti) {
-                      Widget result = _NotificationWidget(
-                        noti,
-                        widget.config,
-                      );
-                      // TODO: 2 should we enable variable notif width, at least as an option ?
-                      // result = Align(
-                      //   alignment: widget.config.alignment,
-                      //   child: IntrinsicWidth(
-                      //     child: ConstrainedBox(
-                      //       constraints: BoxConstraints(
-                      //         minWidth: 256,
-                      //         // maxWidth: 256 * 1.5, // redundant because it's already specified above
-                      //       ),
-                      //       child: _NotificationWidget(noti),
-                      //     ),
-                      //   ),
-                      // );
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: NotificationsWidget.spacing / 2),
-                        child: result,
-                      );
-                    },
+                  child: ScrollOpacityGradient(
+                    scrollController: scrollController,
+                    maxSize: 64,
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      // TODO: 1 this is doing a weird thing where if 3 notifications with the same duration are
+                      // added at the same time, the last one will be removed before the 2nd. The bug is on our side,
+                      // because it is removed correctly in the service.
+                      child: MotionColumn(
+                        motion: mainConfig.motions.expressive.spatial.slow,
+                        mainAxisSize: MainAxisSize.min,
+                        data: status == NotificationsStatus.dnd
+                            ? []
+                            : List<ValueNotifier<Notification>>.from(notifications),
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        itemBuilder: (context, noti) {
+                          Widget result = _NotificationWidget(
+                            noti,
+                            widget.config,
+                          );
+                          // TODO: 2 should we enable variable notif width, at least as an option ?
+                          // result = Align(
+                          //   alignment: widget.config.alignment,
+                          //   child: IntrinsicWidth(
+                          //     child: ConstrainedBox(
+                          //       constraints: BoxConstraints(
+                          //         minWidth: 256,
+                          //         // maxWidth: 256 * 1.5, // redundant because it's already specified above
+                          //       ),
+                          //       child: _NotificationWidget(noti),
+                          //     ),
+                          //   ),
+                          // );
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: NotificationsWidget.spacing / 2),
+                            child: result,
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           );
         },
       ),
@@ -192,6 +199,7 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
         };
         return FocusTraversalGroup(
           child: KeyboardFocus(
+            debugLabel: "Notification",
             mode: KeyboardFocusMode.onDemand,
             child: DraggableWidget(
               onSwipeStart: (details) {
@@ -212,10 +220,12 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                 },
                 child: WingedContainer(
                   color: surfaceColor,
+                  clipBehavior: timer != null && widget.config.showProgressBar ? Clip.antiAlias : Clip.none,
                   shape: ExternalRoundedCornersBorder(
                     borderRadius: BorderRadius.circular(mainConfig.theme.containerRounding),
                   ),
                   child: Stack(
+                    clipBehavior: Clip.none,
                     children: [
                       Positioned.fill(
                         child: InkWell(
@@ -225,47 +235,37 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
                           onTap: () async {
                             if (isExpanded) {
                               await service.emitActivationToken(notification);
-                              await service.closeNotification(notification);
+                              service.closeNotification(notification);
                             } else {
                               _toggleExpansion();
                             }
                           },
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (timer != null && widget.config.showProgressBar)
-                            ListenableBuilder(
-                              listenable: timer,
-                              builder: (context, _) {
-                                // TODO: 1 position progress bar better, probably with a stack, remove padding, test clipping
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                                  child: LinearProgressIndicator(
-                                    backgroundColor: surfaceColor,
-                                    color: urgencyColor,
-                                    value: timer.percentageCompleted,
-                                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                                  ),
-                                );
-                              },
-                            ),
-                          _NotificationTitle(
-                            notification,
-                            isHovered,
-                            isExpanded,
-                            onToggleExpand: _toggleExpansion,
-                          ),
-                          SizedBox(height: 4),
-                          _AnimatedNotificationContent(
-                            animation: _animationController,
-                            fadeAnimation: _animationController,
-                            notification: notification,
-                            isExpanded: isExpanded,
-                          ),
-                        ],
+                      NotificationTile(
+                        notification: notification,
+                        isExpanded: isExpanded,
+                        isHovered: isHovered,
+                        onToggleExpand: _toggleExpansion,
+                        animation: _animationController,
+                        showActions: true,
                       ),
+                      if (timer != null && widget.config.showProgressBar)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: ListenableBuilder(
+                            listenable: timer,
+                            builder: (context, _) {
+                              return LinearProgressIndicator(
+                                backgroundColor: surfaceColor,
+                                color: urgencyColor,
+                                value: timer.percentageCompleted,
+                              );
+                            },
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -278,17 +278,66 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
   }
 }
 
+class NotificationTile extends StatelessWidget {
+  const NotificationTile({
+    super.key,
+    required this.notification,
+    required this.isHovered,
+    required this.onToggleExpand,
+    required this.animation,
+    required this.isExpanded,
+    required this.showActions,
+  });
+
+  final Notification notification;
+
+  final ValueListenable<bool> isHovered;
+
+  final VoidCallback onToggleExpand;
+
+  final Animation<double> animation;
+
+  final bool isExpanded;
+
+  final bool showActions;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _NotificationTitle(
+          notification,
+          isHovered,
+          isExpanded,
+          onToggleExpand: onToggleExpand,
+        ),
+        SizedBox(height: 4),
+        _AnimatedNotificationContent(
+          animation: animation,
+          fadeAnimation: animation,
+          notification: notification,
+          isExpanded: isExpanded,
+          showActions: showActions,
+        ),
+      ],
+    );
+  }
+}
+
 class _AnimatedNotificationContent extends StatelessWidget {
   final Animation<double> animation;
   final Animation<double> fadeAnimation;
   final Notification notification;
   final bool isExpanded;
+  final bool showActions;
 
   const _AnimatedNotificationContent({
     required this.animation,
     required this.fadeAnimation,
     required this.notification,
     required this.isExpanded,
+    required this.showActions,
   });
 
   @override
@@ -309,7 +358,7 @@ class _AnimatedNotificationContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _NotificationBody(notification),
-                _NotificationActions(notification.actions, notification),
+                if (showActions) _NotificationActions(notification.actions, notification),
               ],
             ),
           ),
@@ -321,7 +370,7 @@ class _AnimatedNotificationContent extends StatelessWidget {
 
 class _NotificationTitle extends StatelessWidget {
   final Notification notification;
-  final ValueNotifier<bool> isHovered;
+  final ValueListenable<bool> isHovered;
   final bool isExpanded;
   final VoidCallback onToggleExpand;
 
@@ -403,7 +452,7 @@ class _NotificationTitle extends StatelessWidget {
                                 } else {
                                   return SizedBox.shrink();
                                 }
-                              }
+                              },
                             ),
                           },
                         ),
@@ -471,7 +520,7 @@ class _NotificationTitle extends StatelessWidget {
                           width: effectiveIconSize * 1.33,
                           height: effectiveIconSize * 1.33,
                         ),
-                        onTap: onToggleExpand,
+                        onTap: (_, _) => onToggleExpand,
                         child: WingedIcon(
                           // TODO: 2 ANIMATIONS for flutter icon (or maybe all) implement turning around animation
                           flutterIcon: isExpanded ? SymbolsVaried.keyboard_arrow_up : Icons.keyboard_arrow_down,
@@ -486,7 +535,7 @@ class _NotificationTitle extends StatelessWidget {
                         width: effectiveIconSize * 1.33,
                         height: effectiveIconSize * 1.33,
                       ),
-                      onTap: () => service.closeNotification(notification),
+                      onTap: (_, _) => service.closeNotification(notification),
                       child: WingedIcon(
                         flutterIcon: SymbolsVaried.close,
                         iconNames: ["window-close"],
@@ -642,7 +691,10 @@ class _NotificationAction extends StatelessWidget {
     if (identifierAreIcons) {
       // TODO: 2 STYLE this should use WingedButton
       return TextButton(
-        onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
+        onPressed: () {
+          service.emitActivationToken(notification);
+          service.server.emitActionInvoked(notification.id, action.key);
+        },
         child: Row(
           mainAxisSize: MainAxisSize.min,
           spacing: 2,
@@ -655,7 +707,10 @@ class _NotificationAction extends StatelessWidget {
     } else {
       // TODO: 2 STYLE this should use WingedButton
       return TextButton(
-        onPressed: () => service.server.emitActionInvoked(notification.id, action.key),
+        onPressed: () async {
+          await service.emitActivationToken(notification);
+          service.server.emitActionInvoked(notification.id, action.key);
+        },
         child: Text(action.value),
       );
     }

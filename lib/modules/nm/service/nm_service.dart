@@ -5,23 +5,29 @@ import "package:dartx/dartx.dart";
 import "package:dbus/dbus.dart";
 import "package:flutter/foundation.dart";
 import "package:tronco/tronco.dart";
+import "package:waywing/core/config.dart";
 import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:nm/nm.dart";
+import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/service/nm_connection_settings.dart";
+import "package:waywing/modules/nm/service/nm_database.dart";
 import "package:waywing/util/dbus_utils.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 
-class NetworkManagerService extends Service {
+class NetworkManagerService extends Service<NetworkManagerServiceConfig> {
   late final NetworkManagerClient _client;
   late final NMServiceDevices devices;
+  late final NmDatabase hiddenDevices;
 
   NetworkManagerService._();
 
   static registerService(RegisterServiceCallback registerService) {
-    registerService<NetworkManagerService, dynamic>(
+    registerService<NetworkManagerService, NetworkManagerServiceConfig>(
       ServiceRegistration(
         constructor: NetworkManagerService._,
+        schemaBuilder: () => NetworkManagerServiceConfig.schema,
+        configBuilder: NetworkManagerServiceConfig.fromBlock,
       ),
     );
   }
@@ -30,7 +36,8 @@ class NetworkManagerService extends Service {
   Future<void> init() async {
     _client = NetworkManagerClient();
     await _client.connect();
-    devices = NMServiceDevices(_client, logger);
+    hiddenDevices = NmDatabase("${getConfigurationDirectoryPath()}/nm_hidden_devices", logger);
+    devices = NMServiceDevices(_client, logger, config, hiddenDevices);
     await devices.init();
   }
 
@@ -47,17 +54,27 @@ class NMServiceDevices extends ChangeNotifier implements ValueListenable<List<NM
 
   final NetworkManagerClient _client;
   final Logger _logger;
-  NMServiceDevices(this._client, this._logger);
+  final NetworkManagerServiceConfig _config;
+  final NmDatabase hiddenDevices;
+
+  NMServiceDevices(this._client, this._logger, this._config, this.hiddenDevices);
 
   late StreamSubscription _deviceAddedSubscription;
   late StreamSubscription _deviceRemovedSubscription;
 
   Future<void> init() async {
     for (final e in _client.devices) {
-      if (e.activeConnection?.id == "lo") continue; // ignore loopback interface
+      if (_isDeviceHidden(e)) {
+        _logger.trace("Ignoring device on init: ${e.deviceType} ${e.path}");
+        continue;
+      }
       value.add(NMServiceDevice.build(_client, e, _logger));
     }
     _deviceAddedSubscription = _client.deviceAdded.listen((e) async {
+      if (_isDeviceHidden(e)) {
+        _logger.trace("Ignoring device added: ${e.deviceType} ${e.path}");
+        return;
+      }
       _logger.debug("added device: ${e.deviceType} ${e.path}");
       final device = NMServiceDevice.build(_client, e, _logger);
       await device.init();
@@ -66,9 +83,17 @@ class NMServiceDevices extends ChangeNotifier implements ValueListenable<List<NM
     });
     _deviceRemovedSubscription = _client.deviceRemoved.listen((e) {
       _logger.debug("removed device: ${e.deviceType} ${e.path}");
-      value.removeWhere((v) => v._device == e);
-      notifyListeners();
+      var removed = false;
+      value.removeWhere((v) {
+        final result = v._device == e;
+        removed = removed || result;
+        return result;
+      });
+      if (removed) {
+        notifyListeners();
+      }
     });
+    // TODO: 2 listen to changes in hiddenDevices db file and refresh accordingly
     await Future.wait(value.map((e) => e.init()));
   }
 
@@ -82,6 +107,40 @@ class NMServiceDevices extends ChangeNotifier implements ValueListenable<List<NM
       _deviceAddedSubscription.cancel(),
       _deviceRemovedSubscription.cancel(),
     ]);
+  }
+
+  Future<void> hideDevice(NMServiceDevice device) async {
+    await hiddenDevices.insert(device._device.interface); // maybe we should use .udi instead?
+    var removed = false;
+    value.removeWhere((v) {
+      final result = isDeviceHidden(v);
+      removed = removed || result;
+      return result;
+    });
+    if (removed) {
+      notifyListeners();
+    }
+  }
+
+  bool isDeviceHidden(NMServiceDevice device) {
+    return _isDeviceHidden(device._device);
+  }
+
+  bool _isDeviceHidden(NetworkManagerDevice device) {
+    if (device.activeConnection?.id == "lo") {
+      return true; // ignore loopback interface
+    }
+    for (final e in _config.deviceTypeFilter) {
+      if (device.deviceType.name == e) {
+        return true;
+      }
+    }
+    for (final e in hiddenDevices.getAll()) {
+      if (device.interface == e) {
+        return true; // maybe we should use .udi instead?
+      }
+    }
+    return false;
   }
 }
 

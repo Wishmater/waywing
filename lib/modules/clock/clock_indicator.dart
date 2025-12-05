@@ -5,7 +5,7 @@ import "package:waywing/modules/clock/time_service.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_popover.dart";
 
-class ClockIndicator extends StatelessWidget {
+class ClockIndicator extends StatefulWidget {
   final ClockConfig config;
   final TimeService service;
   final WingedPopoverController popover;
@@ -18,27 +18,69 @@ class ClockIndicator extends StatelessWidget {
   });
 
   @override
+  State<ClockIndicator> createState() => _ClockIndicatorState();
+}
+
+class _ClockIndicatorState extends State<ClockIndicator> {
+  bool? isVertical;
+  String? value;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.service.time.addListener(updateValue);
+  }
+
+  @override
+  void didUpdateWidget(covariant ClockIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.service.time != oldWidget.service.time) {
+      oldWidget.service.time.removeListener(updateValue);
+      widget.service.time.addListener(updateValue);
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.service.time.removeListener(updateValue);
+  }
+
+  void updateValue({bool doSetState = true}) {
+    if (isVertical == null) {
+      return;
+    }
+    String newValue;
+    if (isVertical!) {
+      newValue = DateFormat("${widget.config.militar ? "HH" : "hh"}\nmm").format(widget.service.time.value);
+    } else {
+      newValue = DateFormat("${widget.config.militar ? "HH" : "hh"}:mm").format(widget.service.time.value);
+    }
+    if (value != newValue) {
+      value = newValue;
+      if (doSetState) {
+        setState(() {});
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: service.time,
-      builder: (context, time, _) {
-        // TODO: 3 PERFORMANCE this is apparently being rebuilt every second, even though we only care about minutes
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final isVertical = constraints.maxHeight > constraints.maxWidth;
-            String value;
-            if (isVertical) {
-              value = DateFormat("${config.militar ? "HH" : "hh"}\nmm").format(time);
-            } else {
-              value = DateFormat("${config.militar ? "HH" : "hh"}:mm").format(time);
-            }
-            return WingedButton(
-              onTap: () {
-                popover.togglePopover();
-              },
-              child: Text(value),
-            );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        isVertical = constraints.maxHeight > constraints.maxWidth;
+        if (value == null) {
+          updateValue(doSetState: false);
+        }
+
+        return WingedButton(
+          onTap: (_, _) {
+            widget.popover.togglePopover();
           },
+          child: Text(
+            value!,
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(height: 1.2),
+          ),
         );
       },
     );

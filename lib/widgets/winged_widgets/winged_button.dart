@@ -4,6 +4,10 @@ import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/widgets/theme/button_theme.dart";
 
+typedef WingedActionCallback<T> = FutureOr<T>? Function(TapDownDetails tapDownDetails, TapUpDetails tapUpDetails);
+typedef GestureNoUpCallback = void Function(TapDownDetails tapDownDetails);
+typedef BetterGestureTapCallback = void Function(TapDownDetails tapDownDetails, TapUpDetails tapUpDetails);
+
 class WingedButton<T> extends StatefulWidget {
   final Widget child;
 
@@ -16,7 +20,7 @@ class WingedButton<T> extends StatefulWidget {
   final Alignment? alignment;
 
   /// Called when the user taps this part of the material.
-  final FutureOr<T>? Function()? onTap;
+  final WingedActionCallback<T>? onTap;
 
   final Future<T>? initialFuture;
 
@@ -29,20 +33,20 @@ class WingedButton<T> extends StatefulWidget {
 
   /// Called when the user cancels a tap that was started on this part of the
   /// material.
-  final GestureTapCallback? onTapCancel;
+  final GestureNoUpCallback? onTapCancel;
 
   /// Called when the user double taps this part of the material.
-  final GestureTapCallback? onDoubleTap;
+  final BetterGestureTapCallback? onDoubleTap;
 
   /// Called when the user long-presses on this part of the material.
-  final GestureLongPressCallback? onLongPress;
+  final GestureNoUpCallback? onLongPress;
 
   /// Called when the user taps this part of the material with a secondary button.
   ///
   /// See also:
   ///
   ///  * [kSecondaryButton], the button this callback responds to.
-  final GestureTapCallback? onSecondaryTap;
+  final BetterGestureTapCallback? onSecondaryTap;
 
   /// Called when the user taps down on this part of the material with a
   /// secondary button.
@@ -68,7 +72,7 @@ class WingedButton<T> extends StatefulWidget {
   /// See also:
   ///
   ///  * [kSecondaryButton], the button this callback responds to.
-  final GestureTapCallback? onSecondaryTapCancel;
+  final GestureNoUpCallback? onSecondaryTapCancel;
 
   /// Called when a pointer enters or exits the ink response area.
   ///
@@ -171,6 +175,11 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
     }
   }
 
+  TapDownDetails? lastPrimaryTapDown;
+  TapUpDetails? lastPrimaryTapUp;
+  TapDownDetails? lastSecondaryTapDown;
+  TapUpDetails? lastSecondaryTapUp;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -178,6 +187,9 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
     final wingedButtonTheme = theme.wingedButtonTheme;
     var borderRadius = widget.borderRadius;
     borderRadius ??= BorderRadius.all(Radius.circular(mainConfig.theme.buttonRounding));
+    final needsPrimaryTapDetails =
+        widget.onTap != null || widget.onTapCancel != null || widget.onLongPress != null || widget.onDoubleTap != null;
+    final needsSecondaryTapDetails = widget.onSecondaryTap != null || widget.onSecondaryTapCancel != null;
 
     return FutureBuilder(
       future: taskFuture,
@@ -200,7 +212,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
               ? null
               : () {
                   maybeRequestFocus();
-                  final result = widget.onTap!();
+                  final result = widget.onTap!(lastPrimaryTapDown!, lastPrimaryTapUp!);
                   if (result is Future<T>) {
                     setState(() {
                       taskFuture = result;
@@ -224,30 +236,58 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
           onHover: widget.onHover,
           mouseCursor: widget.mouseCursor,
           radius: widget.radius,
-          onTapDown: widget.onTapDown,
-          onTapUp: widget.onTapUp,
-          onTapCancel: widget.onTapCancel,
+          onTapDown: widget.onTapDown == null && !needsPrimaryTapDetails
+              ? null
+              : (details) {
+                  lastPrimaryTapDown = details;
+                  widget.onTapDown?.call(details);
+                },
+          onTapUp: widget.onTapUp == null && !needsPrimaryTapDetails
+              ? null
+              : (details) {
+                  lastPrimaryTapUp = details;
+                  widget.onTapUp?.call(details);
+                },
+          onTapCancel: widget.onTapCancel == null
+              ? null
+              : () {
+                  widget.onTapCancel!.call(lastPrimaryTapDown!);
+                },
           onDoubleTap: widget.onDoubleTap == null
               ? null
               : () {
                   maybeRequestFocus();
-                  widget.onDoubleTap!();
+                  widget.onDoubleTap!(lastPrimaryTapDown!, lastPrimaryTapUp!);
                 },
           onLongPress: widget.onLongPress == null
               ? null
               : () {
                   maybeRequestFocus();
-                  widget.onLongPress!();
+                  widget.onLongPress!(lastPrimaryTapDown!);
                 },
           onSecondaryTap: widget.onSecondaryTap == null
               ? null
               : () {
                   maybeRequestFocus();
-                  widget.onSecondaryTap!();
+                  widget.onSecondaryTap!(lastSecondaryTapDown!, lastSecondaryTapUp!);
                 },
-          onSecondaryTapUp: widget.onSecondaryTapUp,
-          onSecondaryTapDown: widget.onSecondaryTapDown,
-          onSecondaryTapCancel: widget.onSecondaryTapCancel,
+          onSecondaryTapDown: widget.onSecondaryTapDown == null && !needsSecondaryTapDetails
+              ? null
+              : (details) {
+                  lastSecondaryTapDown = details;
+                  widget.onSecondaryTapDown?.call(details);
+                },
+          onSecondaryTapUp: widget.onSecondaryTapUp == null && !needsSecondaryTapDetails
+              ? null
+              : (details) {
+                  lastSecondaryTapUp = details;
+                  widget.onSecondaryTapUp?.call(details);
+                },
+          onSecondaryTapCancel: widget.onSecondaryTapCancel == null
+              ? null
+              : () {
+                  widget.onSecondaryTapCancel!(lastSecondaryTapDown!);
+                },
         );
       },
     );

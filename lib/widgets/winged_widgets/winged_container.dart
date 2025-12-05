@@ -1,5 +1,3 @@
-import "dart:ui";
-
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -28,6 +26,9 @@ class WingedContainer extends StatefulWidget {
   final Offset shadowOffset;
   final Clip clipBehavior;
   final Color? color;
+  final bool addInputRegion;
+  final bool? focusContainerOnMouseOver;
+  final bool? unfocusContainerOnMouseExit;
   final Widget? child;
 
   const WingedContainer({
@@ -35,39 +36,69 @@ class WingedContainer extends StatefulWidget {
     this.active = true,
     this.onAnimationStatusChanged,
     this.shape,
-    this.activeBorder,
-    this.inactiveBorder,
+    this.activeBorder = const _DefaultBorderSide(),
+    this.inactiveBorder = const _DefaultBorderSide(),
     this.fromShape,
     this.elevation = 0,
     this.shadowOffset = const Offset(0.66, 1),
     this.clipBehavior = Clip.none,
     this.color,
+    this.addInputRegion = true,
+    this.focusContainerOnMouseOver,
+    this.unfocusContainerOnMouseExit,
     this.child,
+
     super.key,
   });
+
+  // TODO: 2 PERFORMANCE this doesn't account for when active/inactive borders are disabled config-wide
+  bool get _shouldRebuildOnFocusChange => activeBorder != null || inactiveBorder != null;
 
   @override
   State<WingedContainer> createState() => WingedContainerState();
 }
 
 class WingedContainerState extends State<WingedContainer> {
-  final focusNode = FocusNode();
+  final focusNode = FocusScopeNode();
+  late bool addInputRegionWidget = widget.addInputRegion;
 
   @override
   void initState() {
     super.initState();
-    // TODO: 2 PERFORMANCE don't rebuild on focus change if active/inactive borders are disabled, there are also some things in build method that can be skipped
-    focusNode.addListener(() => setState(() {}));
+    if (widget._shouldRebuildOnFocusChange) {
+      focusNode.addListener(onFocusChanged);
+    }
   }
+
+  @override
+  void dispose() {
+    focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant WingedContainer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget._shouldRebuildOnFocusChange != oldWidget._shouldRebuildOnFocusChange) {
+      if (widget._shouldRebuildOnFocusChange) {
+        focusNode.addListener(onFocusChanged);
+      } else {
+        focusNode.removeListener(onFocusChanged);
+      }
+    }
+    addInputRegionWidget = addInputRegionWidget || widget.addInputRegion;
+  }
+
+  void onFocusChanged() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
     var shape = widget.shape;
-    if (shape is ExternalRoundedCornersBorder) {
+    if (shape is ExternalRoundedCornersBorder && widget.activeBorder != null && widget.inactiveBorder != null) {
       shape = shape.copyWith(
         borderSide: focusNode.hasFocus
-            ? widget.activeBorder ?? mainConfig.theme.activeBorder
-            : widget.inactiveBorder ?? mainConfig.theme.inactiveBorder,
+            ? (widget.activeBorder is _DefaultBorderSide ? mainConfig.theme.activeBorder : widget.activeBorder)
+            : (widget.inactiveBorder is _DefaultBorderSide ? mainConfig.theme.inactiveBorder : widget.inactiveBorder),
       );
     }
     Widget result = CallbackShortcuts(
@@ -77,12 +108,12 @@ class WingedContainerState extends State<WingedContainer> {
           if (client != null) {
             client.onEscapePressed();
           } else {
-            focusNode.requestFocus();
+            focusNode.requestScopeFocus();
           }
         },
       },
-      child: Focus(
-        focusNode: focusNode,
+      child: FocusScope(
+        node: focusNode,
         child: _WingedContainer(
           motion: widget.motion ?? mainConfig.motions.expressive.spatial.slow.multiplySpeed(0.2),
           active: widget.active,
@@ -93,20 +124,30 @@ class WingedContainerState extends State<WingedContainer> {
           shadowOffset: widget.shadowOffset,
           clipBehavior: widget.clipBehavior,
           color: widget.color,
-          usePainter: mainConfig.internalUsePainter,
           child: widget.child,
         ),
       ),
     );
-    if (mainConfig.focusContainerOnMouseOver) {
+    if ((widget.focusContainerOnMouseOver ?? mainConfig.focusContainerOnMouseOver) ||
+        (widget.unfocusContainerOnMouseExit ?? mainConfig.focusContainerOnMouseOver)) {
       result = MouseRegion(
         opaque: false,
         onEnter: (_) {
-          focusNode.requestFocus();
+          if (widget.focusContainerOnMouseOver ?? mainConfig.focusContainerOnMouseOver) {
+            focusNode.requestFocus();
+          }
         },
         onExit: (_) {
-          focusNode.unfocus();
+          if (widget.unfocusContainerOnMouseExit ?? mainConfig.focusContainerOnMouseOver) {
+            focusNode.unfocus();
+          }
         },
+        child: result,
+      );
+    }
+    if (addInputRegionWidget) {
+      result = InputRegion(
+        active: widget.addInputRegion,
         child: result,
       );
     }
@@ -129,9 +170,6 @@ class _WingedContainer extends StatefulWidget {
   final Color? color;
   final Widget? child;
 
-  /// temporary option to use ShapeShadowPainter instead of ShapeShadorClipper
-  final bool usePainter;
-
   const _WingedContainer({
     required this.motion,
     required this.active,
@@ -142,7 +180,6 @@ class _WingedContainer extends StatefulWidget {
     required this.shadowOffset,
     required this.clipBehavior,
     required this.color,
-    required this.usePainter,
     required this.child,
   });
 
@@ -273,71 +310,75 @@ class _WingedContainerState extends State<_WingedContainer> with TickerProviderS
     final elevation = widget.elevation * mainConfig.theme.shadows;
     final offset = widget.shadowOffset * elevation;
     final color = Theme.of(context).shadowColor.withValues(alpha: 0.66);
-    return InputRegion(
-      child: Stack(
-        clipBehavior: Clip.none,
-        fit: StackFit.passthrough,
-        children: [
-          BetterPadding(
-            padding: shapePadding * -1,
-            child: Material(
-              shape: shape,
-              elevation: 0,
-              clipBehavior: widget.clipBehavior,
-              color: widget.color,
-              animationDuration: Duration.zero,
-              child: Padding(
-                padding: shapePadding,
-                child: widget.child,
+    return Stack(
+      clipBehavior: Clip.none,
+      fit: StackFit.passthrough,
+      children: [
+        BetterPadding(
+          padding: shapePadding * -1,
+          child: Material(
+            shape: shape,
+            elevation: 0,
+            clipBehavior: widget.clipBehavior,
+            color: widget.color,
+            animationDuration: Duration.zero,
+            child: Padding(
+              padding: shapePadding,
+              child: widget.child,
+            ),
+          ),
+        ),
+
+        // paint shadows
+        if (shape != null && (elevation > 0 || (shape is ExternalRoundedCornersBorder && shape.borderSide.width > 0)))
+          Positioned.fromRelativeRect(
+            rect: shapePaddingRect,
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: ShapeBorderAndShadowPainter(
+                  shape: shape,
+                  border: (shape is ExternalRoundedCornersBorder) ? shape.borderSide : null,
+                  elevation: elevation,
+                  shadowOffset: offset,
+                  shadowColor: color,
+                ),
               ),
             ),
           ),
-
-          // paint shadows
-          if (shape != null && elevation > 0)
-            Positioned.fromRelativeRect(
-              rect: shapePaddingRect,
-              child: widget.usePainter
-                  ? IgnorePointer(
-                      child: CustomPaint(
-                        painter: ShapeShadowPainter(
-                          shape: shape,
-                          elevation: elevation,
-                          offset: offset,
-                          color: color,
-                        ),
-                      ),
-                    )
-                  : ClipPath(
-                      clipper: ShapeClipper(
-                        shape: shape,
-                        contain: false,
-                      ),
-                      child: ImageFiltered(
-                        imageFilter: ImageFilter.blur(
-                          sigmaX: elevation,
-                          sigmaY: elevation,
-                        ),
-                        child: ClipPath(
-                          clipper: ShapeShadowClipper(
-                            shape: shape,
-                            offset: offset,
-                          ),
-                          child: ColoredBox(
-                            color: color,
-                            child: Transform.translate(
-                              offset: offset,
-                              child: ColoredBox(
-                                color: color,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-            ),
-        ],
-      ),
+      ],
     );
   }
+}
+
+// hack to differentiate default from null
+class _DefaultBorderSide implements GradientBorderSide {
+  const _DefaultBorderSide();
+
+  @override
+  GradientBorderSide operator *(num multiplier) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Alignment get alignmentBegin => throw UnimplementedError();
+
+  @override
+  Alignment get alignmentEnd => throw UnimplementedError();
+
+  @override
+  double get angle => throw UnimplementedError();
+
+  @override
+  double get angleRadians => throw UnimplementedError();
+
+  @override
+  List<Color> get colors => throw UnimplementedError();
+
+  @override
+  GradientBorderSide copyWith({List<Color>? colors, double? width, double? angle}) {
+    throw UnimplementedError();
+  }
+
+  @override
+  double get width => throw UnimplementedError();
 }

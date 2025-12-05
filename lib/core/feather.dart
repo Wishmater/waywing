@@ -46,6 +46,8 @@ abstract class Feather<Conf> implements ServiceConsumer {
   /// so you can use services/fields in the widget builders without fear.
   /// Widgets won't be built until initialization is done.
   Future<void> init(BuildContext context) async {}
+  bool isInitialized = false;
+  bool hasInitializationError = false;
 
   /// Remove can't receive context, because on application exit context can be dirty and thus unusable
   /// Context shouldn't be necessary to run cleanup code
@@ -66,7 +68,6 @@ abstract class Feather<Conf> implements ServiceConsumer {
 @immutable
 class FeatherComponent {
   final IndicatorsBuilder? buildIndicators;
-  final ValueListenable<bool> isIndicatorsVisible;
   final ValueListenable<bool> isIndicatorsEnabled;
 
   final WidgetBuilder? buildPopover;
@@ -75,19 +76,29 @@ class FeatherComponent {
   final WidgetBuilder? buildTooltip;
   final ValueListenable<bool> isTooltipEnabled;
 
+  final String? uniqueIdentifier;
+  final bool wantsContainer;
+
   FeatherComponent({
     this.buildIndicators,
-    ValueListenable<bool>? isIndicatorVisible,
     ValueListenable<bool>? isIndicatorEnabled,
     this.buildPopover,
     ValueListenable<bool>? isPopoverEnabled,
     this.buildTooltip,
     ValueListenable<bool>? isTooltipEnabled,
-  }) : isIndicatorsEnabled = isIndicatorEnabled ?? DummyValueNotifier(true),
-       isIndicatorsVisible = isIndicatorVisible ?? DummyValueNotifier(buildIndicators != null),
-
+    this.wantsContainer = true,
+    this.uniqueIdentifier,
+  }) : isIndicatorsEnabled = isIndicatorEnabled ?? DummyValueNotifier(buildIndicators != null),
        isPopoverEnabled = isPopoverEnabled ?? DummyValueNotifier(buildPopover != null),
        isTooltipEnabled = isTooltipEnabled ?? DummyValueNotifier(buildTooltip != null);
+
+  @override
+  int get hashCode => uniqueIdentifier.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is FeatherComponent && other.uniqueIdentifier == uniqueIdentifier;
+  }
 }
 
 typedef IndicatorsBuilder =

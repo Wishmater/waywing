@@ -55,14 +55,8 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
           // final isOverflowing = textPainter.didExceedMaxLines;
           final isOverflowing = textPainter.size.width > size.width || textPainter.size.height > size.height;
           if (isOverflowing) {
-            // result = Tooltip(
-            //   message: widget.textSpan.text,
-            //   waitDuration: const Duration(milliseconds: 250),
-            //   child: result,
-            // );
             final motion = mainConfig.motions.standard.spatial.fast;
             result = WingedPopover(
-              // TODO: 2 add wait duration, potentially more that the one the Bar indicators have
               tooltipParams: TooltipParams(
                 showDelay: Duration(seconds: 1), // TODO: 3 maybe use a percentage of declared config showDelay
                 motion: motion,
@@ -71,6 +65,7 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                 anchorAlignment: Alignment.centerLeft,
                 popupAlignment: Alignment.centerRight,
                 zIndex: 999999,
+                ignorePointer: true,
                 builder: (context, controller, _, _) {
                   return Padding(
                     padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -83,7 +78,9 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                     opacity: 0,
                     child: WingedContainer(
                       motion: motion,
-                      clipBehavior: Clip.hardEdge,
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
+                      activeBorder: GradientBorderSide.none,
+                      inactiveBorder: GradientBorderSide.none,
                       shape: ExternalRoundedCornersBorder(borderRadius: BorderRadius.all(Radius.circular(0))),
                       color: Theme.of(context).colorScheme.surfaceContainerHigh,
                       child: Stack(
@@ -106,11 +103,13 @@ class _TextTooltipOnOverflowState extends State<TextTooltipOnOverflow>
                     opacity: 1,
                     child: WingedContainer(
                       motion: motion,
-                      clipBehavior: Clip.hardEdge,
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
+                      activeBorder: GradientBorderSide.none,
+                      inactiveBorder: GradientBorderSide.none,
                       shape: ExternalRoundedCornersBorder(
                         borderRadius: BorderRadius.all(Radius.circular(mainConfig.theme.containerRounding)),
                       ),
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
                       child: Stack(
                         children: [
                           MotionPositioned(

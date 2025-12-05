@@ -1,11 +1,11 @@
 import "package:flutter/material.dart";
-import "package:waywing/modules/workspace_switcher/workspace_switcher_provider.dart";
+import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 
 class WorkspaceSwitcherIndicator extends StatefulWidget {
-  final IWorkspaceSwitcherProvider provider;
+  final CompositorService service;
 
-  const WorkspaceSwitcherIndicator({super.key, required this.provider});
+  const WorkspaceSwitcherIndicator({super.key, required this.service});
 
   @override
   State<WorkspaceSwitcherIndicator> createState() => _WorkspaceSwitcherIndicatorState();
@@ -14,38 +14,36 @@ class WorkspaceSwitcherIndicator extends StatefulWidget {
 class _WorkspaceSwitcherIndicatorState extends State<WorkspaceSwitcherIndicator> {
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: widget.provider.current,
-      builder: (context, current, _) {
-        return ValueListenableBuilder(
-          valueListenable: widget.provider.workspaces,
-          builder: (context, workspaces, _) {
-            return Row(
-              children: [
-                for (final workspace in workspaces)
-                  _WorkspaceWidget(
-                    workspace,
-                    workspace.id == current.id,
-                    widget.provider,
-                  ),
-              ],
-            );
-          },
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.all(1.0),
+      child: ValueListenableBuilder(
+        valueListenable: widget.service.workspaces,
+        builder: (context, workspaces, _) {
+          return Row(
+            children: [
+              for (final workspace in workspaces.workspaces)
+                _WorkspaceWidget(
+                  workspace,
+                  workspaces.focused.any((e) => e.$2.id == workspace.id),
+                  widget.service,
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
 
 class _WorkspaceWidget extends StatelessWidget {
-  final Workspace workspace;
+  final CompositorWorkspace workspace;
   final bool isCurrent;
-  final IWorkspaceSwitcherProvider provider;
+  final CompositorService service;
 
-  const _WorkspaceWidget(this.workspace, this.isCurrent, this.provider);
+  const _WorkspaceWidget(this.workspace, this.isCurrent, this.service);
 
   void changeWorkspace() {
-    provider.changeWorkspace(workspace);
+    service.switchWorkspace(workspace);
   }
 
   @override
@@ -53,7 +51,7 @@ class _WorkspaceWidget extends StatelessWidget {
     final theme = Theme.of(context);
     return WingedButton(
       color: isCurrent ? theme.colorScheme.primaryContainer : null,
-      onTap: changeWorkspace,
+      onTap: (_, _) => changeWorkspace(),
       child: Text(workspace.name),
     );
   }

@@ -1,15 +1,18 @@
 import "package:flutter/material.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";
+import "package:waywing/modules/system_tray/system_tray_feather.dart";
 import "package:waywing/modules/system_tray/system_tray_indicator.dart";
 
 class SystemTrayTooltip extends StatelessWidget {
   final SystemTrayService service;
   final OrgKdeStatusNotifierItemValues item;
+  final SystemTrayConfig configuration;
 
   const SystemTrayTooltip({
     required this.service,
     required this.item,
+    required this.configuration,
     super.key,
   });
 
@@ -34,7 +37,11 @@ class SystemTrayTooltip extends StatelessWidget {
                     child: Row(
                       children: [
                         if (tooltip.iconName.isNotEmpty || tooltip.iconData.icons.isNotEmpty)
-                          RawSystemTrayIcon(path: tooltip.iconName, data: tooltip.iconData),
+                          RawSystemTrayIcon(
+                            path: tooltip.iconName,
+                            data: tooltip.iconData,
+                            size: configuration.iconSize,
+                          ),
                         Expanded(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,

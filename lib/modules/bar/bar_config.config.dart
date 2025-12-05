@@ -35,7 +35,12 @@ mixin BarConfigI {
 
   double? get _exclusiveSizeBottom;
 
+  @ConfigDocDefault<BarContainerType>(BarContainerType.full)
+  BarContainerType get containerType;
+
   double? get _rounding;
+
+  double? get _shadows;
 
   double? get _indicatorMinSize;
 
@@ -56,7 +61,9 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
       'exclusiveSizeRight': BarConfigBase.__exclusiveSizeRight,
       'exclusiveSizeTop': BarConfigBase.__exclusiveSizeTop,
       'exclusiveSizeBottom': BarConfigBase.__exclusiveSizeBottom,
+      'containerType': BarConfigBase._containerType,
       'rounding': BarConfigBase.__rounding,
+      'shadows': BarConfigBase.__shadows,
       'indicatorMinSize': BarConfigBase.__indicatorMinSize,
       'indicatorPadding': BarConfigBase.__indicatorPadding,
     },
@@ -102,7 +109,11 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
   @override
   final double? _exclusiveSizeBottom;
   @override
+  final BarContainerType containerType;
+  @override
   final double? _rounding;
+  @override
+  final double? _shadows;
   @override
   final double? _indicatorMinSize;
   @override
@@ -119,7 +130,9 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     double? exclusiveSizeRight,
     double? exclusiveSizeTop,
     double? exclusiveSizeBottom,
+    BarContainerType? containerType,
     double? rounding,
+    double? shadows,
     double? indicatorMinSize,
     double? indicatorPadding,
     required this.dynamicSchemas,
@@ -133,18 +146,22 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
        _exclusiveSizeRight = exclusiveSizeRight,
        _exclusiveSizeTop = exclusiveSizeTop,
        _exclusiveSizeBottom = exclusiveSizeBottom,
+       containerType = containerType ?? BarContainerType.full,
        _rounding = rounding,
+       _shadows = shadows,
        _indicatorMinSize = indicatorMinSize,
        _indicatorPadding = indicatorPadding;
 
   factory BarConfig.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = BarConfigBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }
@@ -163,7 +180,9 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
       exclusiveSizeRight: fields['exclusiveSizeRight'],
       exclusiveSizeTop: fields['exclusiveSizeTop'],
       exclusiveSizeBottom: fields['exclusiveSizeBottom'],
+      containerType: fields['containerType'],
       rounding: fields['rounding'],
+      shadows: fields['shadows'],
       indicatorMinSize: fields['indicatorMinSize'],
       indicatorPadding: fields['indicatorPadding'],
     );
@@ -182,7 +201,9 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
 	_exclusiveSizeRight = $_exclusiveSizeRight,
 	_exclusiveSizeTop = $_exclusiveSizeTop,
 	_exclusiveSizeBottom = $_exclusiveSizeBottom,
+	containerType = $containerType,
 	_rounding = $_rounding,
+	_shadows = $_shadows,
 	_indicatorMinSize = $_indicatorMinSize,
 	_indicatorPadding = $_indicatorPadding,
 	dynamicSchemas = ${dynamicSchemas.toString().split("\n").join("\n\t")}
@@ -201,7 +222,9 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
         _exclusiveSizeRight == other._exclusiveSizeRight &&
         _exclusiveSizeTop == other._exclusiveSizeTop &&
         _exclusiveSizeBottom == other._exclusiveSizeBottom &&
+        containerType == other.containerType &&
         _rounding == other._rounding &&
+        _shadows == other._shadows &&
         _indicatorMinSize == other._indicatorMinSize &&
         _indicatorPadding == other._indicatorPadding &&
         configListEqual(dynamicSchemas, other.dynamicSchemas);
@@ -219,7 +242,9 @@ class BarConfig extends ConfigBaseI with BarConfigI, BarConfigBase {
     _exclusiveSizeRight,
     _exclusiveSizeTop,
     _exclusiveSizeBottom,
+    containerType,
     _rounding,
+    _shadows,
     _indicatorMinSize,
     _indicatorPadding,
     dynamicSchemas,
@@ -256,13 +281,15 @@ class BarFeathersContainer extends ConfigBaseI
   BarFeathersContainer({required this.dynamicSchemas});
 
   factory BarFeathersContainer.fromBlock(BlockData data) {
-    Map<String, dynamic> fields = data.fields;
+    Map<String, dynamic> fields = data.fields.map(
+      (k, v) => MapEntry(k.value, v),
+    );
 
     final dynamicSchemas = <(String, Object)>[];
     final schemas = BarFeathersContainerBase._getDynamicSchemaTables();
 
     for (final block in data.blocks) {
-      final key = block.$1;
+      final key = block.$1.value;
       if (!schemas.containsKey(key)) {
         continue;
       }

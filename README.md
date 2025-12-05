@@ -40,5 +40,5 @@ you want to implement a really weird custom shape.
 
 ### Use WingedPopover instead of Dialogs, Pages, Tooltips, etc.
 
-TODO: 1 write WingedPopover docs, kinda complicated
+TODO: 1 write WingedPopover docs, kinda complicated. Also about WingedModal and WingedContextMenu
 

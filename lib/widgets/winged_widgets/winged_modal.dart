@@ -11,7 +11,6 @@ class WingedModal extends StatelessWidget {
   final WingedPopoverHostContentBuilder builder;
   final WingedPopoverBuilder dialogBuilder;
   final Widget? child;
-  final FixedAnchor fixedAnchor;
   final Color barrierColor;
   final bool barrierDismissable;
 
@@ -22,13 +21,15 @@ class WingedModal extends StatelessWidget {
   final Alignment overflowAlignment;
   final WingedPopoverChildBuilder? containerBuilder;
   final WingedPopoverChildBuilder? closedContainerBuilder;
+  final FixedAnchor? fixedDestinationAnchor;
   final FixedAnchor? fixedOriginAnchor;
 
   const WingedModal({
     required this.builder,
     required this.dialogBuilder,
     // TODO: 3 maybe default to golden ratio ?
-    this.fixedAnchor = const AlignmentFixedAnchor(alignment: defaultAlignment),
+    this.fixedDestinationAnchor = const AlignmentFixedAnchor(alignment: defaultAlignment),
+    this.fixedOriginAnchor,
     this.barrierColor = Colors.black54,
     this.barrierDismissable = true,
     this.zIndex = 50,
@@ -37,7 +38,6 @@ class WingedModal extends StatelessWidget {
     this.overflowAlignment = Alignment.topCenter,
     this.containerBuilder,
     this.closedContainerBuilder,
-    this.fixedOriginAnchor,
     this.child,
     super.key,
   });
@@ -54,7 +54,7 @@ class WingedModal extends StatelessWidget {
       overflowAlignment: overflowAlignment,
       stickToHost: true,
       builder: dialogBuilder,
-      fixedDestinationAnchor: fixedAnchor,
+      fixedDestinationAnchor: fixedDestinationAnchor,
       fixedOriginAnchor: fixedOriginAnchor,
       barrier: BarrierParams(
         color: barrierColor,

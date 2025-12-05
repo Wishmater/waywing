@@ -46,6 +46,7 @@ class NotificationManagerPopover extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: WingedModal(
+                    fixedDestinationAnchor: null,
                     builder: (context, modal, child) {
                       return WingedButton(
                         containedInkWell: true,

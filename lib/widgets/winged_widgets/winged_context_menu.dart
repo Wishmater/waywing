@@ -201,8 +201,8 @@ typedef ContextMenuItemContentBuilder =
 typedef WingedContextMenuCallback<T> =
     FutureOr<T>? Function(
       WingedPopoverController? controller,
-      TapDownDetails tapDownDetails,
-      TapUpDetails tapUpDetails,
+      TapDownDetails? tapDownDetails,
+      TapUpDetails? tapUpDetails,
     );
 
 class WingedContextMenuItem<T> extends StatelessWidget {

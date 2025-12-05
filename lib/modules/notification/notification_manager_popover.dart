@@ -9,6 +9,7 @@ import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
+import "package:waywing/widgets/winged_widgets/winged_modal.dart";
 
 class NotificationManagerPopover extends StatelessWidget {
   const NotificationManagerPopover({super.key, required this.service});
@@ -44,25 +45,64 @@ class NotificationManagerPopover extends StatelessWidget {
                 // Delete All button
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: WingedButton(
-                    containedInkWell: true,
-                    onTapDown: (_) {
-                      // Show confirmation dialog before deleting
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return _ConfirmationDialog(service);
+                  child: WingedModal(
+                    builder: (context, modal, child) {
+                      return WingedButton(
+                        containedInkWell: true,
+                        onTap: (_, _) {
+                          // Show confirmation dialog before deleting
+                          modal.showPopover();
                         },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 2,
+                          children: [
+                            WingedIcon(flutterIcon: Icons.delete, iconNames: ["delete"]),
+                            Text("Clear notifications"),
+                          ],
+                        ),
                       );
                     },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 2,
-                      children: [
-                        WingedIcon(flutterIcon: Icons.delete, iconNames: ["delete"]),
-                        Text("Clear notifications"),
-                      ],
-                    ),
+                    dialogBuilder: (context, modal, _, _) {
+                      return IntrinsicWidth(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text("Are you sure you want to delete all notifications?"),
+                              ),
+                              SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                spacing: 8,
+                                children: [
+                                  WingedButton(
+                                    autofocus: true,
+                                    containedInkWell: true,
+                                    padding: EdgeInsets.symmetric(horizontal: 24),
+                                    onTap: (_, _) => modal.hidePopover(),
+                                    child: Text("Cancel"),
+                                  ),
+                                  WingedButton(
+                                    containedInkWell: true,
+                                    padding: EdgeInsets.symmetric(horizontal: 24),
+                                    color: Theme.of(context).colorScheme.errorContainer,
+                                    child: Text("Clear"),
+                                    onTap: (_, _) {
+                                      service.closeAllNotifications();
+                                      modal.hidePopover();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 Divider(height: 1),
@@ -133,49 +173,11 @@ class _NotificationWidgetState extends State<_NotificationWidget> with SingleTic
           ),
         ),
         WingedButton(
-          onTapUp: (_) => service.closeNotification(widget.notification),
+          onTap: (_, _) => service.closeNotification(widget.notification),
           child: WingedIcon(
             flutterIcon: Icons.delete,
             iconNames: ["delete"],
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ConfirmationDialog extends StatelessWidget {
-  final NotificationsService service;
-
-  const _ConfirmationDialog(this.service);
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text("Clear notifications"),
-      content: Text("Are you sure you want to delete all notifications?"),
-      actions: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          spacing: 2,
-          children: [
-            WingedButton(
-              containedInkWell: true,
-              constraints: BoxConstraints(maxWidth: 90),
-              onTapUp: (_) => Navigator.of(context).pop(),
-              child: Text("Cancel"),
-            ),
-            WingedButton(
-              containedInkWell: true,
-              constraints: BoxConstraints(maxWidth: 90),
-              onTapUp: (_) {
-                service.closeAllNotifications();
-                Navigator.of(context).pop();
-              },
-              color: Theme.of(context).colorScheme.error.withAlpha(80),
-              child: Text("Clear"),
-            ),
-          ],
         ),
       ],
     );

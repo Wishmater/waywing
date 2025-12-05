@@ -163,7 +163,7 @@ class NetworkManagerIndicator extends StatelessWidget {
                   onSecondaryTap: (tapDownDetails, tapUpDetails) {
                     popover?.hidePopover();
                     popover?.hideTooltip();
-                    contextMenu.togglePopover(localPosition: tapUpDetails.localPosition);
+                    contextMenu.togglePopover(localPosition: tapUpDetails?.localPosition);
                   },
                   child: child!,
                 );

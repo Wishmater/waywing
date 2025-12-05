@@ -4,9 +4,10 @@ import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/widgets/theme/button_theme.dart";
 
-typedef WingedActionCallback<T> = FutureOr<T>? Function(TapDownDetails tapDownDetails, TapUpDetails tapUpDetails);
-typedef GestureNoUpCallback = void Function(TapDownDetails tapDownDetails);
-typedef BetterGestureTapCallback = void Function(TapDownDetails tapDownDetails, TapUpDetails tapUpDetails);
+// tap details need to be nullable, because buttons can be pressed from keyboard
+typedef WingedActionCallback<T> = FutureOr<T>? Function(TapDownDetails? tapDownDetails, TapUpDetails? tapUpDetails);
+typedef GestureNoUpCallback = void Function(TapDownDetails? tapDownDetails);
+typedef BetterGestureTapCallback = void Function(TapDownDetails? tapDownDetails, TapUpDetails? tapUpDetails);
 
 class WingedButton<T> extends StatefulWidget {
   final Widget child;
@@ -132,6 +133,7 @@ class WingedButton<T> extends StatefulWidget {
   final Color? color;
 
   final Clip? clipBehavior;
+  final bool autofocus;
 
   const WingedButton({
     required this.child,
@@ -157,6 +159,7 @@ class WingedButton<T> extends StatefulWidget {
     this.borderRadius,
     this.clipBehavior,
     this.color,
+    this.autofocus = false,
     super.key,
   });
 
@@ -167,6 +170,16 @@ class WingedButton<T> extends StatefulWidget {
 class _WingedButtonState<T> extends State<WingedButton<T>> {
   late Future<T?> taskFuture = widget.initialFuture ?? Future.value(null);
   final FocusNode focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.autofocus) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        focusNode.requestFocus();
+      });
+    }
+  }
 
   void maybeRequestFocus() {
     final focusScope = FocusScope.of(context, createDependency: false);
@@ -212,7 +225,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
               ? null
               : () {
                   maybeRequestFocus();
-                  final result = widget.onTap!(lastPrimaryTapDown!, lastPrimaryTapUp!);
+                  final result = widget.onTap!(lastPrimaryTapDown, lastPrimaryTapUp);
                   if (result is Future<T>) {
                     setState(() {
                       taskFuture = result;
@@ -246,25 +259,25 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
           onTapCancel: widget.onTapCancel == null
               ? null
               : () {
-                  widget.onTapCancel!.call(lastPrimaryTapDown!);
+                  widget.onTapCancel!.call(lastPrimaryTapDown);
                 },
           onDoubleTap: widget.onDoubleTap == null
               ? null
               : () {
                   maybeRequestFocus();
-                  widget.onDoubleTap!(lastPrimaryTapDown!, lastPrimaryTapUp!);
+                  widget.onDoubleTap!(lastPrimaryTapDown, lastPrimaryTapUp);
                 },
           onLongPress: widget.onLongPress == null
               ? null
               : () {
                   maybeRequestFocus();
-                  widget.onLongPress!(lastPrimaryTapDown!);
+                  widget.onLongPress!(lastPrimaryTapDown);
                 },
           onSecondaryTap: widget.onSecondaryTap == null
               ? null
               : () {
                   maybeRequestFocus();
-                  widget.onSecondaryTap!(lastSecondaryTapDown!, lastSecondaryTapUp!);
+                  widget.onSecondaryTap!(lastSecondaryTapDown, lastSecondaryTapUp);
                 },
           onSecondaryTapDown: widget.onSecondaryTapDown == null && !needsSecondaryTapDetails
               ? null
@@ -281,7 +294,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
           onSecondaryTapCancel: widget.onSecondaryTapCancel == null
               ? null
               : () {
-                  widget.onSecondaryTapCancel!(lastSecondaryTapDown!);
+                  widget.onSecondaryTapCancel!(lastSecondaryTapDown);
                 },
         );
 

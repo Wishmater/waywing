@@ -341,8 +341,8 @@
         "url": "https://github.com/ross96D/config.dart",
         "sha256": "sha256-443NMEfULZuoOR7IUxOeqGBbJOoTMN485bmGthI9vy0="
       },
-      "source": "path",
-      "version": "0.0.11"
+      "source": "git",
+      "version": "0.0.16"
     },
     "config_gen": {
       "dependency": "direct main",
@@ -659,7 +659,7 @@
       "version": "0.20.1"
     },
     "html": {
-      "dependency": "transitive",
+      "dependency": "direct main",
       "description": {
         "name": "html",
         "sha256": "6d1264f2dffa1b1101c25a91dff0dc2daee4c18e87cd8538729773c073dbf602",
@@ -958,7 +958,7 @@
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.16.0"
+      "version": "1.17.0"
     },
     "miga": {
       "dependency": "direct main",
@@ -1041,6 +1041,18 @@
       },
       "source": "hosted",
       "version": "0.1.0-dev.3"
+    },
+    "niri": {
+      "dependency": "direct main",
+      "description": {
+        "path": ".",
+        "ref": "HEAD",
+        "resolved-ref": "602f2e7c5622baede16438f51c3a99509ef310fb",
+        "url": "https://github.com/ross96D/niri.dart",
+        "sha256": "sha256-2vVfuDGYbZ16QqgTtbONnVrKfm440EjLOQnqxdPQaLw="
+      },
+      "source": "git",
+      "version": "1.0.0"
     },
     "nm": {
       "dependency": "direct main",
@@ -1467,7 +1479,27 @@
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.7.6"
+      "version": "0.7.7"
+    },
+    "test_core": {
+      "dependency": "transitive",
+      "description": {
+        "name": "test_core",
+        "sha256": "0cc24b5ff94b38d2ae73e1eb43cc302b77964fbf67abad1e296025b78deb53d0",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "0.6.12"
+    },
+    "textwrap": {
+      "dependency": "transitive",
+      "description": {
+        "name": "textwrap",
+        "sha256": "1b483f9e25ec8f7603f70e954deb1199f1b1b87bad26e376470bc450a41c7117",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "2.1.0"
     },
     "time": {
       "dependency": "transitive",

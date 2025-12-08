@@ -49,3 +49,6 @@ nm_hidden_devices
 
 AppDir/
 waywing-*.AppImage
+
+# FVM Version Cache
+.fvm/

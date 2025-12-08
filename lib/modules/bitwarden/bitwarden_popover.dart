@@ -234,10 +234,10 @@ class BitwardenItemOption extends Option<bw.Item> {
   bw.Item get object => item;
 
   @override
-  String get primaryValue => item.name ?? "unknown";
+  StringOptionValue get primaryValue => StringOptionValue(item.name ?? "unknown");
 
   @override
-  String? get secondaryValue => null;
+  StringOptionValue? get secondaryValue => null;
 }
 
 class _BitwardenMasterPasswordDialog extends StatefulWidget {

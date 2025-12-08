@@ -1,14 +1,12 @@
 import "dart:async";
 import "dart:ffi";
-import "package:dartx/dartx_io.dart";
 import "package:ffi/ffi.dart";
 
-import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
-import "package:flutter/services.dart";
+import "package:flutter/foundation.dart";
+import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
-import "package:waywing/core/wing.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
@@ -16,14 +14,14 @@ import "package:waywing/widgets/searchopts/searchopts.dart";
 import "./byte_line_splitter.dart";
 
 // TODO: 1 this shouldn't be a Wing, it should instead be used in a modal, like AppLauncher
-class MenuWing extends Wing {
-  MenuWing._();
+class MenuFeather extends Feather {
+  MenuFeather._();
 
-  static void registerFeather(RegisterFeatherCallback<MenuWing, dynamic> registerFeather) {
+  static void registerFeather(RegisterFeatherCallback<MenuFeather, dynamic> registerFeather) {
     registerFeather(
       "Menu",
-      FeatherRegistration<MenuWing, dynamic>(
-        constructor: MenuWing._,
+      FeatherRegistration<MenuFeather, dynamic>(
+        constructor: MenuFeather._,
       ),
     );
   }
@@ -42,10 +40,10 @@ class MenuWing extends Wing {
     "activate": WaywingAction(
       "Show menu",
       (request) async {
+        logger.debug("menu request");
         if (response != null) return WaywingResponse(400, "menu is already showing");
 
         _arena = Arena(malloc);
-        showMenu.value = true;
         response = Completer();
 
         final subs = request.body
@@ -72,7 +70,6 @@ class MenuWing extends Wing {
 
         final resp = await response!.future;
         response = null;
-        showMenu.value = false;
         items.value.clear();
         subs.cancel().onError((_, _) {});
         _arena.releaseAll();
@@ -81,47 +78,23 @@ class MenuWing extends Wing {
     ),
   };
 
-  ValueNotifier<bool> showMenu = ValueNotifier(false);
 
   ManualValueNotifier<List<(Pointer<Uint8>, int)>> items = ManualValueNotifier([]);
   Completer<String>? response;
 
   @override
-  Widget buildWing(BuildContext context, EdgeInsets rerservedSpace) {
-    return ValueListenableBuilder(
-      valueListenable: showMenu,
-      builder: (context, show, _) {
-        if (!show) {
-          return SizedBox.shrink();
-        }
-        return Center(
-          child: InputRegion(
-            child: KeyboardFocus(
-              debugLabel: "Menu",
-              mode: KeyboardFocusMode.onDemand,
-              child: CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.escape): () {
-                    response?.complete("");
-                  },
-                },
-                child: SizedBox(
-                  width: 400,
-                  height: 400,
-                  child: Menu(
-                    items: items,
-                    onSelected: (selected) {
-                      response?.complete(selected.$1.cast<Utf8>().toDartString(length: selected.$2));
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ),
+  ValueListenable<List<FeatherComponent>> get components => DummyValueNotifier([
+    FeatherComponent(
+      buildPopover: (context) {
+        return Menu(
+          items: items,
+          onSelected: (selected) {
+            response?.complete(selected.$1.cast<Utf8>().toDartString(length: selected.$2));
+          },
         );
       },
-    );
-  }
+    ),
+  ]);
 }
 
 class Menu extends StatelessWidget {
@@ -141,7 +114,7 @@ class Menu extends StatelessWidget {
             options: value.map((e) => NativeStringOption(e.$1, e.$2)).toList(),
             onSelected: onSelected,
             height: 400.0,
-              renderOption: (context, value, config) {
+            renderOption: (context, value, config) {
               return ListTile(
                 title: Text(
                   value.$1.cast<Utf8>().toDartString(length: value.$2),
@@ -175,35 +148,6 @@ class NativeStringOption extends Option<(Pointer<Uint8>, int)> {
   @override
   NativeOptionValue? get secondaryValue => null;
 }
-
-
-extension on Uint8List {
-  Pointer<Uint8> alloc([Allocator allocator = malloc]) {
-    final result = allocator<Uint8>(lengthInBytes);
-    result.asTypedList(lengthInBytes).setRange(0, lengthInBytes, this);
-    return result;
-  }
-}
-
-class NativeStringOption extends Option<(Pointer<Uint8>, int)> {
-  final Pointer<Uint8> pointer;
-  final int length;
-
-  @override
-  (Pointer<Uint8>, int) get object => (pointer, length);
-
-  const NativeStringOption(this.pointer, this.length);
-
-  @override
-  int get identifier => Object.hashAll([pointer.address, length]);
-
-  @override
-  NativeOptionValue get primaryValue => NativeOptionValue(pointer, length);
-
-  @override
-  NativeOptionValue? get secondaryValue => null;
-}
-
 
 extension on Uint8List {
   Pointer<Uint8> alloc([Allocator allocator = malloc]) {

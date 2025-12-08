@@ -145,7 +145,9 @@ class SessionService extends Service<SessionServiceConfig> {
   }
 
   Future<void> powerOff() async {
+    logger.trace("called powerOff()");
     if (canPowerOff == CanAction.na || canPowerOff == CanAction.no) {
+      logger.trace("called powerOff() but no action was taken");
       return;
     }
     if (config.poweroffCommand != null) {

@@ -130,7 +130,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
     if (service.canSleep.canDo) {
       children.add(
         WingedButton(
-          onTap: (_, _) => service.sleep,
+          onTap: (_, _) => service.sleep(),
           child: Row(
             spacing: 2,
             children: [
@@ -148,7 +148,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
     if (service.canReboot.canDo) {
       children.add(
         WingedButton(
-          onTap: (_, _) => service.reboot,
+          onTap: (_, _) => service.reboot(),
           child: Row(
             spacing: 2,
             children: [
@@ -166,7 +166,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
     if (service.canPowerOff.canDo) {
       children.add(
         WingedButton(
-          onTap: (_, _) => service.powerOff,
+          onTap: (_, _) => service.powerOff(),
           child: Row(
             spacing: 2,
             children: [

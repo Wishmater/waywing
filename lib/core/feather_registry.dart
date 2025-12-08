@@ -23,7 +23,7 @@ import "package:waywing/modules/frame/frame_wing.dart";
 import "package:waywing/modules/kb_layout/caps_lock_feather.dart";
 import "package:waywing/modules/kb_layout/kb_layout_feather.dart";
 import "package:waywing/modules/kb_layout/num_lock_feather.dart";
-import "package:waywing/modules/menu/menu_wing.dart";
+import "package:waywing/modules/menu/menu_feather.dart";
 import "package:waywing/modules/nm/nm_feather.dart";
 import "package:waywing/modules/notification/notification_manager_feather.dart";
 import "package:waywing/modules/notification/notification_wing.dart";
@@ -288,7 +288,7 @@ class FeatherRegistry {
     NotificationsManagerFeather.registerFeather(registerFeather);
     BitwardenLauncherFeather.registerFeather(registerFeather);
 
-    if (!kReleaseMode) MenuWing.registerFeather(registerFeather);
+    if (!kReleaseMode) MenuFeather.registerFeather(registerFeather);
     if (!kReleaseMode) CommandPaletteFeather.registerFeather(registerFeather);
   }
 }

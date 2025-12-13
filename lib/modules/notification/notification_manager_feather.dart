@@ -120,7 +120,7 @@ class NotificationManagerIndicator extends StatelessWidget {
       builder: (context, menu, child) {
         return WingedButton(
           onTap: (_, _) => popover?.togglePopover(),
-          onSecondaryTap: (downDetails, upDetails) => menu.togglePopover(localPosition: upDetails.localPosition),
+          onSecondaryTap: (downDetails, upDetails) => menu.togglePopover(localPosition: upDetails?.localPosition),
           child: ValueListenableBuilder(
             valueListenable: service.status,
             builder: (context, status, _) {

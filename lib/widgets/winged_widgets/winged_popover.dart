@@ -70,6 +70,9 @@ class PopoverParams {
   final bool ignorePointer;
   final bool fallbackToOppositeAlignmentOnOverflowX;
   final bool fallbackToOppositeAlignmentOnOverflowY;
+  final FixedAnchor? fixedOriginAnchor;
+  final FixedAnchor? fixedDestinationAnchor;
+  final BarrierParams? barrier;
 
   /// Make sure the container doesn't add any padding, or modifies
   /// the size of the child in any way, or the it can cause positioning bugs.
@@ -101,6 +104,9 @@ class PopoverParams {
     this.ignorePointer = false,
     this.fallbackToOppositeAlignmentOnOverflowX = false,
     this.fallbackToOppositeAlignmentOnOverflowY = false,
+    this.fixedOriginAnchor,
+    this.fixedDestinationAnchor,
+    this.barrier,
   });
 
   PopoverParams copyWith({
@@ -146,6 +152,17 @@ class PopoverParams {
           fallbackToOppositeAlignmentOnOverflowY ?? this.fallbackToOppositeAlignmentOnOverflowY,
     );
   }
+}
+
+@immutable
+class BarrierParams {
+  final Color color;
+  final bool dismissable;
+
+  const BarrierParams({
+    this.color = Colors.black54,
+    this.dismissable = true,
+  });
 }
 
 class TooltipParams extends PopoverParams {

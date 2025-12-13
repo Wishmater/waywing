@@ -61,7 +61,7 @@ class WaywingServer {
       WaywingRequest? request;
       try {
         request = await ProtocolParser.parseRequests(socket);
-        socket.add(await router.enroute(request));
+        socket.add(await router.enroute(request, socket.done));
         socket.add("\n".codeUnits);
         await socket.flush();
       } catch (e, st) {
@@ -75,7 +75,7 @@ class WaywingServer {
   }
 }
 
-typedef TypeRouteCb = FutureOr<WaywingResponse> Function(WaywingRequest request);
+typedef TypeRouteCb = FutureOr<WaywingResponse> Function(WaywingRequest request, Future socketClose);
 
 abstract class WaywingAction {
   /// callback to invoke when this action get activated
@@ -109,7 +109,7 @@ class WaywingRouter {
   final Map<String, WaywingAction> _routes;
 
   WaywingRouter() : _routes = {} {
-    _routes["list-actions"] = WaywingAction("List available actions", (_) {
+    _routes["list-actions"] = WaywingAction("List available actions", (_, _) {
       return WaywingResponse(200, _routes.keys.map((k) => "$k\t\t${_routes[k]!.description}").join("\n"));
     });
   }
@@ -123,9 +123,9 @@ class WaywingRouter {
     _routes.remove(path);
   }
 
-  Future<List<int>> enroute(WaywingRequest request) async {
+  Future<List<int>> enroute(WaywingRequest request, Future socketClose) async {
     final url = request.path;
-    final result = await _routes[url.path]?.route(request);
+    final result = await _routes[url.path]?.route(request, socketClose);
     if (result != null) {
       final response = <int>[];
       response.addAll("${result.code}\n".codeUnits);

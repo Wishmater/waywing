@@ -44,28 +44,28 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
   late final Map<String, WaywingAction>? actions = {
     "setActive": WaywingAction(
       "Set notifications status to active (show notifications and play sounds)",
-      (request) {
+      (request, _) {
         status.value = NotificationsStatus.active;
         return WaywingResponse.ok();
       },
     ),
     "setSilenced": WaywingAction(
       "Set notifications status to silenced (show notifications but don't play sounds)",
-      (request) {
+      (request, _) {
         status.value = NotificationsStatus.silenced;
         return WaywingResponse.ok();
       },
     ),
     "setDnd": WaywingAction(
       "Set notifications status to do not disturb (don't show notifications or play sounds)",
-      (request) {
+      (request, _) {
         status.value = NotificationsStatus.dnd;
         return WaywingResponse.ok();
       },
     ),
     "toggleSilenced": WaywingAction(
       "Toggle notifications status between active and silenced (show notifications but don't play sounds)",
-      (request) {
+      (request, _) {
         if (status.value == NotificationsStatus.silenced) {
           status.value = NotificationsStatus.active;
         } else {
@@ -76,7 +76,7 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
     ),
     "toggleDnd": WaywingAction(
       "Toggle notifications status between active and do not disturb (don't show notifications or play sounds)",
-      (request) {
+      (request, _) {
         if (status.value == NotificationsStatus.dnd) {
           status.value = NotificationsStatus.active;
         } else {

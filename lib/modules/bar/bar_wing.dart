@@ -30,27 +30,27 @@ class BarWing extends Wing<BarConfig> {
   late final Map<String, WaywingAction>? actions = {
     "showPopover": WaywingAction(
       'Show popover for a feather. Requires query param "feather".',
-      (request) => _executePopoverAction(request, (controller) => controller.showPopover()),
+      (request, _) => _executePopoverAction(request, (controller) => controller.showPopover()),
     ),
     "hidePopover": WaywingAction(
       'Hide popover for a feather. Requires query param "feather".',
-      (request) => _executePopoverAction(request, (controller) => controller.hidePopover()),
+      (request, _) => _executePopoverAction(request, (controller) => controller.hidePopover()),
     ),
     "togglePopover": WaywingAction(
       'Toggle popover visibility for a feather. Requires query param "feather".',
-      (request) => _executePopoverAction(request, (controller) => controller.togglePopover()),
+      (request, _) => _executePopoverAction(request, (controller) => controller.togglePopover()),
     ),
     "showTooltip": WaywingAction(
       'Show tooltip for a feather. Requires query param "feather".',
-      (request) => _executePopoverAction(request, (controller) => controller.showTooltip(showDelay: Duration.zero)),
+      (request, _) => _executePopoverAction(request, (controller) => controller.showTooltip(showDelay: Duration.zero)),
     ),
     "hideTooltip": WaywingAction(
       'Hide tooltip for a feather. Requires query param "feather".',
-      (request) => _executePopoverAction(request, (controller) => controller.hideTooltip(hideDelay: Duration.zero)),
+      (request, _) => _executePopoverAction(request, (controller) => controller.hideTooltip(hideDelay: Duration.zero)),
     ),
     "toggleTooltip": WaywingAction(
       'Toggle tooltip visibility for a feather. Requires query param "feather".',
-      (request) => _executePopoverAction(request, (controller) => controller.toggleTooltip(showDelay: Duration.zero)),
+      (request, _) => _executePopoverAction(request, (controller) => controller.toggleTooltip(showDelay: Duration.zero)),
     ),
   };
   WaywingResponse _executePopoverAction(

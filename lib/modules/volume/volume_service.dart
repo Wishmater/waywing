@@ -57,7 +57,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
   late final Map<String, WaywingAction>? actions = {
     "increaseOutputVolume": WaywingAction(
       'Increase volume for default output. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
-      (request) {
+      (request, _) {
         final amountParam = request.path.queryParameters["amount"];
         int amount;
         if (amountParam == null) {
@@ -79,7 +79,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "decreaseOutputVolume": WaywingAction(
       'Decrease volume for default output. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
-      (request) {
+      (request, _) {
         final amountParam = request.path.queryParameters["amount"];
         int amount;
         if (amountParam == null) {
@@ -101,7 +101,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "setOutputVolume": WaywingAction(
       'Set volume for default output. Required query param "value".',
-      (request) {
+      (request, _) {
         final valueParam = request.path.queryParameters["value"];
         int amount;
         if (valueParam == null) {
@@ -123,7 +123,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "muteOutput": WaywingAction(
       "Mute default output.",
-      (request) {
+      (request, _) {
         final output = defaultOutput.value;
         if (output == null) {
           return WaywingResponse(422, "No default output registered");
@@ -134,7 +134,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "cycleOutput": WaywingAction(
       'Cycle default output. Optional query param "reverse".',
-      (request) {
+      (request, _) {
         if (outputs.value.isEmpty) {
           return WaywingResponse(422, "No outputs registered");
         }
@@ -164,7 +164,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "increaseInputVolume": WaywingAction(
       'Increase volume for default input. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
-      (request) {
+      (request, _) {
         final amountParam = request.path.queryParameters["amount"];
         int amount;
         if (amountParam == null) {
@@ -186,7 +186,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "decreaseInputVolume": WaywingAction(
       'Decrease volume for default input. Optional query param "amount", defaults to volumeStep set in config (which defaults to 5).',
-      (request) {
+      (request, _) {
         final amountParam = request.path.queryParameters["amount"];
         int amount;
         if (amountParam == null) {
@@ -208,7 +208,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "setInputVolume": WaywingAction(
       'Set volume for default input. Required query param "value".',
-      (request) {
+      (request, _) {
         final valueParam = request.path.queryParameters["value"];
         int amount;
         if (valueParam == null) {
@@ -230,7 +230,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "muteInput": WaywingAction(
       "Mute default input.",
-      (request) {
+      (request, _) {
         final input = defaultInput.value;
         if (input == null) {
           return WaywingResponse(422, "No default input registered");
@@ -241,7 +241,7 @@ class VolumeService extends Service<VolumeServiceConfig> {
     ),
     "cycleInput": WaywingAction(
       'Cycle default input. Optional query param "reverse".',
-      (request) {
+      (request, _) {
         if (inputs.value.isEmpty) {
           return WaywingResponse(422, "No inputs registered");
         }

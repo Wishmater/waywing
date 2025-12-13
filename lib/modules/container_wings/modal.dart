@@ -55,49 +55,35 @@ class ModalWing extends Wing<ModalConfig> {
   String get actionsPath => feather.prettyUniqueId.replaceAll("${prettyUniqueId.split(".").last}.", "");
 
   late final other = <String, WaywingAction>{
-    "asd": WaywingAction("Toggle the modal", (request) {
+    "asd": WaywingAction("Toggle the modal", (request, _) {
       show.value = !show.value;
       return WaywingResponse.ok();
     }),
   };
 
-  Map<String, WaywingAction> childActions() {
-    final result = <String, WaywingAction>{};
-    for (final feather in getFeathers()) {
-      for (final action in (feather.actions ?? {}).entries) {
-        result[action.key] = WaywingAction(action.value.description, (request) {
-          show.value = true;
-          return action.value.route(request);
-        });
-      }
-    }
-    return result;
-  }
-
   @override
   late final Map<String, WaywingAction>? actions = {
     "show": WaywingAction(
       "Show the modal",
-      (request) {
+      (request, _) {
         show.value = true;
         return WaywingResponse.ok();
       },
     ),
     "hide": WaywingAction(
       "Hide the modal",
-      (request) {
+      (request, _) {
         show.value = false;
         return WaywingResponse.ok();
       },
     ),
     "toggle": WaywingAction(
       "Toggle the modal",
-      (request) {
+      (request, _) {
         show.value = !show.value;
         return WaywingResponse.ok();
       },
     ),
-    ...childActions(),
   };
 
   @override

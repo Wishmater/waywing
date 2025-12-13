@@ -65,13 +65,19 @@ mixin ThemeConfigBase on ThemeConfigI {
   static ValidatorResult<List<IconType>> _iconPriorityValidator(List<IconType> value, Position position) {
     if (value.isEmpty) {
       return ValidatorError(
-        MyValError("At least one icon type must be specified in iconPriority list, but received an empty list", position),
+        MyValError(
+          "At least one icon type must be specified in iconPriority list, but received an empty list",
+          position,
+        ),
       );
     }
     for (final e in value) {
       if (value.count((f) => e == f) > 1) {
         return ValidatorError(
-          MyValError("The same icon type can't be repeated more than once in iconPriority list, but $e was repeated", position),
+          MyValError(
+            "The same icon type can't be repeated more than once in iconPriority list, but $e was repeated",
+            position,
+          ),
         );
       }
     }

@@ -33,7 +33,7 @@ class SessionFeather extends Feather {
   late final Map<String, WaywingAction>? actions = {
     "sleep": WaywingAction(
       "Put the computer/laptop to sleep",
-      (_) {
+      (_, _) {
         Future.delayed(Duration.zero, () => service.sleep());
         return WaywingResponse.ok();
       },

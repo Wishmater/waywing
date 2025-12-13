@@ -1,6 +1,5 @@
 import "package:config/config.dart";
 import "package:dartx/dartx.dart";
-import "package:flutter/foundation.dart";
 import "package:miga/miga.dart";
 import "package:path/path.dart";
 import "package:waywing/core/config.dart";
@@ -238,7 +237,7 @@ class ServiceRegistry {
     UserCommandService.registerService(registerService);
     Aria2Service.registerService(registerService);
     NetworkIconService.registerService(registerService);
-    if (!kReleaseMode) BitwardenService.registerService(registerService);
+    BitwardenService.registerService(registerService);
   }
 }
 

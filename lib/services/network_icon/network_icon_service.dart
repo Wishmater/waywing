@@ -145,12 +145,6 @@ class NetworkIconService extends Service {
   }
 }
 
-extension on Uri {
-  String cacheFilePath() {
-    return "$host/$path";
-  }
-}
-
 class _Icon {
   final String baseUrl;
   final String filepath;

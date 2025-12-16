@@ -172,6 +172,16 @@
       "source": "hosted",
       "version": "2.1.2"
     },
+    "boxy": {
+      "dependency": "direct main",
+      "description": {
+        "name": "boxy",
+        "sha256": "569373f23560f5a5dbe53c08a7463a698635e7ac72ba355ff4fa52516c0d2e32",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "2.2.2"
+    },
     "build": {
       "dependency": "transitive",
       "description": {
@@ -1046,13 +1056,13 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "HEAD",
-        "resolved-ref": "602f2e7c5622baede16438f51c3a99509ef310fb",
+        "resolved-ref": "1145fbf033b2a83caec0c4d05e315f5200576c6c",
+        "tag-pattern": "{{version}}",
         "url": "https://github.com/ross96D/niri.dart",
-        "sha256": "sha256-2vVfuDGYbZ16QqgTtbONnVrKfm440EjLOQnqxdPQaLw="
+        "sha256": "sha256-z424GhkRfORdhb5JexVaBCDDAfz7qotdmG0ZhJQaN9g="
       },
       "source": "git",
-      "version": "1.0.0"
+      "version": "1.0.1"
     },
     "nm": {
       "dependency": "direct main",

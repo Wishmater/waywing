@@ -141,10 +141,11 @@ class SearchOptions<T extends Object> extends StatefulWidget {
 }
 
 class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with SingleTickerProviderStateMixin {
-  late NucleoDart nucleo;
+  late NucleoDart nucleoPrimary;
+  late NucleoDart nucleoSecondary;
 
   late Map<int, Option<T>> items;
-  late FilteredList<Option<T>> filtered;
+  late JoinedFilterList<Option<T>> filtered;
   late Ticker tick;
 
   ValueNotifier<int> highlighted = ValueNotifier(0);
@@ -172,7 +173,11 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with
 
   bool _needsUpdateFilters = false;
   void _updateFilters() {
-    filtered = FilteredList<Option<T>>(items, nucleo.getSnapshot());
+    filtered = JoinedFilterList(
+      items,
+      nucleoPrimary.getSnapshot(),
+      nucleoSecondary.getSnapshot(),
+    );
     updateHighlight(highlighted.value, ScrollDirection.forward);
     setState(() {});
   }
@@ -190,44 +195,61 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with
     }
     for (int i = start; i < end; i++) {
       final e = widget.options[i];
-      final v = e.primaryValue;
-      switch (v) {
+      final primary = e.primaryValue;
+      final secondary = e.secondaryValue;
+
+      switch (primary) {
         case StringOptionValue():
-          nucleo.add(i, v.value);
+          nucleoPrimary.add(i, primary.value);
         case NativeOptionValue():
-          nucleo.addNative(i, v.pointer, v.length);
+          nucleoPrimary.addNative(i, primary.pointer, primary.length);
+      }
+
+      switch (secondary) {
+        case StringOptionValue():
+          nucleoSecondary.add(i, secondary.value);
+        case NativeOptionValue():
+          nucleoSecondary.addNative(i, secondary.pointer, secondary.length);
+        case null:
+          break;
       }
     }
-    // for (final e in iterable) {
-    //   switch(e.primaryValue) {
-    //     case StringOptionValue():
-    //     nucleo.add()
-    //     case NativeOptionValue():
-    //       throw UnimplementedError();
-    //   }
-    // }
-    // nucleo.addAllAsync(iterable.map((e) => e.primaryValue).toList(), List.generate(end - start, (i) => i + start));
   }
 
   void _initNucleo() {
-    nucleo = NucleoDart(() {});
+    nucleoPrimary = NucleoDart(() {});
+    nucleoSecondary = NucleoDart(() {});
     // TODO maybe we can use the secondaryValue using the multicolumn feature of nucleo
     // nucleo.addAll(widget.options.map((e) => e.primaryValue));
     for (int i = 0; i < widget.options.length; i++) {
       final e = widget.options[i];
-      final v = e.primaryValue;
-      switch (v) {
+      final primary = e.primaryValue;
+      final secondary = e.secondaryValue;
+
+      switch (primary) {
         case StringOptionValue():
-          nucleo.add(i, v.value);
+          nucleoPrimary.add(i, primary.value);
         case NativeOptionValue():
-          nucleo.addNative(i, v.pointer, v.length);
+          nucleoPrimary.addNative(i, primary.pointer, primary.length);
+      }
+
+      switch (secondary) {
+        case StringOptionValue():
+          nucleoSecondary.add(i, secondary.value);
+        case NativeOptionValue():
+          nucleoSecondary.addNative(i, secondary.pointer, secondary.length);
+        case null:
+          break;
       }
     }
-    nucleo.reparse("");
-    nucleo.tick();
+    nucleoPrimary.reparse("");
+    nucleoSecondary.reparse("");
+    nucleoPrimary.tick();
+    nucleoSecondary.tick();
 
     tick = createTicker((d) {
-      nucleo.tick();
+      nucleoPrimary.tick();
+      nucleoSecondary.tick();
       if (_needsUpdateFilters) {
         _updateFilters();
         _needsUpdateFilters = false;
@@ -246,7 +268,7 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with
     for (int i = 0; i < widget.options.length; i++) {
       items[i] = widget.options[i];
     }
-    filtered = FilteredList<Option<T>>(items, nucleo.getSnapshot());
+    filtered = JoinedFilterList<Option<T>>(items, nucleoPrimary.getSnapshot(), nucleoSecondary.getSnapshot());
 
     shortcuts = <ShortcutActivator, Intent>{
       for (final e in widget.previousOptionActivators) //
@@ -271,7 +293,8 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with
   @override
   void dispose() {
     tick.dispose();
-    nucleo.destroy();
+    nucleoPrimary.destroy();
+    nucleoSecondary.destroy();
     highlighted.dispose();
     super.dispose();
   }
@@ -316,7 +339,8 @@ class _SearchOptionsState<T extends Object> extends State<SearchOptions<T>> with
   }
 
   void updateFilter(String v) {
-    nucleo.reparse(v);
+    nucleoPrimary.reparse(v);
+    nucleoSecondary.reparse(v);
     _needsUpdateFilters = true;
   }
 

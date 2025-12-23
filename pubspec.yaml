@@ -5,7 +5,7 @@ publish_to: "none"
 version: 0.0.16
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.10.0
 
 dependencies:
   flutter:
@@ -79,7 +79,10 @@ dependencies:
 
   # Native plugins
   nucleo_dart:
-    path: ../../my/nucleo.dart/
+    version: ^0.1.1
+    git:
+      url: https://github.com/ross96D/nucleo.dart
+      tag_pattern: "{{version}}"
   path: ^1.9.1
   # directory/file watcher library
   watcher: ^1.1.2

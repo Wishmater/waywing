@@ -1,10 +1,6 @@
-{ pkgs ? import <nixpkgs> { }, unstable-pkgs ? import <nixpkgs> { } }:
+{ pkgs ? import <nixpkgs> { } }:
 
-let
-  build = import ./build.nix {
-    inherit pkgs;
-    inherit unstable-pkgs;
-  };
+let build = import ./build.nix { inherit pkgs; };
 
 in pkgs.mkShell {
 
@@ -17,7 +13,7 @@ in pkgs.mkShell {
     jq
     yq
 
-    unstable-pkgs.flutter
+    flutter
 
     cmake
     clang

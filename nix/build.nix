@@ -1,6 +1,6 @@
-{ pkgs ? import <nixpkgs>, unstable-pkgs ? import <nixpkgs> { } }:
+{ pkgs ? import <nixpkgs> }:
 
-unstable-pkgs.flutter.buildFlutterApplication rec {
+pkgs.flutter.buildFlutterApplication rec {
 
   pname = "waywing";
   version = "0.0.16";
@@ -26,7 +26,7 @@ unstable-pkgs.flutter.buildFlutterApplication rec {
     orc
 
     # required by waywingcli
-    unstable-pkgs.zig_0_15
+    zig
 
   ];
 

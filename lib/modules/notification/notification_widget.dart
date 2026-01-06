@@ -520,7 +520,7 @@ class _NotificationTitle extends StatelessWidget {
                           width: effectiveIconSize * 1.33,
                           height: effectiveIconSize * 1.33,
                         ),
-                        onTap: (_, _) => onToggleExpand,
+                        onTap: (_, _) => onToggleExpand(),
                         child: WingedIcon(
                           // TODO: 2 ANIMATIONS for flutter icon (or maybe all) implement turning around animation
                           flutterIcon: isExpanded ? SymbolsVaried.keyboard_arrow_up : Icons.keyboard_arrow_down,

@@ -322,7 +322,7 @@ class _APWidgetState extends State<APWidget> {
               ),
             ),
             WingedButton(
-              onTap: (_, _) => onConnectTap,
+              onTap: (_, _) => onConnectTap(),
               child: Text(
                 widget.isConnected ? "DISCONNECT" : "CONNECT",
                 style: TextStyle(color: Theme.of(context).colorScheme.primary),

@@ -75,7 +75,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                             child: child,
                           );
                         },
-                        onTap: (_, _) => requestScan,
+                        onTap: (_, _) => requestScan(),
                         initialFuture: initialRefreshFuture,
                         child: WingedIcon(
                           flutterIcon: SymbolsVaried.refresh,

@@ -291,28 +291,42 @@ class WifiIcon extends StatelessWidget {
   Widget buildWithAp(BuildContext context, NMServiceAccessPoint? ap) {
     if (ap != null) {
       final color = this.color ?? Theme.of(context).iconTheme.color!;
-      // TODO: 2 implement wifi signal strength at breakpoints for linux and nerdFont icons
-      return WingedIcon(
-        flutterIcon: SymbolsVaried.wifi,
-        iconNames: ["network-wireless"],
-        textIcon: "", // nf-fa-wifi
-        flutterBuilder: (context) {
-          return Stack(
-            children: [
-              SymbolIcon(SymbolsVaried.wifi, color: color.withValues(alpha: 0.25)),
-              Positioned.fill(
-                child: ValueListenableBuilder(
-                  valueListenable: ap.strength,
-                  builder: (context, strength, child) {
-                    // TODO: 2 animate changes in strength
-                    return ClipPath(
-                      clipper: WifiStrengthClipper(strength),
-                      child: SymbolIcon(SymbolsVaried.wifi, color: color),
-                    );
-                  },
-                ),
-              ),
-            ],
+      // TODO: 2 implement wifi signal strength at breakpoints for nerdFont icons
+      return ValueListenableBuilder(
+        valueListenable: ap.strength,
+        builder: (context, strength, child) {
+          final linuxIcon = switch(strength) {
+            >=0.90 => "network-wireless-100",
+            >=0.70 => "network-wireless-80",
+            >=0.50 => "network-wireless-60",
+            >=0.30 => "network-wireless-40",
+            >=0.10 => "network-wireless-20",
+            _ => "network-wireless-0",
+          };
+
+          return WingedIcon(
+            flutterIcon: SymbolsVaried.wifi,
+            iconNames: [linuxIcon, "network-wireless"],
+            textIcon: "", // nf-fa-wifi
+            flutterBuilder: (context) {
+              return Stack(
+                children: [
+                  SymbolIcon(SymbolsVaried.wifi, color: color.withValues(alpha: 0.25)),
+                  Positioned.fill(
+                    child: ValueListenableBuilder(
+                      valueListenable: ap.strength,
+                      builder: (context, strength, child) {
+                        // TODO: 2 animate changes in strength
+                        return ClipPath(
+                          clipper: WifiStrengthClipper(strength),
+                          child: SymbolIcon(SymbolsVaried.wifi, color: color),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
       );

@@ -2,6 +2,7 @@ import "dart:convert";
 import "dart:math";
 import "dart:typed_data";
 
+// ignore: constant_identifier_names
 const int _LF = 10;
 
 const _leadingZerosCompare = <int>[128, 192, 224, 240, 248, 252, 254, 255];

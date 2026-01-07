@@ -10,6 +10,7 @@ linter:
     avoid_print: true
     prefer_double_quotes: true
     lines_longer_than_80_chars: false
+    implicit_call_tearoffs: true
 
 formatter:
   page_width: 120

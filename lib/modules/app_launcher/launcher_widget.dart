@@ -38,8 +38,9 @@ class LauncherWidget extends StatelessWidget {
   Widget _renderOption(BuildContext context, Application app, SearchOptionsRenderConfig searchoptConfig) {
     return ListTileOptionWidget(
       app: app,
-      config: searchoptConfig,
+      optsConfig: searchoptConfig,
       onTap: () => _run(app),
+      config: config,
     );
   }
 
@@ -75,21 +76,24 @@ class ApplicationOption extends Option<Application> {
 
 class ListTileOptionWidget extends StatelessWidget {
   final Application app;
-  final SearchOptionsRenderConfig config;
+  final SearchOptionsRenderConfig optsConfig;
   final VoidCallback onTap;
+  final LauncherConfig config;
 
   const ListTileOptionWidget({
     required this.app,
-    required this.config,
+    required this.optsConfig,
     required this.onTap,
+    required this.config,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final iconSize = config.iconSize ?? XdgIconTheme.of(context).size;
     return ListTile(
-      leading: app.icon != null ? _RenderIcon(icon: app.icon!) : SizedBox(width: 35),
+      leading: app.icon != null ? _RenderIcon(icon: app.icon!, iconSize: iconSize) : SizedBox(width: 35),
       title: Text(
         app.name,
         style: theme.textTheme.bodyLarge,
@@ -113,15 +117,15 @@ class ListTileOptionWidget extends StatelessWidget {
 
 class _RenderIcon extends StatelessWidget {
   final String icon;
-  const _RenderIcon({required this.icon});
+  final int? iconSize;
+  const _RenderIcon({required this.icon, required this.iconSize});
 
   @override
   Widget build(BuildContext context) {
     // TODO: 1 migrate to WingedIcon
-    final size = XdgIconTheme.of(context).size;
     if (icon.startsWith("/")) {
-      return Image.file(File(icon), height: size?.toDouble(), width: size?.toDouble());
+      return Image.file(File(icon), height: iconSize?.toDouble(), width: iconSize?.toDouble());
     }
-    return XdgIcon(name: icon, size: size);
+    return XdgIcon(name: icon, size: iconSize);
   }
 }

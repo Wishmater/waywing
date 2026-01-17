@@ -22,12 +22,19 @@ import "package:miga/miga.dart";
 
 part "config.config.dart";
 
-final String _dataHome = dataHomeDir;
+String get _dataHome {
+  if (kDebugMode) {
+    return path.join(Directory.current.path, ".local/share");
+  } else {
+    return dataHomeDir;
+  }
+}
+
 Directory? _mainDataHomeDir;
 Directory get mainDataHomeDir {
   if (_mainDataHomeDir == null) {
     _mainDataHomeDir = Directory(path.join(_dataHome, "waywing"));
-    _mainDataHomeDir!.createSync();
+    _mainDataHomeDir!.createSync(recursive: true);
   }
   return _mainDataHomeDir!;
 }

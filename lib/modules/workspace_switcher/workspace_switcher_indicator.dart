@@ -1,3 +1,4 @@
+import "package:collection/collection.dart";
 import "package:flutter/material.dart";
 import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
@@ -19,9 +20,10 @@ class _WorkspaceSwitcherIndicatorState extends State<WorkspaceSwitcherIndicator>
       child: ValueListenableBuilder(
         valueListenable: widget.service.workspaces,
         builder: (context, workspaces, _) {
+          final workspacesSorted = workspaces.workspaces.sortedBy((e) => e.position);
           return Row(
             children: [
-              for (final workspace in workspaces.workspaces)
+              for (final workspace in workspacesSorted)
                 _WorkspaceWidget(
                   workspace,
                   workspaces.focused.any((e) => e.$2.id == workspace.id),

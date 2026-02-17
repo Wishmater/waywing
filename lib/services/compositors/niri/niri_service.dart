@@ -64,7 +64,8 @@ class NiriService extends CompositorService {
           .map(
             (workspace) => CompositorWorkspace(
               workspace.id.toString(),
-              workspace.id.toString(),
+              // In niri the workspace name makes no sense. Is better to use the index
+              workspace.idx.toString(),
               workspace.idx,
               workspace,
             ),

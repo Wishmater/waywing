@@ -4,6 +4,7 @@ import "package:flutter/foundation.dart";
 import "package:material_symbols_icons/symbols.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/bitwarden/bitwarden_popover.dart";
 import "package:waywing/modules/bitwarden/bitwarden_service.dart";
@@ -33,6 +34,18 @@ class BitwardenLauncherFeather extends Feather {
     service = await serviceRegistry.requestService<BitwardenService>(this);
     iconService = await serviceRegistry.requestService<NetworkIconService>(this);
   }
+
+  @override
+  Map<String, WaywingAction>? get actions => {
+    "sync": WaywingAction("synchronize data with bitwarden server", (request, _) async {
+      await service.sync();
+      return WaywingResponse(200, "");
+    }),
+    "status": WaywingAction("get the status", (request, _) async {
+      final status = await service.status();
+      return WaywingResponse(200, "${status?.data?.template}");
+    }),
+  };
 
   @override
   String get name => "BitwardenLauncher";

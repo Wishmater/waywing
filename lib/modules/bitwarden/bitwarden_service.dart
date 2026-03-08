@@ -1,13 +1,16 @@
+import "dart:async";
 import "dart:convert";
 import "dart:io";
 
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
+import "package:dartx/dartx_io.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/core/service.dart";
 import "package:bitwarden_vault_api/bitwarden_api.dart" as bw;
 import "package:freedesktop_secrets/freedesktop_secrets.dart";
 import "package:waywing/core/service_registry.dart";
+import "package:waywing/util/type_utils.dart";
 
 part "bitwarden_service.config.dart";
 
@@ -27,13 +30,13 @@ class BitwardenService extends Service<BitwardenServiceConfig> {
   late final bw.ApiClient apiClient;
   late final FreedesktopSecretsClient? secretsClient;
   late final FreedesktopSecretsCollection? defaultCollection;
-  late final _bwRunner = BwRunner(logger);
+  late final BwRunner _bwRunner;
 
   @override
   Future<void> init() async {
     apiClient = bw.ApiClient(basePath: "http://localhost:8087");
 
-    _bwRunner.start(config.bwPath);
+    _bwRunner = await BwRunner.create(config.bwPath, dataDir, logger);
     // Hack to wait for bw start
     await Future.delayed(Duration(seconds: 2));
 
@@ -94,9 +97,24 @@ class BitwardenService extends Service<BitwardenServiceConfig> {
     }
   }
 
-  Future<List<bw.Item>> items() {
-    // TODO 1: catch locked vault error and unlock it
-    return bw.VaultItemsApi(apiClient).listObjectItemsGet();
+  Future<List<bw.Item>> items() async {
+    try {
+      final asd = await bw.VaultItemsApi(apiClient).listObjectItemsGet();
+      for (final item in asd) {
+        if (item.name?.contains("vps") == true) {
+          print("${item.name} - ${item}\n\n");
+
+        }
+      }
+      return asd;
+    } catch (e) {
+      if (e is bw.ApiException) {
+        switch (e.code) {
+          case 400:
+        }
+      }
+      rethrow;
+    }
   }
 
   Future<void> unlock({bool checked = true, String? masterPassword}) {
@@ -109,6 +127,14 @@ class BitwardenService extends Service<BitwardenServiceConfig> {
 
   Future<void> lock() {
     return bw.LockUnlockApi(apiClient).lockPost();
+  }
+
+  Future<void> sync() {
+    return bw.MiscellaneousApi(apiClient).syncPost();
+  }
+
+  Future<bw.Status?> status() {
+    return bw.MiscellaneousApi(apiClient).statusGet();
   }
 
   @override
@@ -134,57 +160,105 @@ final class DefaultCollectionLockedException implements Exception {
   String toString() => "BitwardenService needs the default collection $collectionName to be unlocked";
 }
 
+class InstanceAlreadyRunning implements Exception {
+  String? message;
+  InstanceAlreadyRunning([this.message]);
+
+  @override
+  String toString() {
+    if (message == null) return "InstanceAlreadyRunning";
+    return "InstanceAlreadyRunning: $message";
+  }
+}
+
 class BwRunner {
   Logger logger;
+  RandomAccessFile bwFile;
+  Either<Process, int> bwProcess;
 
-  // use singleton pattern because there can only be one `bw serve` instance running
-  static BwRunner? instance;
-
-  BwRunner._(this.logger);
-
-  factory BwRunner(Logger logger) {
-    instance ??= BwRunner._(logger);
-    return instance!;
+  BwRunner._(this.logger, this.bwFile, this.bwProcess) {
+    switch (bwProcess) {
+      case EitherLeft<Process, int>(:final value):
+        value.exitCode.then((code) {
+          logger.debug("closed bw process ${value.pid} with exit code $code");
+          bwFile.closeSync();
+        });
+      case EitherRigth<Process, int>():
+        break;
+    }
   }
 
-  bool _running = false;
-  Process? _process;
+  static Future<BwRunner> create(String bwPath, Directory dataDir, Logger logger) async {
+    // file does not exists: open file with lock, save the pid
+    // file exists and throws: throw InstanceAlreadyRunning
+    // file exists and does not throw: open file, check if pid is running and his name is bw? If so throw InstanceAlreadyRunning, else Run a new bw instance (if running fails return InstanceAlreadyRunning)
 
-  void start(String bwPath) async {
-    if (_running) {
-      logger.trace("try running bw serve but process is already running");
-      return;
-    }
-    _running = true;
-    /// TODO 2: check `bw` exists and does not need login
-    /// TODO 2: pass `bw serve` configurations
-    /// TODO 2: how can i notify that bw serve already started?
-    while (_running) {
-      _process = await Process.start(bwPath, ["serve"]);
-      final exitCode = await _process!.exitCode;
-      final stderr = (await _process?.stderr.transform(utf8.decoder).toList())?.join();
-      if ((stderr?? "").contains("EADDRINUSE: address already in use")) {
-        await stop();
-        logger.warning("bw serve terminated with $exitCode", error: stderr);
-      } else {
-        logger.warning("bw serve terminated with $exitCode. Will try again", error: stderr);
+    final file = dataDir.file("bw_pid");
+    if (!file.existsSync()) {
+      file.createSync();
+      final randomAccessFile = file.openSync(mode: FileMode.write);
+      randomAccessFile.lockSync(FileLock.exclusive);
+
+      Process process;
+      try {
+        process = await _run(bwPath);
+      } catch (e, st) {
+        try {
+          randomAccessFile.closeSync();
+          file.deleteSync();
+        } catch (_) {}
+
+        if (e is InstanceAlreadyRunning) {
+          rethrow;
+        } else {
+          throw InstanceAlreadyRunning("$e\n$st");
+        }
       }
+      await randomAccessFile.writeString(process.pid.toString());
+      randomAccessFile.flushSync();
+
+      return BwRunner._(logger, randomAccessFile, EitherLeft(process));
     }
+
+    final randomAccessFile = file.openSync(mode: FileMode.read);
+    try {
+      randomAccessFile.lockSync(FileLock.shared);
+    } catch (e) {
+      throw InstanceAlreadyRunning("Locking file $e");
+    }
+    final length = randomAccessFile.lengthSync();
+    final pidStr = utf8.decode(randomAccessFile.readSync(length));
+    logger.info(pidStr);
+    final pid = int.parse(pidStr);
+    // TODO 1: check if pid exists
+
+    return BwRunner._(logger, randomAccessFile, EitherRigth(pid));
+  }
+
+  static Future<Process> _run(String bwPath) async {
+    final process = await Process.start(bwPath, ["serve"]);
+    Completer<InstanceAlreadyRunning?> completer = Completer();
+    process.exitCode.then((exitCode) async {
+      final stderr = (await process.stderr.transform(Utf8Decoder(allowMalformed: true)).toList()).join();
+      if (stderr.contains("EADDRINUSE: address already in use")) {
+        if (!completer.isCompleted) completer.complete(InstanceAlreadyRunning(stderr));
+      }
+    });
+    Future.delayed(Duration(seconds: 2), () => !completer.isCompleted ? completer.complete() : null);
+    final value = await completer.future;
+    if (value != null) {
+      throw value;
+    }
+    return process;
   }
 
   Future<void> stop() async {
-    if (this == instance) {
-      logger.trace("stop bw serve ");
-      instance = null;
-    } else {
-      logger.warning("stop bw serve. Not the global instance");
-    }
-    _running = false;
-    if (_process?.kill(ProcessSignal.sigterm) == true) {
-      final exitCode = await _process?.exitCode.timeout(Duration(milliseconds: 200), onTimeout: () => -100);
-      if (exitCode == -100) {
-        _process?.kill(ProcessSignal.sigkill);
-      }
+    switch (bwProcess) {
+      case EitherLeft<Process, int>(value: final process):
+        process.kill(ProcessSignal.sigterm);
+      case EitherRigth<Process, int>(value: final pid):
+        Process.killPid(pid);
+        bwFile.closeSync();
     }
   }
 }

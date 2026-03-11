@@ -125,11 +125,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "9a126358ca5839d4851fb4d14085ddf68c01e688"
+      resolved-ref: "7f775f6fe74e6e0874e887242d83a58e63b11805"
+      tag-pattern: "{{version}}"
       url: "https://github.com/ross96D/bitwarden_vault_api"
     source: git
-    version: "0.0.2"
+    version: "0.0.3"
   boolean_selector:
     dependency: transitive
     description:

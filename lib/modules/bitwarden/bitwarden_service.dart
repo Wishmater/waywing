@@ -30,7 +30,7 @@ class BitwardenService extends Service<BitwardenServiceConfig> {
   late final bw.ApiClient apiClient;
   late final FreedesktopSecretsClient? secretsClient;
   late final FreedesktopSecretsCollection? defaultCollection;
-  late final BwRunner _bwRunner;
+  late BwRunner _bwRunner;
 
   @override
   Future<void> init() async {
@@ -97,44 +97,49 @@ class BitwardenService extends Service<BitwardenServiceConfig> {
     }
   }
 
-  Future<List<bw.Item>> items() async {
+  Future<R> _callApi<R>(Future<R> Function() call, [int numberOfCalls = 0]) async {
     try {
-      final asd = await bw.VaultItemsApi(apiClient).listObjectItemsGet();
-      for (final item in asd) {
-        if (item.name?.contains("vps") == true) {
-          print("${item.name} - ${item}\n\n");
-
-        }
+      return await call();
+    } on IOException catch (_) {
+      if (numberOfCalls == 1) {
+        rethrow;
       }
-      return asd;
-    } catch (e) {
-      if (e is bw.ApiException) {
-        switch (e.code) {
-          case 400:
-        }
-      }
+      _bwRunner = await BwRunner.create(config.bwPath, dataDir, logger);
+      return _callApi(call, numberOfCalls + 1);
+    } on bw.ApiException catch (_) {
+      /// TODO 1: handle Api Exception. Must likely reset master password
       rethrow;
     }
   }
 
-  Future<void> unlock({bool checked = true, String? masterPassword}) {
+  Future<List<bw.Item>> items() async {
+    return await _callApi(bw.VaultItemsApi(apiClient).listObjectItemsGet);
+  }
+
+  Future<bool> unlock({bool checked = true, String? masterPassword}) async {
     masterPassword ??= _masterPassword;
     if (checked && masterPassword == null) {
       throw NeedsMasterPasswordException();
     }
-    return bw.LockUnlockApi(apiClient).unlockPost(bw.UnlockPostRequest(password: masterPassword));
+    final lockUnlockApi = bw.LockUnlockApi(apiClient);
+    return await _callApi(() async {
+      final unlockResponse = await lockUnlockApi.unlockPost(bw.UnlockPostRequest(password: masterPassword));
+      return unlockResponse?.success ?? false;
+    });
   }
 
-  Future<void> lock() {
-    return bw.LockUnlockApi(apiClient).lockPost();
+  Future<bool> lock() {
+    return _callApi(() async {
+      return (await bw.LockUnlockApi(apiClient).lockPost())?.success ?? false;
+    });
   }
 
   Future<void> sync() {
-    return bw.MiscellaneousApi(apiClient).syncPost();
+    return _callApi(bw.MiscellaneousApi(apiClient).syncPost);
   }
 
   Future<bw.Status?> status() {
-    return bw.MiscellaneousApi(apiClient).statusGet();
+    return _callApi(bw.MiscellaneousApi(apiClient).statusGet);
   }
 
   @override
@@ -188,51 +193,54 @@ class BwRunner {
     }
   }
 
-  static Future<BwRunner> create(String bwPath, Directory dataDir, Logger logger) async {
-    // file does not exists: open file with lock, save the pid
-    // file exists and throws: throw InstanceAlreadyRunning
-    // file exists and does not throw: open file, check if pid is running and his name is bw? If so throw InstanceAlreadyRunning, else Run a new bw instance (if running fails return InstanceAlreadyRunning)
+  static Future<BwRunner> _createWithNewFile(String bwPath, Logger logger, File file) async {
+    file.createSync();
+    final randomAccessFile = file.openSync(mode: FileMode.write);
+    randomAccessFile.lockSync(FileLock.exclusive);
 
+    Process process;
+    try {
+      process = await _run(bwPath);
+    } catch (e, st) {
+      try {
+        randomAccessFile.closeSync();
+        file.deleteSync();
+      } catch (_) {}
+
+      if (e is InstanceAlreadyRunning) {
+        rethrow;
+      } else {
+        throw InstanceAlreadyRunning("$e\n$st");
+      }
+    }
+    await randomAccessFile.writeString(process.pid.toString());
+    randomAccessFile.flushSync();
+
+    return BwRunner._(logger, randomAccessFile, EitherLeft(process));
+  }
+
+  static Future<BwRunner> create(String bwPath, Directory dataDir, Logger logger) async {
     final file = dataDir.file("bw_pid");
     if (!file.existsSync()) {
-      file.createSync();
-      final randomAccessFile = file.openSync(mode: FileMode.write);
-      randomAccessFile.lockSync(FileLock.exclusive);
-
-      Process process;
-      try {
-        process = await _run(bwPath);
-      } catch (e, st) {
-        try {
-          randomAccessFile.closeSync();
-          file.deleteSync();
-        } catch (_) {}
-
-        if (e is InstanceAlreadyRunning) {
-          rethrow;
-        } else {
-          throw InstanceAlreadyRunning("$e\n$st");
-        }
-      }
-      await randomAccessFile.writeString(process.pid.toString());
-      randomAccessFile.flushSync();
-
-      return BwRunner._(logger, randomAccessFile, EitherLeft(process));
+      return _createWithNewFile(bwPath, logger, file);
     }
 
     final randomAccessFile = file.openSync(mode: FileMode.read);
     try {
       randomAccessFile.lockSync(FileLock.shared);
     } catch (e) {
+      randomAccessFile.closeSync();
       throw InstanceAlreadyRunning("Locking file $e");
     }
     final length = randomAccessFile.lengthSync();
     final pidStr = utf8.decode(randomAccessFile.readSync(length));
-    logger.info(pidStr);
     final pid = int.parse(pidStr);
-    // TODO 1: check if pid exists
-
-    return BwRunner._(logger, randomAccessFile, EitherRigth(pid));
+    if (Process.killPid(pid, const _NullProcessSignal())) {
+      return BwRunner._(logger, randomAccessFile, EitherRigth(pid));
+    } else {
+      file.deleteSync();
+      return _createWithNewFile(bwPath, logger, file);
+    }
   }
 
   static Future<Process> _run(String bwPath) async {
@@ -267,4 +275,19 @@ class BwRunner {
 mixin BitwardenServiceConfigBase on BitwardenServiceConfigI {
   /// Path to the bw cli
   static const _bwPath = StringField(defaultTo: "bw");
+}
+
+class _NullProcessSignal implements ProcessSignal {
+  const _NullProcessSignal();
+
+  @override
+  String get name => "NULL";
+
+  @override
+  int get signalNumber => 0;
+
+  @override
+  Stream<ProcessSignal> watch() {
+    throw UnimplementedError();
+  }
 }

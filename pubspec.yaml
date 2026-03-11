@@ -124,7 +124,7 @@ dependencies:
   ffi: ^2.1.4
   bitwarden_vault_api:
     # path: ../../repos/bitwarden_api
-    version: ^0.0.2
+    version: ^0.0.3
     git:
       url: https://github.com/ross96D/bitwarden_vault_api
       tag_pattern: "{{version}}"

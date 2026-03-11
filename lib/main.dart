@@ -1,5 +1,4 @@
 import "dart:async";
-import "dart:io";
 
 import "package:args/args.dart";
 import "package:dartx/dartx_io.dart";
@@ -59,7 +58,7 @@ Future<void> startApp() async {
   await reloadConfig(await getConfigurationString(), path.normalize(path.absolute(getConfigurationFilePath())));
 
   WaywingServer.create(
-    mainConfig.socket ?? path.join(Platform.environment["XDG_RUNTIME_DIR"]!, "waywing", "waywing.sock"),
+    mainConfig.socket ?? path.join(mainRuntimeDir.path, "waywing.sock"),
     mainLogger.clone(properties: [LogType("WaywingServer")]),
   );
   WaywingServer.instance.init();

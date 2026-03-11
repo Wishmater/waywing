@@ -1,8 +1,19 @@
 import "dart:io";
 
 import "package:path/path.dart" as path;
+import "package:waywing/util/logger.dart";
 
-String get dataHomeDir => Platform.environment["XDG_DATA_HOME"] ?? path.join(Platform.environment["HOME"]!, ".local/share");
+String get runtimeDir {
+  final runtimeDir = Platform.environment["XDG_RUNTIME_DIR"];
+  if (runtimeDir != null) {
+    return runtimeDir;
+  }
+  mainLogger.warning("XDG_RUNTIME_DIR enviroment variable not set. Fallback to /tmp");
+  return "/temp";
+}
+
+String get dataHomeDir =>
+    Platform.environment["XDG_DATA_HOME"] ?? path.join(Platform.environment["HOME"]!, ".local/share");
 
 /// https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 Iterable<String> get dataDirectories sync* {

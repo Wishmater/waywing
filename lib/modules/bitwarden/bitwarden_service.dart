@@ -36,7 +36,7 @@ class BitwardenService extends Service<BitwardenServiceConfig> {
   Future<void> init() async {
     apiClient = bw.ApiClient(basePath: "http://localhost:8087");
 
-    _bwRunner = await BwRunner.create(config.bwPath, dataDir, logger);
+    _bwRunner = await BwRunner.create(config.bwPath, runtimeDir, logger);
     // Hack to wait for bw start
     await Future.delayed(Duration(seconds: 2));
 

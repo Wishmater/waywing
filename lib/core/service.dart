@@ -17,6 +17,7 @@ abstract class Service<Conf> implements ServiceConsumer {
   late Conf config;
 
   Directory? _dataDir;
+  Directory? _runtimeDir;
 
   /// Service directory where any kind of runtime data can be set
   Directory get dataDir {
@@ -25,6 +26,15 @@ abstract class Service<Conf> implements ServiceConsumer {
       _dataDir!.createSync(recursive: true);
     }
     return _dataDir!;
+  }
+
+  /// Service directory where any kind of runtime data can be set
+  Directory get runtimeDir {
+    if (_runtimeDir == null) {
+      _runtimeDir = Directory(path.join(mainRuntimeDir.path, "service", runtimeType.toString()));
+      _runtimeDir!.createSync(recursive: true);
+    }
+    return _runtimeDir!;
   }
 
   Map<String, WaywingAction>? get actions => null;

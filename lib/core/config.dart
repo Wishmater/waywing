@@ -30,6 +30,14 @@ String get _dataHome {
   }
 }
 
+String get _runtimeDir {
+  if (kDebugMode) {
+    return path.join(Directory.current.path, ".tmp");
+  } else {
+    return runtimeDir;
+  }
+}
+
 Directory? _mainDataHomeDir;
 Directory get mainDataHomeDir {
   if (_mainDataHomeDir == null) {
@@ -37,6 +45,15 @@ Directory get mainDataHomeDir {
     _mainDataHomeDir!.createSync(recursive: true);
   }
   return _mainDataHomeDir!;
+}
+
+Directory? _mainRuntimeDir;
+Directory get mainRuntimeDir {
+  if (_mainRuntimeDir == null) {
+    _mainRuntimeDir = Directory(path.join(_runtimeDir, "waywing"));
+    _mainRuntimeDir!.createSync(recursive: true);
+  }
+  return _mainRuntimeDir!;
 }
 
 final _logger = mainLogger.clone(properties: [LogType("Config")]);

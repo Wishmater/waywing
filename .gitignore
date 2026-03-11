@@ -54,3 +54,4 @@ waywing-*.AppImage
 .fvm/
 
 .local/
+.tmp/

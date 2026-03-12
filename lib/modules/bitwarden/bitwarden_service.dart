@@ -37,8 +37,6 @@ class BitwardenService extends Service<BitwardenServiceConfig> {
     apiClient = bw.ApiClient(basePath: "http://localhost:8087");
 
     _bwRunner = await BwRunner.create(config.bwPath, runtimeDir, logger);
-    // Hack to wait for bw start
-    await Future.delayed(Duration(seconds: 2));
 
     try {
       final secretsClient = FreedesktopSecretsClient();
@@ -105,9 +103,15 @@ class BitwardenService extends Service<BitwardenServiceConfig> {
         rethrow;
       }
       _bwRunner = await BwRunner.create(config.bwPath, dataDir, logger);
-      return _callApi(call, numberOfCalls + 1);
-    } on bw.ApiException catch (_) {
-      /// TODO 1: handle Api Exception. Must likely reset master password
+      return await _callApi(call, numberOfCalls + 1);
+    } on bw.ApiException catch (e) {
+      if (e.message != null) {
+        final errorObj = json.decode(e.message!);
+        if (errorObj is Map && errorObj["message"] == "Vault is locked.") {
+          await unlock();
+          return await _callApi(call, numberOfCalls + 1);
+        }
+      }
       rethrow;
     }
   }
@@ -176,12 +180,29 @@ class InstanceAlreadyRunning implements Exception {
   }
 }
 
-class BwRunner {
+abstract interface class BwRunner {
+  Logger get logger;
+
+  static Future<BwRunner> create(String bwPath, Directory dataDir, Logger logger) async {
+    try {
+      return await BwRunnerImpl.create(bwPath, dataDir, logger);
+    } on InstanceAlreadyRunning catch(_) {
+      return BwRunnerDummy(logger);
+    }
+  }
+
+  Future<void> stop();
+}
+
+class BwRunnerImpl implements BwRunner {
+  @override
   Logger logger;
+
   RandomAccessFile bwFile;
+
   Either<Process, int> bwProcess;
 
-  BwRunner._(this.logger, this.bwFile, this.bwProcess) {
+  BwRunnerImpl._(this.logger, this.bwFile, this.bwProcess) {
     switch (bwProcess) {
       case EitherLeft<Process, int>(:final value):
         value.exitCode.then((code) {
@@ -216,7 +237,10 @@ class BwRunner {
     await randomAccessFile.writeString(process.pid.toString());
     randomAccessFile.flushSync();
 
-    return BwRunner._(logger, randomAccessFile, EitherLeft(process));
+    // Hack to wait for bw start
+    await Future.delayed(Duration(seconds: 2));
+
+    return BwRunnerImpl._(logger, randomAccessFile, EitherLeft(process));
   }
 
   static Future<BwRunner> create(String bwPath, Directory dataDir, Logger logger) async {
@@ -236,7 +260,7 @@ class BwRunner {
     final pidStr = utf8.decode(randomAccessFile.readSync(length));
     final pid = int.parse(pidStr);
     if (Process.killPid(pid, const _NullProcessSignal())) {
-      return BwRunner._(logger, randomAccessFile, EitherRigth(pid));
+      return BwRunnerImpl._(logger, randomAccessFile, EitherRigth(pid));
     } else {
       file.deleteSync();
       return _createWithNewFile(bwPath, logger, file);
@@ -260,6 +284,7 @@ class BwRunner {
     return process;
   }
 
+  @override
   Future<void> stop() async {
     switch (bwProcess) {
       case EitherLeft<Process, int>(value: final process):
@@ -268,6 +293,18 @@ class BwRunner {
         Process.killPid(pid);
         bwFile.closeSync();
     }
+  }
+}
+
+class BwRunnerDummy implements BwRunner {
+  @override
+  final Logger logger;
+
+  BwRunnerDummy(this.logger);
+
+  @override
+  Future<void> stop() async {
+    logger.warning("Called stop when bw dummy runner is used. Skipping call");
   }
 }
 

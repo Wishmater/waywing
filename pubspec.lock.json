@@ -1088,13 +1088,13 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "resolved-ref": "520a7570de720ad747533e23677b66c0d8f9f8a7",
+        "resolved-ref": "cf4347d8346b4c0398d339f4162b97d98f34a022",
         "tag-pattern": "{{version}}",
         "url": "https://github.com/ross96D/nucleo.dart",
-        "sha256": "sha256-bsXqRqNRyK5iLsAOcKUlEU+vGxIdV9tX1FWnrS1/CbA="
+        "sha256": "sha256-6YxxyUCI6Ah/BEn7g+W/kQi/99TM8Av3BJ1rwoUpMEU="
       },
       "source": "git",
-      "version": "0.1.2"
+      "version": "0.1.3"
     },
     "package_config": {
       "dependency": "transitive",

@@ -45,7 +45,7 @@ pkgs.flutter.buildFlutterApplication {
   ];
 
   preBuild = ''
-    export PRECOMPILED_SO_PATH=${nucleoRust}/lib/libnucleo_dart.so
+    export NIX_NUCLEO_PRECOMPILED_SO_PATH=${nucleoRust}/lib/libnucleo_dart.so
   '';
 
   # we have to do the zig stuff in postBuild and postInstall so they don't override

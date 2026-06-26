@@ -89,7 +89,7 @@ class SessionService extends Service<SessionServiceConfig> {
       return CanAction.yes;
     }
     try {
-      final sessionPath = await _manager.callGetSessionByPID(io.pid);
+      final sessionPath = await _getSessionPath();
       _session = OrgFreedesktopLogin1Session(_client, "org.freedesktop.login1", sessionPath);
       if (await _session!.getCanLock()) {
         return CanAction.yes;
@@ -100,6 +100,51 @@ class SessionService extends Service<SessionServiceConfig> {
       logger.warning("Error while getting logind session", error: e);
       return CanAction.no;
     }
+  }
+
+  Future<DBusObjectPath> _getSessionPath() async {
+    final methods = <(String, Future<DBusObjectPath> Function())>[
+      ("GetSessionByPID", () async => _manager.callGetSessionByPID(io.pid)),
+      ("XDG_SESSION_ID", _tryXdgSessionId),
+      ("ListSessions", _tryListSessions),
+    ];
+
+    final errors = <String, Object>{};
+    for (final (name, method) in methods) {
+      try {
+        final path = await method();
+        logger.trace("Got logind session via $name");
+        return path;
+      } catch (e) {
+        errors[name] = e;
+      }
+    }
+
+    final parts = errors.entries.map((e) => "${e.key}: ${e.value}").join("; ");
+    throw Exception("All logind session methods failed: $parts");
+  }
+
+  Future<DBusObjectPath> _tryXdgSessionId() async {
+    final sessionId = io.Platform.environment["XDG_SESSION_ID"];
+    if (sessionId == null || sessionId.isEmpty) {
+      throw Exception("XDG_SESSION_ID not set");
+    }
+    return _manager.callGetSession(sessionId);
+  }
+
+  Future<DBusObjectPath> _tryListSessions() async {
+    final user = io.Platform.environment["USER"] ?? io.Platform.environment["LOGNAME"];
+    if (user == null || user.isEmpty) {
+      throw Exception("USER/LOGNAME environment variable not set");
+    }
+
+    final sessions = await _manager.callListSessions();
+    for (final session in sessions) {
+      if (session.length >= 3 && session[2].asString() == user) {
+        return session[4].asObjectPath();
+      }
+    }
+    throw Exception("No session found for user $user");
   }
 
   @override

@@ -1,4 +1,6 @@
-{ pkgs ? import <nixpkgs> }:
+{
+  pkgs ? import <nixpkgs>,
+}:
 
 pkgs.flutter.buildFlutterApplication rec {
 
@@ -27,6 +29,9 @@ pkgs.flutter.buildFlutterApplication rec {
 
     # required by waywingcli
     zig
+
+    # required by nucleo.dart dependency
+    cargo
 
   ];
 

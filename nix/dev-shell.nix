@@ -1,10 +1,14 @@
-{ pkgs ? import <nixpkgs> { } }:
+{
+  pkgs ? import <nixpkgs> { },
+}:
 
-let build = import ./build.nix { inherit pkgs; };
+let
+  build = import ./build.nix { inherit pkgs; };
 
-in pkgs.mkShell {
+in
+pkgs.mkShell {
 
-  # Inherits all buildInputs/nativeBuildInputs from build.nix 
+  # Inherits all buildInputs/nativeBuildInputs from build.nix
   inputsFrom = [ build ];
 
   # Add other packages needed for dev, but not for build
@@ -42,7 +46,7 @@ in pkgs.mkShell {
   ];
 
   shellHook = ''
-    export LD_LIBRARY_PATH=${pkgs.pulseaudio.out}/lib
+    export LD_LIBRARY_PATH=build/linux/x64/debug/bundle/lib:${pkgs.pulseaudio.out}/lib
   '';
 
 }

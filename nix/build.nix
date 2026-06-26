@@ -2,16 +2,28 @@
   pkgs ? import <nixpkgs>,
 }:
 
-pkgs.flutter.buildFlutterApplication rec {
+let
+  pubspecLock = pkgs.lib.importJSON ./../pubspec.lock.json;
+  gitHashes = pkgs.lib.importJSON ./../pubspecGitHashes.json;
+
+  nucleoDartSrc = pkgs.fetchFromGitHub {
+    owner = "ross96D";
+    repo = "nucleo.dart";
+    rev = pubspecLock.packages.nucleo_dart.description."resolved-ref";
+    sha256 = gitHashes.nucleo_dart;
+  };
+
+  nucleoRust = import "${nucleoDartSrc}/nix/build.nix" { inherit pkgs; };
+
+in
+pkgs.flutter.buildFlutterApplication {
 
   pname = "waywing";
   version = "0.0.17";
 
   src = ./..;
 
-  # autoPubspecLock = src + "/pubspec.lock";
-  pubspecLock = pkgs.lib.importJSON (src + "/pubspec.lock.json");
-  gitHashes = pkgs.lib.importJSON (src + "/pubspecGitHashes.json");
+  inherit pubspecLock gitHashes;
 
   nativeBuildInputs = with pkgs; [
 
@@ -30,10 +42,11 @@ pkgs.flutter.buildFlutterApplication rec {
     # required by waywingcli
     zig
 
-    # required by nucleo.dart dependency
-    cargo
-
   ];
+
+  preBuild = ''
+    export PRECOMPILED_SO_PATH=${nucleoRust}/lib/libnucleo_dart.so
+  '';
 
   # we have to do the zig stuff in postBuild and postInstall so they don't override
   # default buildFlutterApplication phases

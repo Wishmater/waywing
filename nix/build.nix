@@ -58,7 +58,7 @@ pkgs.flutter.buildFlutterApplication {
     mv tools/waywingctl/zig-out/bin/waywingctl $out/bin/waywingctl
     # add runtime environment variables to waywing
     wrapProgram "$out/bin/waywing" \
-      --set LD_LIBRARY_PATH ${pkgs.pulseaudio.out}/lib
+      --set LD_LIBRARY_PATH $out/app/waywing/lib:${pkgs.pulseaudio.out}/lib
   '';
 
   # # env variables accessible to the built app at runtime, this doesn't seem to work...

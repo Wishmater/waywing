@@ -1,6 +1,10 @@
 version: "3"
 
 tasks:
+  frun:
+    cmds:
+      - fvm flutter run --pid-file /tmp/flutter.pid {{.CLI_ARGS}} --dart-entrypoint-args "--config=./config"
+
   run:
     cmds:
       - flutter run --pid-file /tmp/flutter.pid {{.CLI_ARGS}} --dart-entrypoint-args "--config=./config"

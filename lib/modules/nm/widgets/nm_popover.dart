@@ -31,7 +31,7 @@ class NetworkManagerPopover extends StatefulWidget {
 }
 
 class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
-  ValueNotifier<String?> selectedSsid = ValueNotifier(null);
+  ValueNotifier<int?> selectedWifiId = ValueNotifier(null);
   ValueNotifier<bool> requestingPassword = ValueNotifier(false);
   late final Future<void> initialRefreshFuture;
 
@@ -141,7 +141,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                                       data: [
                                         if (activeAccessPoint != null) activeAccessPoint,
                                         if (activeAccessPoint != null) null,
-                                        ...accessPoints.where((e) => e.ssid != activeAccessPoint?.ssid),
+                                        ...accessPoints.where((e) => e.id != activeAccessPoint?.id),
                                       ],
                                       itemBuilder: (context, ap) {
                                         if (ap == null) {
@@ -156,8 +156,8 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                                         return APWidget(
                                           device: widget.device,
                                           ap: ap,
-                                          isConnected: ap.ssid == activeAccessPoint?.ssid,
-                                          selectedSsid: selectedSsid,
+                                          isConnected: ap.id == activeAccessPoint?.id,
+                                          selectedWifiId: selectedWifiId,
                                           requestingPassword: requestingPassword,
                                         );
                                       },
@@ -185,14 +185,14 @@ class APWidget extends StatefulWidget {
   final NMServiceWifiDevice device;
   final NMServiceAccessPoint ap;
   final bool isConnected;
-  final ValueNotifier<String?> selectedSsid;
+  final ValueNotifier<int?> selectedWifiId;
   final ValueNotifier<bool> requestingPassword;
 
   const APWidget({
     required this.device,
     required this.ap,
     required this.isConnected,
-    required this.selectedSsid,
+    required this.selectedWifiId,
     required this.requestingPassword,
     super.key,
   });
@@ -223,11 +223,13 @@ class _APWidgetState extends State<APWidget> {
           widget.ap,
           userPassword: passwordController.text,
           autoconnect: autoConnect.value,
+          band: widget.ap.isDuplicated ? widget.ap.frequency < 3000 ? "bg" : "a" : null,
         );
       } else {
         final connectResult = await widget.device.connect(
           widget.ap,
           autoconnect: autoConnect.value,
+          band: widget.ap.isDuplicated ? widget.ap.frequency < 3000 ? "bg" : "a" : null,
         );
         if (connectResult == ConnectResponse.needsPassword) {
           widget.requestingPassword.value = true;
@@ -240,9 +242,9 @@ class _APWidgetState extends State<APWidget> {
   Widget build(BuildContext context) {
     // TODO: 2 implement internal size animation (so it animates when changing size for selected, request password, etc.)
     return ValueListenableBuilder(
-      valueListenable: widget.selectedSsid,
-      builder: (context, selectedSsid, _) {
-        final isSelected = selectedSsid == widget.ap.ssid;
+      valueListenable: widget.selectedWifiId,
+      builder: (context, selectedId, _) {
+        final isSelected = selectedId == widget.ap.id;
         List<Widget> extraWidgets = [];
         if (isSelected) {
           extraWidgets.addAll([
@@ -336,7 +338,7 @@ class _APWidgetState extends State<APWidget> {
           onTap: isSelected
               ? null
               : () {
-                  widget.selectedSsid.value = widget.ap.ssid;
+                  widget.selectedWifiId.value = widget.ap.id;
                   widget.requestingPassword.value = false;
                 },
           child: MotionContainer(
@@ -360,7 +362,9 @@ class _APWidgetState extends State<APWidget> {
                     Expanded(
                       child: Row(
                         children: [
-                          Text(widget.ap.ssid),
+                          widget.ap.isDuplicated
+                              ? Text("${widget.ap.ssid} - ${(widget.ap.frequency / 1000).toStringAsFixed(0)}G")
+                              : Text(widget.ap.ssid),
                           if (widget.ap.isSecured)
                             Padding(
                               padding: const EdgeInsets.only(left: 4),

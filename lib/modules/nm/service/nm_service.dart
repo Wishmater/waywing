@@ -278,54 +278,50 @@ extension on Iterable<NetworkManagerAccessPoint> {
     }
   }
 
-  Iterable<NetworkManagerAccessPoint> removeDuplicated(NetworkManagerAccessPoint? currentConnection) sync* {
-    final state = <_RemoveDuplicatedElement>{};
+  Iterable<NMServiceAccessPoint> deduplicate(NetworkManagerAccessPoint? currentConnection) sync* {
+    final state = <_DeduplicatedElement>{};
     int index = -1;
     final list = toList();
     for (final e in list) {
       index++;
 
-      final element = _RemoveDuplicatedElement(e.ssid, index);
-      if (e.hwAddress == currentConnection?.hwAddress) {
-        state.add(element);
-        continue;
-      }
+      final element = _DeduplicatedElement(e.ssid, index);
+
+      // if (e.hwAddress == currentConnection?.hwAddress) {
+      //   state.add(element);
+      //   continue;
+      // }
 
       if (!state.contains(element)) {
         state.add(element);
-        continue;
+        element.accessPoint = NMServiceAccessPoint(e, false)..init();
+        yield element.accessPoint!;
+      } else {
+        state.lookup(element)!.accessPoint!.isDuplicated = true;
+        yield NMServiceAccessPoint(e, true)..init();
       }
+      // final prev = list[state.lookup(element)!.index];
+      // if (prev.hwAddress == currentConnection?.hwAddress) {
+      //   continue;
+      // }
 
-      final prev = list[state.lookup(element)!.index];
-      if (prev.hwAddress == currentConnection?.hwAddress) {
-        continue;
-      }
-
-      final prevRank = _rankAccessPoint(prev);
-      final newRank = _rankAccessPoint(e);
-      if (newRank > prevRank) {
-        state.add(element);
-      }
-    }
-
-    for (final e in state) {
-      yield list[e.index];
+      // final prevRank = _rankAccessPoint(prev);
+      // final newRank = _rankAccessPoint(e);
+      // if (newRank > prevRank) {
+      //   state.add(element);
+      // }
     }
   }
 }
 
-double _rankAccessPoint(NetworkManagerAccessPoint accessPoint) {
-  /// TODO 2 prioritize previously connected accessPoint (use BSSID to identify)
-  return accessPoint.maxBitrate * (accessPoint.strength / 100);
-}
-
-class _RemoveDuplicatedElement {
+class _DeduplicatedElement {
   List<int> ssid;
   int index;
-  _RemoveDuplicatedElement(this.ssid, this.index);
+  NMServiceAccessPoint? accessPoint;
+  _DeduplicatedElement(this.ssid, this.index);
 
   @override
-  bool operator ==(covariant _RemoveDuplicatedElement other) {
+  bool operator ==(covariant _DeduplicatedElement other) {
     if (identical(ssid, other.ssid)) {
       return true;
     }
@@ -363,7 +359,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
         stream: _device.wireless!.propertiesChanged,
         callback: () {
           if (_device.wireless!.activeAccessPoint == null) return null;
-          final result = NMServiceAccessPoint(_device.wireless!.activeAccessPoint!);
+          final result = NMServiceAccessPoint(_device.wireless!.activeAccessPoint!, true);
           result.init();
           return result;
         },
@@ -376,12 +372,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
         callback: () => _device.wireless!.accessPoints
             .removeHidden()
             .removeInvalidUtf8Ssid()
-            .removeDuplicated(_device.wireless!.activeAccessPoint)
-            .map((e) {
-              final result = NMServiceAccessPoint(e);
-              result.init();
-              return result;
-            })
+            .deduplicate(_device.wireless!.activeAccessPoint)
             .sortedByDescending((e) => e._accessPoint.strength)
             .toList(),
       ),
@@ -471,6 +462,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
       }
     }
     try {
+      await conn.update(settings);
       await _client.activateConnection(device: _device, accessPoint: ap._accessPoint, connection: conn);
     } catch (e, st) {
       if (e.toString() == "Null check operator used on a null value") {
@@ -489,7 +481,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
     return ConnectResponse.success;
   }
 
-  Future<ConnectResponse> _createConnection(NMServiceAccessPoint ap, String? userPassword, bool? autoconnect) async {
+  Future<ConnectResponse> _createConnection(NMServiceAccessPoint ap, String? userPassword, bool? autoconnect, String? band) async {
     assert(ap._accessPoint.rsnFlags.isEmpty || userPassword != null);
     _logger.trace(
       "Creating and activating connection: ${_device.interface} ${utf8.decode(ap._accessPoint.ssid)}",
@@ -508,9 +500,16 @@ class NMServiceWifiDevice extends NMServiceDevice {
     NMServiceAccessPoint ap, {
     bool? autoconnect,
     String? userPassword,
+    String? band,
   }) async {
     final connAndSettings = await _searchForConnection(_device, ap._accessPoint);
     if (connAndSettings != null) {
+      final settings = connAndSettings.$2;
+      print("WIFI BAND 1: ${settings["802-11-wireless"]?["band"]}");
+      if (band != null) {
+        settings["802-11-wireless"]?["band"] = DBusString(band);
+      }
+      print("WIFI BAND 2: ${settings["802-11-wireless"]?["band"]} -> $band");
       // activate exisiting connection
       return _activateConnection(connAndSettings.$1, connAndSettings.$2, ap, userPassword);
     } else {
@@ -521,7 +520,7 @@ class NMServiceWifiDevice extends NMServiceDevice {
         );
         return ConnectResponse.needsPassword;
       }
-      return _createConnection(ap, userPassword, autoconnect);
+      return _createConnection(ap, userPassword, autoconnect, band);
     }
   }
 
@@ -601,6 +600,14 @@ class NMServiceWifiDevice extends NMServiceDevice {
 }
 
 class NMServiceAccessPoint {
+  int? _id;
+  int get id {
+    _id ??= "$ssid${_accessPoint.hwAddress}${_accessPoint.frequency}".hashCode;
+    return _id!;
+  }
+  
+  bool isDuplicated;
+
   ValueListenable<double> get strength => _strength;
   final DBusPropertyValueNotifier<double> _strength;
 
@@ -612,8 +619,10 @@ class NMServiceAccessPoint {
 
   late final isSecured = rsnFlags.isNotEmpty || wpaFlags.isNotEmpty;
 
+  late final frequency = _accessPoint.frequency;
+
   final NetworkManagerAccessPoint _accessPoint;
-  NMServiceAccessPoint(this._accessPoint)
+  NMServiceAccessPoint(this._accessPoint, this.isDuplicated)
     : _strength = DBusPropertyValueNotifier(
         name: "Strength",
         stream: _accessPoint.propertiesChanged,

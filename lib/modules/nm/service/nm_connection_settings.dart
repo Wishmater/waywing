@@ -187,7 +187,8 @@ class NMAccessPointSettingWireless {
     );
   }
 
-  Map<String, DBusValue> values() {
+  Map<String, DBusValue> values([String? band]) {
+    band ??= this.band;
     final resp = {
       "ssid": DBusArray.byte(ssid),
       "mode": DBusString(switch (mode) {
@@ -199,7 +200,7 @@ class NMAccessPointSettingWireless {
       }),
     };
     if (band != null) {
-      resp["band"] = DBusString(band!);
+      resp["band"] = DBusString(band);
     }
     return resp;
   }
@@ -394,6 +395,7 @@ Map<String, Map<String, DBusValue>> createSettings(
   String? password,
   bool? autoconnect,
   int? autoconnectPriority,
+  String? band,
 }) {
   final connection = NMAccessPointSettingConnection.fromAccessPoint(
     ap,
@@ -405,7 +407,7 @@ Map<String, Map<String, DBusValue>> createSettings(
   final wireless = NMAccessPointSettingWireless.fromAccessPoint(ap);
   final resp = {
     "connection": connection.values(),
-    "802-11-wireless": wireless.values(),
+    "802-11-wireless": wireless.values(band),
   };
   if (ap.rsnFlags.isNotEmpty) {
     final wirelessSecurity = NMAccessPointSettingWirelessSecurity.fromAccessPoint(ap, password);

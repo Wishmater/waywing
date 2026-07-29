@@ -100,7 +100,7 @@ class WingedIcon extends StatelessWidget {
           if (directBuilder != null) {
             return directBuilder!(context);
           } else {
-            return _WingedRawIcon(
+            return WingedRawIcon(
               directImageData: directImageData!,
               flutterIcon: flutterIcon,
               iconNames: iconNames,
@@ -342,6 +342,8 @@ class WingedIcon extends StatelessWidget {
 
 sealed class ImageData {
   const ImageData();
+
+  Widget build(BuildContext context, WingedRawIcon widget);
 }
 
 class AbsolutePathFileImageData extends ImageData {
@@ -351,6 +353,19 @@ class AbsolutePathFileImageData extends ImageData {
   @override
   String toString() {
     return "AbsolutePathFileImageData: $absolutePath";
+  }
+
+  @override
+  Widget build(BuildContext context, WingedRawIcon widget) {
+    final size = widget.size ?? TextIcon.getIconEffectiveSize(context);
+    return Image.file(
+      File(absolutePath),
+      width: size,
+      height: size,
+      errorBuilder: (context, e, st) {
+        return widget.buildFallback(context, e.toString());
+      },
+    );
   }
 }
 
@@ -364,6 +379,19 @@ class RawImageData extends ImageData {
   String toString() {
     return "RawImageData: length = ${data.length}";
   }
+
+  @override
+  Widget build(BuildContext context, WingedRawIcon widget) {
+    final size = widget.size ?? TextIcon.getIconEffectiveSize(context);
+    return Image.memory(
+      data,
+      width: size,
+      height: size,
+      errorBuilder: (context, e, st) {
+        return widget.buildFallback(context, e.toString());
+      },
+    );
+  }
 }
 
 class PixmapIconsImageData extends ImageData {
@@ -374,81 +402,17 @@ class PixmapIconsImageData extends ImageData {
   String toString() {
     return "PixmapIconsImageData: $pixmapIcons";
   }
-}
-
-class _WingedRawIcon extends StatelessWidget {
-  final List<ImageData> directImageData;
-  final IconData? flutterIcon;
-  final List<String>? iconNames;
-  final String? textIcon;
-  final List<IconType> iconPriorities;
-  final WidgetBuilder? notFoundBuilder;
-  final double? size;
-  final Color? color;
-  final WidgetBuilder? directBuilder;
-  final WidgetBuilder? flutterBuilder;
-  final WidgetBuilder? linuxBuilder;
-  final WidgetBuilder? textIconBuilder;
-  final IconUsageLog iconUsageLog;
-
-  const _WingedRawIcon({
-    required this.directImageData,
-    required this.flutterIcon,
-    required this.iconNames,
-    required this.textIcon,
-    required this.iconPriorities,
-    required this.notFoundBuilder,
-    required this.size,
-    required this.color,
-    required this.directBuilder,
-    required this.flutterBuilder,
-    required this.linuxBuilder,
-    required this.textIconBuilder,
-    required this.iconUsageLog,
-  });
 
   @override
-  Widget build(BuildContext context) {
-    return switch (directImageData.first) {
-      AbsolutePathFileImageData data => buildAbsolutePathFileImageData(context, data),
-      PixmapIconsImageData data => buildPixmapIconsImageData(context, data),
-      RawImageData data => buildRawImageData(context, data),
-    };
-  }
-
-  Widget buildRawImageData(BuildContext context, RawImageData data) {
-    final size = this.size ?? TextIcon.getIconEffectiveSize(context);
-    return Image.memory(
-      data.data,
-      width: size,
-      height: size,
-      errorBuilder: (context, e, st) {
-        return buildFallback(context, e.toString());
-      },
-    );
-  }
-
-  Widget buildAbsolutePathFileImageData(BuildContext context, AbsolutePathFileImageData data) {
-    final size = this.size ?? TextIcon.getIconEffectiveSize(context);
-    return Image.file(
-      File(data.absolutePath),
-      width: size,
-      height: size,
-      errorBuilder: (context, e, st) {
-        return buildFallback(context, e.toString());
-      },
-    );
-  }
-
-  Widget buildPixmapIconsImageData(BuildContext context, PixmapIconsImageData data) {
-    if (data.pixmapIcons.icons.isEmpty) {
-      return buildFallback(context, "Empty pixmap icons data");
+  Widget build(BuildContext context, WingedRawIcon widget) {
+    if (pixmapIcons.icons.isEmpty) {
+      return widget.buildFallback(context, "Empty pixmap icons data");
     }
-    final size = this.size ?? TextIcon.getIconEffectiveSize(context);
-    Pixmap icon = data.pixmapIcons.icons[0];
+    final size = widget.size ?? TextIcon.getIconEffectiveSize(context);
+    Pixmap icon = pixmapIcons.icons[0];
     // TODO: 3 choose the optimal size needed, instead of just getting largest
-    for (int i = 1; i < data.pixmapIcons.icons.length; i++) {
-      final e = data.pixmapIcons.icons[i];
+    for (int i = 1; i < pixmapIcons.icons.length; i++) {
+      final e = pixmapIcons.icons[i];
       if ((e.width + e.height) > (icon.width + icon.height)) {
         icon = e;
       }
@@ -463,11 +427,49 @@ class _WingedRawIcon extends StatelessWidget {
       ),
     );
   }
+}
+
+class WingedRawIcon extends StatelessWidget {
+  final List<ImageData> directImageData;
+  final IconData? flutterIcon;
+  final List<String>? iconNames;
+  final String? textIcon;
+  final List<IconType> iconPriorities;
+  final WidgetBuilder? notFoundBuilder;
+  final double? size;
+  final Color? color;
+  final WidgetBuilder? directBuilder;
+  final WidgetBuilder? flutterBuilder;
+  final WidgetBuilder? linuxBuilder;
+  final WidgetBuilder? textIconBuilder;
+  final IconUsageLog iconUsageLog;
+
+  const WingedRawIcon({
+    required this.directImageData,
+    required this.flutterIcon,
+    required this.iconNames,
+    required this.textIcon,
+    required this.iconPriorities,
+    required this.notFoundBuilder,
+    required this.size,
+    required this.color,
+    required this.directBuilder,
+    required this.flutterBuilder,
+    required this.linuxBuilder,
+    required this.textIconBuilder,
+    required this.iconUsageLog,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return directImageData.first.build(context, this);
+  }
 
   Widget buildFallback(BuildContext context, String error) {
     iconUsageLog.directImageDataErrors[directImageData.first] = error;
     if (directImageData.length > 1) {
-      return _WingedRawIcon(
+      return WingedRawIcon(
         directImageData: directImageData.sublist(1),
         flutterIcon: flutterIcon,
         iconNames: iconNames,

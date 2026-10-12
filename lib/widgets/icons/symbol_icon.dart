@@ -47,8 +47,11 @@ class SymbolIcon extends StatelessWidget {
     final fill = this.fill ?? mainConfig.theme.iconFlutterFill;
     final weight = this.weight ?? mainConfig.theme.iconFlutterWeight;
     var icon = this.icon;
-    if (icon != null && icon is VariedIconData) {
-      icon = icon.getVariation(mainConfig.theme.iconFlutterVariation.variation);
+    if (icon != null) {
+      final varied = SymbolsVaried.variations[icon];
+      if (varied != null) {
+        icon = varied.getVariation(mainConfig.theme.iconFlutterVariation.variation);
+      }
     }
     final mainIcon = Icon(
       icon,

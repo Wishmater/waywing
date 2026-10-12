@@ -18,7 +18,7 @@ dependencies:
       url: https://github.com/ross96D/config.dart
       tag_pattern: "{{version}}"
   config_gen:
-    version: ^0.0.17
+    version: ^0.0.19
     git:
       url: https://github.com/Wishmater/config_gen
       tag_pattern: "{{version}}"
@@ -74,7 +74,7 @@ dependencies:
     git:
       url: https://github.com/Wishmater/material_symbols_icons
       tag_pattern: "{{version}}"
-  flutter_mdi_icons: ^0.1.3 # Material Community Icons
+  flutter_mdi_icons: ^0.1.5 # Material Community Icons
   lucide_icons_flutter: ^3.1.0 # Lucide Icons, for some spice (mostly unused)
 
   # Native plugins
@@ -147,7 +147,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   build_runner: ^2.7.1
-  freezed: ^3.2.0
+  freezed: ^3.2.3
   json_serializable: ^6.11.1
 
 flutter:
@@ -156,6 +156,11 @@ flutter:
 dependency_overrides:
   intl: ^0.20.2
   meta: ^1.16.0
+  # Local fork of material_symbols_icons with support for Flutter 3.44+ (final
+  # IconData) and analyzer >=8. Switch back to the git dependency (and drop this
+  # override) once the changes are pushed to the upstream fork.
+  material_symbols_icons:
+    path: /home/ross/programming/contributions/material_symbols_icons
   # fl_linux_window_manager:
   #   path: ../fl-linux-window-manager
   # config:

@@ -230,7 +230,12 @@ class Application implements Comparable<Application> {
   /// backed by a dedicated cgroup. Falls back to a plain detached process when
   /// systemd is not available.
   Future<void> _spawnInCgroup(List<String> command, Logger logger) async {
-    final unit = "waywing-${_sanitizeUnitName(desktopFileName)}-$pid-${_scopeCounter++}.scope";
+    final unitStrBuffer = StringBuffer("waywing-$pid-${_sanitizeUnitName(desktopFileName)}");
+    if (_scopeCounter > 0) {
+      unitStrBuffer.write("-${_scopeCounter++}");
+    }
+    unitStrBuffer.write(".scope");
+    final unit = unitStrBuffer.toString();
     try {
       logger.debug("run systemd-run --user --scope --unit=$unit -- ${command.join(' ')}");
       await Process.start(

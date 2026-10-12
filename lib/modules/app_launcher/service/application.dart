@@ -216,16 +216,40 @@ class Application implements Comparable<Application> {
       final (cmd, args) = parseExec(exec!);
       if (this.terminal) {
         logger.debug("run $terminal -e $cmd ${args.join(' ')}");
-        await Process.start(
-          "setpgid",
-          [terminal, "-e", cmd, ...args],
-          mode: ProcessStartMode.detached,
-          includeParentEnvironment: true,
-        );
+        await _spawnInCgroup([terminal, "-e", cmd, ...args], logger);
       } else {
         logger.debug("run $cmd ${args.join(' ')}");
-        await Process.start("setpgid", [cmd, ...args], mode: ProcessStartMode.detached, includeParentEnvironment: true);
+        await _spawnInCgroup([cmd, ...args], logger);
       }
+    }
+  }
+
+  static int _scopeCounter = 0;
+
+  /// Launches [command] inside its own transient systemd user scope, which is
+  /// backed by a dedicated cgroup. Falls back to a plain detached process when
+  /// systemd is not available.
+  Future<void> _spawnInCgroup(List<String> command, Logger logger) async {
+    final unit = "waywing-${_sanitizeUnitName(desktopFileName)}-$pid-${_scopeCounter++}.scope";
+    try {
+      logger.debug("run systemd-run --user --scope --unit=$unit -- ${command.join(' ')}");
+      await Process.start(
+        "systemd-run",
+        ["--user", "--scope", "--collect", "--unit=$unit", "--", ...command],
+        mode: ProcessStartMode.detached,
+        includeParentEnvironment: true,
+      );
+    } on ProcessException catch (e) {
+      logger.warning(
+        "could not create cgroup scope for ${command.first}, falling back to plain spawn",
+        error: e,
+      );
+      await Process.start(
+        command.first,
+        command.sublist(1),
+        mode: ProcessStartMode.detached,
+        includeParentEnvironment: true,
+      );
     }
   }
 
@@ -239,6 +263,16 @@ enum _ParsingExecState {
   insideQuotes,
   inSpace,
   inWord,
+}
+
+/// Converts [name] into a valid systemd unit name component by replacing any
+/// character that is not allowed in a unit name with `-`.
+String _sanitizeUnitName(String name) {
+  final sanitized = name.replaceAll(RegExp(r"[^a-zA-Z0-9_.\-]"), "-");
+  if (sanitized.isEmpty) {
+    return "app";
+  }
+  return sanitized.length > 180 ? sanitized.substring(0, 180) : sanitized;
 }
 
 (String, List<String>) parseExec(String exec) {

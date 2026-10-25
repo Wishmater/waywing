@@ -1,0 +1,41 @@
+{
+    "id": "filo_wayland",
+    "label": "Filo Wayland",
+    "sdkNameAndVersion": "Filo / Wayland (debug)",
+    "platform": "linux-x64",
+    "enabled": true,
+    "ping": [
+        "bash",
+        "-c",
+        "test -f wayland/build.zig && test -n \"$WAYLAND_DISPLAY\" && test -n \"$XDG_RUNTIME_DIR\""
+    ],
+    "postBuild": [
+        "bash",
+        "wayland/tool/post-build.sh",
+        "${appName}",
+        "${localPath}",
+        "${buildMode}",
+        "${icuDataPath}",
+        "${engineRevision}"
+    ],
+    "install": [
+        "bash",
+        "wayland/tool/install.sh",
+        "${appName}",
+        "${localPath}"
+    ],
+    "uninstall": [
+        "bash",
+        "wayland/tool/uninstall.sh",
+        "${appName}"
+    ],
+    "runDebug": [
+        "bash",
+        "wayland/tool/run.sh",
+        "${appName}",
+        "${engineOptions}",
+        "${buildMode}",
+        "${icuDataPath}",
+        "${engineRevision}"
+    ]
+}

@@ -3,7 +3,7 @@ import "dart:io";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart" hide Notification, Action, Actions;
 import "package:intl/intl.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/notification/notification_config.dart";
@@ -15,7 +15,6 @@ import "package:waywing/widgets/draggable.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
-import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
@@ -523,7 +522,7 @@ class _NotificationTitle extends StatelessWidget {
                         onTap: (_, _) => onToggleExpand(),
                         child: WingedIcon(
                           // TODO: 2 ANIMATIONS for flutter icon (or maybe all) implement turning around animation
-                          flutterIcon: isExpanded ? SymbolsVaried.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                          flutterIcon: isExpanded ? Symbols.keyboard_arrow_up : Icons.keyboard_arrow_down,
                           // TODO: 3 add linux and nerdFont icons
                           size: effectiveIconSize * 0.8,
                           color: Theme.of(context).textTheme.bodyMedium!.color,
@@ -537,7 +536,7 @@ class _NotificationTitle extends StatelessWidget {
                       ),
                       onTap: (_, _) => service.closeNotification(notification),
                       child: WingedIcon(
-                        flutterIcon: SymbolsVaried.close,
+                        flutterIcon: Symbols.close,
                         iconNames: ["window-close"],
                         textIcon: "󰖭", // nf-md-window_close
                         size: effectiveIconSize * 0.8,

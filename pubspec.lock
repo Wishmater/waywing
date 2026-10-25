@@ -121,6 +121,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.0"
+  bitsdojo_window:
+    dependency: transitive
+    description:
+      name: bitsdojo_window
+      sha256: "88ef7765dafe52d97d7a3684960fb5d003e3151e662c18645c1641c22b873195"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.6"
+  bitsdojo_window_linux:
+    dependency: transitive
+    description:
+      name: bitsdojo_window_linux
+      sha256: "9519c0614f98be733e0b1b7cb15b827007886f6fe36a4fb62cf3d35b9dd578ab"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.4"
+  bitsdojo_window_macos:
+    dependency: transitive
+    description:
+      name: bitsdojo_window_macos
+      sha256: f7c5be82e74568c68c5b8449e2c5d8fd12ec195ecd70745a7b9c0f802bb0268f
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.4"
+  bitsdojo_window_platform_interface:
+    dependency: transitive
+    description:
+      name: bitsdojo_window_platform_interface
+      sha256: "65daa015a0c6dba749bdd35a0f092e7a8ba8b0766aa0480eb3ef808086f6e27c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
+  bitsdojo_window_windows:
+    dependency: transitive
+    description:
+      name: bitsdojo_window_windows
+      sha256: fa982cf61ede53f483e50b257344a1c250af231a3cdc93a7064dd6dc0d720b68
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.6"
   bitwarden_vault_api:
     dependency: "direct main"
     description:
@@ -501,6 +541,48 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  fz_bitsdojo_window:
+    dependency: transitive
+    description:
+      path: "../../../mpg/from_zero_ui/packages/fz_bitsdojo_window"
+      relative: true
+    source: path
+    version: "0.1.0"
+  fz_icons:
+    dependency: "direct main"
+    description:
+      path: "/home/ross/mpg/from_zero_ui/packages/fz_icons"
+      relative: false
+    source: path
+    version: "0.1.0"
+  fz_opacity_gradient:
+    dependency: transitive
+    description:
+      path: "../../../mpg/from_zero_ui/packages/fz_opacity_gradient"
+      relative: true
+    source: path
+    version: "0.1.0"
+  fz_platform:
+    dependency: transitive
+    description:
+      path: "../../../mpg/from_zero_ui/packages/fz_platform"
+      relative: true
+    source: path
+    version: "0.1.0"
+  fz_scrollbar:
+    dependency: transitive
+    description:
+      path: "../../../mpg/from_zero_ui/packages/fz_scrollbar"
+      relative: true
+    source: path
+    version: "0.1.0"
+  fz_tooltip:
+    dependency: transitive
+    description:
+      path: "../../../mpg/from_zero_ui/packages/fz_tooltip"
+      relative: true
+    source: path
+    version: "0.1.0"
   glob:
     dependency: transitive
     description:
@@ -737,10 +819,10 @@ packages:
     dependency: transitive
     description:
       name: matcher
-      sha256: dc0b7dc7651697ea4ff3e69ef44b0407ea32c487a39fff6a4004fa585e901861
+      sha256: "31bd099b47c10cd1aeb55146a2d46ce0277630ecef3f7dae54ad7873f36696cd"
       url: "https://pub.dev"
     source: hosted
-    version: "0.12.19"
+    version: "0.12.20"
   material_color_utilities:
     dependency: transitive
     description:
@@ -750,12 +832,13 @@ packages:
     source: hosted
     version: "0.13.0"
   material_symbols_icons:
-    dependency: "direct main"
+    dependency: transitive
     description:
-      path: "/home/ross/programming/contributions/material_symbols_icons"
-      relative: false
-    source: path
-    version: "4.2873.3"
+      name: material_symbols_icons
+      sha256: bd513edc2bc9b034108d5518c48cf5cebbb67d0653728cc452368cb27ca80bb0
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2960.0"
   meta:
     dependency: "direct overridden"
     description:
@@ -781,6 +864,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  mocktail:
+    dependency: transitive
+    description:
+      name: mocktail
+      sha256: "5e1bf53cc7baa8062a33b84424deb61513858ea05c601b8509e683815b5914aa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.5"
   motor:
     dependency: "direct main"
     description:
@@ -1169,26 +1260,26 @@ packages:
     dependency: transitive
     description:
       name: test
-      sha256: "8d9ceddbab833f180fbefed08afa76d7c03513dfdba87ffcec2718b02bbcbf20"
+      sha256: ca578dc12bb8b2f40b67b7d3bd2fac4f31c01a6ff7130a14e2597b919934507f
       url: "https://pub.dev"
     source: hosted
-    version: "1.31.0"
+    version: "1.31.1"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: "949a932224383300f01be9221c39180316445ecb8e7547f70a41a35bf421fb9e"
+      sha256: "2a122cbe059f8b610d3a5415f42e255b6c17b1f21eee1d960f31080237fb4f11"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.11"
+    version: "0.7.12"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "1991d4cfe85d5043241acac92962c3977c8d2f2add1ee73130c7b286417d1d34"
+      sha256: d2e98ec12998368dc59ddd47ab709f2cd55acd6b66dc7db764455a44082f4bc5
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.17"
+    version: "0.6.18"
   textwrap:
     dependency: transitive
     description:
@@ -1259,10 +1350,10 @@ packages:
     dependency: transitive
     description:
       name: vector_math
-      sha256: d530bd74fea330e6e364cda7a85019c434070188383e1cd8d9777ee586914c5b
+      sha256: "92b9910f66ed1057fd4da7b040ae7c74cafacf885bdc81be496928d5049b032d"
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.0"
+    version: "2.4.3"
   vm_service:
     dependency: transitive
     description:
@@ -1311,6 +1402,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  win32:
+    dependency: transitive
+    description:
+      name: win32
+      sha256: d7cb55e04cd34096cd3a79b3330245f54cb96a370a1c27adb3c84b917de8b08e
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.15.0"
   xdg_directories:
     dependency: transitive
     description:
@@ -1322,9 +1421,10 @@ packages:
   xdg_icons:
     dependency: "direct main"
     description:
-      path: "vendor/xdg_icon"
-      relative: true
-    source: path
+      name: xdg_icons
+      sha256: a7eac97d7dd6c85e1b295d8fe4e6be93976709f785f3cfc81e8b3d2f3d61101f
+      url: "https://pub.dev"
+    source: hosted
     version: "0.1.2"
   xml:
     dependency: transitive
@@ -1343,5 +1443,5 @@ packages:
     source: hosted
     version: "3.1.3"
 sdks:
-  dart: ">=3.10.0 <4.0.0"
-  flutter: ">=3.35.2"
+  dart: ">=3.11.0-0 <4.0.0"
+  flutter: ">=3.32.0"

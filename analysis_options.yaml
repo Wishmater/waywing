@@ -4,6 +4,8 @@ analyzer:
   exclude:
     - "**/*.g.dart"
     - vendor/*
+    - build/**
+    - linux/**
 
 linter:
   rules:

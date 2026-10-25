@@ -1,7 +1,7 @@
 import "dart:async";
 
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/state_positioning.dart";
 import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
@@ -326,7 +326,7 @@ class WingedContextMenuItem<T> extends StatelessWidget {
               Transform.translate(
                 offset: Offset(4, 0),
                 child: WingedIcon(
-                  flutterIcon: SymbolsVaried.chevron_right,
+                  flutterIcon: Symbols.chevron_right,
                   iconNames: ["arrow-right"],
                   textIcon: "󰅂", // nf-md-chevron_right
                   size: Theme.of(context).textTheme.bodyLarge!.fontSize! * 1.33,

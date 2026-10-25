@@ -4,6 +4,7 @@ import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/scheduler.dart";
 import "package:flutter/services.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/modules/bitwarden/bitwarden_service.dart";
 import "package:bitwarden_vault_api/bitwarden_api.dart" as bw;
 import "package:waywing/services/network_icon/network_icon_service.dart";

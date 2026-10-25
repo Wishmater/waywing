@@ -1,5 +1,6 @@
 import "package:dbus/dbus.dart";
 import "package:flutter/material.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:path/path.dart";
 import "package:waywing/modules/system_tray/service/status_item.dart";
 import "package:waywing/modules/system_tray/service/system_tray_service.dart";

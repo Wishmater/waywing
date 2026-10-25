@@ -1,6 +1,6 @@
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
@@ -43,7 +43,7 @@ class CommandPaletteFeather extends Feather {
         WingedButton(
           onTap: (_, _) => popover!.togglePopover(),
           child: WingedIcon(
-            flutterIcon: SymbolsVaried.keyboard_command_key,
+            flutterIcon: Symbols.keyboard_command_key,
           ),
         ),
       ];

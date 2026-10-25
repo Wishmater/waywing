@@ -505,11 +505,9 @@ class NMServiceWifiDevice extends NMServiceDevice {
     final connAndSettings = await _searchForConnection(_device, ap._accessPoint);
     if (connAndSettings != null) {
       final settings = connAndSettings.$2;
-      print("WIFI BAND 1: ${settings["802-11-wireless"]?["band"]}");
       if (band != null) {
         settings["802-11-wireless"]?["band"] = DBusString(band);
       }
-      print("WIFI BAND 2: ${settings["802-11-wireless"]?["band"]} -> $band");
       // activate exisiting connection
       return _activateConnection(connAndSettings.$1, connAndSettings.$2, ap, userPassword);
     } else {
@@ -605,7 +603,7 @@ class NMServiceAccessPoint {
     _id ??= "$ssid${_accessPoint.hwAddress}${_accessPoint.frequency}".hashCode;
     return _id!;
   }
-  
+
   bool isDuplicated;
 
   ValueListenable<double> get strength => _strength;

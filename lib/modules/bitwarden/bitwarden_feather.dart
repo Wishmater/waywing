@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import "package:flutter/foundation.dart";
-import "package:material_symbols_icons/symbols.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
@@ -61,7 +61,7 @@ class BitwardenLauncherFeather extends Feather {
           child: WingedIcon(
             // iconNames: [],
             // textIcon: "",
-            flutterIcon: SymbolsVaried.apps,
+            flutterIcon: Symbols.apps,
           ),
         ),
       ];

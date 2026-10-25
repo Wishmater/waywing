@@ -5,7 +5,7 @@ import "package:config_gen/config_gen.dart";
 import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
-import "package:material_symbols_icons/material_symbols_icons.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -113,7 +113,7 @@ class ModalWing extends Wing<ModalConfig> {
                         child: WingedIcon(
                           // TODO: 3 add details of the error, maybe show extract this feather error-handling
                           // logic into a widget that can be used in multiple places
-                          flutterIcon: SymbolsVaried.error,
+                          flutterIcon: Symbols.error,
                           color: mainConfig.theme.errorColor,
                         ),
                       ),

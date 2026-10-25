@@ -1,7 +1,7 @@
 import "dart:math";
 
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/nm/nm_config.dart";
@@ -78,7 +78,7 @@ class _NetworkManagerPopoverState extends State<NetworkManagerPopover> {
                         onTap: (_, _) => requestScan(),
                         initialFuture: initialRefreshFuture,
                         child: WingedIcon(
-                          flutterIcon: SymbolsVaried.refresh,
+                          flutterIcon: Symbols.refresh,
                           iconNames: ["view-refresh"],
                           textIcon: "󰑐", // nf-md-refresh
                           color: Theme.of(context).textTheme.bodyMedium!.color,
@@ -223,13 +223,21 @@ class _APWidgetState extends State<APWidget> {
           widget.ap,
           userPassword: passwordController.text,
           autoconnect: autoConnect.value,
-          band: widget.ap.isDuplicated ? widget.ap.frequency < 3000 ? "bg" : "a" : null,
+          band: widget.ap.isDuplicated
+              ? widget.ap.frequency < 3000
+                    ? "bg"
+                    : "a"
+              : null,
         );
       } else {
         final connectResult = await widget.device.connect(
           widget.ap,
           autoconnect: autoConnect.value,
-          band: widget.ap.isDuplicated ? widget.ap.frequency < 3000 ? "bg" : "a" : null,
+          band: widget.ap.isDuplicated
+              ? widget.ap.frequency < 3000
+                    ? "bg"
+                    : "a"
+              : null,
         );
         if (connectResult == ConnectResponse.needsPassword) {
           widget.requestingPassword.value = true;
@@ -369,7 +377,7 @@ class _APWidgetState extends State<APWidget> {
                             Padding(
                               padding: const EdgeInsets.only(left: 4),
                               child: WingedIcon(
-                                flutterIcon: SymbolsVaried.lock,
+                                flutterIcon: Symbols.lock,
                                 iconNames: ["system-lock-screen"],
                                 textIcon: "󰌾", // nf-md-lock
                                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! * 0.75,

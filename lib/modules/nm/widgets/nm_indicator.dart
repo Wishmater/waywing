@@ -2,13 +2,11 @@ import "package:flutter/material.dart";
 import "package:flutter_mdi_icons/flutter_mdi_icons.dart";
 import "package:human_file_size/human_file_size.dart";
 import "package:intl/intl.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:nm/nm.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
 import "package:waywing/util/human_readable_bytes.dart";
-import "package:waywing/widgets/icons/composed_icon.dart";
-import "package:waywing/widgets/icons/symbol_icon.dart";
 import "package:waywing/widgets/winged_widgets/icon_indicator.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_context_menu.dart";
@@ -206,37 +204,37 @@ class NetworkIcon extends StatelessWidget {
     // TODO: 3 implement icons for other network types
     Widget result = switch (type) {
       NetworkManagerDeviceType.ethernet => WingedIcon(
-        flutterIcon: SymbolsVaried.cable,
+        flutterIcon: Symbols.cable,
         iconNames: ["network-wired"],
         textIcon: "󰈀", // nf-md-ethernet
       ),
       NetworkManagerDeviceType.bluetooth => WingedIcon(
-        flutterIcon: SymbolsVaried.bluetooth_connected,
+        flutterIcon: Symbols.bluetooth_connected,
         iconNames: ["network-bluetooth-active", "bluetooth-active", "network-bluetooth", "bluetooth"],
         textIcon: "󰂱", // nf-md-bluetooth_connect
       ),
       NetworkManagerDeviceType.vlan => WingedIcon(
-        flutterIcon: SymbolsVaried.lan,
+        flutterIcon: Symbols.lan,
         // TODO: 3 set linux and nerdFont icons
         flutterBuilder: (context) => ComposedIcon(
           child: ComposedIcon(
-            subicon: SymbolIcon(SymbolsVaried.open_jam),
-            child: SymbolIcon(SymbolsVaried.lan),
+            subicon: SymbolIcon(Symbols.open_jam),
+            child: SymbolIcon(Symbols.lan),
           ),
         ),
       ),
       NetworkManagerDeviceType.bridge => WingedIcon(
-        flutterIcon: SymbolsVaried.lan,
+        flutterIcon: Symbols.lan,
         // TODO: 3 set linux and nerdFont icons
       ),
       _ => WingedIcon(
-        flutterIcon: SymbolsVaried.question_mark,
+        flutterIcon: Symbols.question_mark,
         iconNames: ["dialog-question"],
         textIcon: "", // nf-fa-question
         flutterBuilder: (context) => ComposedIcon(
           child: ComposedIcon(
-            subicon: SymbolIcon(SymbolsVaried.question_mark),
-            child: SymbolIcon(SymbolsVaried.lan),
+            subicon: SymbolIcon(Symbols.question_mark),
+            child: SymbolIcon(Symbols.lan),
           ),
         ),
       ),
@@ -295,23 +293,23 @@ class WifiIcon extends StatelessWidget {
       return ValueListenableBuilder(
         valueListenable: ap.strength,
         builder: (context, strength, child) {
-          final linuxIcon = switch(strength) {
-            >=0.90 => "network-wireless-100",
-            >=0.70 => "network-wireless-80",
-            >=0.50 => "network-wireless-60",
-            >=0.30 => "network-wireless-40",
-            >=0.10 => "network-wireless-20",
+          final linuxIcon = switch (strength) {
+            >= 0.90 => "network-wireless-100",
+            >= 0.70 => "network-wireless-80",
+            >= 0.50 => "network-wireless-60",
+            >= 0.30 => "network-wireless-40",
+            >= 0.10 => "network-wireless-20",
             _ => "network-wireless-0",
           };
 
           return WingedIcon(
-            flutterIcon: SymbolsVaried.wifi,
+            flutterIcon: Symbols.wifi,
             iconNames: [linuxIcon, "network-wireless"],
             textIcon: "", // nf-fa-wifi
             flutterBuilder: (context) {
               return Stack(
                 children: [
-                  SymbolIcon(SymbolsVaried.wifi, color: color.withValues(alpha: 0.25)),
+                  SymbolIcon(Symbols.wifi, color: color.withValues(alpha: 0.25)),
                   Positioned.fill(
                     child: ValueListenableBuilder(
                       valueListenable: ap.strength,
@@ -319,7 +317,7 @@ class WifiIcon extends StatelessWidget {
                         // TODO: 2 animate changes in strength
                         return ClipPath(
                           clipper: WifiStrengthClipper(strength),
-                          child: SymbolIcon(SymbolsVaried.wifi, color: color),
+                          child: SymbolIcon(Symbols.wifi, color: color),
                         );
                       },
                     ),
@@ -333,14 +331,14 @@ class WifiIcon extends StatelessWidget {
     }
     if (isConnected) {
       return WingedIcon(
-        flutterIcon: SymbolsVaried.wifi,
+        flutterIcon: Symbols.wifi,
         iconNames: ["network-wireless"],
         textIcon: "󰖩", // nf-md-wifi
         color: color,
       );
     }
     return WingedIcon(
-      flutterIcon: SymbolsVaried.wifi_off,
+      flutterIcon: Symbols.wifi_off,
       iconNames: ["network-wireless-off", "network-wireless"],
       textIcon: "󰖪", // nf-md-wifi_off
       color: color,
@@ -527,7 +525,7 @@ class ThroughputRateWidget extends StatelessWidget {
     Widget? icon;
     if (showIcon) {
       icon = WingedIcon(
-        flutterIcon: SymbolsVaried.swap_vert,
+        flutterIcon: Symbols.swap_vert,
         // TODO: 3 ICONS set a linux icon for this
         textIcon: "󰯎", // nf-md-swap_vertical_bold
         size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
@@ -595,7 +593,7 @@ class TxRateWidget extends StatelessWidget {
           layout: layout,
           text: "$readableBytes/s",
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.arrow_upward,
+            flutterIcon: Symbols.arrow_upward,
             // TODO: 3 ICONS set a linux icon for this
             textIcon: "󰁝", // nf-md-arrow_up
             size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
@@ -639,7 +637,7 @@ class RxRateWidget extends StatelessWidget {
           layout: layout,
           text: "$readableBytes/s",
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.arrow_downward,
+            flutterIcon: Symbols.arrow_downward,
             // TODO: 3 ICONS set a linux icon for this
             textIcon: "󰁅", // nf-md-arrow_down
             size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,

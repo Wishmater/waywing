@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/modules/aria2/aria2_feather.dart";
 import "package:waywing/modules/aria2/widgets/aria2_tooltip.dart";
 import "package:waywing/widgets/winged_widgets/icon_indicator.dart";
@@ -21,7 +21,7 @@ class Aria2Indicator extends StatelessWidget {
       builder: (context, constraints) {
         final isVertical = constraints.maxHeight > constraints.maxWidth;
         Widget result = WingedIcon(
-          flutterIcon: SymbolsVaried.cloud,
+          flutterIcon: Symbols.cloud,
           // TODO: 1 get better icons for aria2
         );
 

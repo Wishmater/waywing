@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
@@ -125,8 +125,8 @@ class VolumeSlider extends StatelessWidget {
                     // WingedButton(
                     //   padding: EdgeInsets.zero,
                     //   child: ComposedIcon(
-                    //     subicon: SymbolIcon(SymbolsVaried.remove),
-                    //     child: SymbolIcon(SymbolsVaried.volume_down),
+                    //     subicon: SymbolIcon(Symbols.remove),
+                    //     child: SymbolIcon(Symbols.volume_down),
                     //   ),
                     //   onTap: () {
                     //     model.decreaseVolume(config.volumeStep / 100);
@@ -135,8 +135,8 @@ class VolumeSlider extends StatelessWidget {
                     // WingedButton(
                     //   padding: EdgeInsets.zero,
                     //   child: ComposedIcon(
-                    //     subicon: SymbolIcon(SymbolsVaried.add),
-                    //     child: SymbolIcon(SymbolsVaried.volume_up),
+                    //     subicon: SymbolIcon(Symbols.add),
+                    //     child: SymbolIcon(Symbols.volume_up),
                     //   ),
                     //   onTap: () {
                     //     model.increaseVolume(config.volumeStep / 100);
@@ -158,7 +158,7 @@ class VolumeSlider extends StatelessWidget {
                             padding: dense ? EdgeInsets.zero : const EdgeInsets.all(4),
                             child: WingedIcon(
                               size: (dense ? 0.95 : 1) * IconTheme.of(context).size!,
-                              flutterIcon: SymbolsVaried.no_sound,
+                              flutterIcon: Symbols.no_sound,
                               iconNames: ["audio-volume-muted"],
                               textIcon: "󰝟", // nf-md-volume_mute
                               color: Theme.of(context).textTheme.bodyLarge!.color,

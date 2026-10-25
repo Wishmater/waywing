@@ -4,6 +4,7 @@ import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
@@ -13,7 +14,6 @@ import "package:waywing/core/feather.dart";
 import "package:waywing/modules/system_tray/system_tray_popover.dart";
 import "package:waywing/modules/system_tray/system_tray_tooltip.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/icons/text_icon.dart";
 
 part "system_tray_feather.config.dart";
 

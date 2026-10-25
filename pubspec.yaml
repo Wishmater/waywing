@@ -68,12 +68,8 @@ dependencies:
   # color scheme creation
   flex_seed_scheme: ^3.5.1
   # icons
-  material_symbols_icons: # ^4.0.0 # prefer using material symbols, that support parameters
-    version: ^4.2873.2
-    # path: ../material_symbols_icons
-    git:
-      url: https://github.com/Wishmater/material_symbols_icons
-      tag_pattern: "{{version}}"
+  fz_icons:
+    path: /home/ross/mpg/from_zero_ui/packages/fz_icons
   flutter_mdi_icons: ^0.1.5 # Material Community Icons
   lucide_icons_flutter: ^3.1.0 # Lucide Icons, for some spice (mostly unused)
 
@@ -93,8 +89,7 @@ dependencies:
   # network manager
   nm: ^0.5.0
   # render icons from string as defined in xdg icons spec
-  xdg_icons:
-    path: vendor/xdg_icon
+  xdg_icons: ^0.1.2
   # battery and other power options
   upower: # battery and other power options
     version: ^0.7.1
@@ -156,11 +151,6 @@ flutter:
 dependency_overrides:
   intl: ^0.20.2
   meta: ^1.16.0
-  # Local fork of material_symbols_icons with support for Flutter 3.44+ (final
-  # IconData) and analyzer >=8. Switch back to the git dependency (and drop this
-  # override) once the changes are pushed to the upstream fork.
-  material_symbols_icons:
-    path: /home/ross/programming/contributions/material_symbols_icons
   # fl_linux_window_manager:
   #   path: ../fl-linux-window-manager
   # config:

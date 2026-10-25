@@ -2,7 +2,7 @@ import "dart:math";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -10,7 +10,6 @@ import "package:waywing/core/server.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/session/os_info_service.dart";
 import "package:waywing/modules/session/session_service.dart";
-import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
@@ -72,7 +71,7 @@ class SessionFeather extends Feather {
           child: WingedIcon(
             iconNames: [osInfoService.logo ?? "", "distributor-logo-${osInfoService.osId}"],
             textIcon: osInfoService.osIcon,
-            flutterIcon: SymbolsVaried.power_settings_new,
+            flutterIcon: Symbols.power_settings_new,
             iconPriorities: priorities,
             // TODO: 3 won't this override the fallback mechanism if the text glyph is not found?
             textIconBuilder: (context) {
@@ -116,7 +115,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
             spacing: 2,
             children: [
               WingedIcon(
-                flutterIcon: SymbolsVaried.lock,
+                flutterIcon: Symbols.lock,
                 iconNames: ["system-lock-screen"],
                 textIcon: "󰌾", // nf-md-lock
               ),
@@ -135,7 +134,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
             spacing: 2,
             children: [
               WingedIcon(
-                flutterIcon: SymbolsVaried.sleep,
+                flutterIcon: Symbols.sleep,
                 iconNames: ["system-suspend"],
                 textIcon: "󰒲", // nf-md-sleep
               ),
@@ -153,7 +152,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
             spacing: 2,
             children: [
               WingedIcon(
-                flutterIcon: SymbolsVaried.replay,
+                flutterIcon: Symbols.replay,
                 iconNames: ["system-reboot"],
                 textIcon: "󰑙", // nf-md-replay
               ),
@@ -171,7 +170,7 @@ class _SessionPopoverState extends State<_SessionPopover> {
             spacing: 2,
             children: [
               WingedIcon(
-                flutterIcon: SymbolsVaried.mode_off_on,
+                flutterIcon: Symbols.mode_off_on,
                 iconNames: ["system-shutdown"],
                 textIcon: "󰐥", // nf-md-power
               ),

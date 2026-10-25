@@ -1,10 +1,9 @@
 import "package:flutter/material.dart";
 import "package:human_file_size/human_file_size.dart";
 import "package:intl/intl.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/modules/aria2/aria2_feather.dart";
 import "package:waywing/util/human_readable_bytes.dart";
-import "package:waywing/widgets/icons/symbol_icon.dart";
 import "package:waywing/widgets/winged_widgets/icon_indicator.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
@@ -121,7 +120,7 @@ class ActiveCount extends StatelessWidget {
           icon: SizedBox(
             width: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
             child: SymbolIcon(
-              SymbolsVaried.circle,
+              Symbols.circle,
               size: Theme.of(context).textTheme.bodyMedium!.fontSize!,
               color: Theme.of(context).colorScheme.primary,
               fill: 1,
@@ -156,7 +155,7 @@ class WaitingCount extends StatelessWidget {
           text: "$value",
           tooltip: "Waiting",
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.timer,
+            flutterIcon: Symbols.timer,
             // TODO: 3 ICONS set a linux and font icon for this
             size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
             color: Theme.of(context).textTheme.bodyMedium!.color,
@@ -190,7 +189,7 @@ class StoppedCount extends StatelessWidget {
           text: "$value",
           tooltip: "Stopped",
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.stop_circle,
+            flutterIcon: Symbols.stop_circle,
             // TODO: 3 ICONS set a linux and font icon for this
             size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
             color: Theme.of(context).textTheme.bodyMedium!.color,
@@ -233,7 +232,7 @@ class DownloadSpeedWidget extends StatelessWidget {
           layout: layout,
           text: "$readableBytes/s",
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.arrow_downward,
+            flutterIcon: Symbols.arrow_downward,
             // TODO: 3 ICONS set a linux icon for this
             textIcon: "󰁅", // nf-md-arrow_down
             size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
@@ -277,7 +276,7 @@ class UploadSpeedWidget extends StatelessWidget {
           layout: layout,
           text: "$readableBytes/s",
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.arrow_upward,
+            flutterIcon: Symbols.arrow_upward,
             // TODO: 3 ICONS set a linux icon for this
             textIcon: "󰁝", // nf-md-arrow_up
             size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
@@ -323,7 +322,7 @@ class UploadSpeedWidget extends StatelessWidget {
 //               children: [
 //                 WidgetSpan(
 //                   child: WingedIcon(
-//                     flutterIcon: SymbolsVaried.swap_vert,
+//                     flutterIcon: Symbols.swap_vert,
 //                     // TODO: 3 ICONS set a linux icon for this
 //                     textIcon: "󰯎", // nf-md-swap_vertical_bold
 //                     size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,

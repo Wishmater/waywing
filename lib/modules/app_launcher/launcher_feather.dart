@@ -1,6 +1,6 @@
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:path/path.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
@@ -50,7 +50,7 @@ class AppLauncherFeather extends Feather<LauncherConfig> {
           child: WingedIcon(
             // iconNames: [],
             // textIcon: "",
-            flutterIcon: SymbolsVaried.apps,
+            flutterIcon: Symbols.apps,
           ),
         ),
       ];
@@ -102,7 +102,7 @@ class _AppsState extends State<_Apps> {
           );
         } else {
           if (snapshot.hasError) {
-            return ErrorWidget.withDetails(message:"${snapshot.error!}\n${snapshot.stackTrace}");
+            return ErrorWidget.withDetails(message: "${snapshot.error!}\n${snapshot.stackTrace}");
           }
           return const Center(
             child: SizedBox(

@@ -4,21 +4,21 @@
       "dependency": "transitive",
       "description": {
         "name": "_fe_analyzer_shared",
-        "sha256": "da0d9209ca76bde579f2da330aeb9df62b6319c834fa7baae052021b0462401f",
+        "sha256": "c209688d9f5a5f26b2fb47a188131a6fb9e876ae9e47af3737c0b4f58a93470d",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "85.0.0"
+      "version": "91.0.0"
     },
     "analyzer": {
       "dependency": "transitive",
       "description": {
         "name": "analyzer",
-        "sha256": "974859dc0ff5f37bc4313244b3218c791810d03ab3470a579580279ba971a48d",
+        "sha256": "f51c8499b35f9b26820cfe914828a6a98a94efd5cc78b37bb7d03debae3a1d08",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "7.7.1"
+      "version": "8.4.1"
     },
     "animations": {
       "dependency": "direct main",
@@ -150,6 +150,56 @@
       "source": "hosted",
       "version": "3.0.0"
     },
+    "bitsdojo_window": {
+      "dependency": "transitive",
+      "description": {
+        "name": "bitsdojo_window",
+        "sha256": "88ef7765dafe52d97d7a3684960fb5d003e3151e662c18645c1641c22b873195",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "0.1.6"
+    },
+    "bitsdojo_window_linux": {
+      "dependency": "transitive",
+      "description": {
+        "name": "bitsdojo_window_linux",
+        "sha256": "9519c0614f98be733e0b1b7cb15b827007886f6fe36a4fb62cf3d35b9dd578ab",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "0.1.4"
+    },
+    "bitsdojo_window_macos": {
+      "dependency": "transitive",
+      "description": {
+        "name": "bitsdojo_window_macos",
+        "sha256": "f7c5be82e74568c68c5b8449e2c5d8fd12ec195ecd70745a7b9c0f802bb0268f",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "0.1.4"
+    },
+    "bitsdojo_window_platform_interface": {
+      "dependency": "transitive",
+      "description": {
+        "name": "bitsdojo_window_platform_interface",
+        "sha256": "65daa015a0c6dba749bdd35a0f092e7a8ba8b0766aa0480eb3ef808086f6e27c",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "0.1.2"
+    },
+    "bitsdojo_window_windows": {
+      "dependency": "transitive",
+      "description": {
+        "name": "bitsdojo_window_windows",
+        "sha256": "fa982cf61ede53f483e50b257344a1c250af231a3cdc93a7064dd6dc0d720b68",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "0.1.6"
+    },
     "bitwarden_vault_api": {
       "dependency": "direct main",
       "description": {
@@ -276,11 +326,11 @@
       "dependency": "transitive",
       "description": {
         "name": "characters",
-        "sha256": "f71061c654a3380576a52b451dd5532377954cf9dbd272a78fc8479606670803",
+        "sha256": "faf38497bda5ead2a8c7615f4f7939df04333478bf32e4173fcb06d428b5716b",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.4.0"
+      "version": "1.4.1"
     },
     "checked_yaml": {
       "dependency": "transitive",
@@ -358,13 +408,13 @@
       "dependency": "direct main",
       "description": {
         "path": ".",
-        "ref": "HEAD",
-        "resolved-ref": "2d71a6ab2da2b060c8af9774e8920cdd38efc7bd",
+        "resolved-ref": "84b4df54332bfa9898d4a2031de176d7b1d27f82",
+        "tag-pattern": "{{version}}",
         "url": "https://github.com/Wishmater/config_gen",
         "sha256": "sha256-DyAq+q4RSuTGgbk12gBYaXCumMdtmJ1h93adJpDdsMo="
       },
       "source": "git",
-      "version": "0.0.17"
+      "version": "0.0.19"
     },
     "convert": {
       "dependency": "transitive",
@@ -410,11 +460,11 @@
       "dependency": "transitive",
       "description": {
         "name": "dart_style",
-        "sha256": "8a0e5fba27e8ee025d2ffb4ee820b4e6e2cf5e4246a6b1a477eb66866947e0bb",
+        "sha256": "a9c30492da18ff84efe2422ba2d319a89942d93e58eb0b73d32abe822ef54b7b",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "3.1.1"
+      "version": "3.1.3"
     },
     "dartx": {
       "dependency": "direct main",
@@ -558,11 +608,11 @@
       "dependency": "direct main",
       "description": {
         "name": "flutter_mdi_icons",
-        "sha256": "1102ce94b85c7911b89d1e3801e3e0199151b2faffe6d5133d2bbe45e75bb1bd",
+        "sha256": "956522b50d28e30b2c10d77523fe1794abfcf51a20fcefd2afb258b56cfca006",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.1.3"
+      "version": "0.1.5"
     },
     "flutter_test": {
       "dependency": "direct dev",
@@ -592,11 +642,11 @@
       "dependency": "direct dev",
       "description": {
         "name": "freezed",
-        "sha256": "da32f8ba8cfcd4ec71d9decc8cbf28bd2c31b5283d9887eb51eb4a0659d8110c",
+        "sha256": "13065f10e135263a4f5a4391b79a8efc5fb8106f8dd555a9e49b750b45393d77",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "3.2.0"
+      "version": "3.2.3"
     },
     "freezed_annotation": {
       "dependency": "direct main",
@@ -627,6 +677,60 @@
       },
       "source": "hosted",
       "version": "1.0.0"
+    },
+    "fz_bitsdojo_window": {
+      "dependency": "transitive",
+      "description": {
+        "path": "../../../mpg/from_zero_ui/packages/fz_bitsdojo_window",
+        "relative": true
+      },
+      "source": "path",
+      "version": "0.1.0"
+    },
+    "fz_icons": {
+      "dependency": "direct main",
+      "description": {
+        "path": "/home/ross/mpg/from_zero_ui/packages/fz_icons",
+        "relative": false
+      },
+      "source": "path",
+      "version": "0.1.0"
+    },
+    "fz_opacity_gradient": {
+      "dependency": "transitive",
+      "description": {
+        "path": "../../../mpg/from_zero_ui/packages/fz_opacity_gradient",
+        "relative": true
+      },
+      "source": "path",
+      "version": "0.1.0"
+    },
+    "fz_platform": {
+      "dependency": "transitive",
+      "description": {
+        "path": "../../../mpg/from_zero_ui/packages/fz_platform",
+        "relative": true
+      },
+      "source": "path",
+      "version": "0.1.0"
+    },
+    "fz_scrollbar": {
+      "dependency": "transitive",
+      "description": {
+        "path": "../../../mpg/from_zero_ui/packages/fz_scrollbar",
+        "relative": true
+      },
+      "source": "path",
+      "version": "0.1.0"
+    },
+    "fz_tooltip": {
+      "dependency": "transitive",
+      "description": {
+        "path": "../../../mpg/from_zero_ui/packages/fz_tooltip",
+        "relative": true
+      },
+      "source": "path",
+      "version": "0.1.0"
     },
     "glob": {
       "dependency": "transitive",
@@ -818,16 +922,6 @@
       "source": "hosted",
       "version": "1.1.27"
     },
-    "js": {
-      "dependency": "transitive",
-      "description": {
-        "name": "js",
-        "sha256": "53385261521cc4a0c4658fd0ad07a7d14591cf8fc33abbceae306ddb974888dc",
-        "url": "https://pub.dev"
-      },
-      "source": "hosted",
-      "version": "0.7.2"
-    },
     "json_annotation": {
       "dependency": "direct main",
       "description": {
@@ -932,33 +1026,31 @@
       "dependency": "transitive",
       "description": {
         "name": "matcher",
-        "sha256": "dc58c723c3c24bf8d3e2d3ad3f2f9d7bd9cf43ec6feaa64181775e60190153f2",
+        "sha256": "dc0b7dc7651697ea4ff3e69ef44b0407ea32c487a39fff6a4004fa585e901861",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.12.17"
+      "version": "0.12.19"
     },
     "material_color_utilities": {
       "dependency": "transitive",
       "description": {
         "name": "material_color_utilities",
-        "sha256": "f7142bb1154231d7ea5f96bc7bde4bda2a0945d2806bb11670e30b850d56bdec",
+        "sha256": "9c337007e82b1889149c82ed242ed1cb24a66044e30979c44912381e9be4c48b",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.11.1"
+      "version": "0.13.0"
     },
     "material_symbols_icons": {
-      "dependency": "direct main",
+      "dependency": "transitive",
       "description": {
-        "path": ".",
-        "ref": "HEAD",
-        "resolved-ref": "c4216651083542667d53c58a96f8e86d25a1521a",
-        "url": "https://github.com/Wishmater/material_symbols_icons",
-        "sha256": "sha256-itKzX5DJlz3+XbbddRAk9/YG2YwifkiFiw8zA/EYe9U="
+        "name": "material_symbols_icons",
+        "sha256": "bd513edc2bc9b034108d5518c48cf5cebbb67d0653728cc452368cb27ca80bb0",
+        "url": "https://pub.dev"
       },
-      "source": "git",
-      "version": "4.2873.2"
+      "source": "hosted",
+      "version": "4.2960.0"
     },
     "meta": {
       "dependency": "direct overridden",
@@ -991,6 +1083,16 @@
       },
       "source": "hosted",
       "version": "2.0.0"
+    },
+    "mocktail": {
+      "dependency": "transitive",
+      "description": {
+        "name": "mocktail",
+        "sha256": "5e1bf53cc7baa8062a33b84424deb61513858ea05c601b8509e683815b5914aa",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "1.0.5"
     },
     "motor": {
       "dependency": "direct main",
@@ -1358,11 +1460,11 @@
       "dependency": "transitive",
       "description": {
         "name": "source_gen",
-        "sha256": "7b19d6ba131c6eb98bfcbf8d56c1a7002eba438af2e7ae6f8398b2b0f4f381e3",
+        "sha256": "a603f1fb984a7391ae5978d1b92bfaaa08b350dca5c825256f925818f7943bf5",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "3.1.0"
+      "version": "4.2.4"
     },
     "source_helper": {
       "dependency": "transitive",
@@ -1478,31 +1580,31 @@
       "dependency": "transitive",
       "description": {
         "name": "test",
-        "sha256": "75906bf273541b676716d1ca7627a17e4c4070a3a16272b7a3dc7da3b9f3f6b7",
+        "sha256": "8d9ceddbab833f180fbefed08afa76d7c03513dfdba87ffcec2718b02bbcbf20",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "1.26.3"
+      "version": "1.31.0"
     },
     "test_api": {
       "dependency": "transitive",
       "description": {
         "name": "test_api",
-        "sha256": "ab2726c1a94d3176a45960b6234466ec367179b87dd74f1611adb1f3b5fb9d55",
+        "sha256": "949a932224383300f01be9221c39180316445ecb8e7547f70a41a35bf421fb9e",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.7.7"
+      "version": "0.7.11"
     },
     "test_core": {
       "dependency": "transitive",
       "description": {
         "name": "test_core",
-        "sha256": "0cc24b5ff94b38d2ae73e1eb43cc302b77964fbf67abad1e296025b78deb53d0",
+        "sha256": "1991d4cfe85d5043241acac92962c3977c8d2f2add1ee73130c7b286417d1d34",
         "url": "https://pub.dev"
       },
       "source": "hosted",
-      "version": "0.6.12"
+      "version": "0.6.17"
     },
     "textwrap": {
       "dependency": "transitive",
@@ -1658,6 +1760,16 @@
       "source": "hosted",
       "version": "1.2.1"
     },
+    "win32": {
+      "dependency": "transitive",
+      "description": {
+        "name": "win32",
+        "sha256": "d7cb55e04cd34096cd3a79b3330245f54cb96a370a1c27adb3c84b917de8b08e",
+        "url": "https://pub.dev"
+      },
+      "source": "hosted",
+      "version": "5.15.0"
+    },
     "xdg_directories": {
       "dependency": "transitive",
       "description": {
@@ -1671,10 +1783,11 @@
     "xdg_icons": {
       "dependency": "direct main",
       "description": {
-        "path": "vendor/xdg_icon",
-        "relative": true
+        "name": "xdg_icons",
+        "sha256": "a7eac97d7dd6c85e1b295d8fe4e6be93976709f785f3cfc81e8b3d2f3d61101f",
+        "url": "https://pub.dev"
       },
-      "source": "path",
+      "source": "hosted",
       "version": "0.1.2"
     },
     "xml": {
@@ -1700,6 +1813,6 @@
   },
   "sdks": {
     "dart": ">=3.10.0 <4.0.0",
-    "flutter": ">=3.35.2"
+    "flutter": ">=3.32.0"
   }
 }

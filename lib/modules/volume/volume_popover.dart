@@ -1,11 +1,11 @@
 import "package:dartx/dartx_io.dart";
 import "package:flutter/material.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/modules/volume/volume_config.dart";
 import "package:waywing/modules/volume/volume_indicator.dart";
 import "package:waywing/modules/volume/volume_service.dart";
 import "package:waywing/modules/volume/volume_tooltip.dart";
-import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/motion_layout/motion_column.dart";
 import "package:waywing/widgets/opacity_gradient.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";

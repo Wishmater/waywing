@@ -1,13 +1,12 @@
 import "package:flutter/cupertino.dart";
 import "package:flutter/foundation.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/notification/notification_manager_popover.dart";
 import "package:waywing/modules/notification/notification_service.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/icons/composed_icon.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_context_menu.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
@@ -69,7 +68,7 @@ class NotificationManagerIndicator extends StatelessWidget {
       itemsBuilder: (context) => [
         WingedContextMenuItem(
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.notifications,
+            flutterIcon: Symbols.notifications,
             iconNames: ["notifications"],
           ),
           child: Text("Active"),
@@ -83,11 +82,11 @@ class NotificationManagerIndicator extends StatelessWidget {
             subiconSize: 0.65,
             subiconAlignment: Alignment.topRight,
             subicon: WingedIcon(
-              flutterIcon: SymbolsVaried.do_not_disturb_on,
+              flutterIcon: Symbols.do_not_disturb_on,
               iconNames: ["audio-volume-muted"],
             ),
             child: WingedIcon(
-              flutterIcon: SymbolsVaried.notifications,
+              flutterIcon: Symbols.notifications,
               iconNames: ["notifications"],
             ),
           ),
@@ -102,11 +101,11 @@ class NotificationManagerIndicator extends StatelessWidget {
             subiconSize: 0.65,
             subiconAlignment: Alignment.topRight,
             subicon: WingedIcon(
-              flutterIcon: SymbolsVaried.do_not_disturb_alt,
+              flutterIcon: Symbols.do_not_disturb_alt,
               iconNames: ["media-playback-stop"],
             ),
             child: WingedIcon(
-              flutterIcon: SymbolsVaried.notifications,
+              flutterIcon: Symbols.notifications,
               iconNames: ["notifications"],
             ),
           ),
@@ -129,18 +128,18 @@ class NotificationManagerIndicator extends StatelessWidget {
               // TODO: 2 show a different icon when there are unread notifications?
               return switch (status) {
                 NotificationsStatus.active => WingedIcon(
-                  flutterIcon: SymbolsVaried.notifications,
+                  flutterIcon: Symbols.notifications,
                   iconNames: ["notifications"],
                 ),
                 NotificationsStatus.silenced => ComposedIcon(
                   subiconSize: 0.65,
                   subiconAlignment: Alignment.topRight,
                   subicon: WingedIcon(
-                    flutterIcon: SymbolsVaried.do_not_disturb_on,
+                    flutterIcon: Symbols.do_not_disturb_on,
                     iconNames: ["audio-volume-muted"],
                   ),
                   child: WingedIcon(
-                    flutterIcon: SymbolsVaried.notifications,
+                    flutterIcon: Symbols.notifications,
                     iconNames: ["notifications"],
                   ),
                 ),
@@ -148,11 +147,11 @@ class NotificationManagerIndicator extends StatelessWidget {
                   subiconSize: 0.65,
                   subiconAlignment: Alignment.topRight,
                   subicon: WingedIcon(
-                    flutterIcon: SymbolsVaried.do_not_disturb_alt,
+                    flutterIcon: Symbols.do_not_disturb_alt,
                     iconNames: ["media-playback-stop"],
                   ),
                   child: WingedIcon(
-                    flutterIcon: SymbolsVaried.notifications,
+                    flutterIcon: Symbols.notifications,
                     iconNames: ["notifications"],
                   ),
                 ),

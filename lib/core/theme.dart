@@ -5,13 +5,11 @@ import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx.dart";
 import "package:flutter/material.dart";
 import "package:flex_seed_scheme/flex_seed_scheme.dart";
-import "package:material_symbols_icons/material_symbols_icons.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/config_fields.dart";
-import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/theme/button_theme.dart";
-import "package:waywing/widgets/winged_widgets/winged_icon.dart";
 
 part "theme.config.dart";
 

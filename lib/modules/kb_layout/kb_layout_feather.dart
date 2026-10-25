@@ -2,14 +2,12 @@ import "dart:async";
 
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/services/compositors/compositor.dart";
 import "package:waywing/util/derived_value_notifier.dart";
-import "package:waywing/widgets/icons/symbol_icon.dart";
-import "package:waywing/widgets/icons/text_icon.dart";
 import "package:waywing/widgets/splash_pulse.dart";
 import "package:waywing/widgets/winged_widgets/winged_button.dart";
 import "package:waywing/widgets/winged_widgets/winged_icon.dart";
@@ -74,7 +72,7 @@ class KeyboardLayoutIndicator extends StatelessWidget {
             builder: (context, constraints) {
               // final isVertical = constraints.maxHeight > constraints.maxWidth;
               final icon = WingedIcon(
-                flutterIcon: SymbolsVaried.keyboard,
+                flutterIcon: Symbols.keyboard,
                 iconNames: ["input-keyboard-cirtual-off", "input-keyboard"],
                 textIcon: "󰌓", // nf-md-keyboard_variant
                 size: theme.textTheme.bodyMedium!.fontSize! * 1.66,
@@ -86,7 +84,7 @@ class KeyboardLayoutIndicator extends StatelessWidget {
                   color: theme.textTheme.bodyMedium!.color,
                 ),
                 flutterBuilder: (context) => SymbolIcon(
-                  SymbolsVaried.keyboard,
+                  Symbols.keyboard,
                   fill: 0,
                   opticalSize: 48,
                   grade: -25,

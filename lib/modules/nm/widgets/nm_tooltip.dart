@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:human_file_size/human_file_size.dart";
 import "package:intl/intl.dart";
-import "package:material_symbols_icons/symbols.varied.dart";
+import "package:fz_icons/fz_icons.dart";
 import "package:waywing/modules/nm/nm_config.dart";
 import "package:waywing/modules/nm/widgets/nm_indicator.dart";
 import "package:waywing/modules/nm/service/nm_service.dart";
@@ -135,7 +135,7 @@ class ThroughputTotalWidget extends StatelessWidget {
               layout: layout,
               text: readableBytes,
               icon: WingedIcon(
-                flutterIcon: SymbolsVaried.swap_vertical_circle,
+                flutterIcon: Symbols.swap_vertical_circle,
                 // TODO: 3 ICONS set a linux icon for this
                 textIcon: "󰿣", // nf-md-swap_vertical_circle
                 size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
@@ -181,7 +181,7 @@ class TxTotalWidget extends StatelessWidget {
           layout: layout,
           text: readableBytes,
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.arrow_circle_up,
+            flutterIcon: Symbols.arrow_circle_up,
             // TODO: 3 ICONS set a linux icon for this
             textIcon: "󰳡", // nf-md-arrow_up_circle
             size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,
@@ -225,7 +225,7 @@ class RxTotalWidget extends StatelessWidget {
           layout: layout,
           text: readableBytes,
           icon: WingedIcon(
-            flutterIcon: SymbolsVaried.arrow_circle_down,
+            flutterIcon: Symbols.arrow_circle_down,
             // TODO: 3 ICONS set a linux icon for this
             textIcon: "󰳛", // nf-md-arrow_down_circle
             size: Theme.of(context).textTheme.bodyMedium!.fontSize! + 1,

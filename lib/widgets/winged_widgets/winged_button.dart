@@ -242,7 +242,7 @@ class _WingedButtonState<T> extends State<WingedButton<T>> {
           // properties just passed to InkResponse as-is
           containedInkWell: widget.containedInkWell,
           onHover: widget.onHover,
-          mouseCursor: widget.mouseCursor,
+          mouseCursor: widget.mouseCursor ?? SystemMouseCursors.click,
           radius: widget.radius,
           onTapDown: widget.onTapDown == null && !needsPrimaryTapDetails
               ? null

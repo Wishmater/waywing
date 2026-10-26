@@ -1,10 +1,11 @@
-import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/src/widgets/_window.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:motor/motor.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/animation_utils.dart";
 import "package:waywing/widgets/better_padding.dart";
+import "package:waywing/widgets/input_region.dart";
 import "package:waywing/widgets/motion_widgets/converters.dart";
 import "package:waywing/widgets/motion_widgets/motion_utils.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
@@ -145,7 +146,10 @@ class WingedContainerState extends State<WingedContainer> {
       );
     }
     if (addInputRegionWidget) {
+      // ignore: invalid_use_of_internal_member
+      final viewId = WindowScope.of(context).rootView.viewId;
       result = InputRegion(
+        viewId: viewId,
         active: widget.addInputRegion,
         child: result,
       );

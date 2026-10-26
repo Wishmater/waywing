@@ -2,7 +2,7 @@ import "dart:async";
 import "dart:ffi";
 import "package:ffi/ffi.dart";
 
-import "package:fl_linux_window_manager/widgets/input_region.dart";
+import "package:flutter/src/widgets/_window.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:waywing/core/config.dart";
@@ -10,6 +10,7 @@ import "package:waywing/core/feather_registry.dart";
 import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/derived_value_notifier.dart";
+import "package:waywing/widgets/input_region.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/searchopts/searchopts.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
@@ -98,6 +99,8 @@ class DMenuWing extends Wing {
         }
         return Center(
           child: InputRegion(
+            // ignore: invalid_use_of_internal_member
+            viewId: WindowScope.of(context).rootView.viewId,
             child: KeyboardFocus(
               debugLabel: "Menu",
               mode: KeyboardFocusMode.onDemand,

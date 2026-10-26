@@ -11,6 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  filo_windowing:
+    path: ../../my/fembed/packages/filo_windowing
+
   # Configuration parser
   config:
     version: ^0.0.16
@@ -96,12 +99,6 @@ dependencies:
     git:
       url: https://github.com/ross96D/upower.dart
       tag_pattern: "{{version}}"
-  # Linux window / shellLayer manager
-  fl_linux_window_manager:
-    version: ^2.0.9
-    git:
-      url: https://github.com/Wishmater/fl-linux-window-manager
-      tag_pattern: "{{version}}"
   # for audio mixing
   pulseaudio:
     # path: ../pulseaudio.dart
@@ -151,8 +148,6 @@ flutter:
 dependency_overrides:
   intl: ^0.20.2
   meta: ^1.16.0
-  # fl_linux_window_manager:
-  #   path: ../fl-linux-window-manager
   # config:
   #   path: ../config.dart
   # config_gen:

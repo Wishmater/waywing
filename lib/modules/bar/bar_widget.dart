@@ -1,12 +1,13 @@
+import "package:flutter/src/widgets/_window.dart";
 import "package:dartx/dartx.dart";
-import "package:fl_linux_window_manager/models/screen_edge.dart";
-import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:motor/motor.dart";
 import "package:waywing/modules/bar/bar_config.dart";
 import "package:waywing/modules/bar/bar_wing.dart";
+import "package:waywing/core/screen_edge.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/input_region.dart";
 import "package:waywing/widgets/motion_layout/motion_flex.dart";
 import "package:waywing/widgets/motion_layout/motion_layout.dart";
 import "package:waywing/widgets/motion_widgets/motion_opacity.dart";
@@ -663,6 +664,8 @@ class _BarState extends State<Bar> {
       );
     } else if (widget.config.containerType == BarContainerType.none) {
       result = InputRegion(
+        // ignore: invalid_use_of_internal_member
+        viewId: WindowScope.of(context).rootView.viewId,
         child: Material(
           type: MaterialType.transparency,
           shape: buttonShape,

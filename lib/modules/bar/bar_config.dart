@@ -1,11 +1,11 @@
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:dartx/dartx_io.dart";
-import "package:fl_linux_window_manager/models/screen_edge.dart";
 import "package:flutter/painting.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/screen_edge.dart";
 
 part "bar_config.config.dart";
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Flutter custom-device `runDebug` hook.
 #
-#   $1 appName        $2 engineOptions  $3 buildMode
+#   $1 appName        $2 engineOptions (ignored for now)  $3 buildMode
 #   $4 icuDataPath     $5 engineRevision
 #
 # Flutter watches this process's stdout/stderr for the VM service URL. Keep
@@ -9,7 +9,6 @@
 set -euo pipefail
 
 app_name="${1:-app}"
-engine_options="${2:-}"
 _build_mode="${3:-debug}"
 icu_data="${4:-}"
 _engine_revision="${5:-}"
@@ -47,11 +46,25 @@ if [[ -z "$FILO_ICU_DATA" ]]; then
     exit 1
 fi
 
-# Flutter gives all switches as one space-separated string. They are simple
-# --key=value flags; split them back into argv for the host.
-engine_args=()
-if [[ -n "$engine_options" ]]; then
-    read -r -a engine_args <<<"$engine_options"
+# Engine switches from Flutter's ${engineOptions} are currently ignored; argv
+# is reserved for Dart entrypoint arguments.
+
+# Flutter custom devices do not forward --dart-entrypoint-args. Pass the Dart
+# entrypoint arguments here instead, one per line:
+#
+#   FILO_DART_ENTRYPOINT_ARGS=$'--dart-flag\nvalue' flutter run -d filo_wayland
+#
+# The host receives them as argv and forwards them to main(List<String> args).
+dart_args=()
+if [[ -n "${FILO_DART_ENTRYPOINT_ARGS:-}" ]]; then
+    # `printf` avoids the extra empty element a here-string adds when the
+    # variable already ends with a newline.
+    mapfile -t dart_args < <(printf '%s' "$FILO_DART_ENTRYPOINT_ARGS")
+fi
+# Also forward arguments after the five hook parameters, so a future Flutter
+# tool or a manual invocation can pass argv through unchanged.
+if [[ $# -gt 5 ]]; then
+    dart_args+=("${@:6}")
 fi
 
 bin="./zig-out/bin/$app_name"
@@ -63,8 +76,8 @@ if [[ ! -x "$bin" ]]; then
     exit 1
 fi
 
-if [[ ${#engine_args[@]} -gt 0 ]]; then
-    exec "$bin" "${engine_args[@]}"
+if [[ ${#dart_args[@]} -gt 0 ]]; then
+    exec "$bin" "${dart_args[@]}"
 else
     exec "$bin"
 fi

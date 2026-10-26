@@ -1,14 +1,15 @@
+import 'package:flutter/src/widgets/_window.dart';
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
-import "package:fl_linux_window_manager/models/screen_edge.dart";
-import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/core/feather.dart";
 import "package:waywing/core/feather_registry.dart";
+import "package:waywing/core/screen_edge.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/input_region.dart";
 import "package:waywing/widgets/motion_widgets/motion_positioned.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
 import "package:waywing/widgets/winged_widgets/winged_container.dart";
@@ -118,6 +119,8 @@ class DrawerWing extends Wing<DrawerConfig> {
           width: width,
           height: height,
           child: InputRegion(
+            // ignore: invalid_use_of_internal_member
+            viewId: WindowScope.of(context).rootView.viewId,
             child: WingedPopover(
               builder: (context, controller, child) {
                 return SizedBox.expand();

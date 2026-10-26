@@ -1,7 +1,7 @@
 import "dart:async";
 
+import "package:flutter/src/widgets/_window.dart";
 import "package:dartx/dartx.dart";
-import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
@@ -14,6 +14,7 @@ import "package:waywing/util/logger.dart";
 import "package:waywing/util/math_utils.dart";
 import "package:waywing/util/popup_utils.dart";
 import "package:waywing/util/state_positioning.dart";
+import "package:waywing/widgets/input_region.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/overflow_or_fit.dart";
 import "package:waywing/widgets/motion_widgets/motion_padding.dart";
@@ -354,6 +355,8 @@ class WingedPopoverProviderState extends State<WingedPopoverProvider> {
 
   Widget buildBarrier(BuildContext context) {
     return InputRegion(
+      // ignore: invalid_use_of_internal_member
+      viewId: WindowScope.of(context).rootView.viewId,
       child: GestureDetector(
         onTap: () {
           for (final e in List<WingedPopoverState>.from(activeHosts)) {
@@ -802,6 +805,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
       // this solution is not ideal because it may conflict with the better declared InputRegion on the
       // Popover container, which might include detailed border radius, etc.
       container = InputRegion(
+        // ignore: invalid_use_of_internal_member
+        viewId: WindowScope.of(context).rootView.viewId,
         child: MouseRegion(
           onEnter: (_) => provider.onMouseEnterClient(this),
           onExit: (_) => provider.onMouseExitClient(this),
@@ -881,6 +886,8 @@ class WingedPopoverClientState extends State<WingedPopoverClient> with TickerPro
           if (popoverParams.barrier != null)
             Positioned.fill(
               child: InputRegion(
+                // ignore: invalid_use_of_internal_member
+                viewId: WindowScope.of(context).rootView.viewId,
                 active: !widget.isRemoved,
                 child: IgnorePointer(
                   ignoring: widget.isRemoved,

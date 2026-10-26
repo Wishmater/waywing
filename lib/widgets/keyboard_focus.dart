@@ -1,7 +1,5 @@
-import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
-import "package:fl_linux_window_manager/models/keyboard_mode.dart";
+import "package:filo_windowing/filo_windowing.dart";
 import "package:flutter/material.dart";
-import "package:mutex/mutex.dart" as mut;
 import "package:tronco/tronco.dart";
 import "package:waywing/core/config.dart";
 import "package:waywing/util/logger.dart";
@@ -100,10 +98,8 @@ class _KeyboardFocusProviderState extends State<KeyboardFocusProvider> {
   @override
   void initState() {
     super.initState();
-    widget.keyboardService.mutex.protect(() {
-      _logger.trace("Setting initial keyboard interactivity mode: ${widget.keyboardService._currentMode}");
-      return FlLinuxWindowManager.instance.setKeyboardInteractivity(widget.keyboardService._currentMode);
-    });
+    _logger.trace("Setting initial keyboard interactivity mode: ${widget.keyboardService._currentMode}");
+    widget.keyboardService.controller.setKeyboardInteractivity(widget.keyboardService._currentMode);
   }
 
   Future<int> requestFocus(KeyboardFocusMode mode) {
@@ -120,32 +116,32 @@ class _KeyboardFocusProviderState extends State<KeyboardFocusProvider> {
   }
 }
 
-extension on KeyboardMode {
-  bool isPriorityGreater(KeyboardMode other) {
+extension on FiloLayerKeyboardInteractivity {
+  bool isPriorityGreater(FiloLayerKeyboardInteractivity other) {
     return switch (this) {
-      KeyboardMode.none => false,
-      KeyboardMode.onDemand => switch (other) {
-        KeyboardMode.none => true,
+      .none => false,
+      .onDemand => switch (other) {
+        .none => true,
         _ => false,
       },
-      KeyboardMode.exclusive => switch (other) {
-        KeyboardMode.exclusive => false,
+      .exclusive => switch (other) {
+        .exclusive => false,
         _ => true,
       },
     };
   }
 
-  bool isPriorityEqualOrGreater(KeyboardMode other) {
+  bool isPriorityEqualOrGreater(FiloLayerKeyboardInteractivity other) {
     return switch (this) {
-      KeyboardMode.none => switch (other) {
-        KeyboardMode.none => true,
+      .none => switch (other) {
+        .none => true,
         _ => false,
       },
-      KeyboardMode.onDemand => switch (other) {
-        KeyboardMode.exclusive => false,
+      .onDemand => switch (other) {
+        .exclusive => false,
         _ => true,
       },
-      KeyboardMode.exclusive => switch (other) {
+      .exclusive => switch (other) {
         _ => true,
       },
     };
@@ -156,10 +152,10 @@ enum KeyboardFocusMode {
   onDemand,
   exclusive;
 
-  KeyboardMode kMode() {
+  FiloLayerKeyboardInteractivity kMode() {
     return switch (this) {
-      KeyboardFocusMode.onDemand => KeyboardMode.onDemand,
-      KeyboardFocusMode.exclusive => KeyboardMode.exclusive,
+      .onDemand => .onDemand,
+      .exclusive => .exclusive,
     };
   }
 }
@@ -172,26 +168,21 @@ class _GenerateId {
 /// Service to manage keyboard input mode. This class is intended
 /// to be used on initState/dispose on widgets that needs keyboard input
 class KeyboardFocusService {
+  final FiloLayerWindowController controller;
   final Map<int, KeyboardFocusMode> _modes;
   int? _currentId;
-  mut.Mutex mutex;
 
-  KeyboardMode getDefaultMode() => mainConfig.requestKeyboardFocus ? KeyboardMode.onDemand : KeyboardMode.none;
+  FiloLayerKeyboardInteractivity getDefaultMode() =>
+      mainConfig.requestKeyboardFocus ? FiloLayerKeyboardInteractivity.onDemand : FiloLayerKeyboardInteractivity.none;
 
-  KeyboardMode get _currentMode {
+  FiloLayerKeyboardInteractivity get _currentMode {
     if (_currentId != null) {
       return _modes[_currentId]!.kMode();
     }
     return getDefaultMode();
   }
 
-  KeyboardFocusService._() : _modes = {}, _currentId = null, mutex = mut.Mutex();
-
-  static KeyboardFocusService? _instance;
-  factory KeyboardFocusService() {
-    _instance ??= KeyboardFocusService._();
-    return _instance!;
-  }
+  KeyboardFocusService(this.controller) : _modes = {}, _currentId = null;
 
   /// Sets a keyboard mode.
   /// Returns the id of the request, this allow other services to request a keyboard mode
@@ -202,19 +193,17 @@ class KeyboardFocusService {
   /// the request expires (removeMode is called with the request id).
   Future<int> setMode(KeyboardFocusMode mode) async {
     assert(
-      mode.kMode().isPriorityGreater(KeyboardMode.none),
+      mode.kMode().isPriorityGreater(.none),
       "all KeyboardFocusMode KeyboardMode must be greater than KeyboardMode.none",
     );
-    return await mutex.protect(() async {
-      final id = _GenerateId.generate;
-      _modes[id] = mode;
-      if (mode.kMode().isPriorityGreater(_currentMode)) {
-        _currentId = id;
-        _logger.trace("Setting keyboard interactivity mode: ${mode.kMode()}");
-        await FlLinuxWindowManager.instance.setKeyboardInteractivity(mode.kMode());
-      }
-      return id;
-    });
+    final id = _GenerateId.generate;
+    _modes[id] = mode;
+    if (mode.kMode().isPriorityGreater(_currentMode)) {
+      _currentId = id;
+      _logger.trace("Setting keyboard interactivity mode: ${mode.kMode()}");
+      controller.setKeyboardInteractivity(mode.kMode());
+    }
+    return id;
   }
 
   /// Recieve the request id and remove the asociated mode from the list.
@@ -222,35 +211,33 @@ class KeyboardFocusService {
   /// If the asociated mode is the one running then the next max priority mode is set
   /// as current.
   Future<void> removeMode(int id) async {
-    return await mutex.protect(() async {
-      final prevMode = _modes.remove(id)?.kMode();
-      if (prevMode == null) {
-        return;
-      }
-      if (id == _currentId) {
-        final id = _searchMaxPriorityMode().$1;
-        if (id == -1) {
-          assert(_modes.isEmpty, "modes is not empty but searchMaxPriorityMode return -1");
-          _currentId = null;
-          final fallbackMode = getDefaultMode();
-          if (fallbackMode != prevMode) {
-            _logger.trace("Setting keyboard interactivity mode fallback (id==-1): $fallbackMode");
-            await FlLinuxWindowManager.instance.setKeyboardInteractivity(fallbackMode);
-          }
-        } else {
-          _currentId = id;
-          if (prevMode.isPriorityGreater(_currentMode)) {
-            _logger.trace("Setting keyboard interactivity mode fallback: $_currentMode");
-            await FlLinuxWindowManager.instance.setKeyboardInteractivity(_currentMode);
-          }
+    final prevMode = _modes.remove(id)?.kMode();
+    if (prevMode == null) {
+      return;
+    }
+    if (id == _currentId) {
+      final id = _searchMaxPriorityMode().$1;
+      if (id == -1) {
+        assert(_modes.isEmpty, "modes is not empty but searchMaxPriorityMode return -1");
+        _currentId = null;
+        final fallbackMode = getDefaultMode();
+        if (fallbackMode != prevMode) {
+          _logger.trace("Setting keyboard interactivity mode fallback (id==-1): $fallbackMode");
+          controller.setKeyboardInteractivity(fallbackMode);
+        }
+      } else {
+        _currentId = id;
+        if (prevMode.isPriorityGreater(_currentMode)) {
+          _logger.trace("Setting keyboard interactivity mode fallback: $_currentMode");
+          controller.setKeyboardInteractivity(_currentMode);
         }
       }
-    });
+    }
   }
 
-  (int, KeyboardMode) _searchMaxPriorityMode() {
+  (int, FiloLayerKeyboardInteractivity) _searchMaxPriorityMode() {
     int id = -1;
-    KeyboardMode mode = getDefaultMode();
+    FiloLayerKeyboardInteractivity mode = getDefaultMode();
     for (final entry in _modes.entries) {
       final key = entry.key;
       final value = entry.value;

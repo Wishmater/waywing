@@ -3,7 +3,7 @@ version: "3"
 tasks:
   frun:
     cmds:
-      - puro flutter run --pid-file /tmp/flutter.pid {{.CLI_ARGS}} --dart-entrypoint-args "--config=./config"
+      - FILO_DART_ENTRYPOINT_ARGS=--config=./config puro flutter run -d filo_wayland --pid-file /tmp/flutter.pid {{.CLI_ARGS}}
 
   run:
     cmds:

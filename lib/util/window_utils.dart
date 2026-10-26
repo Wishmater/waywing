@@ -1,176 +1,275 @@
-import "dart:async";
+// ignore_for_file: implementation_imports, invalid_use_of_internal_member
 
-import "package:fl_linux_window_manager/controller/input_region_controller.dart";
-import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
-import "package:fl_linux_window_manager/models/keyboard_mode.dart";
-import "package:fl_linux_window_manager/models/layer.dart";
-import "package:fl_linux_window_manager/models/screen_edge.dart";
-import "package:tronco/tronco.dart";
+import "package:filo_windowing/filo_windowing.dart";
+import "package:flutter/src/widgets/_window.dart";
+import "package:flutter/widgets.dart";
 import "package:waywing/core/config.dart";
+import "package:waywing/core/screen_edge.dart";
 import "package:waywing/util/logger.dart";
+import "package:waywing/widgets/input_region.dart";
 
-final _logger = mainLogger.clone(properties: [LogType("FlLinuxWindowManager")]);
+final _logger = mainLogger.clone(properties: [LogType("WaywingWindows")]);
 
-// we need to await an arbitrary time in between windowManager calls
-// to avoid race conditions, because Futures returned by the lib cant' be trusted
-const _delayDuration = Duration(milliseconds: 100);
+/// The window manager for this isolate. Assigned during startup, before the
+/// root widget is built.
+late final WaywingWindowManager windowManager;
 
-Future<void> setupMainWindow() async {
-  _logger.log(Level.trace, "Setting main window title...");
-  // we need to set monitor here as well, otherwise it flashes on the wrong monitor on startup
-  await Future.wait([
-    FlLinuxWindowManager.instance.setMonitor(mainConfig.monitor),
-    FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),
-    FlLinuxWindowManager.instance.setTitle(title: "WayWings"),
-  ]);
-  await Future.delayed(_delayDuration);
+/// Owns the layer windows that make up the shell.
+///
+/// The main window renders the wings. One additional layer surface per screen
+/// edge reserves space for that side's exclusive size.
+class WaywingWindowManager extends ChangeNotifier {
+  WaywingWindowManager(this.owner);
 
-  // // this doesn't seem to be necessary
-  // logger.log(Level.trace, "Setting main window transparency enabled...");
-  // await FlLinuxWindowManager.instance.enableTransparency();
-  // await Future.delayed(_delayDuration);
+  final FiloWindowingOwner owner;
 
-  _logger.log(Level.trace, "Setting main window layer...");
-  await FlLinuxWindowManager.instance.setLayer(WindowLayer.top);
-  await FlLinuxWindowManager.instance.setKeyboardInteractivity(KeyboardMode.none);
-  await Future.delayed(_delayDuration);
+  late FiloLayerWindowController main;
+  final Map<ScreenEdge, FiloLayerWindowController> _edges = {};
 
-  _logger.log(Level.trace, "Setting main window anchors...");
-  await FlLinuxWindowManager.instance.setLayerAnchor(
-    anchor: ScreenEdge.values.map((e) => e.value).reduce((a, b) => a | b), // all anchors
-  );
-  await Future.delayed(_delayDuration);
+  bool _initialized = false;
+  bool _updateScheduled = false;
 
-  // Delay creating edge windows, because they depend on wings being initialized.
-  // updateWindows() will be called again by ConfigWatcher widget when it is initialized.
-  return updateWindows(onlyMainWindow: true);
-}
+  int _requestedOutput = -1;
+  int _surfaceOutput = -1;
 
-Future<void>? _running; // rudimentary safety mechanism to make sure updates don't run at the same time
-Future<void>? _waiting; // if another update is already waiting, this one is just not necessary
-Future<void> updateWindows({
-  bool onlyMainWindow =
-      false, // the system for skipping some calls doesn't take into account params, this could be an issue.......
-}) async {
-  final id = DateTime.now().microsecondsSinceEpoch;
-  _logger.debug("call updateWindows(onlyMainWindow: $onlyMainWindow) $id");
-  final completer = Completer();
-  if (_running != null) {
-    if (_waiting != null) {
-      return _waiting;
+  bool get isInitialized => _initialized;
+
+  Iterable<FiloLayerWindowController> get edgeControllers => _edges.values;
+
+  /// Creates the main layer window. Must be called once, after the windowing
+  /// owner is installed and the config is loaded.
+  void initialize() {
+    if (_initialized) return;
+    _initialized = true;
+    _requestedOutput = mainConfig.monitor;
+
+    final (:controller, :output) = _createMainWithFallback(_requestedOutput);
+    main = controller;
+    _surfaceOutput = output;
+  }
+
+  /// Applies the current config to the layer windows.
+  ///
+  /// Layer surfaces cannot change output after creation, so a monitor change
+  /// recreates all of them.
+  void update() {
+    if (!_initialized) return;
+
+    if (mainConfig.monitor != _requestedOutput) {
+      _recreateAll(mainConfig.monitor);
+      return;
     }
-    _waiting = completer.future;
-    await _running;
-    _waiting = null;
+
+    for (final side in ScreenEdge.values) {
+      final exclusiveSize = _exclusiveSize(side);
+      final existing = _edges[side];
+
+      if (exclusiveSize > 0 && existing == null) {
+        _logger.trace("Creating edge layer for $side with exclusive size $exclusiveSize");
+        final controller = _tryCreateEdge(side, _surfaceOutput, exclusiveSize);
+        if (controller != null) {
+          _edges[side] = controller;
+          notifyListeners();
+        }
+      } else if (exclusiveSize <= 0 && existing != null) {
+        _logger.trace("Removing edge layer for $side");
+        _removeEdge(side, existing);
+      } else if (exclusiveSize > 0 && existing != null) {
+        existing.setExclusiveZone(exclusiveSize);
+      }
+    }
+
+    // Wings may have moved or changed size after the exclusive zones changed.
+    InputRegionController.notifyConfigChange(main.viewId);
   }
-  _running = completer.future;
 
-  _logger.debug("execute updateWindows(onlyMainWindow: $onlyMainWindow) $id");
-  await Future.wait([
-    if (!onlyMainWindow) _updateEdgeWindows(),
-    _updateMainWindow(),
-  ]);
+  /// Schedules [update] for after the current frame.
+  ///
+  /// Calls can come from build/initState while wings update their exclusive
+  /// sizes. Creating or destroying windows there is unsafe.
+  void scheduleUpdate() {
+    if (!_initialized || _updateScheduled) return;
+    _updateScheduled = true;
 
-  completer.complete();
-  _running = null;
-  InputRegionController.notifyConfigChange();
-}
-
-Future<void> _updateMainWindow() async {
-  // TODO: 3 allow setting monitor by name, would need to get more data from
-  // hyprctl or wlr_randr, because gtk only returns model
-  _logger.log(Level.trace, "Setting main window monitor...");
-  _logger.log(Level.trace, "Setting main window exclusive zone...");
-  // final monitors = await FlLinuxWindowManager.instance.listMonitors();
-  // monitors.first.connector;
-  // TODO: 2 this sets monitor by INDEX, instead of ID. Index and id is usually the same,
-  // but at least in hyprland, if you remove and re-connect the ID-0 monitor, it will now
-  // be the last index, but still ID-0.
-  await Future.wait([
-    FlLinuxWindowManager.instance.setMonitor(mainConfig.monitor),
-    FlLinuxWindowManager.instance.setLayerExclusiveZone(-1),
-  ]);
-
-  // this needs to be re-applied every time main window changes monitors
-  // setting -1 exclusiveSize makes this layer ignore exclusiveZones set by other layers
-  await Future.delayed(_delayDuration);
-}
-
-Future<void> _updateEdgeWindows() async {
-  final futures = <Future>[];
-  for (final side in ScreenEdge.values) {
-    futures.add(_updateEdgeWindow(side, mainConfig));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateScheduled = false;
+      update();
+    });
+    WidgetsBinding.instance.scheduleFrame();
   }
-  await Future.wait(futures);
-}
 
-Set<ScreenEdge> _existingDummyLayers = {};
+  /// Builds the views for the main window and every active edge spacer.
+  List<Widget> buildViews(Widget mainContent) {
+    assert(_initialized);
+    return [
+      FiloLayerWindow(
+        key: ValueKey(main.viewId),
+        controller: main,
+        child: mainContent,
+      ),
+      for (final controller in _edges.values)
+        FiloLayerWindow(
+          key: ValueKey(controller.viewId),
+          controller: controller,
+          child: const ColoredBox(
+            // Paint at least one frame so the layer surface is mapped and its
+            // exclusive zone is applied. The surface is only one pixel thick.
+            color: Color(0x00000000),
+            child: SizedBox.expand(),
+          ),
+        ),
+    ];
+  }
 
-Future<void> _updateEdgeWindow(ScreenEdge side, MainConfig config) async {
-  final exclusiveSize = config.getExclusiveSizeForSide(side)?.round() ?? 0;
-  final windowId = "WayWings$side";
+  void _recreateAll(int requestedOutput) {
+    _logger.debug("Recreating layer windows for monitor $requestedOutput");
 
-  // // removing a window crashes the app for some reason, so just init all at the start
-  if (exclusiveSize == 0) {
-    if (_existingDummyLayers.contains(side)) {
-      _logger.log(Level.trace, "Closing window layer for side $side...");
-      _existingDummyLayers.remove(side);
-      await FlLinuxWindowManager.instance.closeWindow(
-        windowId: windowId,
+    final (:controller, :output) = _createMainWithFallback(requestedOutput);
+    final oldControllers = [main, ..._edges.values];
+
+    main = controller;
+    _edges.clear();
+    _requestedOutput = requestedOutput;
+    _surfaceOutput = output;
+
+    for (final side in ScreenEdge.values) {
+      final exclusiveSize = _exclusiveSize(side);
+      if (exclusiveSize > 0) {
+        final controller = _tryCreateEdge(side, _surfaceOutput, exclusiveSize);
+        if (controller != null) _edges[side] = controller;
+      }
+    }
+
+    notifyListeners();
+
+    // Remove the old views from the tree before their native windows go away.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final controller in oldControllers) {
+        controller.destroy();
+      }
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  void _removeEdge(ScreenEdge side, FiloLayerWindowController controller) {
+    _edges.remove(side);
+    notifyListeners();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.destroy();
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  ({FiloLayerWindowController controller, int output}) _createMainWithFallback(int requestedOutput) {
+    try {
+      return (controller: _createMain(requestedOutput), output: requestedOutput);
+    } on FiloWindowingException catch (error, stackTrace) {
+      if (requestedOutput == -1) rethrow;
+      _logger.error(
+        "Failed to create the main layer on output $requestedOutput, falling back to the compositor default",
+        error: error,
+        stackTrace: stackTrace,
       );
-      await Future.delayed(_delayDuration);
+      return (controller: _createMain(-1), output: -1);
     }
-    return;
   }
 
-  bool create = !_existingDummyLayers.contains(side);
-  if (create) {
-    _logger.log(Level.trace, "Creating window layer for side $side...");
-    _existingDummyLayers.add(side);
-    await FlLinuxWindowManager.instance.createWindow(
-      windowId: windowId,
-      isLayer: true,
-      initializeFlutter: false,
-      args: ["--dummy-layer"],
-      title: windowId,
-      width: 0,
-      height: 0,
-    );
-    await Future.delayed(_delayDuration);
-
-    _logger.log(Level.trace, "Setting window layer for side $side...");
-    await FlLinuxWindowManager.instance.setLayer(
-      WindowLayer.background,
-      windowId: windowId,
-    );
-    await Future.delayed(_delayDuration);
+  FiloLayerWindowController? _tryCreateEdge(ScreenEdge side, int output, int exclusiveSize) {
+    try {
+      return _createEdge(side, output, exclusiveSize);
+    } on FiloWindowingException catch (error, stackTrace) {
+      _logger.error(
+        "Failed to create the edge layer for $side on output $output",
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
   }
 
-  _logger.log(Level.trace, "Setting window layer monitor for side $side...");
-  await FlLinuxWindowManager.instance.setMonitor(
-    config.monitor,
-    windowId: windowId,
-  );
-  await Future.delayed(_delayDuration);
-
-  _logger.log(Level.trace, "Setting window layer exclusive zone = $exclusiveSize for side $side...");
-  await FlLinuxWindowManager.instance.setLayerExclusiveZone(
-    exclusiveSize,
-    windowId: windowId,
-  );
-  await Future.delayed(_delayDuration);
-
-  if (create) {
-    _logger.log(Level.trace, "Setting window layer anchors for side $side...");
-    await FlLinuxWindowManager.instance.setLayerAnchor(
-      windowId: windowId,
-      anchor: switch (side) {
-        ScreenEdge.top => ScreenEdge.left.value | ScreenEdge.right.value | ScreenEdge.top.value,
-        ScreenEdge.bottom => ScreenEdge.left.value | ScreenEdge.right.value | ScreenEdge.bottom.value,
-        ScreenEdge.left => ScreenEdge.top.value | ScreenEdge.bottom.value | ScreenEdge.left.value,
-        ScreenEdge.right => ScreenEdge.top.value | ScreenEdge.bottom.value | ScreenEdge.right.value,
-      },
+  FiloLayerWindowController _createMain(int output) {
+    return owner.createLayerWindowController(
+      delegate: _LayerWindowDelegate(),
+      layerSurface: FiloLayerSurface(
+        layer: FiloLayer.top,
+        anchors: FiloLayerAnchors.all,
+        exclusiveZone: -1,
+        keyboardInteractivity: mainConfig.requestKeyboardFocus
+            ? FiloLayerKeyboardInteractivity.onDemand
+            : FiloLayerKeyboardInteractivity.none,
+        namespace: "waywing-main",
+        acceptsInput: false,
+        output: output,
+      ),
+      // Both axes are anchored to opposite edges, so the compositor owns them.
+      size: Size.zero,
+      sizedToContent: true,
+      reuseImplicitView: false,
     );
-    await Future.delayed(_delayDuration);
   }
+
+  FiloLayerWindowController _createEdge(ScreenEdge side, int output, int exclusiveSize) {
+    late final FiloLayerWindowController controller;
+    controller = owner.createLayerWindowController(
+      delegate: _LayerWindowDelegate(() {
+        if (identical(_edges[side], controller)) {
+          _edges.remove(side);
+          notifyListeners();
+        }
+      }),
+      layerSurface: FiloLayerSurface(
+        layer: FiloLayer.background,
+        anchors: side.layerAnchors,
+        exclusiveZone: exclusiveSize,
+        keyboardInteractivity: FiloLayerKeyboardInteractivity.none,
+        namespace: "waywing-edge-${side.name}-z",
+        acceptsInput: false,
+        output: output,
+      ),
+      size: _edgeSize(side),
+      sizedToContent: false,
+      reuseImplicitView: false,
+    );
+    return controller;
+  }
+
+  int _exclusiveSize(ScreenEdge side) {
+    return mainConfig.getExclusiveSizeForSide(side)?.round() ?? 0;
+  }
+
+  @override
+  void dispose() {
+    if (_initialized) {
+      final controllers = [main, ..._edges.values];
+      _edges.clear();
+      _initialized = false;
+      for (final controller in controllers) {
+        controller.destroy();
+      }
+    }
+    super.dispose();
+  }
+}
+
+Size _edgeSize(ScreenEdge side) {
+  return switch (side) {
+    // The compositor owns the stretched axis; keep the other one at one pixel.
+    ScreenEdge.top || ScreenEdge.bottom => const Size(0, 1),
+    ScreenEdge.left || ScreenEdge.right => const Size(1, 0),
+  };
+}
+
+class _LayerWindowDelegate with RegularWindowControllerDelegate {
+  _LayerWindowDelegate([this.onDestroyed]);
+
+  final VoidCallback? onDestroyed;
+
+  @override
+  void onWindowDestroyed() => onDestroyed?.call();
+}
+
+/// Applies the current config to the shell windows.
+void updateWindows() {
+  windowManager.scheduleUpdate();
 }

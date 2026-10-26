@@ -1,11 +1,11 @@
 import "dart:io";
 
 import "package:dbus/dbus.dart";
-import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:path/path.dart" as path;
 import "package:json_annotation/json_annotation.dart";
 import "package:tronco/tronco.dart";
 import "package:waywing/modules/app_launcher/packages/freedesktop_entry/freedesktop_entry.dart";
+import "package:waywing/util/bindings.dart";
 
 part "application.g.dart";
 
@@ -186,16 +186,14 @@ class Application implements Comparable<Application> {
       final client = DBusClient.session();
       final pathObject = DBusObjectPath("/${dbusname.replaceAll('.', '/').replaceAll('-', '_')}");
       final remoteObject = DBusRemoteObject(client, name: dbusname, path: pathObject);
-      final token = await FlLinuxWindowManager.instance.getXdgToken();
+      final token = await ActivationBindings.getActivationToken(-1); // TODO 1: maybe use the view id
       final params = [
         DBusDict(
           DBusSignature.string,
           DBusSignature.variant,
           {
             const DBusString("activation-token"): DBusVariant(
-              DBusString(
-                token ?? "",
-              ),
+              DBusString(token),
             ),
           },
         ),

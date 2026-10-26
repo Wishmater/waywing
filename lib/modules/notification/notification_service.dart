@@ -2,7 +2,6 @@ import "package:audioplayers/audioplayers.dart";
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:dbus/dbus.dart";
-import "package:fl_linux_window_manager/fl_linux_window_manager.dart";
 import "package:flutter/material.dart" hide Notification;
 import "package:flutter/foundation.dart";
 import "package:hive_ce/hive.dart";
@@ -11,6 +10,7 @@ import "package:waywing/core/service.dart";
 import "package:waywing/core/service_registry.dart";
 import "package:waywing/modules/notification/spec/notifications.dart";
 import "package:waywing/modules/notification/notification_models.dart";
+import "package:waywing/util/bindings.dart";
 import "package:waywing/util/derived_value_notifier.dart";
 import "package:tronco/tronco.dart" as tronco;
 import "package:waywing/util/search_sound.dart";
@@ -126,14 +126,7 @@ class NotificationsService extends Service<NotificationsServiceConfig> {
 
   // TODO remove from the public api as this action should be implicit
   Future<void> emitActivationToken(Notification notification) async {
-    final token = await FlLinuxWindowManager.instance.getXdgToken();
-    if (token == null) {
-      logger.error(
-        "on emitActivationToken xdg token should never be null",
-        error: "getXdgToken() returned null",
-      );
-      return;
-    }
+    final token = await ActivationBindings.getActivationToken(-1); // TODO 1: maybe use the view id
     await server.emitActivationToken(notification, token);
   }
 

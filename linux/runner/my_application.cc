@@ -6,7 +6,6 @@
 #endif
 
 #include "flutter/generated_plugin_registrant.h"
-#include <fl_linux_window_manager/fl_linux_window_manager_plugin.h>
 
 #include <gdk/gdkwayland.h>
 #include <wayland-client.h>
@@ -53,9 +52,6 @@ static void my_application_activate(GApplication* application) {
 
   gtk_window_set_default_size(window, 1280, 720);
   // up to here is normal flutter code
-
-  // add this line for fl_linux_window_manager package to work properly
-  FLWM::WindowManager::convertToLayer(GTK_WINDOW(window));
 
   // this line was already in default flutter file, just moved down
   gtk_widget_show(GTK_WIDGET(window));

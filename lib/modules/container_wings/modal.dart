@@ -1,8 +1,8 @@
 import "dart:math";
 
+import 'package:flutter/src/widgets/_window.dart';
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
-import "package:fl_linux_window_manager/widgets/input_region.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:fz_icons/fz_icons.dart";
@@ -13,6 +13,7 @@ import "package:waywing/core/server.dart";
 import "package:waywing/core/wing.dart";
 import "package:waywing/util/config_fields.dart";
 import "package:waywing/widgets/hideable.dart";
+import "package:waywing/widgets/input_region.dart";
 import "package:waywing/widgets/keyboard_focus.dart";
 import "package:waywing/widgets/motion_widgets/motion_container.dart";
 import "package:waywing/widgets/shapes/external_rounded_corners_shape.dart";
@@ -177,6 +178,8 @@ class ModalWing extends Wing<ModalConfig> {
           );
 
           return InputRegion(
+            // ignore: invalid_use_of_internal_member
+            viewId: WindowScope.of(context).rootView.viewId,
             active: show,
             child: IgnorePointer(
               ignoring: !show,

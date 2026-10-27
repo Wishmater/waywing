@@ -5,13 +5,14 @@
     "platform": "linux-x64",
     "enabled": true,
     "ping": [
-        "bash",
-        "-c",
-        "test -f wayland/build.zig && test -n \"$WAYLAND_DISPLAY\" && test -n \"$XDG_RUNTIME_DIR\""
+        "dart",
+        "wayland/tool/wayland.dart",
+        "ping"
     ],
     "postBuild": [
-        "bash",
-        "wayland/tool/post-build.sh",
+        "dart",
+        "wayland/tool/wayland.dart",
+        "post-build",
         "${appName}",
         "${localPath}",
         "${buildMode}",
@@ -19,23 +20,19 @@
         "${engineRevision}"
     ],
     "install": [
-        "bash",
-        "wayland/tool/install.sh",
+        "dart",
+        "wayland/tool/wayland.dart",
+        "install",
         "${appName}",
         "${localPath}"
     ],
     "uninstall": [
-        "bash",
-        "wayland/tool/uninstall.sh",
+        "dart",
+        "wayland/tool/wayland.dart",
+        "uninstall",
         "${appName}"
     ],
     "runDebug": [
-        "bash",
-        "wayland/tool/run.sh",
-        "${appName}",
-        "${engineOptions}",
-        "${buildMode}",
-        "${icuDataPath}",
-        "${engineRevision}"
+        "wayland/zig-out/bin/${appName}"
     ]
 }

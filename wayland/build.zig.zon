@@ -1,15 +1,11 @@
 .{
     .name = .filo_wayland_host,
     .version = "0.0.0",
-    .fingerprint = 0x7b721435483b4d27,
+    .fingerprint = 0x7b721435389b530c,
     .minimum_zig_version = "0.17.0",
-    .dependencies = .{
-        .filo = .{
-            .path = "../../../my/fembed/filo"
-            // .url = "git+https://github.com/ross96D/filo#787dd3041f2c4051e5fb7cf67754937221c5dc89",
-            // .hash = "N-V-__8AAPcnVgAJG_39st3UjEJvSOdlUR4_R5juxdjBWiEr",
-        },
-    },
+    .dependencies = .{ .filo = .{
+        .path = "../../../my/fembed/filo"
+    } },
     .paths = .{
         "build.zig",
         "build.zig.zon",

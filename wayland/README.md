@@ -14,7 +14,7 @@ can live here. Add modules in `build.zig` and import them from `src/main.zig`.
 1. Fetch filo into the copied Zig project:
 
    ```sh
-   ./wayland/tool/setup-filo.sh <filo-package-url>
+   dart wayland/tool/wayland.dart setup-filo <filo-package-url>
    ```
 
    This runs `zig fetch --save=filo`, so the dependency is pinned by hash. The
@@ -33,7 +33,7 @@ can live here. Add modules in `build.zig` and import them from `src/main.zig`.
 3. Register the global Flutter custom device once:
 
    ```sh
-   ./wayland/register-device.sh
+   dart wayland/tool/wayland.dart register-device
    ```
 
 4. Run from the app root:
@@ -45,19 +45,47 @@ can live here. Add modules in `build.zig` and import them from `src/main.zig`.
    If your Flutter branch still gates windowing behind a flag, add
    `--enable-windowing`.
 
+   Flutter custom devices do not forward `--dart-entrypoint-args`. To pass
+   arguments to Dart's `main(List<String> args)`, set
+   `FILO_DART_ENTRYPOINT_ARGS` with one argument per line when running Flutter
+   (or put it in `wayland/.env.local`):
+
+   ```sh
+   FILO_DART_ENTRYPOINT_ARGS=$'--dart-flag1\npositional' flutter run -d filo_wayland
+   ```
+
 The custom device is project-aware: its `ping` only succeeds where
 `wayland/build.zig` exists, so the same device entry works for every app that
 has this folder. On arm64 hosts, change `platform` in `custom-device.json` to
 `linux-arm64`.
 
+The tooling is a single Dart script, `wayland/tool/wayland.dart`, and only uses
+the Dart SDK. Make sure `dart` is on `PATH` (it ships with Flutter, alongside
+`flutter`).
+
 ## How the hooks fit together
 
-- `postBuild` runs `zig build` after Flutter writes `build/flutter_assets`.
-- `install` records the exact asset directory in `wayland/.filo/assets`.
-- `runDebug` sets `FILO_ENGINE_LIB`, `FILO_ICU_DATA` and `FILO_ASSETS`, splits
-  Flutter's `${engineOptions}` back into argv, and `exec`s the host.
+- `postBuild` runs `zig build` after Flutter writes `build/flutter_assets`. It
+  resolves the engine, ICU data, assets, Dart entrypoint arguments and filo
+  switches, then writes `wayland/.filo-build/launch.json`.
+- `install` writes `wayland/.filo/launch.json` with the exact asset directory
+  Flutter built; `uninstall` removes that per-run state.
+- `runDebug` runs `wayland/zig-out/bin/<appName>` directly, so the app starts
+  with the app root as its working directory and Flutter stops the actual app
+  process. The host reads the launch manifest; `FILO_*` environment variables
+  override it. Flutter's `${engineOptions}` are currently ignored.
 - Flutter discovers the VM service URL from the host's stdout, so hot reload
   and hot restart work through the normal Flutter tooling.
+
+For a manual run, `dart wayland/tool/wayland.dart run` refreshes the launch
+manifest and starts the host with the app root as the working directory.
+`zig build run` from `wayland/` still works when `FILO_ENGINE_LIB`,
+`FILO_ICU_DATA` and `FILO_ASSETS` are set.
+
+`.env.local` is parsed by the Dart tool, not sourced by a shell. It supports
+`KEY=VALUE`, comments, single/double quoted values and `$'...'` escapes, but no
+variable expansion or command substitution. Relative paths resolve against
+`wayland/`.
 
 Custom devices only support debug builds. For release, build the AOT bundle
 separately (for example with `flutter build linux --release` while a `linux/`
@@ -68,9 +96,11 @@ debug hook is limited to debug mode.
 ## Files
 
 - `build.zig`, `build.zig.zon` — the host executable and its filo dependency.
-- `src/main.zig` — reads `FILO_*`, forwards engine options, calls `filo.run`.
-- `tool/post-build.sh`, `tool/install.sh`, `tool/uninstall.sh`, `tool/run.sh`
-  — the custom-device hooks.
-- `tool/setup-filo.sh` — fetches/pins filo in `build.zig.zon`.
-- `custom-device.json` — the device entry; `register-device.sh` installs it.
-- `.env.local` — machine-specific paths; gitignored.
+- `src/main.zig` — reads the launch manifest (or `FILO_*`), forwards argv to
+  Dart, calls `filo.run`.
+- `tool/wayland.dart` — the custom-device hooks, launch manifest, setup helper
+  and device registration.
+- `custom-device.json` — the device entry; the `register-device` subcommand
+  installs it.
+- `.env.local` — machine-specific paths, parsed by the Dart tool; gitignored.
+- `.filo-build/`, `.filo/` — generated launch state; gitignored.

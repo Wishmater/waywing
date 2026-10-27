@@ -193,6 +193,7 @@ class _BatteryPainter extends CustomPainter {
         outlineColor != oldDelegate.outlineColor ||
         fillColor != oldDelegate.fillColor ||
         textStyle != oldDelegate.textStyle ||
+        lightningColor != oldDelegate.lightningColor ||
         isCharging != oldDelegate.isCharging;
   }
 }

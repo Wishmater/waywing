@@ -170,7 +170,7 @@ class BuildReleaseCommand extends ToolCommand {
     );
     stdout.writeln("$toolName: wrote ${tool.paths.launchFile}");
 
-    final bundleDir = Directory("$distDir/$appName");
+    final bundleDir = Directory(distDir);
     if (bundleDir.existsSync()) {
       bundleDir.deleteSync(recursive: true);
     }

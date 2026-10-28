@@ -1,15 +1,15 @@
-import '../tool.dart';
+import "../tool.dart";
 
 class InstallCommand extends ToolCommand {
   @override
-  String get name => 'install';
+  String get name => "install";
 
   @override
-  String get description => 'Record the exact assets Flutter just built.';
+  String get description => "Record the exact assets Flutter just built.";
 
   @override
   String get invocation =>
-      'dart wayland/tool/wayland.dart install <appName> <localPath>';
+      "dart wayland/tool/wayland.dart install <appName> <localPath>";
 
   @override
   void run() {

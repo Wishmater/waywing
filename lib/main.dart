@@ -4,7 +4,6 @@ import "package:args/args.dart";
 import "package:dartx/dartx_io.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:flutter/scheduler.dart";
 import "package:hive_ce/hive.dart";
 import "package:path/path.dart" as path;
 import "package:waywing/core/config.dart";

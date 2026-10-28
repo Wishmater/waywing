@@ -1,6 +1,6 @@
 import "dart:math";
 
-import 'package:flutter/src/widgets/_window.dart';
+import "package:flutter/src/widgets/_window.dart";
 import "package:config/config.dart";
 import "package:config_gen/config_gen.dart";
 import "package:flutter/material.dart";

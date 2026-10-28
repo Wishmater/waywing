@@ -15,25 +15,25 @@
 // plain form keeps the Dart VM in the process Flutter starts, which matters for
 // the one-shot hooks.
 
-import 'dart:io';
+import "dart:io";
 
-import 'package:args/command_runner.dart';
+import "package:args/command_runner.dart";
 
-import 'src/commands/build_release.dart';
-import 'src/commands/install.dart';
-import 'src/commands/ping.dart';
-import 'src/commands/post_build.dart';
-import 'src/commands/register_device.dart';
-import 'src/commands/run.dart';
-import 'src/commands/setup_filo.dart';
-import 'src/commands/uninstall.dart';
-import 'src/tool.dart';
+import "src/commands/build_release.dart";
+import "src/commands/install.dart";
+import "src/commands/ping.dart";
+import "src/commands/post_build.dart";
+import "src/commands/register_device.dart";
+import "src/commands/run.dart";
+import "src/commands/setup_filo.dart";
+import "src/commands/uninstall.dart";
+import "src/tool.dart";
 
 Future<void> main(List<String> args) async {
   final runner =
       CommandRunner<void>(
-          'dart wayland/tool/wayland.dart',
-          'Wayland host tooling for a Flutter app using filo.',
+          "dart wayland/tool/wayland.dart",
+          "Wayland host tooling for a Flutter app using filo.",
         )
         ..addCommand(PingCommand())
         ..addCommand(PostBuildCommand())
@@ -47,17 +47,17 @@ Future<void> main(List<String> args) async {
   try {
     await runner.run(args);
   } on UsageException catch (error) {
-    stderr.writeln('$toolName: ${error.message}');
+    stderr.writeln("$toolName: ${error.message}");
     stderr.writeln(error.usage);
     exitCode = 64;
   } on ToolError catch (error) {
-    stderr.writeln('$toolName: ${error.message}');
+    stderr.writeln("$toolName: ${error.message}");
     exitCode = 1;
   } on ProcessException catch (error) {
-    stderr.writeln('$toolName: ${error.message}');
+    stderr.writeln("$toolName: ${error.message}");
     exitCode = 1;
   } on FileSystemException catch (error) {
-    stderr.writeln('$toolName: ${error.message}');
+    stderr.writeln("$toolName: ${error.message}");
     exitCode = 1;
   }
 }

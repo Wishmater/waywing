@@ -134,7 +134,6 @@ class BuildReleaseCommand extends ToolCommand {
         '-dBuildMode=release',
         '-dTargetFile=$target',
         '-dTrackWidgetCreation=false',
-        '-dTreeShakeIcons=true',
         '-dDartObfuscation=false',
         if (encodedDefines.isNotEmpty) '--DartDefines=$encodedDefines',
         'release_bundle_${targetPlatform}_assets',

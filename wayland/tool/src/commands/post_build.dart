@@ -1,19 +1,19 @@
-import "dart:io";
+import 'dart:io';
 
-import "../tool.dart";
+import '../tool.dart';
 
 class PostBuildCommand extends ToolCommand {
   @override
-  String get name => "post-build";
+  String get name => 'post-build';
 
   @override
   String get description =>
-      "Build the debug host and record the build manifest.";
+      'Build the debug host and record the build manifest.';
 
   @override
   String get invocation =>
-      "dart wayland/tool/wayland.dart post-build <appName> <localPath> "
-      "<buildMode> <icuDataPath> <engineRevision>";
+      'dart wayland/tool/wayland.dart post-build <appName> <localPath> '
+      '<buildMode> <icuDataPath> <engineRevision>';
 
   @override
   Future<void> run() async {
@@ -29,23 +29,23 @@ class PostBuildCommand extends ToolCommand {
     // Custom devices only invoke this hook for debug builds. Fail clearly
     // instead of silently producing a debug host and a release-less manifest
     // if Flutter ever starts calling it with another mode.
-    if (buildMode != "debug") {
+    if (buildMode != 'debug') {
       throw ToolError(
-        "Flutter custom devices only support debug builds; use "
+        'Flutter custom devices only support debug builds; use '
         '"dart wayland/tool/wayland.dart build-release" for a release build',
       );
     }
 
     await runInherited(
-      "zig",
-      ["build", "-Doptimize=Debug", "-Dapp-name=$appName"],
+      'zig',
+      ['build', '-Doptimize=Debug', '-Dapp-name=$appName'],
       workingDirectory: tool.paths.waylandDir,
-      missingMessage: "zig is not on PATH",
+      missingMessage: 'zig is not on PATH',
     );
 
-    final host = File("${tool.paths.hostDir}/$appName");
+    final host = File('${tool.paths.hostDir}/$appName');
     if (!host.existsSync()) {
-      throw ToolError("zig build did not create ${host.path}");
+      throw ToolError('zig build did not create ${host.path}');
     }
 
     final manifest = tool.resolveLaunch(
@@ -54,6 +54,6 @@ class PostBuildCommand extends ToolCommand {
       icuOverride: icuDataPath,
     );
     writeJson(tool.paths.launchBuildFile, manifest);
-    stdout.writeln("$toolName: wrote ${tool.paths.launchBuildFile}");
+    stdout.writeln('$toolName: wrote ${tool.paths.launchBuildFile}');
   }
 }
